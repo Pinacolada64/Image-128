@@ -1,20 +1,69 @@
 ;
 ; Image BBS 128 v1.0 equates
+; based on Ray Kelm's work on Image BBS 64
 ;
 
 ;
 ; printable characters
 ;
 
+	dish	= $08     ; disable case-shift
+	ensh	= $09     ; enable case-shift
+	swlc	= $0e     ; switch to lowercase
+	swuc	= $8e     ; switch to uppercase
+
+	carriage_return	= 13
+	cbm_backspace	= 20
+	ascii_backspace	= 8
+	ascii_bel	= 7
+	ascii_escape	= 27
+	ascii_formfeed	= 12
+	ascii_ctrl_d	= 4
+	ascii_ctrl_x	= 24
+
 	comma	= $2c
+
+	cursor_right	= $1d
+	cursor_left	= $9d
+	cursor_up	= $91
+	cursor_down	= $11
+	reverse_on	= $12
+	reverse_off	= $92
+	clear_screen	= $93
+	cursor_home	= $13
+	british_pound	= $5c
+
+	function_key_2	= 137
+	function_key_5	= 135
+	function_key_6	= 139
+	function_key_7	= 136
+	function_key_8	= 140
+
+; color chr$() codes:
+	chr_black	= $90
+	chr_white	= $05
+	chr_red		= $1c
+	chr_cyan	= $9f
+	chr_purple	= $9c
+	chr_green	= $1e
+	chr_blue	= $1f
+	chr_yellow	= $9e
+	chr_orange	= $81
+	chr_brown	= $95
+	chr_lt_red	= $96
+	chr_gray1	= $97
+	chr_gray2	= $98
+	chr_lt_green	= $99
+	chr_lt_blue	= $9a
+	chr_gray3	= $9b
 
 ; [1.2]: labels/memory address is the same as 1.2
 ; [?]  : not certain of purpose of routine
 ; ($xx): Indirect addressing: $xx *256+ ($xx+1)
 
 ;		; 128	; c64
-	d6510	= $00	; 8502 I/O port data direction register
-	r6510	= $01	; 8502 I/O port data register
+	d8502	= $00	; 128: 8502 I/O port data direction register
+	r8502	= $01	; 128: 8502 I/O port data register
 	zp_02	= $02	; free for use
 	adray1	= $03
 	adray2	= $05
@@ -274,7 +323,7 @@
 	forcegc	= wedgemem+15
 
 ;
-; temporary storage for screen mask?
+; temporary storage for screen mask? FIXME
 ;
 	tempscn = $1000 ; 4096, $140 (320) bytes
 	tempscn0= tempscn+000
