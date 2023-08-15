@@ -1,4 +1,4 @@
-;
+﻿;
 ; Image BBS 128 v1.0 equates
 ; based on Ray Kelm's work on Image BBS 64
 ;
