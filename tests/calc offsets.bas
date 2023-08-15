@@ -1,3 +1,4 @@
+#RetroDevStudio.MetaData.BASIC:7169,BASIC V7.0,uppercase,10,10
 10 print"label     offset  $addr size"
 20 ad=2816:do until lb$="x":read lb$,of:print lb$tab(10):print using"+#####";of;
 30 print"  $"hex$(ad+of)"  ";:if ad+of>1 then print of-po;:else print"---";

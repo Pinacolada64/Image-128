@@ -1,4 +1,4 @@
-#retrodevstudio.metadata.basic:7169,basic v7.0,lowercase,10,10
+#RetroDevStudio.MetaData.BASIC:7169,BASIC V7.0,uppercase,10,10
 10 if a=0 then a=1:load"wedge 128",8,1
 20 if ds=0 then print"ok"
 30 if ds then print ds$:stop
