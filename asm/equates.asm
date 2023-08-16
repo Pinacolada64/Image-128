@@ -1,4 +1,4 @@
-﻿;
+;
 ; Image BBS 128 v1.0 equates
 ; based on Ray Kelm's work on Image BBS 64
 ;
@@ -7,11 +7,11 @@
 ; printable characters
 ;
 
+	comma	= $2c
 	dish	= $08     ; disable case-shift
 	ensh	= $09     ; enable case-shift
 	swlc	= $0e     ; switch to lowercase
 	swuc	= $8e     ; switch to uppercase
-
 	carriage_return	= 13
 	cbm_backspace	= 20
 	ascii_backspace	= 8
@@ -64,56 +64,63 @@
 ;		; 128	; c64
 	d8502	= $00	; 128: 8502 I/O port data direction register
 	r8502	= $01	; 128: 8502 I/O port data register
-	zp_02	= $02	; free for use
-	adray1	= $03
-	adray2	= $05
-	charac	= $07
-	endchr	= $08
-	dimflg	= $0c
-	valtyp	= $0d
-	intflg	= $0e
+	zp_02	= $02	; c64: free for use
+	adray1	= $03	; c64: Vector: Routine to Convert a Number from Floating Point to Signed Integer
+	adray2	= $05	; c64: Vector: Routine to Convert a Number from Integer to Floating Point
+	charac	= $0a
+	endchr	= $0a
+	dimflg	= $0e	; c64: $0c. default array dimension
+	valtyp	= $0f	; c64: $0d. data type: $ff=string, $00=numeric
+	intflg	= $10	; c64: $0e. data type: $80=integer, $00=Floating point
 	tansgn	= $12
-	temppt	= $16
-	lastpnt	= $17
-	tempst	= $19
-;	zp_index= $22	; official name is "index", renamed to not conflict with BBS flag @ $d00f
-	resho	= $26
-; relocated up 2 bytes from c64 zp:
-	txttab	= $2d	; ($2b) pointer to start of BASIC text in bank 0
-	vartab	= $2f	; ($2d) pointer to start of BASIC variables in bank 1
-	arytab	= $31	; ($2f) pointer to start of arrays in bank 1
-	strend	= $33	; ($31) pointer to start of free memory in bank 1
-	fretop	= $35	; ($33) pointer to bottom of dynamic string storage in bank 1
-	frespc	= $37	; ($35) pointer to most recently used string in bank 1
-	memsiz	= $39	; ($37) pointer to top of dynamic string storage in bank 1
-;	linnum	= $3b	; ($14) FIXME: is label "linnum" or "curlin"? can't find 128 oldlin
-	curlin	= $3b	; ($39) Current BASIC Line Number
-;	oldlin	= $3b	; ($3b) Previous BASIC Line Number
-	oldtxt	= $3d
-	datlin	= $3f
-	datptr	= $41
-	inpptr	= $43	; pointer to source of data (read, input, get)
-	varnam	= $45
-	varpnt	= $47
-	forpnt	= $49
-	opptr	= $4b
-	opmask	= $4d
-	defpnt	= $4e
-	dscpnt	= $50
-	four6	= $53
-	jmper	= $54
-	numwork	= $57	; 6 bytes
+	poker	= $16	; c128: temp integer value (used by adrfor)
+	linnum	= $17	; c128: temp integer value (used by adrfor)
+			; TODO: rename ($3b) "linnum" to "curlin" in source modules to
+			; avoid using wrong label @ $17
+; relocated 2 bytes up from c64 zero-page:
+	temppt	= $18	; c64: $16. Pointer to the Next Available Space in the Temporary String Stack
+	lastpnt	= $19	; c64: ($17). Pointer to the Address of the Last String in the Temporary String Stack
+	tempst	= $1b	; c64: $19-$21. c128: $1b-$23. Descriptor Stack for Temporary Strings
+	24_index= $24	; c128: $24-$27. Miscellaneous Temporary Pointers and Save Area
+			; official name is "index", renamed to not conflict with BBS flag @ $d00f
+	resho	= $28	; c64: $26-$2a. c128: $28-$2c. Floating point product of multiply
+	txttab	= $2d	; c64: ($2b). pointer to start of BASIC text in bank 0
+	vartab	= $2f	; c64: ($2d). pointer to start of BASIC variables in bank 1
+	arytab	= $31	; c64: ($2f). pointer to start of arrays in bank 1
+	strend	= $33	; c64: ($31). pointer to start of free memory in bank 1
+	fretop	= $35	; c64: ($33). pointer to bottom of dynamic string storage in bank 1
+	frespc	= $37	; c64: ($35). pointer to most recently used string in bank 1
+	memsiz	= $39	; c64: ($37). pointer to top of dynamic string storage in bank 1
+	linnum	= $3b	; c64: ($14). Current BASIC Line Number
+			; TODO: rename ($3b) "linnum" to "curlin" in source modules to
+			; avoid using wrong label @ $17
+;	curlin	= $3b	; c128 label
+;	oldtxt	= $3d	; c64 label
+	txtptr	= $7a	; c128 label
+;	datlin	= $3f	; c64 label
+;	form	= $3f	; c128: used by "print using"
+	datlin	= $41	; current "data" line #
+	datptr	= $43	; current "data" item address
+	inpptr	= $45	; vector: input routine
+	varnam	= $47	; c64: $45-$46. c128: $47-$48. bytes of current BASIC variable name
+	varpnt	= $49	; pointer: current BASIC variable data
+	lstpnt 	= $4b	; pointer: index variable for "for...next"
+	forpnt	= $4b
+	opmask	= $4f	; c64: $4d
+	defpnt	= $52	; c64: $4e
+	dscpnt	= $52	; c64: $50
+	four6	= $53	; FIXME: move elsewhere
+	jmper	= $56	; c64: $54
+	numwork	= $57	; FIXME: move elsewhere $57-$5c: 6 bytes
 
-	var	= $61	; $61-$66: FAC1, Floating Point Accumulator #1
-	fac2	= $69
-	arisgn	= $6f	; arithmetic sign
-	fbufpt	= $71
-	chrinc	= $76
-	chrget	= $0380	; $0073
-	chrgot	= $0386 ; $0079
+	var	= $63	; c64: $61-$66. c128: $63-$68? FAC1, Floating Point Accumulator #1
+	fac2	= $6a	; c64: $69-$6e? c128: $6a-$6f? FAC2
+	arisgn	= $71	; c64: $6f. arithmetic sign
+	fbufpt	= $72	; c64: $71
+	chrinc	= $76	; c128: flag if 10K hires screen allocated
 
-	status	= $90	; Kernal I/O Status Word
-	xsav	= $97	; Temporary .X Register Save Area
+	status	= $90	; same: Kernal I/O Status Word
+	xsav	= $97	; same: Temporary .X Register Save Area
 ;
 ; rs232
 ;
@@ -126,10 +133,10 @@
 	eal	= $ae
 	nxtbit	= $b5
 	rodata	= $b6	; RS-232 Output Byte Buffer
-	fnlen	= $b7	; filename length
+	fnlen	= $b7	; same: filename length
 	la	= $b8
 	sa	= $b9
-	fa	= $ba	; current output device
+	fa	= $ba	; same: current output device
 	fnadr	= $bb
 	fsblk	= $be
 	mych	= $bf
@@ -186,6 +193,9 @@
 	color	= 646	; $0286: Current Foreground Color for Text
 	undcol	= 647	; $0287
 
+	chrget	= $0380	; c64: $0073
+	chrgot	= $0386 ; c64: $0079
+
 ; Byte Indices to the Beginning and End of Receive and Transmit Buffers
 
 	ridbe	= $0a18 ; 667, RS-232: Index to End of Receive Buffer
@@ -193,20 +203,22 @@
 	rodbs	= $0a1a ; 669, RS-232: Index to Start of Transmit Buffer
 	rodbe	= $0a1b ; 670, RS-232: Index to End of Transmit Buffer
 
-	fkeybuf	= $100a ; 679, $100a-$10ff (4106-4351), $f5 (245) bytes
-	emptym0	= 711 ; $02c7-$02ff (711-767), $39 (57) bytes
+	fkeybuf	= $100a ; c64: 679, $100a-$10ff (4106-4351), $f5 (245) bytes
+	emptym0	= 711	; $02c7-$02ff (711-767), $39 (57) bytes
 ;
 ; serial # stuff
 ;
 	bsnpre	= $02fd	; 765 BBS serial # prefix (a/b/g...)
 	bsnval	= $02fe	; 766 BBS serial # lo byte, 767=hi byte
 
-	cassbuff= $0b00 ; 828, $0b00-$0bbf (2816-3007, 191 bytes)
+	rptflg	= $0a22 ; [c64: 650] 128 = most keys repeat, 0=no keys repeat
+
+	cassbuff= $0b00 ; [c64: 828] $0b00-$0bbf (2816-3007, 191 bytes)
 			; during BOOT command, image of boot sector is held
 			; in $0b00-$0bff. I don't see another reference to
 			; $0bc0-$0bff in the memory map; could this area be
 			; extended?
-			; TODO: ($0b00) is unused, perhaps put oldlin here?
+
 	idlemax	= cassbuff + 002 ; $0b02: maximum idle time allowed
 	datebuf	= cassbuff + 003 ; $0b03: 11 bytes
 	daytbl	= cassbuff + 014 ; $0b0e: 24 bytes (8*3: "???SunMonTueWedThuFriSat")
@@ -269,7 +281,8 @@
 	tcolr	= $d800+960
 
 ;
-; Message Command Interpreter variables:
+; FIXME: Message Command Interpreter variables:
+; 24 bytes
 ;
 	mjump	= $07e8	; 2024: # of lines to skip for £J, £E, £D
 	mresult	= $07e9	; 2025: Result of £A, £T
@@ -280,7 +293,6 @@
 	mreverse= $07ee	; 2030: Reverse mode flag for £R
 	mci	= $07ef	; 2031: 0=don't interpret MCI
 	mdigits	= $07f0	; 2032: Number of digits for £#
-
 	carrst	= $07f1	; 2033: modem carrier status (check mark/no check mark, displayed on screen)
 	tsp1	= $07f2	; 2034: transmit speed lo-byte
 	tsp2	= $07f3	; 2035: transmit speed hi-byte
@@ -309,10 +321,10 @@
 	rsbaud	= rs232 + $0f
 	rschar	= rs232 + $12
 
-	ntscpal = $0a03	; $02a6, 255=pal, 1=ntsc FIXME
+	ntscpal = $0a03	; c64: $02a6, 255=pal, 1=ntsc FIXME
 
-	ribuf	= $0b00	; rs232 input buffer
-	robuf	= $0b80	; rs232 output buffer
+;	ribuf	= $0b00	; rs232 input buffer
+;	robuf	= $0b80	; rs232 output buffer
 
 	wedgemem= $0c00
 	trapoff	= wedgemem+0
@@ -345,6 +357,9 @@
 	tempcol7= tempcol+280
 	emptym3	= $1280 ; 4736, 96 bytes
 
+	oldlin	= $1200 ; c64: $3b, previous BASIC line number
+
+; FIXME: relocate 25 bytes
 	idlejif	= $12e0	; 4832
 	idlesec	= $12e1	; 4833
 	idleten	= $12e2	; 4834
@@ -375,7 +390,7 @@
 	freq	= $12fe	; 4862
 
 ;
-; tables
+; FIXME: relocate tables ($1300-$1800, $0500 bytes)
 ;
 	chktbl	= $1300 ; $10 bytes (8 lightbar positions*2 checks per page, 8 pages=128 bits)
 	bartbl	= $1310 ; $c0 bytes
@@ -403,25 +418,26 @@
 
 ; FIXME BASIC routines:
 	error	= $a437
-	linkprg	= $a533
+	linkprg	= $af87 ; c64: $a533
 	gone1	= $a7e7
 	gone2	= $a7ea
-	linget	= $a96b
-	frmnum	= $ad8a
-	frmevl	= $ad9e ; evaluate string/math expressions
+	linget	= $af9f	; c64: $a96b
+	frnum	= $77d7	; c64: $ad8a. get arbitrary numeric expression. returns in fac1.
+	getadr	= $880f	; c64: $b7f7. call chkcom, frnum, adrfor.
+	adrfor	= $8815 ; c128 only? get 16-bit number in fac1, return < .y & $16, > .a & $17
+	frmevl	= $af96	; c64: $ad9e. evaluate string/math expressions
 	eval1	= $ae8d
-	parchk	= $aef1 ; parentheses check: '('
-	chkcom	= $aefd ; check if next character is comma, return "?syntax  error" if not
+	parchk	= $aef1 ; parentheses check: '(', ')'
+	chkcom	= $795c	; c64: $aefd ; check if next character is comma, return "?syntax  error" if not
 	synerr	= $af08 ; emit "?syntax  error"
 
 	ptrget1	= $b0e7	; set up descriptor stored in ($45) [varname],
 		; returns address in (varpnt)
 	ilqerr	= $b248
 	retbyt	= $b3a2
-	makerm1	= $b475
+	makerm1	= $b475	; c64: midway through str$()
 	getbytc	= $b79b
-	getnum	= $b7eb
-	getadr	= $b7f7
+	getnum	= $87f4	; c64: $b7eb. get 8-bit value (0-255)
 	retval	= $bc49
 
 ; FIXME transfer protocol area
@@ -456,7 +472,7 @@
 
 	buf2	= $ce27	; 80 bytes
 	buffer	= $ce77	; 80 bytes
-;	longdate= $ceca ; ""
+;	longdate= $ceca ; starts at $cec7? im 3170
 
 ; BBS flags (really, unused VIC-II registers)
 
