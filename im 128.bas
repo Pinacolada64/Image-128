@@ -1,477 +1,611 @@
-#RetroDevStudio.MetaData.BASIC:7169,BASIC V7.0,lowercase,10,10
-# COMMENTS BEGIN WITH OCTOTHORPE
-0 ON PEEK(829) GOTO 3000,4000:GOTO 300
-1 GOSUB10:&,22,1:GOTO10
-2 DV%(.)=D1%:DR%(.)=D2%:DV%=DV%(DR):DR$=MID$(STR$(DR%(DR)),2)+":":D3%=DR%(DR):RETURN
-3 CLOSE15:GOSUB2:OPEN15,DV%,15:RETURN
-4 CLOSE2:GOSUB3:OPEN2,DV%,2,DR$+A$
-5 INPUT#15,E%,E$,T%,S%:A$="TATUS:£#2£%E:£$E:£%T:£%S":RETURN
-6 AN$=UU$:ON-(AN$<>"")GOSUB310:ON-(AN$<>"")GOTO314:PL=1:&,1:GOTO310
-7 &"£G1":A$=AN$:RETURN
-# I TAKE IT PEEK(17138) <C64 SCREEN MASK MODE> IS CHECKED WITHIN &,69
-# THEREFORE ELIMINATING IT HERE:
-9 IF NT=. THEN:&,69,4,21,LEFT$(" "+CM$+"               ",22),$8C:RETURN:ELSE RETURN
-# REM PRINT#15,"P"CHR$(XAND255)CHR$(X/256)"":RETURN
-10 RECORD#X:RETURN
-11 A=VAL(MID$(FL$,A,1)):RETURN
-12 POKE53253,0:POKE2024,.:POKE2031,.:POKE53260,.:&"£U0£Q"+CHR$(DF%+48):RETURN
-13 &""
-14 A$=A$+",S,R":GOSUB4:IFE%=.THEN:&,3,2
-15 CLOSE2:RETURN
-16 GOSUB1:INPUT#2,ST(X):ST(X)=ST(X)+I
-17 GOSUB1:PRINT#2,ST(X):RETURN
-18 GOSUB19:A$=A$+",S,W":GOTO4
-19 GOSUB3:PRINT#15,"S"DR$A$:RETURN
-# "SCRATCH(DR$+A$) ON U DR%(DR)" DOESN'T SEEM TO WORK IN BASIC 7.0
-28 CM$=A$:GOSUB9:DR=5:GOSUB3:IF"++ "+A$=ML$THENE%=.:RETURN
-29 ML$="++ "+A$:A$=DR$+ML$:&,7,DV%,2:GOTO5
-30 DR=3:A$="E.STATS":GOTO4
-31 DR=3:A$="E.ACCESS":GOTO4
-32 DR=2:A$="M."+LEFT$(TT$,13)+",S,"+A$:GOTO4
-33 DR=3:A$="E.DATA":GOTO4
-34 E%=A%:&,52,46,3:AM=A%:A%=E%:DR=3:A$="E.LOG"+LEFT$(LT$,AM)+",S,"+A$:GOTO4
-35 DR=6:A$="U.CONFIG":GOTO4
-36 DR=3:A$="E."+B$+",S,"+A$:GOTO4
-37 A$="A":GOSUB36:IFE%THENA$="W":GOSUB36
-38 PRINT#2,NA$R$ID;R$D1$R$AC%R$PH$R$RN$R$CO$:RETURN
-39 &,14,2,KK-1:PRINT#2,"^":CLOSE2:GOTO62
-40 A$="NEW USER":GOTO42
-41 A$="CONFIG"
-42 A$="S."+A$:DR=1:GOTO13
-43 DR=3:A$="E.SAY":GOSUB4:ONSGN(E%)GOTO46:X=1:GOSUB1:INPUT#2,X
-44 A=RND(-TI):X=INT(RND(1)*X)+2:GOSUB1
-45 INPUT#2,B$,C$,D$,F$:GOSUB90:LP=1:&"£$Q £$B£$Q £$C£$Q £$D£$Q £$F£Q0"
-46 CLOSE2:RETURN
-50 IFI%THENRETURN
-51 C$=A$:A$="A":GOSUB34:IFE%=.THENPRINT#2,C$
-52 CLOSE2:A$=C$:AN$=C$:A=A%:&,52,13,3:B=A%:A%=A:IFB=.THENRETURN
-53 OPEN16,4,15:CLOSE16:IFSTTHENRETURN
-54 PRINT#4,A$:RETURN
-60 A$=",U,W":GOSUB4:CLOSE2:PRINT#15,"S"DR$"":A=-SGN(E%):RETURN
-61 IFDR<7THENIFBF(DR)>-1THENGOSUB2:A=BF(DR):BF=A:RETURN
-62 GOSUB3:IFDV%<>LK%THEN64:ELSEA$=DR$:IFDR$="10:"THENA$="A"
-63 A=2:PRINT#15,"LG"LEFT$(A$,1):INPUT#15,E%,A$,A$,A$,A$,A$:GOTO65
-64 A=1:CLOSE2:OPEN2,DV%,0,"$"+DR$+"":GET#2,A$,A$:&,8,2,1:&,8,2,1:CLOSE2
-65 A=VAL(A$)*A:BF=A:FORA=1TO6:IFDV%(A)=DV%ANDDR%(A)=VAL(DR$)THENBF(A)=BF
-66 NEXT:A=BF:RETURN
-70 DR=5
-71 IFPR$<>"I."+A$THENGOSUB76:ELSEGOTO3000
-72 DR=5
-73 IFP1$<>"I/"+A$THENGOSUB77:ELSEGOTO4000
-74 IFA$<>"MODEM"THEN100:ELSEDR=5:IFP2$<>"SUB."+A$GOSUB78:ELSEIS=IS+1:IM$(IS)=P2$
-75 GOSUB60000:IS=IS-1:IFIS<1THENRETURN:ELSEA$=MID$(IM$(IS),5):GOTO78
-76 A$="I."+A$:PR$=A$+"":P1$="":P2$="":NEW3000:GOTO79
-77 A$="I/"+A$:P1$=A$+"":P2$="":NEW4000:GOTO79
-78 A$="SUB."+A$:P2$=A$+"":NEW60000
-79 CM$=A$:GOSUB9:GOSUB2:LOADDR$+A$,DV%:RETURN
-80 A$=Z$:Z$=MID$(P1$,3):GOSUB72:A$=Z$:DR=5:IFLC<>1THEN77:ELSERETURN
-82 FORI=1TO4:&,11,I:NEXT
-83 &,11,.:RETURN
-84 A=INT(MN%/60):PT%=-(A>=P2%ANDA<P3%)*SGN(P1%):RETURN
-85 &"OULD OU IKE O EAVE EEDBACK? ":GOSUB96:IFA=.THENRETURN:ELSEDR=3:GOSUB61
-86 X=2:IF BF<35 THEN 390:ELSE IM=1:GOTO444
-90 Q$="":IFLL%>42THENFORR=1TOINT((LL%-42)/2):Q$=Q$+" ":NEXT
-91 RETURN:REM ELSE WON'T HELP ABOVE
-92 &">>ANCELED!":RETURN
-93 GOSUB98
-94 &"[O]":GOSUB7:&"£H4":A=-(A$=""):GOTO97
-95 GOSUB98
-96 &"[ES]":GOSUB7:&"£H5":A=(A$="")+1
-97 &"£Q"+CHR$(DF%+48)+MID$("ESO",4-A*3,3)+"":RETURN
-98 &"RE OU URE?: ":RETURN
-100 P2$="SUB."+A$:GOSUB110:IS=IS+1:IM$(IS)=IM$
-102 GOSUB60000:NEW60000:IS=IS-1:IFISTHENA$=IM$(IS):P2$="SUB."+A$:GOSUB110
-104 RETURN
-110 DR=5:GOSUB2:IM$=A$:CM$="SUB."+A$:GOSUB9:A$=DR$+"SUB."+A$:LOADA$,DV%
-112 RETURN
-200 ONTR%+1GOTO240:&,52,17,LF:&,52,20,EM:POKE951,LL%:POKE971,MP%:POKE970,0
-202 &,52,30,3:ONA%GOSUB330
-204 S=.:SH=.:GOSUB12
-206 POKE970,0:&,52,30,3:AN$=D1$:&,15:B$=RIGHT$(AN$,7)
-208 MM=2:GOSUB3000:GOSUB9:&" - £$B£Q0":IFTR%<100THENA%=TR%:&" - £%A IN EFT£Q0"
-209 IFZZTHENA%=USR(0):&" - TACK REE: £%A£Q0"
-210 &"":POKE53252,38:GOSUB6
-212 CM$=LEFT$(P$,11)+":"+LEFT$(AN$,4):GOSUB9:CM$=P$
-214 ONTR%+1GOTO240:IFAN$=""THENGOSUB250:GOTO200
-216 GOSUB220:IFF4THENGOSUB304:ON-(F4=1.1)-2*(F4=1.2)-3*(F4=1.3)GOTO270,268,234
-218 ONRSGOTO200:MM=1:GOTO3000
-220 ON-(AC%<>AO%)GOSUB320:AN$=AN$+"":RS=1:A$=LEFT$(AN$,1):Z$=LEFT$(AN$,2)
-222 &,52,20,3:EM=A%:&,52,5,3:ZZ=A%
-224 X=1:RQ=.:RS=1
-226 F4=.:A%=ZZ:B%=2^AC%:&,42:IFA%THENEF$=B$:EP$=A$:EC=A%:EC%=B%:GOTO260
-228 ON-(A$=""OR(LC=1ANDA$=""))-2*(A$="")GOTO230,250:RS=.:RETURN
-230 F4=.:IFRIGHT$(AN$,1)<>"!"THEN:&"OGOFF?: ":GOSUB96:IFA=.THENRETURN
-232 F4=1.3:RETURN
-234 F1=1-(RIGHT$(AN$,1)="!"):CD%=.:IFMID$(Z$,2,1)="%"THEN302
-236 &"PDATE ESSAGE/ILE CAN ATE?: ":GOSUB96:IFATHENLD$=LT$:ELSEGOTO302
-240 &"ORRY, IME IMIT XCEEDED.":MM=3:GOSUB3000:F1=1:GOTO302
-242 F1=.:&" BORTED!":GOTO200
-250 IM=1:GOTO436
-260 IF EC%>. AND CR-EC%<. THEN:&"OT NOUGH REDITS!":RETURN
-262 CR=CR-EC%:IF EP$="" OR ID=1 THEN 264
-263 &"ASSWORD:":&,6:IFAN$<>EP$THEN:&"NCORRECT ASSWORD.":RETURN
-264 F4=.:ONECGOTO265,266,267,268:RETURN
-265 Z$=EF$:F4=1.1:&,28,1:RETURN
-266 F4=1.2:&,28,1:RETURN
-267 Z$=EF$:GOTO80
-268 A%=ASC(EF$+NL$)+256*ASC(MID$(EF$,2,1)+NL$):&,42,1
-270 MM=.:A$=Z$:GOTO70
-280 A%=ZZ:B%=2^AC%:&,42:IFA%THENEF$=B$:EP$=A$:EC=A%:EC%=B%:GOTO264
-282 RETURN
-288 RETURN
-289 &"£I0":IFAN$=""THENRETURN
-290 &,15,2:RETURN
-# LEAVE THESE TWO LINES UNTOUCHED: CONTINUE AFTER
-300 &,28,1:&,52,$30,3:ONA%GOSUB309:MM=.:A$="MAIN":GOTO70
-302 &,28,1:&,52,$30,3:ONA%GOSUB309:MM=.:A$="LO":GOTO70
-304 &,28,1:GOSUB306:&,27:RETURN
-306 DIMBB$(31),DT$(61),ED$(61),NN$(61)
-308 DIMA%(61),C%(61),D%(61),E%(31),F%(61),AC%(31),SO%(31):RETURN
-309 CM$="1.3 MULATOR":GOSUB9:DR=5:GOSUB3:LOADDR$+"IM.EMUL13",DV%:GOTO304
-310 PU$=AN$:IFAN$=""THEN315
-311 IFLEFT$(AN$,1)=""THENAN$=HS$(10-VAL(MID$(AN$,2,1))):GOTO314
-312 &,15,6,140:UU$=AN$:AN$=A$
-313 FORCT=1TO9:HS$(CT)=HS$(CT+1):NEXT:HS$(10)=AN$:RETURN
-314 &P$+": £V7":RETURN
-315 FORCT=1TO10:A%=10-CT:A$=HS$(CT):&"£%A: £$A":NEXT:AN$="":UU$="":RETURN
-320 GOSUB31:X=AC%+1:GOSUB1:&,2,2:AG$=A$:&,2,2:CLOSE2
-321 IFLEN(FL$)<LEN(A$)THENFL$=FL$+MID$(A$,LEN(FL$)+1)
-322 IFLEN(FL$)>LEN(A$)THENFL$=A$
-323 IFAC%<>AO%THENFL$=A$:AO%=AC%
-324 A=6:GOSUB11:LE=(A+1)*10:A=16:GOSUB11:POKE830,A:A=20:GOSUB11:DA%=A
-325 RETURN
-330 DR=3:A$="E.MACROS":GOSUB4
-332 IFE%=.THEN:&,2,2:A=VAL(A$):&"":X=INT(RND(1)*A)+2:GOSUB1:&,3,2
-334 CLOSE2:RETURN
-349 &"EVICE, RIVE: £I1":AN$="  "+AN$:RETURN
-350 A=INT(VAL(MID$(AN$,3,2))):IFA>.THENIFA<7THENDR=A:GOTO353
-351 IFA<7ORA>29THENA=8
-352 &,15,6,133:D2%=VAL(AN$):D1%=A:DR=.:DV%(.)=D1%:DR%(.)=D2%
-353 GOSUB3:CLOSE15:A=-(ST<>.):RETURN
-370 A=1-A:&"£$B ODE: "+MID$("FFN",A*2+1,2)+"":RETURN
-371 A=VAL(MID$(UF$,B,1)):GOSUB370:UF$=LEFT$(UF$,B-1)+CHR$(A+48)+MID$(UF$,B+1):RETURN
-372 A=EM:B$="XPERT":GOSUB370:EM=A:&,52,20,EM:RETURN
-373 IM=3:GOTO430
-374 B=3:B$="RAPHIC ENU":GOSUB371:&,52,44,A:RETURN
-375 &,53,A:IM=2+A:GOTO443
-376 A=PM:B$="ROMPT":GOSUB370:PM=A:RETURN
-390 DR=3:A$="E.TEXT":GOSUB4:GOSUB1:&,2,2:CLOSE2:&"£$A":RETURN
-400 REM**SUBROUTINE MODULES**
-427 A$="TURBO":GOTO74
-428 A$="COMM1":GOTO74
-429 A$="COMM2":GOTO74
-430 A$="PARAM1":GOTO74
-431 A$="PARAM2":GOTO74
-436 A$="MENUS":GOTO74
-437 A$="SYSDOS":GOTO74
-438 A$="STATS":GOTO74
-439 A$="BAR":GOTO74
-440 A$="EDITOR":GOTO74
-441 A$="HANDLES":GOTO74
-442 A$="PROTOS":GOTO74
-443 A$="DISPLAY":GOTO74
-444 A$="FEEDBACK":GOTO74
-445 A$="MISC":GOTO74
-446 ON-(LC=.ANDP2$="SUB.MODEM")GOTO60000:A$="MODEM":GOTO74
-447 A$="INFO":GOTO74
-448 A$="LOCAL":GOTO74
-449 A$="MISC2":GOTO74
-450 A$="STACK":GOTO74
-500 REM**JUMP TABLE**
-501 &"DIT ()NFO OR ()ARAMETERS? £G1£V7":A=INSTR("",AN$):REM 12 BYTES VS. 24: A=-(AN$="")-2*(AN$="")
-502 IM=1:ONAGOTO447,430:RETURN
-503 IM=2:GOTO447
-504 IM=1:GOTO443
-505 IM=1:GOTO441
-506 IM=1:GOTO430
-507 IM=1:GOTO445
-508 IM=2:GOTO445
-509 IM=1:GOTO427
-510 IM=1:GOTO428
-511 IM=2:GOTO428
-512 IM=2:GOTO430
-513 IM=4:GOTO443
-514 IM=4:GOTO430
-515 IM=5:GOTO430
-516 IM=4:GOTO447
-520 IM=1:GOTO431
-521 IM=2:GOTO431
-525 IM=1:GOTO439
-528 IM=1:GOTO438
-533 IM=13:GOTO445
-534 IM=4:GOTO445
-535 IM=5:GOTO445
-540 IM=1:GOTO437
-541 IM=2:GOTO437
-542 IM=1:GOTO440
-543 IM=2:GOTO440
-544 IM=1:GOTO429
-545 IM=8:GOTO445
-546 IM=10:GOTO445
-547 IM=14:GOTO445
-548 IM=15:GOTO445
-549 IM=1:GOTO448
-550 IM=2:GOTO448
-551 IM=3:GOTO448
-552 IM=4:GOTO448
-553 IM=5:GOTO448
-554 IM=6:GOTO448
-555 IM=7:GOTO448
-556 IM=8:GOTO448
-557 IM=9:GOTO448
-558 IM=1:GOTO436
-559 IM=2:GOTO429
-560 IM=3:GOTO429
-561 IM=4:GOTO429
-562 IM=5:GOTO429
-563 IM=6:GOTO429
-564 IM=7:GOTO429
-565 IM=2:GOTO449
-566 IM=3:GOTO449
-567 IM=1:GOTO449
-999 RETURN
-2000 POKE22,25:FORI=2TOPEEK(152):CLOSEPEEK(603):NEXT:POKE2031,.
-2002 X=PEEK(780):Y=PEEK(781)+PEEK(782)*256:&"[RROR#£!X, INE#£!Y]":EL=Y
-2004 &,11:&,28,1:POKE53248,.
-2006 DR$=MID$(STR$(DR%(5)),2)+":":DV%=DV%(5):LOADDR$+"IM",DV%,2
-2008 GOSUB304:GOTO4000
-3000 POKE828,PEEK(186):CLR:PRINT"":POKE53280,.:POKE53281,.
-3002 OPEN131,2,134,CHR$(6):POKE248,203:POKE250,204:POKE56,160:POKE52,160
-3004 DIMA$,A%,AC%,AM,AG$,AK$,AM$,AN$,AO%
-3006 DIMB$,B%,BD,BD$,BN$,BU
-3008 DIMC$,C%,C1$,C2$,C3$,CA,CC,CC$,CD%,CH$,CM$,CN,CO$,CO%,CR,CT,CT%
-3010 DIMD$,D%,D1$,D1%,D2$,D2%,D3%,D3$,D4$,D5$,D6$,DA%,DB%,DC,DC%,DD$,DR,DR$,DV%
-3012 DIMDF%
-3014 DIME$,E%,EL,EM,EF$,EP$,EC,EC%
-3016 DIMF$,F%,F1,F2,F3,F4,FF$,FL,FL$,F1$,F2$,F3$,F4$,F5$,F6$,F7$,F8$
-3018 DIMG$,G%
-3020 DIMH$,H%,HX$
-3022 DIMI$,I%,ID,IM$,IM,IN$,IS
-3024 DIMJ$,J%,JN$
-3026 DIMK$,K%,KK,KP%
-3028 DIML$,L%,L1,L1$,L2,L2$,L3,L3$,LC,LD$,LE,LF,LK%,LL$,LL%,LM$,LP,LT$,LT%
-3030 DIMM$,M%,MC,MF,ML$,MP$,MT$,MW,MP%,MN%
-3032 DIMN$,N%,NA$,NC,NF,NL,NL$,NM,NM$
-3034 DIMO$,O%
-3036 DIMP$,P%,P1%,P2%,P3%,PF,PH$,PL,PM,PO$,PP$,PR,PR$,PS,PU$,PW$,P1$,P2$
-3038 DIMQ$,Q%,QB,QE,QT$
-3040 DIMR$,R%,RC,RN$,RP,RQ
-3042 DIMS$,S%,SA%,SH,SG
-3044 DIMT$,T%,T1,TC%,TF,TK$,TR%,TT,TT$,TZ$
-3046 DIMU$,U%,UC,UH,UL,UR,UF$,UU$
-3048 DIMV$,V%
-3050 DIMW$,W%
-3052 DIMX$,X%
-3054 DIMY$,Y%
-3056 DIMZ$,Z%,ZZ
-3058 AC%=16:X=RND(-TI):HX$="0123456789"+""
-3060 C3$="ETURNING O HE DITOR"+""
-3062 AK$=" "+""
-3064 R$=CHR$(13):NL$=CHR$(.):QT$=CHR$(34)
-3066 OPEN4,4,7:POKE836,1:POKE650,128
-3068 POKE56328,.:POKE56579,PEEK(56579)OR38:POKE56577,PEEK(56577)OR36
-3070 DIMTT$(254),DV%(36),DR%(36),CO$(9),HS$(10),BF(6),ST(38),IM$(5),PF$(10)
-3073 RESTORE:FORI=1TO9:READA$:CO$(I)=A$+"":NEXT
-3074 DV%=PEEK(828):Z%=DV%:DR$="0"+":":BD$=DR$:SR=2:PR=-1:F3=1:SYS49155:&,53
-3075 &,69,1,1,"IM 128 EVISION: UG 14, 2023 11:22 ",3
-# : INCLUDE SYMBOL ADDRESS? LIKE PEEK(DEC("NTSCPAL"))
-3076 A$="":IF PEEK(DEC({NTSCPAL}))=255 THEN A$=""
-3078 GOSUB3400:Z3$=A$+" YSTEM ETECTED.":GOSUB3404
-3080 &,18,.:POKE53248,1:AM$="1"+"0001018600":DV%=Z%
-3084 Z3$="EADING RIVE ONFIGURATION...":GOSUB3404:CLOSE15:OPEN15,DV%,15
-3086 FL=.:CLOSE2:OPEN2,DV%,2,BD$+"BD.DATA,S,R":GOSUB5
-# 3510 SETS UP MODEM TYPE, SHOULD BE MOVED TO "I/SETUP 128"
-# 3087 IFE%THENCLOSE2:GOSUB3200:GOSUB3510:Z2$="":&" ":&,28,1:GOTO3084
-3087 IFE%THENCLOSE2:GOSUB3200:Z2$="":&" ":&,28,1:GOTO3084
-3088 INPUT#2,DV%(3),DR%(3),PO$:CLOSE2:RESTORE:IFPO$=""THENPO$="AIN: "
-3090 READA$:IFA$<>"*"THEN3090
-3092 REM:IFDV%=LK%THENPRINT#15,"L800"
-3093 GOSUB33:FORI=1TO6:X=I+51:GOSUB1:&,2,2:DV%(I)=VAL(A$)
-3094 &,2,2:DR%(I)=VAL(A$):NEXT:CLOSE2
-3095 GOSUB33:X=32:GOSUB1:&,2,2:A=VAL(A$):CLOSE2
-3096 DR=5:GOSUB4:A$=DR$+"ML.RS232":&,7,DV%,2:&,16,A
-3097 Z3$="EADING YSTEM NFO...":GOSUB3404
-3098 GOSUB35:IFE%THENCLOSE2:GOSUB3240:GOTO3096
-3100 X=1:GOSUB1:&,2,2:BS$=A$:CLOSE2
-3102 IM=.:GOSUB441:UH=A%
-3103 Z2$=LEFT$(Z2$,22)+"  ("+MID$(STR$(A%),2)+LEFT$(" SERS",6+(A%<>.))+")":GOSUB3404
-3104 DR=3:GOSUB3:Z3$="OADING RESET EFINITIONS...":GOSUB3414:GOSUB3404
-3106 &" EFS: ":A$=DR$+"E.ECS.MAIN":&,42,4:GOSUB5:&"ONE..."
-3108 &"RINT ODE EFS: ":A$=DR$+"E.PRINTMODES":&,7,DV%,7:GOSUB5:&"ONE..."
-3110 &"IGHTBAR EFS: ":A$=DR$+"E.LIGHTBAR":&,7,DV%,8:GOSUB5:&"ONE..."
-3111 Z3$="ETTING LARM ABLES...":GOSUB3404
-3112 &"LARM ABLE: ":A$=DR$+"E.ALARMS":&,7,DV%,9:GOSUB5:&"ONE..."
-3114 DR=2:GOSUB3
-3116 &"ETWORK LARM ABLE: ":A$=DR$+"NM.TIMES":&,7,DV%,12:GOSUB5:&"ONE..."
-3118 DR=3:A$="E.FKEYS,S,R":GOSUB4:IFE%THENCLOSE2:GOTO3128
-3120 Z3$="NABLING UNCTION EYS...":GOSUB3404
-3122 FORI=1TO8:&,2,2:IFRIGHT$(A$,1)=""THENA$=LEFT$(A$,LEN(A$)-1)+R$
-3124 TT$(I)=A$:NEXT:CLOSE2:F1$=TT$(1):F2$=TT$(2):F3$=TT$(3):F4$=TT$(4)
-3126 F5$=TT$(5):F6$=TT$(6):F7$=TT$(7):F8$=TT$(8)
-3128 Z3$="ETTING P ARIABLES... (E.DATA)":GOSUB3404:GOSUB33
-3129 IFE%THENCLOSE2:GOSUB3240:GOTO3128
-3130 X=1:GOSUB1:&,2,2:CA=VAL(A$):X=12:GOSUB1:&,2,2:UR=VAL(A$)-1
-3132 X=17:GOSUB1:&,2,2:D3$=A$:X=18:GOSUB1:&,2,2:PP$=A$
-3134 X=19:GOSUB1:&,2,2:Z$=A$:X=20:GOSUB1:INPUT#2,P1%,P2%,P3%
-3135 X=21:GOSUB1:&,2,2:L2=VAL(A$):L2$=(MID$(A$,3)):IFL2THEN:&,52,40,1
-3136 X=35:GOSUB1:&,2,2:AM$=A$:AN$=A$:&,15:D6$=AN$+""
-3138 X=37:GOSUB1:&,2,2:Y%=VAL(A$):X=38:GOSUB1:&,2,2:LK%=VAL(A$)
-3140 DF%=3:X=40:GOSUB1:&,2,2:A=VAL(A$):IFA>.ANDA<16THENDF%=A
-3142 X=41:GOSUB1:&,2,2:A=VAL(A$):IFA$<>""THENCLOSE4:OPEN4,4,A
-3144 X=42:GOSUB1:&,2,2:A=VAL(A$):IFATHENPOKE17136,A
-3146 X=45:GOSUB1:&,2,2:TZ$=A$
-3148 X=47:GOSUB1:&,2,2:BN$=A$
-3150 X=48:GOSUB1:&,2,2:C1$=""+A$+"":X=49:GOSUB1:&,2,2:C2$=""+A$+""
-3152 X=51:GOSUB1:&,2,2:CC$=A$
-3154 X=58:GOSUB1:&,2,2:NC=VAL(A$)
-# CLOCK TYPES:
-3155 IFY%>4THENGOSUB3348:GOSUB3170:GOTO3158
-3156 ONY%GOSUB3348,3358,3366:GOSUB3170
-3158 POKE970,.:POKE971,23:MP$=" ...ORE? (/N) "+"":IM=5:GOSUB447:GOSUB3250
-3160 GOSUB30:FORX=1TO38:GOSUB1:&,2,2:ST(X)=VAL(A$):NEXT:CLOSE2
-3162 AN$=AM$:LT$=AM$:TK$=LEFT$(AM$,1):GOSUB3300
-3164 CLOSE2:GOSUB3186:&,37
-3166 A$=Z$:T1=MN%:AN$=Z$:&,15:D2$=AN$+"":FORI=54272TOI+24:POKEI,.:NEXT
-3168 F1=3:&,27,1:GOTO302
-3170 A=VAL(LEFT$(Z$,1)):GOSUB3184:POKE52935,A
-3172 A=VAL(MID$(Z$,2,2)):GOSUB3184:POKE52938,A
-3174 A=VAL(MID$(Z$,4,2)):GOSUB3184:POKE52936,A
-3176 A=VAL(MID$(Z$,6,2)):GOSUB3184:POKE52937,A
-3178 B=VAL(MID$(Z$,8,2))
-3180 C=VAL(MID$(Z$,10,2))
-3182 &,62,B,C:B=B+80*((B=92)-(B=12))+12*((B=93)OR(B=13)):&,58,B,.:RETURN
-3184 A=16*INT(A/10)+A-INT(A/10)*10:RETURN
-3186 FORQ=.TO6:BF(Q)=-1:NEXT
-3188 Z3$="EADING LOCKS REE...":GOSUB3404:FORQ=1TO6:DR=Q:GOSUB61
-3190 READB$:&" £$B ISK£30:"+STR$(A):NEXT:Q=.:RETURN
-3200 &,27,1:Z1$="NSERT LL YSTEM ISKS N ORRECT ":Z2$="      RIVES, ND RESS      "
-3202 &": RESS (1) TO ONFIGURE A EW "
-3204 &"£10(2) TO ONVERT FROM MAGE 1.2"
-3206 &"£10(3) TO ONVERT FROM MAGE 2.0"
-3207 &"£10(4) TO ESET 128"
-3208 GOSUB3408:LM=VAL(AN$):ONLMGOTO3220,3222,3224,3226
-3210 IFAN$=R$THENGOSUB3414
-3212 RETURN
-3220 Z3$="ONFIGURE MAGE  3.0":GOTO3228
-3222 Z3$="ONVERT FROM MAGE  1.2":GOTO3228
-3224 Z3$="ONVERT FROM MAGE  2.0":GOTO3228
-# : SYS64738 (RESET)
-3226 Z3$="ESET 128":GOSUB3404:GOSUB93:IFA=.THENRETURN:ELSESYS64738
-3228 GOSUB3404:&"£39 £39 £39 £39 "
-3240 F$="I/SETUP 128":CLOSE15:OPEN1,DV%,1,F$:S=DS:CLOSE15:IFSTHEN:&"ANNOT FIND £$F. ALTING.£W5":GOTO4048
-3242 NEW4000:LOADF$,DV%:GOSUB4000:RETURN
-3250 DR=3:A$="E.LIGHTDEFS,S,R":GOSUB4:IFE%THENCLOSE2:GOTO3300
-3252 Z3$="ETTING EFAULT HECKMARKS...":GOSUB3404
-3254 FORX=.TO7:&,2,2:IFLEN(A$)<>16THEN:&"IGHTBAR DEFAULTS LENGTH ERROR, LINE !X":GOTO3258
-3256 FORI=1TO16:&,52,X*16+I-1,VAL(MID$(A$,I,1)):NEXT
-3258 NEXT:CLOSE2
-# : DUPLICATE CODE
-3300 DR=3:A$="E.LOG"+LEFT$(LT$,1):GOSUB4:IFE%=.THENRETURN
-3302 DR=3:A$="E.LOG"+LEFT$(LT$,1):GOSUB18:CLOSE2:AN$=D1$:&,15:D6$=AN$
-3304 A$="  : "+D6$+" £Q0£O£O":GOSUB51
-3306 GOSUB33:X=44:GOSUB1:PRINT#2,D6$:CLOSE2
-3308 GOSUB30:FORX=12TO22:ST(X)=.:GOSUB17:NEXT:RETURN
-3348 Z3$="ETTING LOCK BY  EVICE...":GOSUB3404:CLOSE15:OPEN15,Y%,15:PRINT#15,"T-RA":&,2,15
-3350 Z$=LEFT$(A$,2):A=-(Z$="SU")-2*(Z$="MO")-3*(Z$="TU")-4*(Z$="WE")-5*(Z$="TH")
-3352 A=A-6*(Z$="FR")-7*(Z$="SA"):Z$=MID$(STR$(A),2,1)+MID$(A$,12,2)+MID$(A$,6,2)
-3354 A=-80*(MID$(A$,24,1)="P")+VAL(MID$(A$,15,2))
-3356 Z$=Z$+MID$(A$,9,2)+RIGHT$("0"+MID$(STR$(A),2),2)+MID$(A$,18,2):POKE1010,1:RETURN
-3358 GOSUB3364:SYS49155:GOTO3362
-3360 GOSUB33:X=35:GOSUB1:&,2,2:D1$=A$:CLOSE2:POKE1010,1:RETURN
-3362 Z$="":FORA=49159TO49169:Z$=Z$+CHR$(PEEK(A)):NEXT:POKE1010,1:RETURN
-3364 Z$="ETTING LOCK BY T.ERNAL...":GOSUB3404:DR=5:GOSUB4:A$=DR$+"SWR.ML":&,7,DV%,2:RETURN
-3366 GOSUB3364:SYS49152:SYS49155:GOTO3362
-# : USE  COMMAND?
-# FIXED CODE IS IN
-# HTTPS://GITHUB.COM/INACOLADA64/MAGE3/BLOB/MASTER/CORE/TESTS/I.TEST%20FRAME.LBL
-3400 Z1$="":Z2$="":&" "+MID$(AK$,2,36)+""
-3401 FORX=2TO3:&" £O                  ":NEXT
-3403 &" "+MID$(AK$,2,36)+"":RETURN
-3404 Z1$=Z2$:Z2$=Z3$:FORI=1TO(34-LEN(Z2$)):Z2$=Z2$+" ":NEXT
-3406 &"£"+Z1$+""+Z2$+"":RETURN
-3408 C$="":I=I+1:IFI>2THENI=1
-3409 B$=MID$(C$,I,1)+" "+Z1$:&"£$B":B$=MID$(C$,I,1)+" "+Z2$:&"£$B"
-3410 GETAN$:Z=Z+1:IFAN$<>""THENZ2$="":Z=.:GOSUB3400:RETURN
-3411 IFZ=20THENZ=.:GOTO3408
-3412 GOTO3410
-# :
-# 3414 FORI=7TO24:&,69,0,I,"                             ":&,70,0,6
-3414 &"":FORI=7TO24:&"£38 ":NEXT:&"":RETURN
-3500 DATA"OMMODORE 64","OMMODORE 128","MIGA","PPLE/OMP."
-3502 DATA"/OMP.","ACINTOSH","TARI/","ANDY ERIES","THER YPE"
-3504 DATA"*","YSTEM","-AIL","TCETERA","IRECTORY","LUS-ILE","SER"
-3510 REMOVE: &"232 NTERFACE YPE:NTER 0 FOR SER ORTNTER 1 FOR WIFTINK/URBO232> £I1"
-3512 REMOVE: A=VAL(AN$):IFA<0ORA>1THEN3510
-3514 REMOVE: GOSUB33:X=32:GOSUB1:PRINT#2,AN$:CLOSE2:RETURN
-3999 REM COPR. 2023 NEW IMAGE 8/10/2023
-4000 &,38:CM$=CM$+"":P$=P$+"":PR$=PR$+"":P1$=P1$+"":P2$=P2$+""
-# : 64789
-4002 IFX<128THEN4006:ELSEA$=" !!":GOSUB51:SYS64789:PRINT""A$:END
-4004 &,38:&,61,.,8:PRINT"&,37:GOTO300:":END
-4006 RESTORE
-4008 READA$:IFA$<>"ERRORS"THEN4008
-4010 &,40:D$="":IFX>.ANDX<41THENFORK=1TOX:READD$:NEXT
-4012 A%=X:&"   #£%A (£$D )":R$=CHR$(13)
-4014 A$="IM":IFEL=>3000THENA$=PR$:IFEL=>4000THENA$=P1$:IFEL=>60000THENA$=P2$
-4016 A=EL:&" N INE:£!A F £$A"
-4018 &"ECORDING RROR, LEASE AIT...":D$=STR$(X)+" ("+D$+" )"
-4020 DR=3:A$="E.ERRLOG,S,A":GOSUB4:IFE%=.THEN4024
-4022 A$="E.ERRLOG,S,W":GOSUB4
-4024 PRINT#2,NA$R$ID;R$D1$R$AC%;R$PH$R$RN$R$CO$(CO%)R$
-4026 PRINT#2,"RROR :"D$R$"INE  :"EL;R$"REA  : "CM$R$"ROMPT: "P$
-4028 PRINT#2,"ROGRAM: "PR$R$"ODULE: "P1$R$"UB ODULE: "P2$
-4030 PRINT#2," ILE: "ML$R$"ROTOCOL: "D4$R$
-4032 FORI=1TO10:A$=CHR$(58-I):IFHS$(I)<>""THENPRINT#2," "A$": "HS$(I)
-# : CHECK LIGHTBAR FLAG BEFORE POKE53280,2
-4034 NEXT:PRINT#2,"^":CLOSE2
-4036 A$="SER  : "+NA$+R$+"RROR :"+D$+R$+"INE  :"+STR$(B)+R$+"IME  : "+D1$+R$
-4038 A$=A$+"FILE : "+PR$+R$+"REA  : "+CM$+R$+".":REMGOSUB51
-4040 CLOSE2:&,37:FORX=1TO4:&,11,X:NEXT:SY$="":SB$="":SG=.
-4042 P2$="":IS=.:P1$="":PR$="":ML$="":PR=-1:PF=.
-4044 IFAC%<>16THEN:&,52,4,3:IFA%ORIF(PEEK(2033)AND1)=.THEN4050
-4046 F1=2:GOTO302
-# : 64789
-4048 A$=" !!":GOSUB51:SYS64789:PRINT""A$:END
-4050 &,52,4,3:IFA%ORI%ORID=1THEN4068
-# GET SYSOP NAME:
-4052 GOSUB 35:X=1:GOSUB 1:&,2,2:I1$=A$:CLOSE 2:KK=.:A$="S.ERRMAIL,S,R":DR=1:GOSUB 4:IF E% THEN CLOSE 2:GOTO 4068
-4054 KK=KK+1:&,2,2:S=(64ANDST):TT$(KK)=A$:IFS=.THEN4054
-4056 CLOSE2:TT$=NA$:A$="A":GOSUB32:IFE%THENA$="W":GOSUB32
-4058 A$="[YSTEM RROR ("+D$+")]":A=.:PRINT#2,I1$R$1;R$D1$R$A$R$
-4060 GOSUB39:CLOSE15
-4062 GOSUB30:I=1:X=14:GOSUB16:X=25:GOSUB16:X=32:GOSUB16:CLOSE2
-4064 &"£HO£H9ED!OU AVE EW -AIL AITING:EAD OW? ":GOSUB96
-4066 IFATHENA$=""+"":GOTO70
-4068 PR$="":GOTO300
-# 30 ERRORS IN  2.0
-# 41 ERRORS IN  7.0
-# ERROR STRINGS ALSO USED IN ANOTHER MODULE...
-4070 DATA"ERRORS"
-# 1-3
-4072 DATA"  "," ","  "
-# 4-6
-4074 DATA"  ","  ","  "
-# 7-9
-4076 DATA"  ","  ","  "
-# 10-12
-4078 DATA"  ","","  "
-# 13-15
-4080 DATA"  "," ",""
-# 16-18
-4082 DATA"  ","' "," "
-# 19-21
-4084 DATA"' ","  "," "
-# 22-24
-4086 DATA" ","  "," "
-# 25-27
-4088 DATA"  ","' "," "
-# 28-32
-4090 DATA"",""," ","' ","  "
-# 33-35
-4092 DATA"  ","  ","  "
-# 36-38
-4094 DATA" ","  "," #  "
-# 39-41
-4096 DATA" "," "," "
-4098 REM COPR. 1996 NEW IMAGE 5/6/96-JLF
-4100 REM IM (C)NISSA 2020-09-29 LH-AD, 2023-08-14 RS
+' comments begin with '
+{include:"asm\equates.asm"}
+' for quote mode character replacements:
+{include:quoters.lbl}
+
+{loadaddr:$1c01}
+{assign:60000=60000}
+
+' 0 on peek(829) goto 3000,4000:goto 300
+0 on peek({sym:linflg}) goto 3000,4000:goto 300
+1 gosub 10:&,22,1:goto 10
+2 dv%(.)=d1%:dr%(.)=d2%:dv%=dv%(dr):dr$=mid$(str$(dr%(dr)),2)+":":d3%=dr%(dr):return
+3 close 15:gosub 2:open15,dv%,15:return
+4 close 2:gosub 3:open2,dv%,2,dr$+a$
+5 input#15,e%,e$,t%,s%:a$="{f6}Status:{pound}#2{pound}%e:{pound}$e:{pound}%t:{pound}%s{f6}":return
+' 6 an$=uu$:on-(an$<>"")gosub 310:on-(an$<>"")goto 314:pl=1:&,1:goto 310
+6 an$=uu$:if an$<>"" then gosub 310:else if an$<>"" then 314:else pl=1:&,1:goto 310
+7 &"{pound}g1":a$=an$:return
+' i take it peek(17138) <c64 screen mask mode> is checked within &,69
+' therefore eliminating it here:
+9 if nt=. then:&,69,4,21,left$(" "+cm$+"               ",22),$8c:return:else return
+' rem print#15,"p"chr$(xand255)chr$(x/256)"":return
+' record# lfn, record_num [, byte_num]
+10 record#2,x,1:return
+11 a=val(mid$(fl$,a,1)):return
+' no idea what 'flag' does
+' poke 53253,.:poke 2024,.:poke 2031,.:poke 53260,.
+12 poke {sym:flag},.:poke {sym:mjump},.:poke {sym:mci},.:poke {sym:mupcase},.:&"{pound}u0{pound}q"+chr$(df%+48):return
+
+13 &"{clear}"
+14 a$=a$+",s,r":gosub 4:if e%=. then:&,3,2
+15 close 2:return
+16 gosub 1:input#2,st(x):st(x)=st(x)+i
+17 gosub 1:print#2,st(x):return
+18 gosub 19:a$=a$+",s,w":goto 4
+19 gosub 3:print#15,"s"dr$a$:return
+' "scratch(dr$+a$) on u dr%(dr)" doesn't seem to work in basic 7.0
+28 cm$=a$:gosub 9:dr=5:gosub 3:if "++ "+a$=ml$ then e%=.:return
+29 ml$="++ "+a$:a$=dr$+ml$:&,7,dv%,2:goto 5
+30 dr=3:a$="e.stats":goto 4
+31 dr=3:a$="e.access":goto 4
+32 dr=2:a$="m."+left$(tt$,13)+",s,"+a$:goto 4
+33 dr=3:a$="e.data":goto 4
+34 e%=a%:&,52,46,3:am=a%:a%=e%:dr=3:a$="e.log"+left$(lt$,am)+",s,"+a$:goto 4
+35 dr=6:a$="u.config":goto 4
+36 dr=3:a$="e."+b$+",s,"+a$:goto 4
+37 a$="a":gosub 36:if e% then a$="w":gosub 36
+38 print#2,na$r$id;r$d1$r$ac%r$ph$r$rn$r$co$:return
+39 &,14,2,kk-1:print#2,"^":close 2:goto 62
+40 a$="new user":goto 42
+41 a$="config"
+42 a$="s."+a$:dr=1:goto 13
+43 dr=3:a$="e.say":gosub 4:on sgn(e%) goto 46:x=1:gosub 1:input#2,x
+44 a=rnd(-ti):x=int(rnd(1)*x)+2:gosub 1
+45 input#2,b$,c$,d$,f$:gosub 90:lp=1:&"{f6}{pound}$q{white} {pound}$b{f6}{pound}$q{cyan} {pound}$c{f6}{pound}$q{yellow} {pound}$d{f6}{pound}$q{orange} {pound}$f{f6}{pound}q0"
+46 close 2:return
+50 if i% then return
+51 c$=a$:a$="a":gosub 34:if e%=. then print#2,c$
+52 close 2:a$=c$:an$=c$:a=a%:&,52,13,3:b=a%:a%=a:if b=. then return
+53 open 16,4,15:close 16:if st then return
+54 print#4,a$:return
+60 a$="{black},u,w":gosub 4:close2:print#15,"s"dr$"{black}":a=-sgn(e%):return
+61 if dr<7 then if bf(dr)>-1 then gosub 2:a=bf(dr):bf=a:return
+62 gosub 3:if dv%<>lk% then 64:else a$=dr$:if dr$="10:" then a$="a"
+63 a=2:print#15,"lg"left$(a$,1):input#15,e%,a$,a$,a$,a$,a$:goto 65
+64 a=1:close 2:open 2,dv%,0,"$"+dr$+"{black}":get#2,a$,a$:&,8,2,1:&,8,2,1:close 2
+65 a=val(a$)*a:bf=a:for a=1 to 6:if dv%(a)=dv% and dr%(a)=val(dr$) then bf(a)=bf
+66 next:a=bf:return
+70 dr=5
+71 if pr$<>"i."+a$ then gosub 76:else goto 3000
+72 dr=5
+73 if p1$<>"i/"+a$ then gosub 77:else goto 4000
+74 if a$<>"modem" then 100:else dr=5:if p2$<>"sub."+a$ then gosub 78:else is=is+1:im$(is)=p2$
+75 gosub 60000:is=is-1:if is<1 then return:else a$=mid$(im$(is),5):goto 78
+'TODO: maybe?
+'76 a$="i."+a$:pr$=a$+"":p1$="":p2$="":delete 3000-3999:goto 79
+'77 a$="i/"+a$:p1$=a$+"":p2$="":delete 4000-59999:goto 79
+76 a$="i."+a$:pr$=a$+"":p1$="":p2$="":new 3000:goto 79
+77 a$="i/"+a$:p1$=a$+"":p2$="":new 4000:goto 79
+' 78 a$="sub."+a$:p2$=a$+"":delete 60000-
+78 a$="sub."+a$:p2$=a$+"":new 60000
+79 cm$=a$:gosub 9:gosub 2:load dr$+a$,dv%:return
+80 a$=z$:z$=mid$(p1$,3):gosub 72:a$=z$:dr=5:if lc<>1 then 77:else return
+82 for i=1 to 4:&,11,i:next
+83 &,11,.:return
+84 a=int(mn%/60):pt%=-(a>=p2% and a<p3%)*sgn(p1%):return
+85 &"{f6}Would You Like To Leave Feedback? ":gosub 93:if a=. then return:else dr=3:gosub 61
+86 x=2:if bf<35 then 390:else im=1:goto 444
+' FIXME: building the string like this is terribly inefficient
+90 q$="":if ll%>42 then q$=left$("{space:42}",(ll%-42)/2)
+' 90 q$="":if ll%>42 then for r=1 to int((ll%-42)/2):q$=q$+" ":next
+' else won't help above
+91 return
+92 &"{f6}{lt. blue}>{cyan}>{white}Canceled!{f6}":return
+
+' TODO: rather than gosub 93 for "default no" and gosub 95 for "default yes"
+' I'd rather go back to "a=0:gosub 94" for default yes, but this is a lot of change
+{ifdef:yesno_change}
+' updated working code:
+94 &"{f6}Are You Sure?: {cyan}[{white}":if a then 96
+95 &"No{cyan}]":gosub 7:&"{pound}h4":a=-(a$="Y"):goto 97
+96 &"Yes{cyan}]":gosub 7:&"{pound}h5":a=(a$="N")+1
+97 &"{pound}q"+chr$(df%+48)+mid$("YesNo",4-a*3,3)+"{f6}":return
+{else:}
+' current code:
+93 gosub 98
+94 &"{cyan}[{white}No{cyan}]":gosub 7:&"{pound}h4":a=-(a$="Y"):goto 97
+95 gosub 98
+96 &"{cyan}[{white}Yes{cyan}]":gosub 7:&"{pound}h5":a=(a$="N")+1
+97 &"{pound}q"+chr$(df%+48)+mid$("YesNo",4-a*3,3)+"{f6}":return
+98 &"{f6}Are You Sure?: ":return
+{endif}
+
+100 p2$="sub."+a$:gosub 110:is=is+1:im$(is)=im$
+' FIXME: "new 60000": replace with delete 60000- ?
+102 gosub 60000:new 60000:is=is-1:if is then a$=im$(is):p2$="sub."+a$:gosub 110
+104 return
+110 dr=5:gosub 2:im$=a$:cm$="sub."+a$:gosub 9:a$=dr$+"sub."+a$:load a$,dv%
+112 return
+200 on tr%+1 goto 240:&,52,17,lf:&,52,20,em:poke {sym:modclmn},ll%:poke {sym:usrlin},mp%:poke {sym:ptrlinm},0
+202 &,52,30,3:on a% gosub 330
+204 s=.:sh=.:gosub 12
+206 poke {sym:ptrlinm},0:&,52,30,3:an$=d1$:&,15:b$=right$(an$,7)
+208 mm=2:gosub 3000:gosub 9:&"{f6} {blue}- {white}{pound}$bM{pound}q0":if tr%<100 then a%=tr%:&" {blue}- {white}{pound}%a {cyan}Min Left{pound}q0"
+209 if zz then a%=usr(0):&"{f6} {blue}- {cyan}Stack Free: {white}{pound}%a{pound}q0"
+210 &"{f6:2}":poke {sym:llen},38:gosub 6
+212 cm$=left$(p$,11)+":"+left$(an$,4):gosub 9:cm$=p$
+214 on tr%+1 goto 240:if an$="" then gosub 250:goto 200
+216 gosub 220:if f4 then gosub 304:on -(f4=1.1)-2*(f4=1.2)-3*(f4=1.3) goto 270,268,234
+218 on rs goto 200:mm=1:goto 3000
+220 on -(ac%<>ao%) gosub 320:an$=an$+"":rs=1:a$=left$(an$,1):z$=left$(an$,2)
+222 &,52,20,3:em=a%:&,52,5,3:zz=a%
+224 x=1:rq=.:rs=1
+226 f4=.:a%=zz:b%=2^ac%:&,42:if a% then ef$=b$:ep$=a$:ec=a%:ec%=b%:goto 260
+228 on -(a$="O" or (lc=1 and a$="Q"))-2*(a$="{question}") goto 230,250:rs=.:return
+230 f4=.:ifright$(an$,1)<>"!"then:&"{f6:2}Logoff?: ":gosub 93:if a=. then return
+232 f4=1.3:return
+234 f1=1-(right$(an$,1)="!"):cd%=.:ifmid$(z$,2,1)="%"then302
+236 &"{f6}Update Message/File Scan Date?: ":gosub 96:ifathenld$=lt$:elsegoto 302
+240 &"{f6}Sorry, Time Limit Exceeded.{f6}":mm=3:gosub 3000:f1=1:goto 302
+242 f1=.:&"{f6} Aborted!{f6}":goto 200
+250 im=1:goto 436
+260 if ec%>. and cr-ec%<. then:&"{red}Not Enough Credits!{f6}":return
+262 cr=cr-ec%:if ep$="" or id=1 then 264
+263 &"{f6}{white}Password{blue}:{white}":&,6:ifan$<>ep$then:&"{f6}{red}Incorrect Password.{f6}":return
+264 f4=.:onecgoto 265,266,267,268:return
+265 z$=ef$:f4=1.1:&,28,1:return
+266 f4=1.2:&,28,1:return
+267 z$=ef$:goto 80
+268 a%=asc(ef$+nl$)+256*asc(mid$(ef$,2,1)+nl$):&,42,1
+270 mm=.:a$=z$:goto 70
+280 a%=zz:b%=2^ac%:&,42:ifa%thenef$=b$:ep$=a$:ec=a%:ec%=b%:goto 264
+282 return
+288 return
+289 &"{pound}i0":ifan$=""thenreturn
+290 &,15,2:return
+' leave these two lines untouched: continue after
+300 &,28,1:&,52,$30,3:ona%gosub 309:mm=.:a$="main":goto 70
+302 &,28,1:&,52,$30,3:ona%gosub 309:mm=.:a$="lo":goto 70
+304 &,28,1:gosub 306:&,27:return
+306 dimbb$(31),dt$(61),ed$(61),nn$(61)
+308 dima%(61),c%(61),d%(61),e%(31),f%(61),ac%(31),so%(31):return
+309 cm$="1.3 Emulator":gosub 9:dr=5:gosub 3:loaddr$+"im.emul13",dv%:goto 304
+310 pu$=an$:ifan$="{uparrow}{question}"then315
+311 ifleft$(an$,1)="{uparrow}"thenan$=hs$(10-val(mid$(an$,2,1))):goto 314
+312 &,15,6,140:uu$=an$:an$=a$
+313 for ct=1 to 9:hs$(ct)=hs$(ct+1):next:hs$(10)=an$:return
+314 &p$+": {pound}v7{f6}":return
+315 for ct=1 to 10:a%=10-ct:a$=hs$(ct):&"{uparrow}{pound}%a: {pound}$a{f6}":next:an$="":uu$="":return
+320 gosub 31:x=ac%+1:gosub 1:&,2,2:ag$=a$:&,2,2:close2
+321 if len(fl$)<len(a$) then fl$=fl$+mid$(a$,len(fl$)+1)
+322 if len(fl$)>len(a$) then fl$=a$
+323 if ac%<>ao% then fl$=a$:ao%=ac%
+324 a=6:gosub 11:le=(a+1)*10:a=16:gosub 11:poke {sym:idlemax},a:a=20:gosub 11:da%=a
+325 return
+330 dr=3:a$="e.macros":gosub 4
+332 if e%=. then:&,2,2:a=val(a$):&"{f6:2}":x=int(rnd(1)*a)+2:gosub 1:&,3,2
+334 close2:return
+349 &"{f6}Device, Drive: {pound}i1":an$="  "+an$:return
+350 a=int(val(mid$(an$,3,2))):ifa>.thenifa<7thendr=a:goto 353
+351 ifa<7ora>29thena=8
+352 &,15,6,133:d2%=val(an$):d1%=a:dr=.:dv%(.)=d1%:dr%(.)=d2%
+353 gosub 3:close15:a=-(st<>.):return
+370 a=1-a:&"{f6}{green}{pound}$b Mode{lt. green}: {white}O"+mid$("ffn",a*2+1,2)+"{f6}":return
+371 a=val(mid$(uf$,b,1)):gosub 370:uf$=left$(uf$,b-1)+chr$(a+48)+mid$(uf$,b+1):return
+372 a=em:b$="Expert":gosub 370:em=a:&,52,20,em:return
+373 im=3:goto 430
+374 b=3:b$="Graphic Menu":gosub 371:&,52,44,a:return
+375 &,53,a:im=2+a:goto 443
+376 a=pm:b$="Prompt":gosub 370:pm=a:return
+390 dr=3:a$="e.text":gosub 4:gosub 1:&,2,2:close2:&"{f6}{pound}$a{f6}":return
+400 rem**subroutine modules**
+427 a$="turbo":goto 74
+428 a$="comm1":goto 74
+429 a$="comm2":goto 74
+430 a$="param1":goto 74
+431 a$="param2":goto 74
+436 a$="menus":goto 74
+437 a$="sysdos":goto 74
+438 a$="stats":goto 74
+439 a$="bar":goto 74
+440 a$="editor":goto 74
+441 a$="handles":goto 74
+442 a$="protos":goto 74
+443 a$="display":goto 74
+444 a$="feedback":goto 74
+445 a$="misc":goto 74
+' 446 on-(lc=.andp2$="sub.modem")goto 60000:a$="modem":goto 74
+446 if lc=. and p2$="sub.modem" then 60000:else a$="modem":goto 74
+447 a$="info":goto 74
+448 a$="local":goto 74
+449 a$="misc2":goto 74
+450 a$="stack":goto 74
+500 rem**jump table**
+' rem 12 bytes vs. 24: a=-(an$="I")-2*(an$="P"):
+501 &"{f6}Edit (I)nfo or (P)arameters? {pound}g1{pound}v7{f6}":a=instr("IP",an$)
+502 if a then im=1:on a goto 447,430:else return
+503 im=2:goto 447
+504 im=1:goto 443
+505 im=1:goto 441
+506 im=1:goto 430
+507 im=1:goto 445
+508 im=2:goto 445
+509 im=1:goto 427
+510 im=1:goto 428
+511 im=2:goto 428
+512 im=2:goto 430
+513 im=4:goto 443
+514 im=4:goto 430
+515 im=5:goto 430
+516 im=4:goto 447
+520 im=1:goto 431
+521 im=2:goto 431
+525 im=1:goto 439
+528 im=1:goto 438
+533 im=13:goto 445
+534 im=4:goto 445
+535 im=5:goto 445
+540 im=1:goto 437
+541 im=2:goto 437
+542 im=1:goto 440
+543 im=2:goto 440
+544 im=1:goto 429
+545 im=8:goto 445
+546 im=10:goto 445
+547 im=14:goto 445
+548 im=15:goto 445
+549 im=1:goto 448
+550 im=2:goto 448
+551 im=3:goto 448
+552 im=4:goto 448
+553 im=5:goto 448
+554 im=6:goto 448
+555 im=7:goto 448
+556 im=8:goto 448
+557 im=9:goto 448
+558 im=1:goto 436
+559 im=2:goto 429
+560 im=3:goto 429
+561 im=4:goto 429
+562 im=5:goto 429
+563 im=6:goto 429
+564 im=7:goto 429
+565 im=2:goto 449
+566 im=3:goto 449
+567 im=1:goto 449
+' TODO: drop 999
+999 return
+' FIXME: close all open files
+2000 poke 22,25:for i=2 to peek(152):close peek(603):next:poke 2031,.
+2002 x=peek(780):y=peek(781)+peek(782)*256:&"{f6}[Error#{pound}!x, Line#{pound}!y]{f6}":el=y
+2004 &,11:&,28,1:poke 53248,.
+2006 dr$=mid$(str$(dr%(5)),2)+":":dv%=dv%(5):load dr$+"im",dv%,2
+2008 gosub 304:goto 4000
+
+' *** init ***
+
+' color 0,1 => poke 53280,0 [vic border]
+' color 4,1 -> poke 53281,0 [vic background]
+' 3000 poke 828,peek(186):clr:print"{white}":poke 53280,.:poke 53281,.
+3000 poke {sym:bootdev},{sym:fa}:clr:print"{clear}{switchdisable}{white}{lowercase}":color 0,1:color 4,1
+' TODO: poke 52/56 RAM, 248,250 RS232
+3002 open 131,2,134,chr$(6):poke 248,203:poke 250,204:poke 56,160:poke 52,160
+3004 dima$,a%,ac%,am,ag$,ak$,am$,an$,ao%
+3006 dimb$,b%,bd,bd$,bn$,bu
+3008 dimc$,c%,c1$,c2$,c3$,ca,cc,cc$,cd%,ch$,cm$,cn,co$,co%,cr,ct,ct%
+3010 dimd$,d%,d1$,d1%,d2$,d2%,d3%,d3$,d4$,d5$,d6$,da%,db%,dc,dc%,dd$,df%,dr,dr$,dv%
+' 3012 dimdf%
+3014 dime$,e%,el,em,ef$,ep$,ec,ec%
+3016 dimf$,f%,f1,f2,f3,f4,ff$,fl,fl$,f1$,f2$,f3$,f4$,f5$,f6$,f7$,f8$
+3018 dimg$,g%
+3020 dimh$,h%,hx$
+3022 dimi$,i%,id,im$,im,in$,is
+' drop jn$ (haven't seen it used except in pre-TurboREL subs for join string)
+3024 dimj$,j% ',jn$
+3026 dimk$,k%,kk,kp%
+3028 diml$,l%,l1,l1$,l2,l2$,l3,l3$,lc,ld$,le,lf,lk%,ll$,ll%,lm$,lp,lt$,lt%
+3030 dimm$,m%,mc,mf,ml$,mp$,mt$,mw,mp%,mn%
+3032 dimn$,n%,na$,nc,nf,nl,nl$,nm,nm$
+3034 dimo$,o%
+' TODO: change ph$ to em$ in varbl.asm?
+3036 dimp$,p%,p1%,p2%,p3%,pf,ph$,pl,pm,po$,pp$,pr,pr$,ps,pu$,pw$,p1$,p2$
+3038 dimq$,q%,qb,qe,qt$
+3040 dimr$,r%,rc,rn$,rp,rq
+3042 dims$,s%,sa%,sh,sg
+3044 dimt$,t%,t1,tc%,tf,tk$,tr%,tt,tt$,tz$
+3046 dimu$,u%,uc,uh,ul,ur,uf$,uu$
+3048 dimv$,v%
+3050 dimw$,w%
+3052 dimx$,x%
+3054 dimy$,y%
+3056 dimz$,z%,zz
+3058 ac%=16:x=rnd(-ti):hx$="0123456789ABCDEF"+""
+3060 c3$="{f6}Returning To The Editor"+"{f6:2}"
+3062 ak$=" {192:38}"+"{f6}"
+3064 r$=chr$(13):nl$=chr$(.):qt$=chr$(34)
+' 650 [c64], 2594/$0a22 [c128]: key repeat
+' FIXME: 836
+3066 open 4,4,7:poke 836,1:poke {sym:keyrept},128
+3068 poke 56328,.:poke 56579,peek(56579)or 38:poke 56577,peek(56577) or 36
+3070 dim tt$(254),dv%(36),dr%(36),co$(9),hs$(10),bf(6),st(38),im$(5),pf$(10)
+3073 restore:for i=1 to 9:read a$:co$(i)=a$+"":next
+3074 dv%=peek({sym:bootdev}):z%=dv%:dr$="0"+":":bd$=dr$:sr=2:pr=-1:f3=1:sys 49155:&,53
+' NOTE: __BuildDate and __BuildTime are themselves quoted strings, hence the weirdness here:
+3075 &,69,1,1,"im 128 revision: "+{usedef:__BuildDate}+" "+{usedef:__BuildTime},3
+3076 a$="NTSC":if peek({sym:ntscpal})=255 then a$="PAL"
+3078 gosub 3400:z3$=a$+" System Detected.":gosub 3404
+3080 &,18,.:poke 53248,1:am$="1"+"0001018600":dv%=z%
+3084 z3$="Reading Drive Configuration...":gosub 3404:close 15:open 15,dv%,15
+3086 fl=.:close 2:open 2,dv%,2,bd$+"bd.data,s,r":gosub 5
+' TODO: remove 3510. sets up modem type, should be moved to "i/setup 128"
+' 3087 ife%thenclose2:gosub 3200:gosub 3510:z2$="":&"{home} ":&,28,1:goto 3084
+3087 if e% then close 2:gosub 3200:z2$="":&"{home} ":&,28,1:goto 3084
+3088 input#2,dv%(3),dr%(3),po$:close 2:if po$="" then po$="Main: "
+3090 restore:do until a$<>"*":read a$:loop
+3092 remifdv%=lk%thenprint#15,"l800"
+3093 gosub 33:for i=1 to 6:x=i+51:gosub 1:&,2,2:dv%(i)=val(a$)
+3094 &,2,2:dr%(i)=val(a$):next:close 2
+' read rs232 interface type:
+3095 gosub 33:x=32:gosub 1:&,2,2:a=val(a$):close 2
+3096 dr=5:gosub 4:a$=dr$+"ml.rs232":&,7,dv%,2:&,16,a
+3097 z3$="Reading System Info...":gosub 3404
+3098 gosub 35:if e% then close 2:gosub 3240:goto 3097
+3100 x=1:gosub 1:&,2,2:bs$=a$:close 2
+3102 im=.:gosub 441:uh=a%
+3103 z2$=left$(z2$,22)+"  ("+mid$(str$(a%),2)+left$(" Users",6+(a%<>.))+")":gosub 3404
+3104 dr=3:gosub 3:z3$="Loading System Defaults...":gosub 3414:gosub 3404:d$=" Definitions: "
+3106 &"{f6}{lt. blue}Extended Command Set{pound}$d":a$=dr$+"e.ecs.main":&,42,4:gosub 3192
+3108 &"Print Mode{pound}$d":a$=dr$+"e.printmodes":&,7,dv%,7:gosub 3192
+3110 &"Lightbar{pound}$d":a$=dr$+"e.lightbar":&,7,dv%,8:gosub 3192
+3111 z3$="Setting Alarm Tables...":gosub 3404
+3112 &"{f6:4}{lt. blue}Alarm Table: ":a$=dr$+"e.alarms":&,7,dv%,9:gosub 3192
+3114 :
+3116 &"{lt. blue}Network Alarm Table: ":dr=2:gosub 3:a$=dr$+"nm.times":&,7,dv%,12:gosub 3192
+3118 dr=3:a$="e.fkeys,s,r":gosub 4:if e% then close 2:goto 3128
+3120 z3$="Enabling Function Keys...":gosub 3404
+3122 fori=1to8:&,2,2:ifright$(a$,1)="{back arrow}"thena$=left$(a$,len(a$)-1)+r$
+3124 tt$(i)=a$:next:close2:f1$=tt$(1):f2$=tt$(2):f3$=tt$(3):f4$=tt$(4)
+3126 f5$=tt$(5):f6$=tt$(6):f7$=tt$(7):f8$=tt$(8)
+3128 z3$="Setting Up Variables... (e.data)":gosub 3404:gosub 33:if e% then close2:gosub 3240:goto 3128
+3130 x=1:gosub 1:&,2,2:ca=val(a$):x=12:gosub 1:&,2,2:ur=val(a$)-1
+3132 x=17:gosub 1:&,2,2:d3$=a$:x=18:gosub 1:&,2,2:pp$=a$
+' date/time of last user logoff, prime time data
+3134 x=19:gosub 1:&,2,2:z$=a$:x=20:gosub 1:input#2,p1%,p2%,p3%
+' system reservation?
+3135 x=21:gosub 1:&,2,2:l2=val(a$):l2$=(mid$(a$,3)):if l2 then:&,52,40,1
+3136 x=35:gosub 1:&,2,2:am$=a$:an$=a$:&,15:d6$=an$+"M"
+' clock type, lt. kernal device number
+3138 x=37:gosub 1:&,2,2:y%=val(a$):x=38:gosub 1:&,2,2:lk%=val(a$)
+' default color [cyan]:
+3140 df%=3:x=40:gosub 1:&,2,2:a=val(a$):if a>. and a<16 then df%=a
+' printer device #
+3142 x=41:gosub 1:&,2,2:a=val(a$):if a then close 4:open 4,4,a
+' password mask character(s)
+3144 x=42:gosub 1:&,2,2:a=val(a$):if a then poke 17136,a
+' system time zone string
+3146 x=45:gosub 1:&,2,2:tz$=a$
+' BBS name
+3148 x=47:gosub 1:&,2,2:bn$=a$
+' * entering chat mode *, * exiting chat mode *
+3150 x=48:gosub 1:&,2,2:c1$="{clear}{f6}{$07}"+a$+"{f6:2}":x=49:gosub 1:&,2,2:c2$="{f6:2}"+a$+"{f6:2}"
+3152 x=51:gosub 1:&,2,2:cc$=a$
+' new user credits
+3154 x=58:gosub 1:&,2,2:nc=val(a$)
+
+' clock types:
+3155 if y%>4 then gosub 3348:gosub 3170:goto 3158
+3156 on y% gosub 3348,3358,3366:gosub 3170
+3158 poke 970,.:poke 971,23:mp$=" ...More? (Y/n) "+"":im=5:gosub 447:gosub 3250
+
+3160 gosub 30:for x=1 to 38:gosub 1:&,2,2:st(x)=val(a$):next:close 2
+3162 an$=am$:lt$=am$:tk$=left$(am$,1):gosub 3300
+3164 close2:gosub 3186:&,37
+3166 a$=z$:t1=mn%:an$=z$:&,15:d2$=an$+"M":for i=54272 to i+24:poke i,.:next
+3168 f1=3:&,27,1:goto 302
+' $cec7 (longdate):
+3170 a=val(left$(z$,1)):gosub 3184:poke 52935,a
+3172 a=val(mid$(z$,2,2)):gosub 3184:poke 52938,a
+3174 a=val(mid$(z$,4,2)):gosub 3184:poke 52936,a
+3176 a=val(mid$(z$,6,2)):gosub 3184:poke 52937,a
+3178 b=val(mid$(z$,8,2))
+3180 c=val(mid$(z$,10,2))
+3182 &,62,b,c:b=b+80*((b=92)-(b=12))+12*((b=93)or(b=13)):&,58,b,.:return
+
+' convert a to bcd:
+3184 a=16*int(a/10)+a-int(a/10)*10:return
+
+' read blocks free
+3186 for q=. to 6:bf(q)=-1:next
+3188 z3$="Reading Blocks Free...":gosub 3404:for q=1 to 6:dr=q:gosub 61
+3190 read b$:&"{f6}{rvs off}{lt. blue} {pound}$b Disk{pound}{back arrow}30:{cyan}"+str$(a):next:q=.:return
+
+' new: from 3100- report ok/error
+3192 gosub 5:c$="{lt. green}":if e% then c$="{lt. red}"
+3194 &"{pound}{back arrow}20"+c$+"{pound}$e{f6}{lt. blue}":return
+
+3200 &,27,1:z1$="Insert All System Disks In Correct ":z2$="      Drives, And Press RETURN     "
+3202 &"{home}{f6:7}{green}OR: {lt. green}Press {yellow}({white}1{yellow}) {lt. green}to configure a new BBS{f6}"
+3204 &"{pound}{back arrow}10{yellow}({white}2{yellow}) {lt. green}to convert from Image BBS v1.2{f6}"
+3206 &"{pound}{back arrow}10{yellow}({white}3{yellow}) {lt. green}to convert from Image BBS v2.0{f6}"
+3207 &"{pound}{back arrow}10{yellow}({white}4{yellow}) {lt. green}to reset C128{f6}"
+3208 gosub 3408:lm=val(an$):on lm goto 3220,3222,3224,3226
+3210 if an$=r$ then gosub 3414
+3212 return
+3220 z3$="Configure Image BBS 3.0":goto 3228
+3222 z3$="Convert from Image BBS 1.2":goto 3228
+3224 z3$="Convert from Image BBS 2.0":goto 3228
+' [c64] sys 64738 (reset) = [128] sys 16384
+3226 z3$="Reset C128":gosub 3404:a=.:gosub 94:if a=. then return:else sys 16384
+' FIXME: ew
+3228 gosub 3404:&"{f6}{pound}{back arrow}39 {f6}{pound}{back arrow}39 {f6}{pound}{back arrow}39 {f6}{pound}{back arrow}39 {f6}"
+' 3240 f$="i/setup 128":close 15:open 1,dv%,1,f$:s=ds:close15:ifsthen:&"{f6}Cannot find {quotation}{pound}$f{quotation}. Halting.{pound}w5":goto 4048
+' ds=63: file exists
+3240 f$="i/setup 128":close 15:rename (f$) to (f$):if ds<>63 then:&"{f6}Cannot find {quotation}{pound}$f{quotation}. Halting.{pound}w5":goto 4048
+3242 new 4000:load f$,dv%:gosub 4000:return
+
+' gosub from
+3250 dr=3:a$="e.lightdefs,s,r":gosub 4:if e% then close 2:goto 3300
+3252 z3$="Setting Default Checkmarks...":gosub 3404
+3254 for x=. to 7:&,2,2:if len(a$)<>16 then:&"Lightbar defaults length error, page !x{f6}":goto 3258
+3256 for i=1 to 16:&,52,x*16+i-1,val(mid$(a$,i,1)):next
+3258 next:close 2
+
+' FIXME: duplicate code
+' restart log file
+3300 dr=3:a$="e.log"+left$(lt$,1):gosub 4:if e%=. then return
+3302 dr=3:a$="e.log"+left$(lt$,1):gosub 18:close 2:an$=d1$:&,15:d6$=an$
+3304 a$=" LOG START: "+d6$+"{f6} {pound}q0{yellow}{pound}o{pound}o{f6}":gosub 51
+3306 gosub 33:x=44:gosub 1:print#2,d6$:close 2
+3308 gosub 30:for x=12 to 22:st(x)=.:gosub 17:next:return
+
+' cmd clock set:
+3348 z3$="Setting Clock by CMD Device...":gosub 3404:close 15:open 15,y%,15:print#15,"t-ra":&,2,15
+3350 z$=left$(a$,2):a=-(z$="su")-2*(z$="mo")-3*(z$="tu")-4*(z$="we")-5*(z$="th")
+3352 a=a-6*(z$="fr")-7*(z$="sa"):z$=mid$(str$(a),2,1)+mid$(a$,12,2)+mid$(a$,6,2)
+3354 a=-80*(mid$(a$,24,1)="p")+val(mid$(a$,15,2))
+3356 z$=z$+mid$(a$,9,2)+right$("0"+mid$(str$(a),2),2)+mid$(a$,18,2):poke1010,1:return
+
+' ltk clock set:
+3358 gosub 3364:sys 49155:goto 3362
+3360 gosub 33:x=35:gosub 1:&,2,2:d1$=a$:close 2:poke 1010,1:return
+3362 z$="":for a=49159 to a+10:z$=z$+chr$(peek(a)):next:poke 1010,1:return
+3364 z$="Setting Clock by Lt.Kernal...":gosub 3404:dr=5:gosub 4:a$=dr$+"swr.ml":&,7,dv%,2:return
+3366 gosub 3364:sys 49152:sys 49155:goto 3362
+
+' TODO: use WINDOW command?
+' based on fixed code in
+' https://github.com/Pinacolada64/ImageBBS3/blob/master/core/tests/i.test%20frame.lbl
+
+' &,69 [writestring] can't do special petscii characters like {$b0}
+3400 z1$="":z2$="":s$="{space:36}":&,70,1,2:&"{gray2}{$b0}"+mid$(ak$,2,36)+"{$ae}"
+3401 for i=3 to 4:&,70,1,i:&"{gray2}{$dd}{gray3}{rvrs on}{pound}$s{rvrs off}{gray2}{$dd}":next
+3402 &,70,1,5:&"{gray2}{$ad}"+mid$(ak$,2,36)+"{$bd}":return
+
+' scroll z1$ up, display z2$
+' add trailing spaces after z2$
+
+' NOTE: Immutable line number
+' pass z3$ as new line of info to scroll
+' scroll z1$ and z2$ up. z3$ is new line to display
+' pad z2$ out with spaces
+3404 z1$=z2$:c=$8f:z2$=left$(z3$+s$,34)
+' display both z2$ and z3$, don't scroll
+3405 &,69,3,3,z1$,c:&,69,3,4,z2$,c:return
+
+' FIX: remove z=z+1 stuff. this does not delay 1/2 second on a SuperCPU system. use timer instead:
+' 'i=not i' does not work
+
+' i=color index (0=gray, 1=yellow)
+3406 gosub {:sub.clear_lines}:i=1:&"1) Option 1{f6}2) Option 2{f6}3) Option 3{f6}{back arrow}) Abort{f6:2}Option: "
+
+' NOTE: Immutable line number
+' flash frame contents:
+' t=ti, e=30 ('elapsed time': 1/2 second delay [30 jiffies], instead of continuously interpreting floating point)
+3408 t=ti:e=t+30
+3410 on peek(198) goto 3420:if ti<e then 3410
+' jiffy delay has run out. toggle color index 'i' for new interior text color 'c':
+' $87=rvs yellow, $8f=rvs gray3
+3411 i=1-i:c=$87:if i then c=$8f
+' draw interior text, reset jiffy delay
+3412 gosub 3405:goto 3408
+' &,69,<column>,<row>,<text>,<color>
+
+' color index
+' 5 c=1
+' t=time, e=elapsed time (1/2 second, 30 jiffies)
+' 10 t=ti:e=30
+' an=non-zero when key is hit, check for expired timeout (elapsed jiffies>30)
+' 20 on peek(198) goto 40:if ti<t+e then 20
+' if so, toggle color index, print color and index value
+' 30 c=1-c:printmid$("{yellow}{light gray}",c+1,1)c:goto 10
+' key hit: read key buffer, convert to numeric value
+' 40 get an$:print"key:"an$:lm=val(an$):if lm<1 and lm>3 then 20
+
+' NOTE: Immutable line number
+{:sub.clear_lines}
+' clear screen lines 7-24 (0-based)
+' reposition cursor on row 7, col 0
+' TODO: clear line links?
+' 3414 for i=6 to 23:&,70,.,i:&"{pound}{back arrow}38":next:&,70,.,6:return
+
+3414 for i=7 to 24:&,69,0,i,s$+"   ":next:&,70,0,6:return
+
+' key hit
+3420 &"Fixme!":goto 4000
+
+3500 data"Commodore 64","Commodore 128","Amiga","Apple/Comp."
+3502 data"IBM/Comp.","Macintosh","Atari/ST","Tandy Series","Other Type"
+3504 data"*","System","E-Mail","Etcetera","Directory","Plus-File","User"
+' TODO: move these lines into i/setup 128:
+' 3510 rem &"{f6}RS232 Interface Type:{f6}Enter 0 for User Port{f6}Enter 1 for SwiftLink/Turbo232{f6}> {pound}i1"
+' 3512 rem a=val(an$):ifa<0ora>1then3510
+' 3514 rem gosub 33:x=32:gosub 1:print#2,an$:close2:return
+3999 rem copr. 2023 new image 8/14/2023
+
+' error trap stuff
+4000 &,38:cm$=cm$+"":p$=p$+"":pr$=pr$+"":p1$=p1$+"":p2$=p2$+""
+' FIXME: 64789
+' FIXME: mostly copy of 4048
+4002 if x<128 then 4006:else a$="FATAL ERROR!!":gosub 51:sys 64789:print"{clear}{switchdisable}{white}{lowercase}{down:2}"a$:end
+4004 &,38:&,61,.,8:print"&,37:goto 300:":end
+4006 restore 4072
+' 4008 read a$:if a$<>"errors" then 4008
+' 4008 do until a$="errors":read a$:loop
+4010 &,40:d$="GURU":if x>. and x<42 then for k=1 to x:read d$:next
+4012 a%=x:&"{f6}{lt. red} SYSTEM ERROR #{pound}%a {white}({pound}$d ERROR){f6}":r$=chr$(13)
+4014 a$="im":if el=>3000 then a$=pr$:if el=>4000 then a$=p1$:if el=>60000 then a$=p2$
+4016 a=el:&"{lt. blue} In Line:{gray3}{pound}!a {lt. blue}Of {gray3}{pound}$a{f6}"
+4018 &"{f6}{lt. red}Recording Error, Please Wait...":d$=str$(x)+" ("+d$+" ERROR)"
+4020 dr=3:a$="e.errlog,s,a":gosub 4:if e%=. then 4024
+4022 a$="e.errlog,s,w":gosub 4
+4024 print#2,na$r$id;r$d1$r$ac%;r$ph$r$rn$r$co$(co%)r$
+4026 print#2,"Error :"d$r$"Line  :"el;r$"Area  : "cm$r$"Prompt: "p$
+4028 print#2,"Program: "pr$r$"Module: "p1$r$"Sub Module: "p2$
+4030 print#2,"ML File: "ml$r$"Protocol: "d4$r$
+4032 for i=1 to 10:a$=chr$(58-i):if hs$(i)<>"" then print#2," {uparrow}"a$": "hs$(i)
+' FIXME: check right Dbg lightbar flag before color 4,3 to turn border red
+4034 next:print#2,"^":close 2:rem &,52,x,3:if a% then color 4,3
+4036 a$="User  : "+na$+r$+"Error :"+d$+r$+"Line  :"+str$(b)+r$+"Time  : {04}"+d1$+r$
+4038 a$=a$+"Pfile : "+pr$+r$+"Area  : "+cm$+r$+".":remgosub 51
+4040 close 2:&,37:for x=1 to 4:&,11,x:next:sy$="":sb$="":sg=.
+4042 p2$="":is=.:p1$="":pr$="":ml$="":pr=-1:pf=.
+' peek(2033) is carrst (modem carrier status)
+4044 if ac%<>16 then:&,52,4,3:if a% or if (peek(2033) and 1)=. then 4050
+4046 f1=2:goto 302
+' FIXME: 64789
+4048 a$="FATAL ERROR!!":gosub 51:sys 64789:print"{clear}{switchdisable}{white}{lowercase}{down:2}"a$:end
+4050 &,52,4,3:if a% or i% or id=1 then 4068
+' get sysop name:
+4052 gosub 35:x=1:gosub 1:&,2,2:i1$=a$:close 2:kk=.:a$="s.errmail,s,r":dr=1:gosub 4:if e% then close 2:goto 4068
+'    kk=kk+1:&,2,2:s=(64andst):tt$(kk)=a$:ifs=.then4054
+4054 do while (64 and st)=.:kk=kk+1:&,2,2:tt$(kk)=a$:loop
+4056 close 2:tt$=na$:a$="a":gosub 32:if e% then a$="w":gosub 32
+4058 a$="[System Error ("+d$+")]":a=.:print#2,i1$r$1;r$d1$r$a$r$
+4060 gosub 39:close 15
+4062 gosub 30:i=1:x=14:gosub 16:x=25:gosub 16:x=32:gosub 16:close 2
+4064 &"{pound}ho{pound}h9ed!{f6:2}{white}{$07}You Have New E-Mail Waiting:{f6:2}{green}Read Now? ":gosub 96
+4066 if a then a$="E"+"M":goto 70
+4068 pr$="":goto 300
+' 30 errors in BASIC 2.0
+' 41 errors in BASIC 7.0
+' error strings also used in another module...
+' 4070 data"errors"
+' 1-3
+4072 data"TOO MANY FILES","FILE OPEN","FILE NOT OPEN"
+' 4-6
+4074 data"FILE NOT FOUND","DEVICE NOT PRESENT","NOT INPUT FILE"
+' 7-9
+4076 data"NOT OUTPUT FILE","MISSING FILE NAME","ILLEGAL DEVICE NUMBER"
+' 10-12
+4078 data"NEXT WITHOUT FOR","SYNTAX","RETURN WITHOUT GOSUB"
+' 13-15
+4080 data"OUT OF DATA","ILLEGAL QUANTITY","OVERFLOW"
+' 16-18
+4082 data"OUT OF MEMORY","UNDEF'D STATEMENT","BAD SUBSCRIPT"
+' 19-21
+4084 data"REDIM'D ARRAY","DIVISION BY ZERO","ILLEGAL DIRECT"
+' 22-24
+4086 data"TYPE MISMATCH","STRING TOO LONG","FILE DATA"
+' 25-27
+4088 data"FORMULA TOO COMPLEX","CAN'T CONTINUE","UNDEFINED FUNCTION"
+' 28-32
+4090 data"VERIFY","LOAD","BREAK ","CAN'T RESUME","LOOP NOT FOUND"
+' 33-35
+4092 data"LOOP WITHOUT DO","DIRECT MODE ONLY","NO GRAPHICS AREA"
+' 36-38
+4094 data"BAD DISK","BEND NOT FOUND","LINE # TOO LARGE"
+' 39-41
+4096 data"UNRESOLVED REFERENCE","UNIMPLEMENTED COMMAND","FILE READ"
+4098 rem copr. 1996 new image 5/6/96-jlf
+4100 rem im (c)nissa 2020-09-29 lh-ad, 2023-08-14 rs
