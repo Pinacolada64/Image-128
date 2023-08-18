@@ -97,18 +97,20 @@
 ' I'd rather go back to "a=0:gosub 94" for default yes, but this is a lot of change
 {ifdef:yesno_change}
 ' updated working code:
-94 &"{f6}Are You Sure?: {cyan}[{white}":if a then 96
-95 &"No{cyan}]":gosub 7:&"{pound}h4":a=-(a$="Y"):goto 97
-96 &"Yes{cyan}]":gosub 7:&"{pound}h5":a=(a$="N")+1
+94 &"{f6}Are You Sure?: ":if a then 96
+95 &"{cyan}[{white}No{cyan}]":gosub 7:&"{pound}h4":a=-(a$="Y"):goto 97
+96 &"{cyan}[{white}Yes{cyan}]":gosub 7:&"{pound}h5":a=(a$="N")+1
 97 &"{pound}q"+chr$(df%+48)+mid$("YesNo",4-a*3,3)+"{f6}":return
 {else:}
 ' current code:
 93 gosub 98
 94 &"{cyan}[{white}No{cyan}]":gosub 7:&"{pound}h4":a=-(a$="Y"):goto 97
 95 gosub 98
+' 236 calls 96, so need to print entire '[Yes]' string
 96 &"{cyan}[{white}Yes{cyan}]":gosub 7:&"{pound}h5":a=(a$="N")+1
 97 &"{pound}q"+chr$(df%+48)+mid$("YesNo",4-a*3,3)+"{f6}":return
-98 &"{f6}Are You Sure?: ":return
+' appends " [Y/N]" if expert mode off (0):
+98 a$="{f6}Are You Sure [Y/N]":&left$(a$,len(a$)-6*em)+"?: ":return
 {endif}
 
 100 p2$="sub."+a$:gosub 110:is=is+1:im$(is)=im$
@@ -426,8 +428,8 @@
 3222 z3$="Convert from Image BBS 1.2":goto 3228
 3224 z3$="Convert from Image BBS 2.0":goto 3228
 ' [c64] sys 64738 (reset) = [128] sys 16384
-3226 z3$="Reset C128":gosub 3404:a=.:gosub 94:if a=. then return:else sys 16384
-' FIXME: ew
+3226 z3$="Reset C128":gosub 3404:gosub 93:if a=. then return:else sys 16384
+' FIXME: ew. use &,69,0,x,"{space:39}",1 instead?
 3228 gosub 3404:&"{f6}{pound}{back arrow}39 {f6}{pound}{back arrow}39 {f6}{pound}{back arrow}39 {f6}{pound}{back arrow}39 {f6}"
 ' 3240 f$="i/setup 128":close 15:open 1,dv%,1,f$:s=ds:close15:ifsthen:&"{f6}Cannot find {quotation}{pound}$f{quotation}. Halting.{pound}w5":goto 4048
 ' ds=63: file exists
