@@ -433,16 +433,16 @@
 3194 &"{pound}{back arrow}20"+c$+"{pound}$e{f6}{lt. blue}":return
 
 3200 &,27,1:z1$="Insert All System Disks In Correct ":z2$="      Drives, And Press RETURN     "
-3202 &"{home}{f6:7}{green}OR: {lt. green}Press {yellow}({white}1{yellow}) {lt. green}to configure a new BBS{f6}"
-3204 &"{pound}{back arrow}10{yellow}({white}2{yellow}) {lt. green}to convert from Image BBS v1.2{f6}"
-3206 &"{pound}{back arrow}10{yellow}({white}3{yellow}) {lt. green}to convert from Image BBS v2.0{f6}"
+3202 &,70,0,6:&"{green}OR: {lt. green}Press {yellow}({white}1{yellow}) {lt. green}to configure a new BBS{f6}"
+3204 &"{pound}{back arrow}10{yellow}({white}2{yellow}) {lt. green}to convert from Image BBS 64 v1.2{f6}"
+3206 &"{pound}{back arrow}10{yellow}({white}3{yellow}) {lt. green}to convert from Image BBS 64 v2.0{f6}"
 3207 &"{pound}{back arrow}10{yellow}({white}4{yellow}) {lt. green}to reset C128{f6}"
 3208 gosub 3408:lm=val(an$):on lm goto 3220,3222,3224,3226
 3210 if an$=r$ then gosub 3414
 3212 return
-3220 z3$="Configure Image BBS 3.0":goto 3228
-3222 z3$="Convert from Image BBS 1.2":goto 3228
-3224 z3$="Convert from Image BBS 2.0":goto 3228
+3220 z3$="Configure Image BBS 128 v1.0":goto 3228
+3222 z3$="Convert from Image BBS 64 v1.2":goto 3228
+3224 z3$="Convert from Image BBS 64 v2.0":goto 3228
 ' [c64] sys 64738 (reset) = [128] sys 16384
 3226 z3$="Reset C128":gosub 3404:gosub 93:if a=. then return:else sys 16384
 ' FIXME: ew. use &,69,0,x,"{space:39}",1 instead?
