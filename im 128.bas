@@ -19,7 +19,7 @@
 ' i take it peek(17138) <c64 screen mask mode> is checked within &,69
 ' therefore eliminating it here:
 9 if nt=. then:&,69,4,21,left$(" "+cm$+"               ",22),$8c:return:else return
-' rem print#15,"p"chr$(xand255)chr$(x/256)"":return
+' rem print#15,"p{02}"chr$(xand255)chr$(x/256)"{01}":return
 ' record# lfn, record_num [, byte_num]
 10 record#2,x,1:return
 11 a=val(mid$(fl$,a,1)):return
@@ -281,7 +281,7 @@
 
 ' color 0,1 => poke 53280,0 [vic border]
 ' color 4,1 -> poke 53281,0 [vic background]
-' 3000 poke 828,peek(186):clr:print"{white}":poke 53280,.:poke 53281,.
+' 3000 poke 828,peek(186):clr:print"{clear}{switchdisable}{white}{lowercase}":poke 53280,.:poke 53281,.
 3000 poke {sym:bootdev},{sym:fa}:clr:print"{clear}{switchdisable}{white}{lowercase}":color 0,1:color 4,1
 ' TODO: poke 52/56 RAM, 248,250 RS232
 3002 open 131,2,134,chr$(6):poke 248,203:poke 250,204:poke 56,160:poke 52,160
@@ -449,7 +449,7 @@
 ' restart log file
 3300 dr=3:a$="e.log"+left$(lt$,1):gosub 4:if e%=. then return
 3302 dr=3:a$="e.log"+left$(lt$,1):gosub 18:close 2:an$=d1$:&,15:d6$=an$
-3304 a$=" LOG START: "+d6$+"{f6} {pound}q0{yellow}{pound}o{pound}o{f6}":gosub 51
+3304 a$=" LOG START: "+d6$+"{f6} {pound}q0{yellow}{pound}o{midline}{pound}o{midline}{f6}":gosub 51
 3306 gosub 33:x=44:gosub 1:print#2,d6$:close 2
 3308 gosub 30:for x=12 to 22:st(x)=.:gosub 17:next:return
 

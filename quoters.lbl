@@ -1,0 +1,17 @@
+' example of how to include the file, just remove ' in braces to use:
+{'include:quoters.lbl}
+
+' make runs of spaces easier to read, e.g. {space:25}:
+{quoter:32=space}
+
+' Image-encoded f-keys:
+{quoter:133=comma}	' chr$(133) f1 = ,
+{quoter:134=colon}	' chr$(134) f3 = :
+{quoter:135=quotation}	' chr$(135) f5 = " (can't put literal {quote} in string)
+{quoter:136=asterisk}	' chr$(136) f7 = *
+{quoter:137=question}	' chr$(137) f2 = ?
+{quoter:138=equal}	' chr$(138) f4 = =
+' f6 is not defined since {return} embedded in a string is problematic
+{quoter:140=uparrow}	' chr$(140) f8 = ^
+
+{quoter:192=midline}	' solid "-"
