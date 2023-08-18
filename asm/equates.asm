@@ -20,7 +20,7 @@
 	ascii_ctrl_d	= 4
 	ascii_ctrl_x	= 24
 
-	comma	= $2c
+	comma		= $2c	; avoids assembler addressing mode errors with cmp ","
 
 	cursor_right	= $1d
 	cursor_left	= $9d
@@ -56,6 +56,7 @@
 	chr_lt_blue	= $9a
 	chr_gray3	= $9b
 
+; same: memory address same between c64/c128
 ; [1.2]: labels/memory address is the same as 1.2
 ; [?]  : not certain of purpose of routine
 ; ($xx): Indirect addressing: $xx *256+ ($xx+1)
@@ -78,7 +79,7 @@
 	temppt	= $18	; c64: $16. Pointer to the Next Available Space in the Temporary String Stack
 	lastpnt	= $19	; c64: ($17). Pointer to the Address of the Last String in the Temporary String Stack
 	tempst	= $1b	; c64: $19-$21. c128: $1b-$23. Descriptor Stack for Temporary Strings
-	24_index= $24	; c128: $24-$27. Miscellaneous Temporary Pointers and Save Area
+	index_24= $24	; c128: $24-$27. Miscellaneous Temporary Pointers and Save Area
 			; official name is "index", renamed to not conflict with BBS flag @ $d00f
 	resho	= $28	; c64: $26-$2a. c128: $28-$2c. Floating point product of multiply
 	txttab	= $2d	; c64: ($2b). pointer to start of BASIC text in bank 0
@@ -133,15 +134,19 @@
 	fnlen	= $b7	; same: filename length
 	la	= $b8
 	sa	= $b9
-	fa	= $ba	; same: current output device
+	fa	= $ba	; same: 186. current output device
 	fnadr	= $bb
 	fsblk	= $be
 	mych	= $bf
 	stal	= $c1
 	zp_c4	= $c4
 	lstx	= $c5
-	ndx	= $c6
-	sfdx	= $cb
+	ndx	= $c6	; same: 198. number of characters in keyboard buffer
+	rvs	= $c7	; same: 199. flag: print reverse characters. 0=no, 1=yes
+	ribuf	= $c8	; c64: ($f7). vector to rs232 input buffer address
+	robuf	= $ca	; c64: ($f9). vector to rs232 output buffer address
+
+	sfdx	= $cb	; same. flag: print shifted characters
 	blnsw	= $cc
 	blnct	= $cd
 	gdbln	= $ce
@@ -149,11 +154,11 @@
 	crsw	= $d0
 	pnt	= $d1
 ;	pntr	= $d3
-	qtsw	= $d4
+	qtsw	= $f4	; c64: $d4. quote mode flag
 	lnmx	= $d5
 	tblx	= $d6
 	zp_d7	= $d7 ; temp storage for ASCII value of last char printed
-	insrt	= $d8
+	insrt	= $f5	; c64: $d8. insert mode flag
 	ldtb1	= $d9
 
 	ribuf	= $f7 ; pointer to rs232 input buffer address
@@ -315,9 +320,9 @@
 
 ; $0bff / 3071: end of cassette buffer / boot sector image
 
-; $0c00: rs-232 input buffer
+; $0c00-$0cff: rs-232 input buffer
 
-; $0d00: rs-232 output buffer
+; $0d00-$0dff: rs-232 output buffer
 
 ;
 ; screen display stuff:
@@ -370,7 +375,7 @@
 	tempcol7= tempcol+280
 	emptym3	= $1280 ; 4736, 96 bytes
 
-	oldlin	= $1200 ; c64: $3b, previous BASIC line number
+	oldlin	= $1200 ; c64: $3b-$3c, previous BASIC line number
 
 ; FIXME: relocate 25 bytes
 	idlejif	= $12e0	; 4832
