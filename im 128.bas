@@ -119,6 +119,7 @@
 104 return
 110 dr=5:gosub 2:im$=a$:cm$="sub."+a$:gosub 9:a$=dr$+"sub."+a$:load a$,dv%
 112 return
+' 200 on tr%+1 goto 240:&,52,17,lf:&,52,20,em:poke 951,ll%:poke 971,mp%:poke 970,.
 200 on tr%+1 goto 240:&,52,17,lf:&,52,20,em:poke {sym:modclmn},ll%:poke {sym:usrlin},mp%:poke {sym:ptrlinm},0
 202 &,52,30,3:on a% gosub 330
 204 s=.:sh=.:gosub 12
@@ -175,6 +176,11 @@
 321 if len(fl$)<len(a$) then fl$=fl$+mid$(a$,len(fl$)+1)
 322 if len(fl$)>len(a$) then fl$=a$
 323 if ac%<>ao% then fl$=a$:ao%=ac%
+' get flags:
+' flag  6: lines allowed in editor: le*10
+' flag 16: max idle time: c64: 830, c128: 2816
+' flag 20: downloads allowed: da%
+'	a=6:gosub 11:le=(a+1)*10:a=16:gosub 11:poke 830,a:a=20:gosub 11:da%=a
 324 a=6:gosub 11:le=(a+1)*10:a=16:gosub 11:poke {sym:idlemax},a:a=20:gosub 11:da%=a
 325 return
 330 dr=3:a$="e.macros":gosub 4
@@ -271,9 +277,12 @@
 ' TODO: drop 999
 999 return
 ' FIXME: close all open files
-2000 poke 22,25:for i=2 to peek(152):close peek(603):next:poke 2031,.
+' poke 22,25:for i=2 to peek(152):close peek(603):next:poke 2031,.
+' TODO: dclose u(<var>)?
+2000 poke 22,25:for i=2 to peek(152):close peek(603):next:poke {sym:mci},.
 2002 x=peek(780):y=peek(781)+peek(782)*256:&"{f6}[Error#{pound}!x, Line#{pound}!y]{f6}":el=y
-2004 &,11:&,28,1:poke 53248,.
+' 2004 &,11:&,28,1:poke 53248,.
+2004 &,11:&,28,1:poke {sym:local},.
 2006 dr$=mid$(str$(dr%(5)),2)+":":dv%=dv%(5):load dr$+"im",dv%,2
 2008 gosub 304:goto 4000
 
@@ -319,24 +328,28 @@
 3062 ak$=" {192:38}"+"{f6}"
 3064 r$=chr$(13):nl$=chr$(.):qt$=chr$(34)
 ' 650 [c64], 2594/$0a22 [c128]: key repeat
-' FIXME: 836
+' FIXME: 836 is in datebuf, may be no longer needed (y2k fix?)
+' 3066 open 4,4,7:poke 836,1:poke 650,128
 3066 open 4,4,7:poke 836,1:poke {sym:keyrept},128
 3068 poke 56328,.:poke 56579,peek(56579)or 38:poke 56577,peek(56577) or 36
 3070 dim tt$(254),dv%(36),dr%(36),co$(9),hs$(10),bf(6),st(38),im$(5),pf$(10)
-3073 restore:for i=1 to 9:read a$:co$(i)=a$+"":next
+3073 restore 3500:for i=1 to 9:read a$:co$(i)=a$+"":next
+' dv%=peek(828):z%=dv%:dr$="0"+":":bd$=dr$:sr=2:pr=-1:f3=1:sys 49155:&,53
 3074 dv%=peek({sym:bootdev}):z%=dv%:dr$="0"+":":bd$=dr$:sr=2:pr=-1:f3=1:sys 49155:&,53
 ' NOTE: __BuildDate and __BuildTime are themselves quoted strings, hence the weirdness here:
 3075 &,69,1,1,"im 128 revision: "+{usedef:__BuildDate}+" "+{usedef:__BuildTime},3
+' a$="NTSC":if peek(678) then a$="PAL"
 3076 a$="NTSC":if peek({sym:ntscpal})=255 then a$="PAL"
 3078 gosub 3400:z3$=a$+" System Detected.":gosub 3404
-3080 &,18,.:poke 53248,1:am$="1"+"0001018600":dv%=z%
+' 3080 &,18,.:poke 53248,1:am$="1"+"0001018600":dv%=z%
+3080 &,18,.:poke {sym:local},1:am$="1"+"0001018600":dv%=z%
 3084 z3$="Reading Drive Configuration...":gosub 3404:close 15:open 15,dv%,15
 3086 fl=.:close 2:open 2,dv%,2,bd$+"bd.data,s,r":gosub 5
 ' TODO: remove 3510. sets up modem type, should be moved to "i/setup 128"
 ' 3087 ife%thenclose2:gosub 3200:gosub 3510:z2$="":&"{home} ":&,28,1:goto 3084
 3087 if e% then close 2:gosub 3200:z2$="":&"{home} ":&,28,1:goto 3084
 3088 input#2,dv%(3),dr%(3),po$:close 2:if po$="" then po$="Main: "
-3090 restore:do until a$<>"*":read a$:loop
+
 3092 remifdv%=lk%thenprint#15,"l800"
 3093 gosub 33:for i=1 to 6:x=i+51:gosub 1:&,2,2:dv%(i)=val(a$)
 3094 &,2,2:dr%(i)=val(a$):next:close 2
@@ -397,6 +410,7 @@
 3164 close 2:gosub 3186:&,37
 3166 a$=z$:t1=mn%:an$=z$:&,15:d2$=an$+"M":for i=54272 to i+24:poke i,.:next
 3168 f1=3:&,27,1:goto 302
+
 ' $cec7 (longdate):
 3170 a=val(left$(z$,1)):gosub 3184:poke 52935,a
 3172 a=val(mid$(z$,2,2)):gosub 3184:poke 52938,a
