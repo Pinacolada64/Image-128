@@ -10,8 +10,8 @@
 0 on peek({sym:linflg}) goto 3000,4000:goto 300
 1 gosub 10:&,22,1:goto 10
 2 dv%(.)=d1%:dr%(.)=d2%:dv%=dv%(dr):dr$=mid$(str$(dr%(dr)),2)+":":d3%=dr%(dr):return
-3 close 15:gosub 2:open15,dv%,15:return
-4 close 2:gosub 3:open2,dv%,2,dr$+a$
+3 close 15:gosub 2:open 15,dv%,15:return
+4 close 2:gosub 3:open 2,dv%,2,dr$+a$
 5 input#15,e%,e$,t%,s%:a$="{f6}Status:{pound}#2{pound}%e:{pound}$e:{pound}%t:{pound}%s{f6}":return
 ' 6 an$=uu$:on-(an$<>"")gosub 310:on-(an$<>"")goto 314:pl=1:&,1:goto 310
 6 an$=uu$:if an$<>"" then gosub 310:else if an$<>"" then 314:else pl=1:&,1:goto 310
@@ -135,41 +135,43 @@
 224 x=1:rq=.:rs=1
 226 f4=.:a%=zz:b%=2^ac%:&,42:if a% then ef$=b$:ep$=a$:ec=a%:ec%=b%:goto 260
 228 on -(a$="O" or (lc=1 and a$="Q"))-2*(a$="{question}") goto 230,250:rs=.:return
-230 f4=.:ifright$(an$,1)<>"!"then:&"{f6:2}Logoff?: ":gosub 93:if a=. then return
+230 f4=.:if right$(an$,1)<>"!"then:&"{f6:2}Logoff?: ":gosub 93:if a=. then return
 232 f4=1.3:return
-234 f1=1-(right$(an$,1)="!"):cd%=.:ifmid$(z$,2,1)="%"then302
-236 &"{f6}Update Message/File Scan Date?: ":gosub 96:ifathenld$=lt$:elsegoto 302
+234 f1=1-(right$(an$,1)="!"):cd%=.:if mid$(z$,2,1)="%" then 302
+236 &"{f6}Update Message/File Scan Date?: ":gosub 96:if a then ld$=lt$
+238 goto 302
 240 &"{f6}Sorry, Time Limit Exceeded.{f6}":mm=3:gosub 3000:f1=1:goto 302
 242 f1=.:&"{f6} Aborted!{f6}":goto 200
 250 im=1:goto 436
 260 if ec%>. and cr-ec%<. then:&"{red}Not Enough Credits!{f6}":return
 262 cr=cr-ec%:if ep$="" or id=1 then 264
-263 &"{f6}{white}Password{blue}:{white}":&,6:ifan$<>ep$then:&"{f6}{red}Incorrect Password.{f6}":return
-264 f4=.:onecgoto 265,266,267,268:return
+263 &"{f6}{white}Password{blue}:{white}":&,6:if an$<>ep$ then:&"{f6}{red}Incorrect Password.{f6}":return
+264 f4=.:on ec goto 265,266,267,268:return
 265 z$=ef$:f4=1.1:&,28,1:return
 266 f4=1.2:&,28,1:return
 267 z$=ef$:goto 80
 268 a%=asc(ef$+nl$)+256*asc(mid$(ef$,2,1)+nl$):&,42,1
 270 mm=.:a$=z$:goto 70
-280 a%=zz:b%=2^ac%:&,42:ifa%thenef$=b$:ep$=a$:ec=a%:ec%=b%:goto 264
+280 a%=zz:b%=2^ac%:&,42:if a% then ef$=b$:ep$=a$:ec=a%:ec%=b%:goto 264
 282 return
-288 return
-289 &"{pound}i0":ifan$=""thenreturn
+' no reference to 288 in im
+' 288 return
+289 &"{pound}i0":if an$="" then return
 290 &,15,2:return
 ' leave these two lines untouched: continue after
-300 &,28,1:&,52,$30,3:ona%gosub 309:mm=.:a$="main":goto 70
-302 &,28,1:&,52,$30,3:ona%gosub 309:mm=.:a$="lo":goto 70
+300 &,28,1:&,52,$30,3:on a% gosub 309:mm=.:a$="main":goto 70
+302 &,28,1:&,52,$30,3:on a% gosub 309:mm=.:a$="lo":goto 70
 304 &,28,1:gosub 306:&,27:return
 306 dimbb$(31),dt$(61),ed$(61),nn$(61)
 308 dima%(61),c%(61),d%(61),e%(31),f%(61),ac%(31),so%(31):return
-309 cm$="1.3 Emulator":gosub 9:dr=5:gosub 3:loaddr$+"im.emul13",dv%:goto 304
+309 cm$="1.3 Emulator":gosub 9:dr=5:gosub 3:load dr$+"im.emul13",dv%:goto 304
 310 pu$=an$:ifan$="{uparrow}{question}"then315
-311 ifleft$(an$,1)="{uparrow}"thenan$=hs$(10-val(mid$(an$,2,1))):goto 314
+311 if left$(an$,1)="{uparrow}" then an$=hs$(10-val(mid$(an$,2,1))):goto 314
 312 &,15,6,140:uu$=an$:an$=a$
 313 for ct=1 to 9:hs$(ct)=hs$(ct+1):next:hs$(10)=an$:return
 314 &p$+": {pound}v7{f6}":return
 315 for ct=1 to 10:a%=10-ct:a$=hs$(ct):&"{uparrow}{pound}%a: {pound}$a{f6}":next:an$="":uu$="":return
-320 gosub 31:x=ac%+1:gosub 1:&,2,2:ag$=a$:&,2,2:close2
+320 gosub 31:x=ac%+1:gosub 1:&,2,2:ag$=a$:&,2,2:close 2
 321 if len(fl$)<len(a$) then fl$=fl$+mid$(a$,len(fl$)+1)
 322 if len(fl$)>len(a$) then fl$=a$
 323 if ac%<>ao% then fl$=a$:ao%=ac%
@@ -177,12 +179,12 @@
 325 return
 330 dr=3:a$="e.macros":gosub 4
 332 if e%=. then:&,2,2:a=val(a$):&"{f6:2}":x=int(rnd(1)*a)+2:gosub 1:&,3,2
-334 close2:return
+334 close 2:return
 349 &"{f6}Device, Drive: {pound}i1":an$="  "+an$:return
-350 a=int(val(mid$(an$,3,2))):ifa>.thenifa<7thendr=a:goto 353
-351 ifa<7ora>29thena=8
+350 a=int(val(mid$(an$,3,2))):if a>. then if a<7 then dr=a:goto 353
+351 if a<7 or a>29 then a=8
 352 &,15,6,133:d2%=val(an$):d1%=a:dr=.:dv%(.)=d1%:dr%(.)=d2%
-353 gosub 3:close15:a=-(st<>.):return
+353 gosub 3:close 15:a=-(st<>.):return
 370 a=1-a:&"{f6}{green}{pound}$b Mode{lt. green}: {white}O"+mid$("ffn",a*2+1,2)+"{f6}":return
 371 a=val(mid$(uf$,b,1)):gosub 370:uf$=left$(uf$,b-1)+chr$(a+48)+mid$(uf$,b+1):return
 372 a=em:b$="Expert":gosub 370:em=a:&,52,20,em:return
@@ -190,7 +192,7 @@
 374 b=3:b$="Graphic Menu":gosub 371:&,52,44,a:return
 375 &,53,a:im=2+a:goto 443
 376 a=pm:b$="Prompt":gosub 370:pm=a:return
-390 dr=3:a$="e.text":gosub 4:gosub 1:&,2,2:close2:&"{f6}{pound}$a{f6}":return
+390 dr=3:a$="e.text":gosub 4:gosub 1:&,2,2:close 2:&"{f6}{pound}$a{f6}":return
 400 rem**subroutine modules**
 427 a$="turbo":goto 74
 428 a$="comm1":goto 74
@@ -392,7 +394,7 @@
 
 3160 gosub 30:for x=1 to 38:gosub 1:&,2,2:st(x)=val(a$):next:close 2
 3162 an$=am$:lt$=am$:tk$=left$(am$,1):gosub 3300
-3164 close2:gosub 3186:&,37
+3164 close 2:gosub 3186:&,37
 3166 a$=z$:t1=mn%:an$=z$:&,15:d2$=an$+"M":for i=54272 to i+24:poke i,.:next
 3168 f1=3:&,27,1:goto 302
 ' $cec7 (longdate):
@@ -563,7 +565,8 @@
 4040 close 2:&,37:for x=1 to 4:&,11,x:next:sy$="":sb$="":sg=.
 4042 p2$="":is=.:p1$="":pr$="":ml$="":pr=-1:pf=.
 ' peek(2033) is carrst (modem carrier status)
-4044 if ac%<>16 then:&,52,4,3:if a% or if (peek(2033) and 1)=. then 4050
+' 4044 if ac%<>16 then:&,52,4,3:if a% or if (peek(2033) and 1)=. then 4050
+4044 if ac%<>16 then:&,52,4,3:if a% or if (peek({sym:carrst}) and 1)=. then 4050
 4046 f1=2:goto 302
 ' FIXME: 64789
 4048 a$="FATAL ERROR!!":gosub 51:sys 64789:print"{clear}{switchdisable}{white}{lowercase}{down:2}"a$:end
