@@ -292,7 +292,7 @@
 ' color 4,1 -> poke 53281,0 [vic background]
 ' 3000 poke 828,peek(186):clr:print"{clear}{switchdisable}{white}{lowercase}":poke 53280,.:poke 53281,.
 3000 poke {sym:bootdev},{sym:fa}:clr:print"{clear}{switchdisable}{white}{lowercase}":color 0,1:color 4,1
-' TODO: poke 52/56 RAM, 248,250 RS232
+' TODO: poke 52/56 RAM, 248,250 RS232 buffers
 3002 open 131,2,134,chr$(6):poke 248,203:poke 250,204:poke 56,160:poke 52,160
 3004 dima$,a%,ac%,am,ag$,ak$,am$,an$,ao%
 3006 dimb$,b%,bd,bd$,bn$,bu
@@ -423,8 +423,8 @@
 ' convert a to bcd:
 3184 a=16*int(a/10)+a-int(a/10)*10:return
 
-' read blocks free
-3186 for q=. to 6:bf(q)=-1:next
+' get system disk names, read blocks free
+3186 restore 3504:for q=. to 6:bf(q)=-1:next
 3188 z3$="Reading Blocks Free...":gosub 3404:for q=1 to 6:dr=q:gosub 61
 3190 read b$:&"{f6}{rvs off}{lt. blue} {pound}$b Disk{pound}{back arrow}30:{cyan}"+str$(a):next:q=.:return
 
@@ -452,7 +452,7 @@
 3240 f$="i/setup 128":close 15:rename (f$) to (f$):if ds<>63 then:&"{f6}Cannot find {quotation}{pound}$f{quotation}. Halting.{pound}w5":goto 4048
 3242 new 4000:load f$,dv%:gosub 4000:return
 
-' gosub from
+' gosub from 3158
 3250 dr=3:a$="e.lightdefs,s,r":gosub 4:if e% then close 2:goto 3300
 3252 z3$="Setting Default Checkmarks...":gosub 3404
 3254 for x=. to 7:&,2,2:if len(a$)<>16 then:&"Lightbar defaults length error, page !x{f6}":goto 3258
@@ -542,14 +542,16 @@
 ' key hit
 3420 &"Fixme!":goto 4000
 
+' computer types:
 3500 data"Commodore 64","Commodore 128","Amiga","Apple/Comp."
 3502 data"IBM/Comp.","Macintosh","Atari/ST","Tandy Series","Other Type"
-3504 data"*","System","E-Mail","Etcetera","Directory","Plus-File","User"
+' system disk names:
+3504 data"System","E-Mail","Etcetera","Directory","Plus-File","User"
 ' TODO: move these lines into i/setup 128:
 ' 3510 rem &"{f6}RS232 Interface Type:{f6}Enter 0 for User Port{f6}Enter 1 for SwiftLink/Turbo232{f6}> {pound}i1"
 ' 3512 rem a=val(an$):ifa<0ora>1then3510
 ' 3514 rem gosub 33:x=32:gosub 1:print#2,an$:close2:return
-3999 rem copr. 2023 new image 8/14/2023
+3999 rem copr. 2023 new image software {usedef:__BuildDate}
 
 ' error trap stuff
 4000 &,38:cm$=cm$+"":p$=p$+"":pr$=pr$+"":p1$=p1$+"":p2$=p2$+""
@@ -584,6 +586,7 @@
 4046 f1=2:goto 302
 ' FIXME: 64789
 4048 a$="FATAL ERROR!!":gosub 51:sys 64789:print"{clear}{switchdisable}{white}{lowercase}{down:2}"a$:end
+' check for local mode, immediate logon mode, or sysop id:
 4050 &,52,4,3:if a% or i% or id=1 then 4068
 ' get sysop name:
 4052 gosub 35:x=1:gosub 1:&,2,2:i1$=a$:close 2:kk=.:a$="s.errmail,s,r":dr=1:gosub 4:if e% then close 2:goto 4068
@@ -627,4 +630,5 @@
 ' 39-41
 4096 data"UNRESOLVED REFERENCE","UNIMPLEMENTED COMMAND","FILE READ"
 4098 rem copr. 1996 new image 5/6/96-jlf
-4100 rem im (c)nissa 2020-09-29 lh-ad, 2023-08-14 rs
+4100 rem im (c)nissa 2020-09-29 lh-ad
+4102 rem {usedef:__BuildDate} {usedef:__BuildTime} rs
