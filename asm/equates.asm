@@ -11,6 +11,7 @@
 	ensh	= $09     ; enable case-shift
 	swlc	= $0e     ; switch to lowercase
 	swuc	= $8e     ; switch to uppercase
+
 	carriage_return	= 13
 	cbm_backspace	= 20
 	ascii_backspace	= 8
@@ -62,19 +63,19 @@
 ; ($xx): Indirect addressing: $xx *256+ ($xx+1)
 
 ;		; 128	; c64
-	d8502	= $00	; 128: 8502 I/O port data direction register
-	r8502	= $01	; 128: 8502 I/O port data register
-	zp_02	= $02	; c64: free for use
-	charac	= $0a
-	endchr	= $0a
+	d6510	= $00	; 128: 8502 I/O port data direction register
+	r6510	= $01	; 128: 8502 I/O port data register
+	bank	= $02	; 128: token 'search' looks for, or bank #
+	charac	= $09	; search character
+	endchr	= $0a	; flag: scan for quote at end of string
 	dimflg	= $0e	; c64: $0c. default array dimension
 	valtyp	= $0f	; c64: $0d. data type: $ff=string, $00=numeric
 	intflg	= $10	; c64: $0e. data type: $80=integer, $00=Floating point
 	tansgn	= $12
 	poker	= $16	; c128: temp integer value (used by adrfor)
-	linnum	= $17	; c128: temp integer value (used by adrfor)
+	linnum	= $16	; c128: temp integer value (used by adrfor)
 			; TODO: rename ($3b) "linnum" to "curlin" in source modules to
-			; avoid using wrong label @ $17
+			; avoid using wrong label @ $16
 ; relocated 2 bytes up from c64 zero-page:
 	temppt	= $18	; c64: $16. Pointer to the Next Available Space in the Temporary String Stack
 	lastpnt	= $19	; c64: ($17). Pointer to the Address of the Last String in the Temporary String Stack
@@ -93,15 +94,14 @@
 			; TODO: rename ($3b) "linnum" to "curlin" in source modules to
 			; avoid using wrong label @ $17
 ;	curlin	= $3b	; c128 label
-;	oldtxt	= $3d	; c64 label
-	txtptr	= $7a	; c128 label
-;	datlin	= $3f	; c64 label
-;	form	= $3f	; c128: used by "print using"
+	oldtxt	= $1202	; c64: $3d. Pointer to the start of current line
+	txtptr	= $3d	; c128 label
+	form	= $3f	; c128: used by "print using"
 	datlin	= $41	; current "data" line #
 	datptr	= $43	; current "data" item address
 	inpptr	= $45	; vector: input routine
 	varnam	= $47	; c64: $45-$46. c128: $47-$48. bytes of current BASIC variable name
-	varpnt	= $49	; pointer: current BASIC variable data
+	varpnt	= $49	; $49-$4a: pointer: current BASIC variable data
 	lstpnt 	= $4b	; pointer: index variable for "for...next"
 	forpnt	= $4b
 	opmask	= $4f	; c64: $4d
@@ -114,7 +114,7 @@
 	var	= $63	; c64: $61-$66. c128: $63-$68? FAC1, Floating Point Accumulator #1
 	fac2	= $6a	; c64: $69-$6e? c128: $6a-$6f? FAC2
 	arisgn	= $71	; c64: $6f. arithmetic sign
-	fbufpt	= $72	; c64: $71
+	fbufpt	= $74	; c64: $71
 	chrinc	= $76	; c128: flag if 10K hires screen allocated
 
 	status	= $90	; same: Kernal I/O Status Word
@@ -122,47 +122,44 @@
 ;
 ; rs232
 ;
-	dfltn	= $99	; Default Input Device (Set to 0 for Keyboard)
-	dflto	= $9a	; default output device
-	ptr1	= $9e	; temp storage
+	dfltn	= $99	; same. Default Input Device (Set to 0 for Keyboard)
+	dflto	= $9a	; same. default output device
+	ptr1	= $9e	; same. temp storage
 
-;	jiffy	= $a2
-	sal	= $ac
-	eal	= $ae
-	nxtbit	= $b5
+;	jiffy	= $a2	; FIXME: collision at 2593
+	sal	= $ac	; pointer: tape buffer / screen scrolling
+	eal	= $ae	; tape end addresses / end of program
+	nxtbit	= $b5	; RS-232 transmit: next bit to be sent
 	rodata	= $b6	; RS-232 Output Byte Buffer
-	fnlen	= $b7	; same: filename length
-	la	= $b8
-	sa	= $b9
-	fa	= $ba	; same: 186. current output device
-	fnadr	= $bb
-	fsblk	= $be
-	mych	= $bf
-	stal	= $c1
-	zp_c4	= $c4
-	lstx	= $c5
-	ndx	= $c6	; same: 198. number of characters in keyboard buffer
-	rvs	= $c7	; same: 199. flag: print reverse characters. 0=no, 1=yes
+	fnlen	= $b7	; same. filename length
+	la	= $b8	; current file logical address
+	sa	= $b9	; current file 2nd address
+	fa	= $ba	; same: 186. current device address
+	fnadr	= $bb	; same. vector: address of current filename string
+	fsblk	= $be	; same. cassette block read count
+	mych	= $bf	; same. serial word buffer
+	stal	= $c1	; same. I/O start address (lo)
+	stah	= $c2	; same. I/O start address (hi)
+	lstx	= $c5	; c128: tape read/write data
 	ribuf	= $c8	; c64: ($f7). vector to rs232 input buffer address
 	robuf	= $ca	; c64: ($f9). vector to rs232 output buffer address
+	ndx	= $d0	; c64: 198 / $c6. number of characters in keyboard buffer
+	rvs	= $f3	; c64: 199 / $c7. flag: print reverse characters. 0=no, 1=yes
 
-	sfdx	= $cb	; same. flag: print shifted characters
-	blnsw	= $cc
-	blnct	= $cd
-	gdbln	= $ce
+	sfdx	= $cb	; c64: $cb. flag: print shifted characters
+	blnsw	= $0a27	; c64: $cc. Flag: Cursor enable. 0=enabled, <>0=disabled.
+	blnct	= $0a28	; c64: $cd. Cursor blink countdown.
+	gdbln	= $0a29	; c64: $ce. Character under cursor.
 	blnon	= $cf
-	crsw	= $d0
+	crsw	= $d0	; Flag: Input from Keyboard or Screen
 	pnt	= $d1
-;	pntr	= $d3
+;	pntr	= $d3	; c128: shflg
 	qtsw	= $f4	; c64: $d4. quote mode flag
 	lnmx	= $d5
 	tblx	= $d6
-	zp_d7	= $d7 ; temp storage for ASCII value of last char printed
+	zp_d7	= $d7	; temp storage for ASCII value of last char printed
 	insrt	= $f5	; c64: $d8. insert mode flag
 	ldtb1	= $d9
-
-	ribuf	= $f7 ; pointer to rs232 input buffer address
-	robuf	= $f9 ; pointer to rs232 output buffer address
 
 	free_fb	= $fb
 	free_fc	= $fc
@@ -212,6 +209,8 @@
 	emptym0	= 711	; FIXME: $02c7-$02ff (711-767), $39 (57) bytes
 
 	keyrept	= $0a22 ; [c64: 650] 128 = most keys repeat, 0=no keys repeat
+
+	; 2670-2687 $OA6E-$OA7F Unused (17 bytes)
 
 	cassbuff= $0b00 ; [c64: 828] $0b00-$0bbf (2816-3007, 191 bytes).
 			; During BOOT command, image of boot sector is held
@@ -329,88 +328,65 @@
 ; screen RAM is  1024-2023  ($0400-$07e7)
 ;  color RAM is 55296-56296 ($d800-$dbe7)
 ;
-	ldisp	= $0400+640
-	lcolr	= $d800+640
-	adisp	= $0400+880
-	acolr	= $d800+880
-	sdisp	= $0400+920
-	scolr	= $d800+920
-	tdisp	= $0400+960
-	tcolr	= $d800+960
+; the screen line calculations are zero-based (top screen line is offset 0)
+; TODO: this will probably have to be made a table so we can refer to addresses
+; for the VDC - or maybe use its block copy feature
+;
 
-	ntscpal = $0a03	; c64: $02a6, 255=pal, 1=ntsc FIXME
+	ldisp	= $0400 + (40*16) ; 640: lightbar
+	lcolr	= $d800 + (40*16) ; 640
+	adisp	= $0400 + (40*22) ; 880: access? c=, n=, i=, a=, 16-character window
+	acolr	= $d800 + (40*22) ; 880
+	sdisp	= $0400 + (40*23) ; 920: receive/transmit windows, free memory
+	scolr	= $d800 + (40*23) ; 920
+	tdisp	= $0400 + (40*24) ; 960: time/date, time left, status flags
+	tcolr	= $d800 + (40*24) ; 960
+
+	ntscpal = $0a03	; c64: $02a6, 255=pal, 1=ntsc
 
 ;	ribuf	= $0b00	; rs232 input buffer
 ;	robuf	= $0b80	; rs232 output buffer
 
-; FIXME: relocate
-	wedgemem= $0c00
-	trapoff	= wedgemem+0
-	trapon	= wedgemem+3
-	loadprg	= wedgemem+6
-	arraysav= wedgemem+9
-	arrayres= wedgemem+12
-	forcegc	= wedgemem+15
-
 ;
-; temporary storage for screen mask? FIXME relocate
+; temporary storage for 8 rows of screen mask
+; $1000-$12ff / 4096-4863 ($2ff / 767 bytes) [from ray's memory map]
 ;
-	tempscn = $1000 ; 4096, $140 (320) bytes
-	tempscn0= tempscn+000
-	tempscn1= tempscn+040
-	tempscn2= tempscn+080
-	tempscn3= tempscn+120
-	tempscn4= tempscn+160
-	tempscn5= tempscn+200
-	tempscn6= tempscn+240
-	tempscn7= tempscn+280
+	tempscn = $1000 ; 4096, $200 (40 x 8 = 512) bytes
+	tempscn0= tempscn+(0*40) ; 000 lightbar row
+	tempscn1= tempscn+(1*40) ; 040 user
+	tempscn2= tempscn+(2*40) ; 080 last
+	tempscn3= tempscn+(3*40) ; 120 name
+	tempscn4= tempscn+(4*40) ; 160 mail
+	tempscn5= tempscn+(5*40) ; 200 area
+	tempscn6= tempscn+(6*40) ; 240 c=00003
+	tempscn7= tempscn+(7*40) ; 280 receive/transmit windows
 	tempcol	= $1140	; 4416, $140 bytes
-	tempcol0= tempcol+000
-	tempcol1= tempcol+040
-	tempcol2= tempcol+080
-	tempcol3= tempcol+120
-	tempcol4= tempcol+160
-	tempcol5= tempcol+200
-	tempcol6= tempcol+240
-	tempcol7= tempcol+280
-	emptym3	= $1280 ; 4736, 96 bytes
+	tempcol0= tempcol+(0*40) ; 000
+	tempcol1= tempcol+(1*40) ; 040
+	tempcol2= tempcol+(2*40) ; 080
+	tempcol3= tempcol+(3*40) ; 120
+	tempcol4= tempcol+(4*40) ; 160
+	tempcol5= tempcol+(5*40) ; 200
+	tempcol6= tempcol+(6*40) ; 240
+	tempcol7= tempcol+(7*40) ; 280
+	emptym3	= $1280 ; 4736-4863, 127 bytes
 
-	oldlin	= $1200 ; c64: $3b-$3c, previous BASIC line number
+	oldlin	= $1200 ; c64: ($3b). previous BASIC line number
+	usrpok	= $1219	; "usr" function jump vector. $1218 is $4c, the "jmp" opcode
 
-; FIXME: relocate 25 bytes
-	idlejif	= $12e0	; 4832
-	idlesec	= $12e1	; 4833
-	idleten	= $12e2	; 4834
-	idlemin	= $12e3	; 4835
-	curdsp	= $12e4	; 4836
-	bar	= $12e5	; 4837
-	tsr2	= $12e6	; 4838
-	cphase	= $12e9	; 4841
-	key	= $12ea	; 4842
-	shft	= $12eb	; 4843
+; 4862-4863 / $12FE-$12FF Unused (2 bytes)
+; These locations are not used by any 128 ROM routine.
 
-	ptrlnfd	= $12f0	; 4848: printer linefeed. 1.3's +/IM.misc is $42f0 (17136)
-	ha577	= $12f1	; 4849
-	mask	= $12f2	; 4850: password mask character (1.3 is 17138)
-	scnmode	= $12f3	; 4851: 17139: 1=mask off
-	dflag	= $12f4	; 4852
-	dstat	= $12f5	; 4853
-	cytmp 	= $12f6	; 4854
-	interm	= $12f7	; 4855
-	cxsav	= $12f8	; 4856
-	len1	= $12f9	; 4857
-	passmode= $12fa	; 4858
-	scnlock	= $12fb	; 4859
-	tmp6	= $12fc	; 4860
-	tmp7	= $12fd	; 4861
-	freq	= $12fe	; 4862
+; Application Program Area
+; 4864-7167 / $1300-$1BFF Unused (2304 / $8ff bytes)
 
 ;
-; FIXME: relocate tables ($1300-$1800, $0500 bytes)
+; data tables ($1300-$1800, $0500 bytes)
+; yay, they don't have to move!
 ;
 	chktbl	= $1300 ; $10 bytes (8 lightbar positions*2 checks per page, 8 pages=128 bits)
 	bartbl	= $1310 ; $c0 bytes
-	arryptrs= $13d0 ; $10 bytes
+	arryptrs= $13d0 ; $10 bytes: FIXME: levels 1-8 with &,27,x?
 	daysofm	= $13e0 ; $0c bytes: Days of months
 	emptym2	= $13ec ; $04 bytes
 	sndtbl	= $13f0 ; $60 bytes
@@ -428,38 +404,111 @@
 	hibytec	= $174b ; 25 bytes
 	emptym4	= $1764 ; 28 bytes
 	pmodetbl= $1780 ; $80 bytes: MCI print mode table
+		; $1900 : end of pmodetbl
+
+; wedge jump table (18 bytes)
+	wedgemem= $1a00
+	trapoff	= wedgemem+0
+	trapon	= wedgemem+3
+	loadprg	= wedgemem+6
+	arraysav= wedgemem+9
+	arrayres= wedgemem+12
+	forcegc	= wedgemem+15
+
+
+; $1bff: end of Application Program Area
 
 ; FIXME Image IRQ jump table (under ROM):
 	jmptbl	= $a000
 
+;
+; 2758-2815 / $0AC6-$0AFF: Unused (58 bytes)
+;
+	idlejif	= $0ae0	; 2784
+	idlesec	= $0ae1	; 2785
+	idleten	= $0ae2	; 2786
+	idlemin	= $0ae3	; 2787
+	curdsp	= $0ae4	; 2788
+	bar	= $0ae5	; 2789
+	tsr2	= $0ae6	; 2790: 3 bytes
+	cphase	= $0ae9	; 2793
+	key	= $0aea	; 2794
+	shft	= $0aeb	; 2795: 5 bytes
+		; $0aec
+		; $0aed
+		; $0aee
+		; $0aef
+	ptrlnfd	= $0af0	; 2800: printer linefeed. 1.3's +/IM.misc is $42f0 (17136)
+	ha577	= $0af1	; 2801
+	mask	= $0af2	; 2802: password mask character (1.3 is 17138)
+	scnmode	= $0af3	; 2803: 17139: 1=mask off
+	dflag	= $0af4	; 2804
+	dstat	= $0af5	; 2805
+	cytmp 	= $0af6	; 2806
+	interm	= $0af7	; 2807
+	cxsav	= $0af8	; 2808
+	len1	= $0af9	; 2809
+	passmode= $0afa	; 2810
+	scnlock	= $0afb	; 2811
+	tmp6	= $0afc	; 2812
+	tmp7	= $0afd	; 2813
+	freq	= $0afe	; 2814
+
+; 3584-4095 / $0E00-$0FFF: Sprite Pattern Storage Area (511 / $1ff bytes)
+
+; 7167 / $1C01: Normal start of BASIC text
+; to reserve 9K RAM from 7168-16383 / $lC00-$3FFF: GRAPHIC l:GRAPHIC 0
+; (9216 / $2400 bytes)
+
+; 1) VIC = 40 (or VDC = 80) * 8 rows * 2 blocks (text/color) for screen mask buffer
+;    max 80*8*2 = 1280 bytes
+
+; 2) protocols
+
+; transfer protocol area (c64: 2680 bytes)
+
+	protosta= $1c00	; c64: $c000	; FIXME: maybe
+	protoend= $2680 ; c64: $ca80	; FIXME: maybe
+
+; 9216 - 1280 = 7,936 free
+
+; $4000 - ?: adjusted start of BASIC
+
+; FIXME: modules, sub-modules load...?
+
+
+; variable creation
+; these are from Rene Belzen's excellent article on the 128's BASIC Interpreter.
+
+	getpos	= $7aaf	; find or create a variable in bank 1.
+			; returns address < in .a & $49, > in .y & $4a
+	addrbyt	= $8803	; calls addrbyt (16-bit), chkcom (,), getbyt (8-bit).
+			; returns .x: 8-bit value, < $16, > $17: 16-bit value.
+
 ; FIXME BASIC routines:
+
 	error	= $a437
 	linkprg	= $af87 ; c64: $a533
-	gone1	= $a7e7
+	gone1	= $a7e7 ; for extra keywords
 	gone2	= $a7ea
-	linget	= $af9f	; c64: $a96b
+	linget	= $50a0	; c64: $a96b. Creates integer value from a character string
 	frnum	= $77d7	; c64: $ad8a. get arbitrary numeric expression. returns in fac1.
 	getadr	= $880f	; c64: $b7f7. call chkcom, frnum, adrfor.
 	adrfor	= $8815 ; c128 only? get 16-bit number in fac1, return < .y & $16, > .a & $17
 	frmevl	= $af96	; c64: $ad9e. evaluate string/math expressions
 	eval1	= $ae8d
 	parchk	= $aef1 ; parentheses check: '(', ')'
-	chkcom	= $795c	; c64: $aefd ; check if next character is comma, return "?syntax  error" if not
-	synerr	= $af08 ; emit "?syntax  error"
+	chkcom	= $795c	; c64: $aefd. check if next character is comma, return "?syntax  error" if not
+	synerr	= $4c83	; c64: $af08. emit "?syntax  error"
 
 	ptrget1	= $b0e7	; set up descriptor stored in ($45) [varname],
-		; returns address in (varpnt)
-	ilqerr	= $b248
+			; returns address in (varpnt)
+	ilqerr	= $7d28	; c64: $b248. issue "?illegal quantity  error"
 	retbyt	= $b3a2
 	makerm1	= $b475	; c64: midway through str$()
 	getbytc	= $b79b
 	getnum	= $87f4	; c64: $b7eb. get 8-bit value (0-255)
 	retval	= $bc49
-
-; FIXME transfer protocol area
-
-	protosta= $c000
-	protoend= $ca80	; 2680 bytes
 
 ;
 ; garbage collection stuff
