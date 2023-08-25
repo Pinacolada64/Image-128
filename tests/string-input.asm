@@ -7,9 +7,8 @@ pointer	= $49	; pointer to descriptors
 column	= $ec	; cursor column
 lineptr	= $e0	; pointer: column 0 of current cursor line
 
-
-bank0	= $0b03
-bank1	= $0b06
+bank0	= $0c03
+bank1	= $0c06
 
 ; **own variables**
 alowlen	= $00fb	; length of string with allowed chars
@@ -167,6 +166,7 @@ dupd:	lda strend,y
 
 ; **invert char under cursor**
 invert:	pha
+;	lda $dc08
 	ldy column
 	lda (lineptr),y
 	eor #128

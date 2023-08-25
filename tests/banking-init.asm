@@ -1,7 +1,7 @@
 ; saved as tests\bank-init.asm
 ; to load into monitor:
 ; l "bank init.obj",08,0b00
-orig $0b00
+orig $0c00
 
 varpnt	= $49	; $49-$4a: pointer: current BASIC variable data
 
@@ -33,15 +33,20 @@ bank_1:
 ; from section 8.1
 
 jmp_init_common_ram:	; $0b00 in example
-	lda mmucr	; $d506: mmu config register
+	lda mmucr	; $ff00: mmu config register
 	pha
 	lda #$00
-	sta mmucr
-	lda mmurcr	; $ff00: mmu ram config register
-	ora #$06
-	sta mmurcr
+	sta mmucr	; $ff00: mmu config register
+	lda mmurcr	; $d506: mmu ram config register
+			; bits 1-0: 00 = 1k
+			;           01 = 4k
+			;           10 = 8k
+			;           11 = 16k
+			; bits 3-2: 01 = Common RAM at bottom
+	ora #%00000110	; $06
+	sta mmurcr	; $d506
 	pla
-	sta mmucr
+	sta mmucr	; $ff00
 	rts
 
 jmp_bank_0:		; $0b16 in example

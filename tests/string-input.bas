@@ -1,7 +1,7 @@
-{loadaddr:$2000}
+{loadaddr:$2001}
+' start of basic is now $2001
 10 bload"string-input.obj",b0,p3328:rem $0d00
 20 if ds then print ds$:stop
-' start of basic is now $2000
 30 a$="1234567890"+chr$(29)+chr$(157)+chr$(20)+chr$(148)
 40 bank 0:sys dec("0d00"),20,10,5,0,a$,r$
 50 print"you entered: "r$:end
