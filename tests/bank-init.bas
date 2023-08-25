@@ -1,4 +1,4 @@
-10 bload"bank init.obj",b0,p3072:rem $0c00
+10 bload"bank init.obj",b15,p3072:rem $0c00
 20 sys dec("0c00")
 30 poke dec("2e"),dec("20"):poke dec("2000"),0:poke dec("30"),dec("20")
 40 print "memory from $0000-$1000 is now common."

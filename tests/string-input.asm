@@ -57,7 +57,7 @@ getit:	lda (pointer),y
 ; **input loop**
 get:	jsr invert	; invert character
 get1:	jsr getin
-	beq get
+	beq get1
 	jsr invert
 ; **return?**
 	cmp #$0d

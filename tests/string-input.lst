@@ -8,28 +8,28 @@ string_input:
 	0d07  20 f0 ff	 jsr $fff0 	;setcrs
 	0d0a  20 5c 79	 jsr $795c 	;chkcom
 	0d0d  20 af 7a	 jsr $7aaf 	;getpos
-	0d10  20 06 0b	 jsr $0b06 	;bank1
+	0d10  20 06 0c	 jsr $0c06 	;bank1
 	0d13  a0 02   	 ldy #$02 
 getit:
 	0d15  b1 49   	 lda ($49),y 	;pointer
 	0d17  99 fb 00	 sta $00fb,y 	;alowlen
 	0d1a  88      	 dey  
 	0d1b  10 f8   	 bpl $0d15 	;getit
-	0d1d  20 03 0b	 jsr $0b03 	;bank0
+	0d1d  20 03 0c	 jsr $0c03 	;bank0
 get:
 	0d20  20 c4 0d	 jsr $0dc4 	;invert
 get1:
 	0d23  20 e4 ff	 jsr $ffe4 	;getin
-	0d26  f0 f8   	 beq $0d20 	;get
+	0d26  f0 fb   	 beq $0d23 	;get1
 	0d28  20 c4 0d	 jsr $0dc4 	;invert
 	0d2b  c9 0d   	 cmp #$0d 
 	0d2d  f0 19   	 beq $0d48 	;return
 	0d2f  ac fb 00	 ldy $00fb 	;alowlen
 	0d32  88      	 dey  
 compare:
-	0d33  20 06 0b	 jsr $0b06 	;bank1
+	0d33  20 06 0c	 jsr $0c06 	;bank1
 	0d36  d1 fc   	 cmp ($fc),y 	;alowadr
-	0d38  20 03 0b	 jsr $0b03 	;bank0
+	0d38  20 03 0c	 jsr $0c03 	;bank0
 	0d3b  f0 05   	 beq $0d42 	;output
 	0d3d  88      	 dey  
 	0d3e  10 f3   	 bpl $0d33 	;compare
@@ -83,9 +83,9 @@ okay:
 	0d93  a0 00   	 ldy #$00 
 read:
 	0d95  20 cf ff	 jsr $ffcf 	;basin
-	0d98  20 06 0b	 jsr $0b06 	;bank1
+	0d98  20 06 0c	 jsr $0c06 	;bank1
 	0d9b  91 35   	 sta ($35),y 
-	0d9d  20 03 0b	 jsr $0b03 	;bank0
+	0d9d  20 03 0c	 jsr $0c03 	;bank0
 	0da0  c8      	 iny  
 	0da1  c4 a5   	 cpy $a5 	;length
 	0da3  d0 f0   	 bne $0d95 	;read
@@ -93,7 +93,7 @@ read:
 	0da8  a9 03   	 lda #$03 
 	0daa  20 c3 ff	 jsr $ffc3 	;close
 update:
-	0dad  20 06 0b	 jsr $0b06 	;bank1
+	0dad  20 06 0c	 jsr $0c06 	;bank1
 desupd:
 	0db0  a0 00   	 ldy #$00 
 	0db2  a5 a5   	 lda $a5 	;length
@@ -104,7 +104,7 @@ dupd:
 	0dba  91 49   	 sta ($49),y 	;pointer
 	0dbc  c0 02   	 cpy #$02 
 	0dbe  d0 f6   	 bne $0db6 	;dupd
-	0dc0  20 03 0b	 jsr $0b03 	;bank0
+	0dc0  20 03 0c	 jsr $0c03 	;bank0
 	0dc3  60      	 rts  
 invert:
 	0dc4  48      	 pha  
