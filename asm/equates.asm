@@ -94,8 +94,8 @@
 			; TODO: rename ($3b) "linnum" to "curlin" in source modules to
 			; avoid using wrong label @ $17
 ;	curlin	= $3b	; c128 label
-	oldtxt	= $1202	; c64: $3d. Pointer to the start of current line
-	txtptr	= $3d	; c128 label
+	oldtxt	= $1202	; c64: $3d-$3e. Pointer to the start of current line
+	txtptr	= $3d	; c128 label. Pointer to address of current BASIC statement
 	form	= $3f	; c128: used by "print using"
 	datlin	= $41	; current "data" line #
 	datptr	= $43	; current "data" item address
@@ -104,23 +104,25 @@
 	varpnt	= $49	; $49-$4a: pointer: current BASIC variable descriptor
 	lstpnt 	= $4b	; pointer: index variable for "for...next"
 	forpnt	= $4b
-	opmask	= $4f	; c64: $4d
-	defpnt	= $52	; c64: $4e
-	dscpnt	= $52	; c64: $50
+	opmask	= $4f	; c64: $4d. math operator table displacement
+	defpnt	= $52	; c64: $4e. pointer to current DEF FN descriptor
+	dscpnt	= $52	; c64: $50. temporary pointer to current string descriptor
 	four6	= $53	; FIXME: move elsewhere
-	jmper	= $56	; c64: $54
+	jmper	= $56	; c64: $54. $56-$58. jump to function instruction
 	numwork	= $57	; $57-$5c: 6 bytes. FIXME: move elsewhere? or share with $63-$68?
 
-	var	= $63	; c64: $61-$66. c128: $63-$68? FAC1, Floating Point Accumulator #1
-	fac2	= $6a	; c64: $69-$6e? c128: $6a-$6f? FAC2
+	var	= $63	; c64: $61-$66. c128: $63-$67. FAC1, Floating Point Accumulator #1
+	fac2	= $6a	; c64: $69-$6e? c128: $6a-$6e. FAC2
 	arisgn	= $71	; c64: $6f. arithmetic sign
-	fbufpt	= $74	; c64: $71
+	fbufpt	= $74	; c64: $71-$72. series evaluation pointer
 	chrinc	= $76	; c128: flag if 10K hires screen allocated
 
 	status	= $90	; same: Kernal I/O Status Word
 	xsav	= $97	; same: Temporary .X Register Save Area
 ;
 ; rs232
+;
+; $90-$c4 seem to be the same between c64/c128
 ;
 	dfltn	= $99	; same. Default Input Device (Set to 0 for Keyboard)
 	dflto	= $9a	; same. default output device
@@ -147,38 +149,39 @@
 	rvs	= $f3	; c64: 199 / $c7. flag: print reverse characters. 0=no, 1=yes
 
 	sfdx	= $cb	; c64: $cb. flag: print shifted characters
-	blnsw	= $0a27	; c64: $cc. Flag: Cursor enable. 0=enabled, <>0=disabled.
-	blnct	= $0a28	; c64: $cd. Cursor blink countdown.
-	gdbln	= $0a29	; c64: $ce. Character under cursor.
-	blnon	= $cf
-	crsw	= $d0	; Flag: Input from Keyboard or Screen
-	pnt	= $d1
-;	pntr	= $d3	; c128: shflg
+;		= 	; c128: 866-875/$0362-$036B. c64: 601-610/$0259-$0262.
+;			; Table of active logical file numbers
+	crsw	= $d6	; c64: $d0. Flag: Input from Keyboard or Screen
+	pnt	= $e0	; c64: ($d1). Pointer to the address of the current screen line
+;	pntr	= $ec	; c64: $d3. cursor column on current line
 	qtsw	= $f4	; c64: $d4. quote mode flag
-	lnmx	= $d5
-	tblx	= $d6
-	zp_d7	= $d7	; temp storage for ASCII value of last char printed
+	lnmx	= $ee	; c64: $d5. Maximum length of physical screen line
+	tblx	= $eb	; c64: $d6. Current cursor physical line number
+	zp_d7	= $f0	; c64: $d7. temp storage for ASCII value of last char printed
 	insrt	= $f5	; c64: $d8. insert mode flag
-	ldtb1	= $d9
+;	ldtb1	= $d9	; c64: $d9-$f2. Screen line link table / editor temporary storage
 
 	free_fb	= $fb
 	free_fc	= $fc
 	free_fd	= $fd
 	free_fe	= $fe
-	free_ff	= $ff
 
 ;
 ; screen parameters
 ;
 	rvs	= $f3	; c64: $c7. Flag: Print Reverse Characters? 0=No
-	crsrflg	= 204	; c64: $cc.
-	undchr	= 206	; c64: $ce.
-	crsrmode= 207	; c64: $cf. Flag: Was Last Cursor Blink On or Off?
-	curptr	= 209	; $d1
+	blnon	= $0a26	; c64: $cf. Flag: Was last cursor blink on or off?
+; FIXME: one label or the other please :)
+	crsrmode= $0a27	; c64: $cc. Flag: Cursor enable. 0=enabled, <>0=disabled.
+	crsrflg	= $0a27	; c64: $cc. Cursor blink enable flag (0 = flashing cursor)
+
+	blnct	= $0a28	; c64: $cd. Cursor blink countdown.
+	undchr	= $0a29	; c64: $ce. Character under cursor.
+	curptr	= $e0	; c64: $d1-$d2. Pointer to address of current screen line
 	scnpos	= $ec	; c64: $d3. current screen column (0-39)
 	scnclm	= scnpos; screen column
 	sline	= $eb	; c64: $d6. current screen row (0-24)
-	colptr	= 243	; ($f3)
+	colptr	= $e2	; c64: ($f3). Pointer to the address of the current screen color RAM location
 
 ; immediate mode input buffer (161/$a1 bytes, $0200-$02a1)
 
