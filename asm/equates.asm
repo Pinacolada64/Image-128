@@ -101,7 +101,7 @@
 	datptr	= $43	; current "data" item address
 	inpptr	= $45	; vector: input routine
 	varnam	= $47	; c64: $45-$46. c128: $47-$48. bytes of current BASIC variable name
-	varpnt	= $49	; $49-$4a: pointer: current BASIC variable data
+	varpnt	= $49	; $49-$4a: pointer: current BASIC variable descriptor
 	lstpnt 	= $4b	; pointer: index variable for "for...next"
 	forpnt	= $4b
 	opmask	= $4f	; c64: $4d
@@ -202,6 +202,43 @@
 	rodbs	= $0a1a ; c64: 669. RS-232: Index to Start of Transmit Buffer
 	rodbe	= $0a1b ; c64: 670. RS-232: Index to End of Transmit Buffer
 
+; 2670-2687 / $0A6E-$0A7F: Unused (17 bytes)
+
+;
+; 2758-2815 / $0AC6-$0AFF: Unused (58 bytes)
+;
+	idlejif	= $0ad0	; 2768
+	idlesec	= $0ad1	; 2769
+	idleten	= $0ad2	; 2770
+	idlemin	= $0ad3	; 2771
+	curdsp	= $0ad4	; 2772
+	bar	= $0ad5	; 2773
+	tsr2	= $0ad6	; 2774: 3 bytes
+	cphase	= $0ad9	; 2777
+	key	= $0ada	; 2778
+	shft	= $0adb	; 2779: 5 bytes
+		; $0adc ; 2780
+		; $0add ; 2781
+		; $0ade ; 2782
+		; $0adf ; 2783
+	ptrlnfd	= $0ae0	; 2784: [1.2: 17136] printer linefeed: +/IM.misc
+	ha577	= $0ae1	; 2785
+	mask	= $0ae2	; 2786: [1.2: 17138] password mask character
+	scnmode	= $0ae3	; 2787: [1.2: 17139] 1=screen mask off
+	dflag	= $0ae4	; 2788
+	dstat	= $0ae5	; 2789
+	cytmp 	= $0ae6	; 2790
+	interm	= $0ae7	; 2791
+	cxsav	= $0ae8	; 2792
+	len1	= $0ae9	; 2793
+	passmode= $0aea	; 2794
+	scnlock	= $0aeb	; 2795
+	tmp6	= $0aec	; 2796
+	tmp7	= $0aed	; 2797
+	freq	= $0aee	; 2798
+
+; $0aff: end of unused block
+
 	fkeybuf	= $100a ; c64: 679. c128: $100a-$10ff (4106-4351), $f5 (245) bytes
 	adray1	= $117a	; c64: $03. Vector: Routine to Convert a Number from Floating Point to Signed Integer
 	adray2	= $117c	; c64: $05. Vector: Routine to Convert a Number from Integer to Floating Point
@@ -210,118 +247,24 @@
 
 	keyrept	= $0a22 ; [c64: 650] 128 = most keys repeat, 0=no keys repeat
 
-	; 2670-2687 $OA6E-$OA7F Unused (17 bytes)
-
-	cassbuff= $0b00 ; [c64: 828] $0b00-$0bbf (2816-3007, 191 bytes).
+;	cassbuff= $0b00 ; [c64: 828] $0b00-$0bbf (2816-3007, 191 bytes).
 			; During BOOT command, image of boot sector is held
 			; in $0b00-$0bff. I don't see another reference to
 			; $0bc0-$0bff in the memory map; could this area be
 			; extended?
 
-	bootdev	= cassbuff + 000 ; 2814 / $0b00: c64: 828. boot device #
-	linflg	= cassbuff + 001 ; 2815 / $0b01: c64: 829. line flag. 1=3000, 2=4000, other=300
-	idlemax	= cassbuff + 002 ; 2816 / $0b02: c64: 830. maximum idle time allowed
-	datebuf	= cassbuff + 003 ; 2817 / $0b03: 11 bytes
-	daytbl	= cassbuff + 014 ; 2830 / $0b0e: 24 bytes (8*3: "???SunMonTueWedThuFriSat")
-	tzoneh	= cassbuff + 038 ; 2854 / $0b26: bbs  time zone hour
-	tzonem	= cassbuff + 039 ; 2855 / $0b27: bbs  time zone minute
-	uzoneh	= cassbuff + 040 ; 2856 / $0b28: user time zone hour
-	uzonem	= cassbuff + 041 ; 2857 / $0b29: user time zone minute
-	wrapbuf	= cassbuff + 042 ; 2858 / $0b2a: 80 bytes
-; 23 1-byte placeholders...
-	wrapflg	= cassbuff + 122 ; 2938 / $0b7a
-	modclmn	= cassbuff + 123 ; 2939 / $0b7b. c64: 951. ll%: user's screen width
-	ptrclmn	= cassbuff + 124 ; 2940 / $0b7c: printer column [?]
-	wrapind	= cassbuff + 125 ; 2941 / $0b7d
-	wrapdmp	= cassbuff + 126 ; 2942 / $0b7e
-	ptrclm	= cassbuff + 127 ; 2943 / $0b7f
-	modclm	= cassbuff + 128 ; 2944 / $0b80
-	sndtim1	= cassbuff + 129 ; 2945 / $0b81
-	sndtim2	= cassbuff + 130 ; 2946 / $0b82
-	sndwav1	= cassbuff + 131 ; 2947 / $0b83
-	sndwav2	= cassbuff + 132 ; 2948 / $0b84
-	sndwav3	= cassbuff + 133 ; 2949 / $0b85
-	sndrept = cassbuff + 134 ; 2950 / $0b86
-	sndtim1a= cassbuff + 135 ; 2951 / $0b87
-	sndtim2a= cassbuff + 136 ; 2952 / $0b88
-	jiffy	= cassbuff + 137 ; 2953 / $0b89 FIXME: also $a2?
-	blnkflag= cassbuff + 138 ; 2954 / $0b8a screen blank flag
-	blnkcntr= cassbuff + 139 ; 2955 / $0b8b screen blank counter
-	ptrlin	= cassbuff + 140 ; 2956 / $0b8c
-	ptrlinm	= cassbuff + 141 ; 2957 / $0b8d c64: 970.
-	usrlin	= cassbuff + 142 ; 2958 / $0b8e c64: 971. mp%: user's screen height
-	usrlinm	= cassbuff + 143 ; 2959 / $0b8f how many lines output to modem [?]
-	fredmode= cassbuff + 144 ; 2960 / $0b90 file read mode [?]
-; ...until here:
-	montbl	= cassbuff + 145 ; 2961 / $0b91 month names, 36 bytes (12*3):
-					; "JanFebMarAprMayJunJulAugSepOctNovDec"
-	emptym1	= cassbuff + 181 ; 2997 / $0bb5 1 byte
-	timeset	= cassbuff + 182 ; 2998 / $0bb6 "time has been set" flag: 0=no, flash bottom screen line
-	flag1	= cassbuff + 183 ; 2999 / $0bb7
-	case1	= cassbuff + 184 ; 3000 / $0bb8 3 bytes
-	temp3	= cassbuff + 187 ; 3003 / $0bbb
-	mline	= cassbuff + 188 ; 3004 / $0bbc
-	comm	= cassbuff + 189 ; 3005 / $0bbd
-	flags	= cassbuff + 190 ; 3006 / $0bbe
-	cline	= cassbuff + 191 ; 3007 / $0bbf 3 bytes
-	lines	= cassbuff + 194 ; 3010 / $0bc2 [64: $03f8]: kk, # of lines in text editor buffer
-	modes	= cassbuff + 195 ; 3011 / $0bc3
-;
-; serial # stuff
-;
-	bsnpre	= cassbuff + 196 ; 3012 / $0bc4.   c64:     765 / $02fd. BBS serial # prefix (a/b/g...)
-	bsnval	= cassbuff + 197 ; 3013 / $0bc5-6. c64: 766-767 / $02fe. BBS serial #: 766=lo byte, 767=hi byte
+			; There is a conflict with JiffyDOS's usage of this
+			; area (255 bytes?) while LOADing BASIC programs.
 
-;
-; Message Command Interpreter variables:
-; (moved up 1000 bytes as compared to Image 64)
-; 24 bytes
-;
-	mjump	= cassbuff + 208 ; 3024 / $0bd0: # of lines to skip for £J, £E, £D
-	mresult	= cassbuff + 209 ; 3025 / $0bd1: Result of £A, £T
-	mspeed	= cassbuff + 210 ; 3026 / $0bd2: Print speed for £S
-	mprint	= cassbuff + 211 ; 3027 / $0bd3: Print mode for £P
-	mcolor	= cassbuff + 212 ; 3028 / $0bd4: Current color for £C
-	mprtr	= cassbuff + 213 ; 3029 / $0bd5: Printer flag for £L
-	mreverse= cassbuff + 214 ; 3030 / $0bd6: Reverse mode flag for £R
-	mci	= cassbuff + 215 ; 3031 / $0bd7: 0=don't interpret MCI
-	mdigits	= cassbuff + 216 ; 3032 / $0bd8: Number of digits for £#
-	carrst	= cassbuff + 217 ; 3033 / $0bd9: modem carrier status (check mark/no check mark, displayed on screen)
-	tsp1	= cassbuff + 218 ; 3034 / $0bda: transmit speed lo-byte
-	tsp2	= cassbuff + 219 ; 3035 / $0bdb: transmit speed hi-byte
-	chks	= cassbuff + 220 ; 3036 / $0bdc: Checkmark flag for Lightbar (left side)
-; unofficially added by Pinacolada:
-	chk_rt	= cassbuff + 221 ; 3037 / $0bdd: Checkmark flag for Lightbar (right side)
-	readmode= cassbuff + 222 ; 3038 / $0bde: [1.2] Unabortable file read flag
-	filenum	= cassbuff + 223 ; 3039 / $0bdf: [1.2] [Logical] file number for read0/dskin
-	tmp5	= cassbuff + 224 ; 3040 / $0be0
-	abtchr	= cassbuff + 225 ; 3041 / $0be1: [1.2] Alternate abort character (works like <space>)
-	clock	= cassbuff + 226 ; 3042 / $0be2: [1.2] 1=Turns on idle screen clock
-	filetyp	= cassbuff + 227 ; 3043 / $0be3: [1.2] Filetype for Punter transfer protocol (1=PRG, 2=SEQ)
-	tmp1	= cassbuff + 228 ; 3044 / $0be4
-	tmp2	= cassbuff + 229 ; 3045 / $0be5
-	tmp3	= cassbuff + 230 ; 3046 / $0be6
-	tmp4	= cassbuff + 231 ; 3047 / $0be7
-	mright	= cassbuff + 232 ; 3048 / $0be8: c64: 4839 / $12e7. £m> right margin
-	mleft	= cassbuff + 233 ; 3049 / $0be9: c64: 4840 / $12e8. £m< left margin
-
-;
-; RS-232 jump table
-; 18 bytes
-;
-	rs232	= cassbuff + 232; 3051 / $0beb
-	rsinabl = rs232 + $03	; 3054 / $0bee
-	rsdisab = rs232 + $06	; 3057 / $0bf1
-	rsget	= rs232 + $09	; 3060 / $0bf4
-	rsout	= rs232 + $0c	; 3063 / $0bf7
-	rsbaud	= rs232 + $0f	; 3066 / $0bfa
-	rschar	= rs232 + $12	; 3069 / $0bfd
+			; This block has been relocated to $1800.
 
 ; $0bff / 3071: end of cassette buffer / boot sector image
 
 ; $0c00-$0cff: rs-232 input buffer
 
 ; $0d00-$0dff: rs-232 output buffer
+
+; $0E00-$0FFF / 3584-4095: Sprite Pattern Storage Area (511 / $1ff bytes)
 
 ;
 ; screen display stuff:
@@ -342,7 +285,7 @@
 	tdisp	= $0400 + (40*24) ; 960: time/date, time left, status flags
 	tcolr	= $d800 + (40*24) ; 960
 
-	ntscpal = $0a03	; c64: $02a6, 255=pal, 1=ntsc
+	ntscpal = $0a03	; c64: $02a6, c128: 255=pal, 1=ntsc
 
 ;	ribuf	= $0b00	; rs232 input buffer
 ;	robuf	= $0b80	; rs232 output buffer
@@ -385,7 +328,7 @@
 ; yay, they don't have to move!
 ;
 	chktbl	= $1300 ; $10 bytes (8 lightbar positions*2 checks per page, 8 pages=128 bits)
-	bartbl	= $1310 ; $c0 bytes
+	bartbl	= $1310 ; $c0 / 192 bytes
 	arryptrs= $13d0 ; $10 bytes: FIXME: levels 1-8 with &,27,x?
 	daysofm	= $13e0 ; $0c bytes: Days of months
 	emptym2	= $13ec ; $04 bytes
@@ -404,57 +347,138 @@
 	hibytec	= $174b ; 25 bytes
 	emptym4	= $1764 ; 28 bytes
 	pmodetbl= $1780 ; $80 bytes: MCI print mode table
-		; $1900 : end of pmodetbl
+		; $1800 : end of pmodetbl
 
-; wedge jump table (18 bytes)
-	wedgemem= $1a00
-	trapoff	= wedgemem+0
-	trapon	= wedgemem+3
-	loadprg	= wedgemem+6
-	arraysav= wedgemem+9
-	arrayres= wedgemem+12
-	forcegc	= wedgemem+15
+; relocated cassette buffer data:
+	cassbuff= $1800
+	bootdev	= cassbuff + 000 ; 6144 / $1800: c64: 828. boot device #
+	linflg	= cassbuff + 001 ; 6145 / $1801: c64: 829. line flag. 1=3000, 2=4000, other=300
+	idlemax	= cassbuff + 002 ; 6146 / $1802: c64: 830. maximum idle time allowed
+	datebuf	= cassbuff + 003 ; 6147 / $1803: 11 bytes
+	daytbl	= cassbuff + 014 ; 6158 / $180e: 24 bytes (8*3: "???SunMonTueWedThuFriSat")
+	tzoneh	= cassbuff + 038 ; 6182 / $1826: bbs  time zone hour
+	tzonem	= cassbuff + 039 ; 6183 / $1827: bbs  time zone minute
+	uzoneh	= cassbuff + 040 ; 6184 / $1828: user time zone hour
+	uzonem	= cassbuff + 041 ; 6185 / $1829: user time zone minute
+	wrapbuf	= cassbuff + 042 ; 6186 / $182a: 80 bytes
+; 23 1-byte placeholders...
+	wrapflg	= cassbuff + 122 ; 6266 / $187a
+	modclmn	= cassbuff + 123 ; 6267 / $187b. c64: 951. ll%: user's screen width
+	ptrclmn	= cassbuff + 124 ; 6268 / $187c: printer column [?]
+	wrapind	= cassbuff + 125 ; 6269 / $187d
+	wrapdmp	= cassbuff + 126 ; 6270 / $187e
+	ptrclm	= cassbuff + 127 ; 6271 / $187f
+	modclm	= cassbuff + 128 ; 6272 / $1880
+	sndtim1	= cassbuff + 129 ; 6273 / $1881
+	sndtim2	= cassbuff + 130 ; 6274 / $1882
+	sndwav1	= cassbuff + 131 ; 6275 / $1883
+	sndwav2	= cassbuff + 132 ; 6276 / $1884
+	sndwav3	= cassbuff + 133 ; 6277 / $1885
+	sndrept = cassbuff + 134 ; 6278 / $1886
+	sndtim1a= cassbuff + 135 ; 6279 / $1887
+	sndtim2a= cassbuff + 136 ; 6280 / $1888
+	jiffy	= cassbuff + 137 ; 6281 / $1889 FIXME: also $a2?
+	blnkflag= cassbuff + 138 ; 6282 / $188a screen blank flag
+	blnkcntr= cassbuff + 139 ; 6283 / $188b screen blank counter
+	ptrlin	= cassbuff + 140 ; 6284 / $188c
+	ptrlinm	= cassbuff + 141 ; 6285 / $188d c64: 970.
+	usrlin	= cassbuff + 142 ; 6286 / $188e c64: 971. mp%: user's screen height
+	usrlinm	= cassbuff + 143 ; 6287 / $188f how many lines output to modem [?]
+	fredmode= cassbuff + 144 ; 6288 / $1890 file read mode [?]
+; ...until here:
+	montbl	= cassbuff + 145 ; 6289 / $1891 month names, 36 bytes (12*3):
+					; "JanFebMarAprMayJunJulAugSepOctNovDec"
+	emptym1	= cassbuff + 181 ; 6325 / $18b5 1 byte
+	timeset	= cassbuff + 182 ; 6326 / $18b6 "time has been set" flag: 0=no, flash bottom screen line
+	flag1	= cassbuff + 183 ; 6327 / $18b7
+	case1	= cassbuff + 184 ; 6328 / $18b8 3 bytes
+	temp3	= cassbuff + 187 ; 6331 / $18bb
+	mline	= cassbuff + 188 ; 6332 / $18bc
+	comm	= cassbuff + 189 ; 6333 / $18bd
+	flags	= cassbuff + 190 ; 6334 / $18be
+	cline	= cassbuff + 191 ; 6335 / $18bf 3 bytes
+	lines	= cassbuff + 194 ; 6338 / $18c2 [64: $03f8]: kk, # of lines in text editor buffer
+	modes	= cassbuff + 195 ; 6339 / $18c3
+;
+; serial # stuff
+;
+	bsnpre	= cassbuff + 196 ; 6340 / $18c4.   c64:     765 / $02fd. BBS serial # prefix (a/b/g...)
+	bsnval	= cassbuff + 197 ; 6341 / $18c5-6. c64: 766-767 / $02fe. BBS serial #: 766=lo byte, 767=hi byte
+;
+; Message Command Interpreter variables: 24 bytes
+;
+	mjump	= cassbuff + 199 ; 6343 / $18c7: # of lines to skip for £J, £E, £D
+	mresult	= cassbuff + 200 ; 6344 / $18cb: Result of £A, £T
+	mspeed	= cassbuff + 201 ; 6345 / $18d2: Print speed for £S
+	mprint	= cassbuff + 202 ; 6346 / $18d3: Print mode for £P
+	mcolor	= cassbuff + 203 ; 6347 / $18d4: Current color for £C
+	mprtr	= cassbuff + 204 ; 6348 / $18d5: Printer flag for £L
+	mreverse= cassbuff + 205 ; 6349 / $18d6: Reverse mode flag for £R
+	mci	= cassbuff + 206 ; 6350 / $18d7: 0=don't interpret MCI
+	mdigits	= cassbuff + 207 ; 6351 / $18d8: Number of digits for £#
+	carrst	= cassbuff + 208 ; 6352 / $18d9: modem carrier status (check mark/no check mark, displayed on screen)
+	tsp1	= cassbuff + 209 ; 6353 / $18da: transmit speed lo-byte
+	tsp2	= cassbuff + 210 ; 6354 / $18db: transmit speed hi-byte
+	chks	= cassbuff + 211 ; 6355 / $18dc: Checkmark flag for Lightbar (left side)
+; unofficially added by Pinacolada:
+	chk_rt	= cassbuff + 212 ; 6356 / $18dd: Checkmark flag for Lightbar (right side)
+	readmode= cassbuff + 213 ; 6357 / $18de: [1.2] Unabortable file read flag
+	filenum	= cassbuff + 214 ; 6358 / $18df: [1.2] [Logical] file number for read0/dskin
+	tmp5	= cassbuff + 215 ; 6359 / $18e0
+	abtchr	= cassbuff + 216 ; 6360 / $18e1: [1.2] Alternate abort character (works like <space>)
+	clock	= cassbuff + 217 ; 6361 / $18e2: [1.2] 1=Turns on idle screen clock
+	filetyp	= cassbuff + 218 ; 6362 / $18e3: [1.2] Filetype for Punter transfer protocol (1=PRG, 2=SEQ)
+	tmp1	= cassbuff + 219 ; 6363 / $18e4
+	tmp2	= cassbuff + 220 ; 6364 / $18e5
+	tmp3	= cassbuff + 221 ; 6365 / $18e6
+	tmp4	= cassbuff + 222 ; 6366 / $18e7
+	mright	= cassbuff + 223 ; 6367 / $18e8: c64: 4839 / $12e7. £m> right margin
+	mleft	= cassbuff + 224 ; 6368 / $18e9: c64: 4840 / $12e8. £m< left margin
+;
+; wedge jump table: 18 bytes
+;
+	wedgemem= $1900
+	trapoff	= wedgemem + $00 ; 6400 / $1900: error trapping off
+	trapon	= wedgemem + $03 ; 6403 / $1903: error trapping on
+	loadprg	= wedgemem + $06 ; 6406 / $1906: load program
+	arraysav= wedgemem + $09 ; 6409 / $1909: array pointer save
+	arrayres= wedgemem + $0c ; 6412 / $190c: array pointer restore
+	forcegc	= wedgemem + $0f ; 6415 / $190f: force garbage collection
+;
+; RS-232 jump table: 21 bytes
+;
+	rs232	= wedgemem + $12; 6418 / $1912
+	rsinabl = rs232 + $15	; 6421 / $1915
+	rsdisab = rs232 + $18	; 6424 / $1918
+	rsget	= rs232 + $1b	; 6427 / $191b
+	rsout	= rs232 + $1e	; 6430 / $191e
+	rsbaud	= rs232 + $21	; 6433 / $1921
+	rschar	= rs232 + $24	; 6436 / $1924
+;
+; Image routine jump table (21 bytes)
+;
+	outastr	= rs232 + $27	; 6439 / $1927: output a$
+	usetbl1	= rs232 + $2a	; 6442 / $192a: '&' addresses table at $a000
+	swapper	= rs232 + $2d	; 6445 / $192d: swap pages of memory
+	swapagn	= rs232 + $30	; 6448 / $1930: re-swap same pages set up by 'swapper'
+	trace	= rs232 + $33	; 6451 / $1933: BASIC line number trace
+	chkspcl	= rs232 + $36	; 6454 / $1936: check for special chars in a$ [?]
+	convchr	= rs232 + $39	; 6457 / $1939: convert special characters in a$ [?]
 
+; buffers:
+
+	buf2	= rs232	+ $3c	; 6460 / $193c: 80 / $50 bytes. c64: $ce27
+	buffer	= buf2	+ $50	; 6540 / $198c: 80 / $50 bytes. c64: $ce77
+;	longdate= $ceca ; starts at $cec7? im 3170
+
+; $19dc-$1bff: $0223 / 547 bytes free
+
+; TODO: $1a00-$1bff: $1ff / 511 bytes. room for IRQ/& jump tables?
 
 ; $1bff: end of Application Program Area
 
 ; FIXME Image IRQ jump table (under ROM):
 	jmptbl	= $a000
-
-;
-; 2758-2815 / $0AC6-$0AFF: Unused (58 bytes)
-;
-	idlejif	= $0ae0	; 2784
-	idlesec	= $0ae1	; 2785
-	idleten	= $0ae2	; 2786
-	idlemin	= $0ae3	; 2787
-	curdsp	= $0ae4	; 2788
-	bar	= $0ae5	; 2789
-	tsr2	= $0ae6	; 2790: 3 bytes
-	cphase	= $0ae9	; 2793
-	key	= $0aea	; 2794
-	shft	= $0aeb	; 2795: 5 bytes
-		; $0aec
-		; $0aed
-		; $0aee
-		; $0aef
-	ptrlnfd	= $0af0	; 2800: printer linefeed. 1.3's +/IM.misc is $42f0 (17136)
-	ha577	= $0af1	; 2801
-	mask	= $0af2	; 2802: password mask character (1.3 is 17138)
-	scnmode	= $0af3	; 2803: 17139: 1=mask off
-	dflag	= $0af4	; 2804
-	dstat	= $0af5	; 2805
-	cytmp 	= $0af6	; 2806
-	interm	= $0af7	; 2807
-	cxsav	= $0af8	; 2808
-	len1	= $0af9	; 2809
-	passmode= $0afa	; 2810
-	scnlock	= $0afb	; 2811
-	tmp6	= $0afc	; 2812
-	tmp7	= $0afd	; 2813
-	freq	= $0afe	; 2814
-
-; 3584-4095 / $0E00-$0FFF: Sprite Pattern Storage Area (511 / $1ff bytes)
 
 ; 7167 / $1C01: Normal start of BASIC text
 ; to reserve 9K RAM from 7168-16383 / $lC00-$3FFF: GRAPHIC l:GRAPHIC 0
@@ -468,11 +492,11 @@
 ; transfer protocol area (c64: 2680 bytes)
 
 	protosta= $1c00	; c64: $c000	; FIXME: maybe
-	protoend= $2680 ; c64: $ca80	; FIXME: maybe
+	protoend= $2000 ; c64: $ca80	; FIXME: maybe
 
 ; 9216 - 1280 = 7,936 free
 
-; $4000 - ?: adjusted start of BASIC
+; $2001 - ?: adjusted start of BASIC
 
 ; FIXME: modules, sub-modules load...?
 
@@ -499,7 +523,7 @@
 	eval1	= $ae8d
 	parchk	= $aef1 ; parentheses check: '(', ')'
 	chkcom	= $795c	; c64: $aefd. check if next character is comma, return "?syntax  error" if not
-	synerr	= $4c83	; c64: $af08. emit "?syntax  error"
+	synerr	= $4c83	; c64: $af08. emit "?syntax  error" [verified]
 
 	ptrget1	= $b0e7	; set up descriptor stored in ($45) [varname],
 			; returns address in (varpnt)
@@ -522,22 +546,6 @@
 	ecs	= $c000	; module load addr
 	ecshide	= $e400	; swaps to
 	ecslen	= 10	; # pages (seems like a lot)
-
-; FIXME Image routines:
-
-	outastr	= $cd00	; output a$
-	usetbl1	= $cd03	; irq addresses table at $a000
-	swapper	= $cd06	; swap pages of memory
-	swapagn	= $cd09	; re-swap same pages set up by 'swapper'
-	trace	= $cd0c	; BASIC line number trace
-	chkspcl	= $cd0f	; check for special chars in a$ [?]
-	convchr	= $cd12	; convert special characters in a$ [?]
-
-; FIXME buffers:
-
-	buf2	= $ce27	; 80 bytes
-	buffer	= $ce77	; 80 bytes
-;	longdate= $ceca ; starts at $cec7? im 3170
 
 ; BBS flags (really, unused VIC-II registers)
 
