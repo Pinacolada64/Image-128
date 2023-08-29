@@ -72,6 +72,7 @@
 	valtyp	= $0f	; c64: $0d. data type: $ff=string, $00=numeric
 	intflg	= $10	; c64: $0e. data type: $80=integer, $00=Floating point
 	tansgn	= $12
+;	curlin	= $16	; c64: $14-$15. integer line number value
 	poker	= $16	; c128: temp integer value (used by adrfor)
 	linnum	= $16	; c128: temp integer value (used by adrfor)
 			; TODO: rename ($3b) "linnum" to "curlin" in source modules to
@@ -100,8 +101,8 @@
 	datlin	= $41	; current "data" line #
 	datptr	= $43	; current "data" item address
 	inpptr	= $45	; vector: input routine
-	varnam	= $47	; c64: $45-$46. c128: $47-$48. bytes of current BASIC variable name
-	varpnt	= $49	; $49-$4a: pointer: current BASIC variable descriptor
+	varnam	= $47	; c64: $45/$46. c128: $47/$48. bytes of current BASIC variable name
+	varpnt	= $49	; c64: ($47): pointer: current BASIC variable descriptor
 	lstpnt 	= $4b	; pointer: index variable for "for...next"
 	forpnt	= $4b
 	opmask	= $4f	; c64: $4d. math operator table displacement
@@ -146,7 +147,6 @@
 	ribuf	= $c8	; c64: ($f7). vector to rs232 input buffer address
 	robuf	= $ca	; c64: ($f9). vector to rs232 output buffer address
 	ndx	= $d0	; c64: 198 / $c6. number of characters in keyboard buffer
-	rvs	= $f3	; c64: 199 / $c7. flag: print reverse characters. 0=no, 1=yes
 
 	sfdx	= $cb	; c64: $cb. flag: print shifted characters
 ;		= 	; c128: 866-875/$0362-$036B. c64: 601-610/$0259-$0262.
@@ -183,11 +183,19 @@
 	sline	= $eb	; c64: $d6. current screen row (0-24)
 	colptr	= $e2	; c64: ($f3). Pointer to the address of the current screen color RAM location
 
-; immediate mode input buffer (161/$a1 bytes, $0200-$02a1)
+; immediate mode input buffer	(c64: $0200-$0258,  88/$58 bytes,
+;				c128: $0200-$02a0, 160/$a0 bytes)
 
-	keyd     = $0277
-	gdcol    = $0287
-	shflag   = $d3	; c64: $028d. Shift, Ctrl, C=, Alt keys
+	keyd	= $034a	; c64: $0277. keyboard buffer (both 10 bytes)
+	gdcol	= $0a2a	; c64: $0287. Color of character under cursor
+;
+; system vectors
+;
+	IERROR	= $0300	; [$4d3f] Indirect vector into BASIC error handling routine
+	IMAIN	= $0302	; [$4db7] Indirect vector into BASIC main loop
+	ICHROUT	= $0326	; Indirect vector into BASIC CHROUT
+
+	shflag	= $d3	; c64: $028d. Shift, Ctrl, C=, Alt keys
 
 ; original docs had this labeled "mcolor," same as $07ec (MCI color).
 ; I'm favoring "color," "Mapping the C64"'s label:
@@ -458,7 +466,7 @@
 	rsbaud	= rs232 + $21	; 6433 / $1921
 	rschar	= rs232 + $24	; 6436 / $1924
 ;
-; Image routine jump table (21 bytes)
+; interface page jump table (39 bytes)
 ;
 	outastr	= rs232 + $27	; 6439 / $1927: output a$
 	usetbl1	= rs232 + $2a	; 6442 / $192a: '&' addresses table at $a000
@@ -467,12 +475,18 @@
 	trace	= rs232 + $33	; 6451 / $1933: BASIC line number trace
 	chkspcl	= rs232 + $36	; 6454 / $1936: check for special chars in a$ [?]
 	convchr	= rs232 + $39	; 6457 / $1939: convert special characters in a$ [?]
+	fnvar	= rs232 + $3c	; 6460 / $193c: find variable
+	fnvar1	= rs232 + $3f	; 6463 / $193f: ?
+	evalstr	= rs232 + $42	; 6466 / $1942: evaluate string
+	evalbyt	= rs232 + $45	; 6469 / $1945: evaluate byte
+	evalint	= rs232 + $48	; 6472 / $1948: evaluate integer
+	evalfil	= rs232 + $4b	; 6475 / $194b: evaluate filename?
 
 ; buffers:
 
-	buf2	= rs232	+ $3c	; 6460 / $193c: 80 / $50 bytes. c64: $ce27
-	buffer	= buf2	+ $50	; 6540 / $198c: 80 / $50 bytes. c64: $ce77
-;	longdate= $ceca ; starts at $cec7? im 3170
+	buf2	= rs232	+ $4e	; 6478 / $194e-$199e: 80 / $50 bytes. c64: $ce27
+	buffer	= buf2	+ $50	; 6558 / $199e-$19ee: 80 / $50 bytes. c64: $ce77
+;	longdate= buffer+ ?	; starts at $cec7? im 3170
 
 ; $19dc-$1bff: $0223 / 547 bytes free
 
@@ -512,12 +526,19 @@
 	addrbyt	= $8803	; calls addrbyt (16-bit), chkcom (,), getbyt (8-bit).
 			; returns .x: 8-bit value, < $16, > $17: 16-bit value.
 
-; FIXME BASIC routines:
+; FIXME BASIC ROM routines:
 
-	error	= $a437
+	newstt	= $4af6	; c64: $a7ae. Execute the next BASIC statement
+	ready	= $4d37	; jump to basic "ready." prompt [verified]
+	error	= $4d7c	; c64: $a437. print specified error in .x
+
+	primm	= $9281	; print immediate: print null-terminated string after call
 	linkprg	= $af87 ; c64: $a533
 	gone1	= $a7e7 ; for extra keywords
 	gone2	= $a7ea
+	gosub	= $59cf	; c128: handle the 'gosub' statement
+	goto	= $59db	; c128: handle the 'goto' statement
+	run	= $5a9b ; c64: $a871. handle the 'run' statement
 	linget	= $50a0	; c64: $a96b. Creates integer value from a character string
 	frnum	= $77d7	; c64: $ad8a. get arbitrary numeric expression. returns in fac1.
 	getadr	= $880f	; c64: $b7f7. call chkcom, frnum, adrfor.
@@ -533,6 +554,7 @@
 	ilqerr	= $7d28	; c64: $b248. issue "?illegal quantity  error"
 	retbyt	= $b3a2
 	makerm1	= $b475	; c64: midway through str$()
+	frestr	= $b6a3	; c64: $b6a3: discard a temporary string
 	getbytc	= $b79b
 	getnum	= $87f4	; c64: $b7eb. get 8-bit value (0-255)
 	retval	= $bc49
@@ -550,8 +572,9 @@
 	ecshide	= $e400	; swaps to
 	ecslen	= 10	; # pages (seems like a lot)
 
+;
 ; BBS flags (really, unused VIC-II registers)
-
+;
 	local	= $d000 ; 53248: 1=no modem output with &
 	case	= $d001 ; 53249: &,1 or £Ix: can POKE this or set pl=1: UPPERCASE, pl=0: Mixed Case
 	editor	= $d002 ; 53250: flags for &,1 routine
@@ -570,8 +593,9 @@
 	index	= $d00f ; 53263: [1.2] length of string returned by &,1 or £Ix
 
 	colorram= $d800
-
+;
 ; CIA #2 Time-of-Day clock stuff
+;
 	ten	= $dc08	; tenths of second
 	scs	= $dc09 ; seconds
 	min	= $dc0a ; minutes
@@ -588,7 +612,7 @@
 
 	syscll	= $e130
 	getfile	= $e1d4 ; 57812 (print last filename in BASIC)
-	prtscn	= $e716	; output char in .a to screen regardless of output device
+;	prtscn	= $e716	; c64: output char in .a to screen regardless of output device
 
 	setmsg	= $ff90
 	readst	= $ffb7
@@ -614,6 +638,7 @@
 	systok	= 158	; sys $addr
 	loadtok	= 147	; load"filename",<device>,<segment>
 	newtok	= 162	; "new <line_num>" erases <line_num>-
+			; related: $51d6 handles the NEW statement
 
 ;
 ; module addresses:
@@ -633,3 +658,27 @@
 	imodline= 2300
 	immdline= 3000
 	immdsize= $a00
+;
+; Lt. Kernal hard drive equates
+;
+	ltk_bnkout= $fc4e
+	ltk_bankin= $fc71
+	ltk_getprt= $9f03
+	ltk_driver= $8045
+	ltk_redbuf= $91e0
+	ltk_clrhdr= $806c
+	ltk_fnfile= $804b
+	ltk_alcont= $807b
+	ltk_mnsext= $809c
+	ltk_output= $8048
+	ltk_activl= $8000
+	ltk_activu= $8001
+	ltk_setlun= $8099
+
+	hdrblk	= $91e0
+	filnam	= hdrblk+$00
+	filtyp	= hdrblk+$18
+	nbinfl	= hdrblk+$10
+	loadad	= hdrblk+$1a
+	blmilo	= hdrblk+$20
+	nrpblk	= hdrblk+$12
