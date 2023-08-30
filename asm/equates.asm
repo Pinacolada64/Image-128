@@ -18,11 +18,14 @@
 	ascii_bel	= 7
 	ascii_escape	= 27
 	ascii_formfeed	= 12
+
+	; file transfer signals
 	ascii_ctrl_d	= 4
 	ascii_ctrl_x	= 24
 
 	comma		= $2c	; avoids assembler addressing mode errors with cmp ","
 
+; TODO: change these to c64list quoter equates
 	cursor_right	= $1d
 	cursor_left	= $9d
 	cursor_up	= $91
@@ -42,7 +45,7 @@
 ; color chr$() codes:
 	chr_black	= $90
 	chr_white	= $05
-	chr_red		= $1c
+	chr_red	= $1c
 	chr_cyan	= $9f
 	chr_purple	= $9c
 	chr_green	= $1e
@@ -62,7 +65,7 @@
 ; [?]  : not certain of purpose of routine
 ; ($xx): Indirect addressing: $xx *256+ ($xx+1)
 
-;		; 128	; c64
+;	; 128	; c64
 	d6510	= $00	; 128: 8502 I/O port data direction register
 	r6510	= $01	; 128: 8502 I/O port data register
 	bank	= $02	; 128: token 'search' looks for, or bank #
@@ -75,14 +78,14 @@
 ;	curlin	= $16	; c64: $14-$15. integer line number value
 	poker	= $16	; c128: temp integer value (used by adrfor)
 	linnum	= $16	; c128: temp integer value (used by adrfor)
-			; TODO: rename ($3b) "linnum" to "curlin" in source modules to
-			; avoid using wrong label @ $16
+		; TODO: rename ($3b) "linnum" to "curlin" in source modules to
+		; avoid using wrong label @ $16
 ; relocated 2 bytes up from c64 zero-page:
 	temppt	= $18	; c64: $16. Pointer to the Next Available Space in the Temporary String Stack
 	lastpnt	= $19	; c64: ($17). Pointer to the Address of the Last String in the Temporary String Stack
 	tempst	= $1b	; c64: $19-$21. c128: $1b-$23. Descriptor Stack for Temporary Strings
 	index_24= $24	; c128: $24-$27. Miscellaneous Temporary Pointers and Save Area
-			; official name is "index", renamed to not conflict with BBS flag @ $d00f
+		; official name is "index", renamed to not conflict with BBS flag @ $d00f
 	resho	= $28	; c64: $26-$2a. c128: $28-$2c. Floating point product of multiply
 	txttab	= $2d	; c64: ($2b). pointer to start of BASIC text in bank 0
 	vartab	= $2f	; c64: ($2d). pointer to start of BASIC variables in bank 1
@@ -92,8 +95,8 @@
 	frespc	= $37	; c64: ($35). pointer to most recently used string in bank 1
 	memsiz	= $39	; c64: ($37). pointer to top of dynamic string storage in bank 1
 ;	linnum	= $3b	; c64: ($14). Current BASIC Line Number
-			; TODO: rename ($3b) "linnum" to "curlin" in source modules to
-			; avoid using wrong label @ $17
+		; TODO: rename ($3b) "linnum" to "curlin" in source modules to
+		; avoid using wrong label @ $17
 ;	curlin	= $3b	; c128 label
 	oldtxt	= $1202	; c64: $3d-$3e. Pointer to the start of current line
 	txtptr	= $3d	; c128 label. Pointer to address of current BASIC statement
@@ -112,7 +115,7 @@
 	jmper	= $56	; c64: $54. $56-$58. jump to function instruction
 	numwork	= $57	; $57-$5c: 6 bytes. FIXME: move elsewhere? or share with $63-$68?
 
-	var	= $63	; c64: $61-$66. c128: $63-$67. FAC1, Floating Point Accumulator #1
+	var	= $0063	; c64: $61-$66. c128: $63-$67. FAC1, Floating Point Accumulator #1
 	fac2	= $6a	; c64: $69-$6e? c128: $6a-$6e. FAC2
 	arisgn	= $71	; c64: $6f. arithmetic sign
 	fbufpt	= $74	; c64: $71-$72. series evaluation pointer
@@ -149,8 +152,8 @@
 	ndx	= $d0	; c64: 198 / $c6. number of characters in keyboard buffer
 
 	sfdx	= $cb	; c64: $cb. flag: print shifted characters
-;		= 	; c128: 866-875/$0362-$036B. c64: 601-610/$0259-$0262.
-;			; Table of active logical file numbers
+;	= 	; c128: 866-875/$0362-$036B. c64: 601-610/$0259-$0262.
+;		; Table of active logical file numbers
 	crsw	= $d6	; c64: $d0. Flag: Input from Keyboard or Screen
 	pnt	= $e0	; c64: ($d1). Pointer to the address of the current screen line
 ;	pntr	= $ec	; c64: $d3. cursor column on current line
@@ -184,7 +187,7 @@
 	colptr	= $e2	; c64: ($f3). Pointer to the address of the current screen color RAM location
 
 ; immediate mode input buffer	(c64: $0200-$0258,  88/$58 bytes,
-;				c128: $0200-$02a0, 160/$a0 bytes)
+;		c128: $0200-$02a0, 160/$a0 bytes)
 
 	keyd	= $034a	; c64: $0277. keyboard buffer (both 10 bytes)
 	gdcol	= $0a2a	; c64: $0287. Color of character under cursor
@@ -228,10 +231,10 @@
 	cphase	= $0ad9	; 2777
 	key	= $0ada	; 2778
 	shft	= $0adb	; 2779: 5 bytes
-		; $0adc ; 2780
-		; $0add ; 2781
-		; $0ade ; 2782
-		; $0adf ; 2783
+	; $0adc ; 2780
+	; $0add ; 2781
+	; $0ade ; 2782
+	; $0adf ; 2783
 	ptrlnfd	= $0ae0	; 2784: [1.2: 17136] printer linefeed: +/IM.misc
 	ha577	= $0ae1	; 2785
 	mask	= $0ae2	; 2786: [1.2: 17138] password mask character
@@ -259,15 +262,15 @@
 	keyrept	= $0a22 ; [c64: 650] 128 = most keys repeat, 0=no keys repeat
 
 ;	cassbuff= $0b00 ; [c64: 828] $0b00-$0bbf (2816-3007, 191 bytes).
-			; During BOOT command, image of boot sector is held
-			; in $0b00-$0bff. I don't see another reference to
-			; $0bc0-$0bff in the memory map; could this area be
-			; extended?
+		; During BOOT command, image of boot sector is held
+		; in $0b00-$0bff. I don't see another reference to
+		; $0bc0-$0bff in the memory map; could this area be
+		; extended?
 
-			; There is a conflict with JiffyDOS's usage of this
-			; area (255 bytes?) while LOADing BASIC programs.
+		; There is a conflict with JiffyDOS's usage of this
+		; area (255 bytes?) while LOADing BASIC programs.
 
-			; This block has been relocated to $1800.
+		; This block has been relocated to $1800.
 
 ; $0bff / 3071: end of cassette buffer / boot sector image
 
@@ -358,7 +361,7 @@
 	hibytec	= $174b ; 25 bytes
 	emptym4	= $1764 ; 28 bytes
 	pmodetbl= $1780 ; $80 bytes: MCI print mode table
-		; $1800 : end of pmodetbl
+	; $1800 : end of pmodetbl
 
 ; relocated cassette buffer data:
 	cassbuff= $1800
@@ -398,7 +401,7 @@
 	fredmode= cassbuff + 144 ; 6288 / $1890 file read mode [?]
 ; ...until here:
 	montbl	= cassbuff + 145 ; 6289 / $1891 month names, 36 bytes (12*3):
-					; "JanFebMarAprMayJunJulAugSepOctNovDec"
+			; "JanFebMarAprMayJunJulAugSepOctNovDec"
 	emptym1	= cassbuff + 181 ; 6325 / $18b5 1 byte
 	timeset	= cassbuff + 182 ; 6326 / $18b6 "time has been set" flag: 0=no, flash bottom screen line
 	flag1	= cassbuff + 183 ; 6327 / $18b7
@@ -522,15 +525,17 @@
 ; these are from Rene Belzen's excellent article on the 128's BASIC Interpreter.
 
 	getpos	= $7aaf	; find or create a variable in bank 1.
-			; returns address < in .a & $49, > in .y & $4a
+		; returns address < in .a & $49, > in .y & $4a
 	addrbyt	= $8803	; calls addrbyt (16-bit), chkcom (,), getbyt (8-bit).
-			; returns .x: 8-bit value, < $16, > $17: 16-bit value.
+		; returns .x: 8-bit value, < $16, > $17: 16-bit value.
 
 ; FIXME BASIC ROM routines:
 
 	newstt	= $4af6	; c64: $a7ae. Execute the next BASIC statement
 	ready	= $4d37	; jump to basic "ready." prompt [verified]
 	error	= $4d7c	; c64: $a437. print specified error in .x
+
+	jfout	= $8e32	; print 16-bit digit, > .a, < .x
 
 	primm	= $9281	; print immediate: print null-terminated string after call
 	linkprg	= $af87 ; c64: $a533
@@ -550,7 +555,7 @@
 	synerr	= $4c83	; c64: $af08. emit "?syntax  error" [verified]
 
 	ptrget1	= $b0e7	; set up descriptor stored in ($45) [varname],
-			; returns address in (varpnt)
+		; returns address in (varpnt)
 	ilqerr	= $7d28	; c64: $b248. issue "?illegal quantity  error"
 	retbyt	= $b3a2
 	makerm1	= $b475	; c64: midway through str$()
@@ -602,9 +607,9 @@
 	hrs	= $dc0b ; hours
 
 ;	carrier = $dd01 ; This definition conflicts with $d009;
-			; "carrier" is referenced by irqhn.s
-			; 56577: CIA #2 Data Port B
-			; Bit 4: RS-232 carrier detect (DCD)/ Pin H of User Port
+		; "carrier" is referenced by irqhn.s
+		; 56577: CIA #2 Data Port B
+		; Bit 4: RS-232 carrier detect (DCD)/ Pin H of User Port
 
 	colors	= $e8da	; flashing chat page color table
 
@@ -638,7 +643,7 @@
 	systok	= 158	; sys $addr
 	loadtok	= 147	; load"filename",<device>,<segment>
 	newtok	= 162	; "new <line_num>" erases <line_num>-
-			; related: $51d6 handles the NEW statement
+		; related: $51d6 handles the NEW statement
 
 ;
 ; module addresses:
@@ -682,3 +687,139 @@
 	loadad	= hdrblk+$1a
 	blmilo	= hdrblk+$20
 	nrpblk	= hdrblk+$12
+
+; variable indices used with usevar/putvar
+
+var_an_string	= 0
+var_a_string	= 1
+var_b_string	= 2
+var_d1_string	= 4
+var_lp_float	= 15
+var_pl_float	= 16
+var_rc_float	= 17
+var_sh_float	= 18
+var_ac_integer	= 24
+var_w_string	= 27
+var_p_string	= 28
+var_tr_integer	= 29
+var_a_integer	= 30
+var_b_integer	= 31
+var_dv_integer	= 32
+var_c1_string	= 34
+var_c2_string	= 35
+var_co_string	= 36
+var_kp_integer	= 38
+var_c3_string	= 39
+var_mp_string	= 48
+var_mn_integer	= 49
+
+; indices and bit masks for chktbl
+flag_sys_addr	= chktbl + 0
+flag_sys_l_mask	= %00000001	; 0 Sysop available to chat
+flag_sys_r_mask	= %00000010	; 1 Background chat page enable
+
+flag_acs_addr	= chktbl + 0
+flag_acs_l_mask	= %00000100	; 2 Edit users access
+flag_acs_r_mask	= %00001000	; 3 Block 300 baud callers
+
+flag_loc_addr	= chktbl + 0
+flag_loc_l_mask	= %00010000	; 4 Local mode (no modem I/O)
+flag_loc_r_mask	= %00100000	; 5 ZZ (pseudo-local) mode
+
+flag_tsr_addr	= chktbl + 0
+flag_tsr_l_mask	= %01000000	; 6 Edit user's time remaining
+flag_tsr_r_mask	= %10000000	; 7 Prime-time enabled
+
+flag_cht_addr	= chktbl + 1
+flag_cht_l_mask	= %00000001	; 8 Enter/exit chat mode
+flag_cht_r_mask	= %00000010	; 9 Disable modem input
+
+flag_new_addr	= chktbl + 1
+flag_new_l_mask	= %00000100	; 10 Disallow new users
+flag_new_r_mask	= %00001000	; 11 Enable screen blanking
+
+flag_prt_addr	= chktbl + 1
+flag_prt_l_mask	= %00010000	; 12 Print spooling
+flag_prt_r_mask	= %00100000	; 13 Print log entries
+
+flag_uxd_addr	= chktbl + 1
+flag_uxd_l_mask	= %01000000	; 14 Disable U/D section
+flag_uxd_r_mask	= %10000000	; 15 300 baud U/D lockout
+
+flag_asc_addr	= chktbl + 2
+flag_asc_l_mask	= %00000001	; 16 ASCII translation
+flag_asc_r_mask	= %00000010	; 17 Line feed after carriage return
+
+flag_ans_addr	= chktbl + 2
+flag_ans_l_mask	= %00000100	; 18 ANSI color enabled
+flag_ans_r_mask	= %00001000	; 19 ANSI graphics enabled
+
+flag_exp_addr	= chktbl + 2
+flag_exp_l_mask	= %00010000	; 20 Expert mode enabled
+flag_exp_r_mask	= %00100000	; 21 Disallow double calls
+
+flag_unv_addr	= chktbl + 2
+flag_unv_l_mask	= %01000000	; 22 No immediate U/D credits
+flag_unv_r_mask	= %10000000	; 23 Allow auto-logoff
+
+flag_trc_addr	= chktbl + 3
+flag_trc_l_mask	= %00000001	; 24 On-screen trace enable
+flag_trc_r_mask	= %00000010	; 25 Undefined
+
+flag_bel_addr	= chktbl + 3
+flag_bel_l_mask	= %00000100	; 26 Local bells enabled
+flag_bel_r_mask	= %00001000	; 27 Local beeps disabled
+
+flag_net_addr	= chktbl + 3
+flag_net_l_mask	= %00010000	; 28 NetMail enable
+flag_net_r_mask	= %00100000	; 29 NetMail trigger
+
+flag_mac_addr	= chktbl + 3
+flag_mac_l_mask	= %01000000	; 30 Macros on/off
+flag_mac_r_mask	= %10000000	; 31 MCI disable in editor
+
+flag_chk_addr	= chktbl + 4
+flag_chk_l_mask	= %00000001	; 32 Enable MailCheck at logon
+flag_chk_r_mask	= %00000010	; 33 Excessive chat logoff
+
+flag_mor_addr	= chktbl + 4
+flag_mor_l_mask	= %00000100	; 34 More prompt on
+flag_mor_r_mask	= %00001000	; 35 More prompt not available
+
+flag_frd_addr	= chktbl + 4
+flag_frd_l_mask	= %00010000	; 36 Full-color read disable
+flag_frd_r_mask	= %00100000	; 37 Undefined
+
+flag_sub_addr	= chktbl + 4
+flag_sub_l_mask	= %01000000	; 38 Messages bases closed
+flag_sub_r_mask	= %10000000	; 39 Files section closed
+
+flag_res_addr	= chktbl + 5	; Res
+flag_res_l_mask	= %00000001	; 40 System reserved
+flag_res_r_mask	= %00000010	; 41 Network reserved
+
+flag_mnt_addr	= chktbl + 5	; Mnt
+flag_mnt_l_mask	= %00000100	; 42 Undefined
+flag_mnt_r_mask	= %00001000	; 43 Modem answer disabled
+
+flag_mnu_addr	= chktbl + 5 	; Mnu
+flag_mnu_l_mask	= %00010000	; 44 Is user in menu mode?
+flag_mnu_r_mask	= %00100000	; 45 Are menus available on BBS?
+
+flag_h2e_addr	= chktbl + 5 	; $2e
+flag_h2e_l_mask	= %01000000	; 46 Undefined
+flag_h2e_r_mask	= %10000000	; 47 Undefined
+
+; lightbar positions $3e-$6e are undefined
+
+flag_h38_addr	= chktbl + 7 	; Trb
+flag_h38_l_mask	= %00000001	; 56 ($38) On: Do not display BASIC variables
+flag_h38_r_mask	= %00000010	; 57 ($39) Undefined
+
+flag_dcd_addr	= chktbl + 7 	; DCD
+flag_dcd_l_mask	= %00000100	; 58 ($3a) invert DCD: off=normal, on=inverted
+flag_dcd_r_mask	= %00001000	; 59 ($3b) Carrier present
+
+flag_dsr_addr	= chktbl + 7 	; DSR
+flag_dsr_l_mask	= %00010000	; 60 ($3c) DCD/DSR select: on = DSR, off = DCD
+flag_dsr_r_mask = %00100000	; 61 ($3d) enable RX/TX windows
