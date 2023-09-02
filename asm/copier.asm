@@ -12,17 +12,17 @@ ncount = 38
 
 pbuf0= $658
 pbuf1= $400
-pbuf2= $500 // not used
+pbuf2= $500 ; not used
 
 proto:
 	inx
 	beq protonum
 	dex
-	beq copyall //&,16,0
+	beq copyall ;&,16,0
 	dex
-	beq jcount //&,16,1
+	beq jcount ;&,16,1
 	dex
-	beq copysome//&,16,2
+	beq copysome;&,16,2
 	rts
 
 jcount:
@@ -135,7 +135,7 @@ nxtcount:
 	jsr chrout
 	jsr clrchn
 	lda #3
-	jmp $ffc3 // close
+	jmp $ffc3 ; close
 
 buflen:
 	.byte 0

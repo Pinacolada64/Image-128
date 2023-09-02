@@ -2,52 +2,52 @@
 .namespace ecsml {
 
 a=0
-ecsdefs_size = $a00 // 2560 bytes decimal
+ecsdefs_size = $a00 ; 2560 bytes decimal
 
-// short format (command is 1-2 characters)
+; short format (command is 1-2 characters)
 
-// rs 2021-09-30: unsure what this byte is for, actually
+; rs 2021-09-30: unsure what this byte is for, actually
 
-// byte 0:
+; byte 0:
 
-// 0-1..flag
-// ..... bit 7..32768
-// ..... bit 6..16384
-// ..... bit 5...8192
-// ..... bit 4...4096
-// ..... bit 3...2048
-// ..... bit 2...1024
-// ..... bit 1....512
-// ..... bit 0....256
+; 0-1..flag
+; ..... bit 7..32768
+; ..... bit 6..16384
+; ..... bit 5...8192
+; ..... bit 4...4096
+; ..... bit 3...2048
+; ..... bit 2...1024
+; ..... bit 1....512
+; ..... bit 0....256
 
-// byte 1:
-// ..... bit 7..128 1=active command, 0=inactive
-// ..... bit 6...64 1=used, 0=empty
-// ..... bit 5...32 1=gosub, 0=goto
-// ..... bit 4...16 1=line#, 0=file
-// ..... bit 3....8 1=short, 0=long
-// ..... bit 2....4 1=param, 0=ignore param
-// ..... bit 1....2 -unused-
-// ..... bit 0....1 1=zz lock
+; byte 1:
+; ..... bit 7..128 1=active command, 0=inactive
+; ..... bit 6...64 1=used, 0=empty
+; ..... bit 5...32 1=gosub, 0=goto
+; ..... bit 4...16 1=line#, 0=file
+; ..... bit 3....8 1=short, 0=long
+; ..... bit 2....4 1=param, 0=ignore param
+; ..... bit 1....2 -unused-
+; ..... bit 0....1 1=zz lock
 
-// byte 2:
-// 1-2..access
-// 3-4..command
-// 5-6..filename [VERIFY: line number stored here as hi/lo bytes if bit #4 is set?]
-// 7....credits
+; byte 2:
+; 1-2..access
+; 3-4..command
+; 5-6..filename [VERIFY: line number stored here as hi/lo bytes if bit #4 is set?]
+; 7....credits
 
-// total: 8 bytes per short command
+; total: 8 bytes per short command
 
-// long format (command is 1-7 characters):
+; long format (command is 1-7 characters):
 
-// 0......flag (same as short)
-// 1-2....access
-// 3-9....command  (1-7  chars)
-// 10-23..file     (1-14 chars)
-// 24-31..password (1-7  chars)
-// 32.....credits
+; 0......flag (same as short)
+; 1-2....access
+; 3-9....command  (1-7  chars)
+; 10-23..file     (1-14 chars)
+; 24-31..password (1-7  chars)
+; 32.....credits
 
-// total: 32 bytes per short command
+; total: 32 bytes per short command
 
 ecs:
 	cpx #0
@@ -157,7 +157,7 @@ ecsscan3:
 ecsscan4:
 	pla
 	bcc ecsnext
-// got it!
+; got it!
 	bmi ecsscan5
 	lda #5
 	bne ecsquit
@@ -208,7 +208,7 @@ acc:
 zzf:
 	.byte 0
 
-// check long command, cc=not equal
+; check long command, cc=not equal
 ecslong:
 	ldx #0
 	ldy #3
@@ -224,16 +224,16 @@ ecslong1:
 ecslong2:
 	cpx index
 	beq ecslong4
-//nope
+;nope
 ecslong3:
 	clc
 	rts
-//yup
+;yup
 ecslong4:
 	ldy #24
 	lda (varbuf+3),y
 	beq ecslong5
-//do password later
+;do password later
 ecslong5:
 	ldy #10
 	ldx #0
@@ -283,7 +283,7 @@ ecslong9:
 	sec
 	rts
 
-// check short command,cc=not equal
+; check short command,cc=not equal
 ecsshort:
 	ldy #0
 	lda (varbuf+3),y
@@ -305,11 +305,11 @@ ecsshrt2:
 	lda (varbuf+3),y
 	cmp buffer+1
 	beq ecsshrt4
-//nope
+;nope
 ecsshrt3:
 	clc
 	rts
-//yup
+;yup
 ecsshrt4:
 	ldy #5
 	lda (varbuf+3),y
@@ -473,7 +473,7 @@ ecsload:
 	jmp loadf
 
 ecssave:
-// TODO combine with common code from ecsload
+; TODO combine with common code from ecsload
 	ldx #var_a_string
 	jsr usevar
 	lda varbuf

@@ -2,23 +2,23 @@ modst:
 	.word prgstart
 
 modtbl:
-	.word 0 //0
-	.word 0 //1
-	.word protostart //2
-	.word 0 //3
-	.word 0 //4
-	.word 0 //5
-	.word 0 //6
-	.word pmodetbl //7
-	.word bartbl //8
-	.word alarmtb //9
-	.word tblatc //10
-	.word tblcta //11
-	.word netalrm //12
+	.word 0 ;0
+	.word 0 ;1
+	.word protostart ;2
+	.word 0 ;3
+	.word 0 ;4
+	.word 0 ;5
+	.word 0 ;6
+	.word pmodetbl ;7
+	.word bartbl ;8
+	.word alarmtb ;9
+	.word tblatc ;10
+	.word tblcta ;11
+	.word netalrm ;12
 
-//* program load routines
+;* program load routines
 
-//* load various types of modules
+;* load various types of modules
 
 prgfile:
 	cpx #0
@@ -61,7 +61,7 @@ prg1:
 	jsr rsinabl
 	bcs prgerr
 	rts
-// load error
+; load error
 prgerr:
 	ldx #29
 	jmp farerr
@@ -69,7 +69,7 @@ prgerr:
 prg2:
 	jmp loadprg
 
-//* read disk directory
+;* read disk directory
 dskdir:
 	sty dflag
 	cpx #0
@@ -98,7 +98,7 @@ dskdir1:
 	beq dskdir1
 dskdir2:
 	rts
-//* read single line of directory
+;* read single line of directory
 dir:
 	ldx filenum
 	jsr chkin
@@ -160,7 +160,7 @@ dir5:
 	jsr putvar
 	jmp clrchn
 
-//* input from disk
+;* input from disk
 dskin:
 	cpx #0
 	bne dskin0a

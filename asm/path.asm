@@ -23,19 +23,19 @@ nod:
 
 pathfind:
 	txa
-	beq loadfile //0
+	beq loadfile ;0
 	dex
-	beq srchpath //1
+	beq srchpath ;1
 	dex
-	beq findnode //2
+	beq findnode ;2
 	dex
-	beq jshortct //3
+	beq jshortct ;3
 	rts
 
 jshortct:
 	jmp shortcut
 
-//load index file to end of proto
+;load index file to end of proto
 loadfile:
 	ldx #var_a_string
 	jsr usevar

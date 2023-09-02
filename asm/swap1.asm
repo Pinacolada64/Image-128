@@ -10,7 +10,7 @@ hc006:
 hc009:
 	jmp useeditr
 
-// jump table routines
+; jump table routines
 
 xgetin:
 	lda #23
@@ -64,49 +64,49 @@ chatmode:
 	lda #56
 	jmp usetbl1
 
-//********************************
-//* string input routines
-//********************************
+;********************************
+;* string input routines
+;********************************
 
-//********************************
-//* input line to an$ *
-//********************************
-//* on entry:*
-//* pl=0 for upper/lower case *
-//* pl=1 for upper case only *
-//* w$ = text that was wrapped *
-//* or text to edit in *
-//* edit mode. *
-//* p$ = text for prompt *
-//* .x register holds mode *
-//* .y register holds password mode
-//* flags *
-//********************************
-//* on exit:
-//* an$ = text that was typed *
-//* w$ = text that was wrapped *
-//* location (chat) holds:
-//* 0 = normal *
-//* 1 = delete on column one *
-//* or dot on column one *
-//* 2 = chat check hit *
-//* 3 = carrier/time loss *
-//********************************
+;********************************
+;* input line to an$ *
+;********************************
+;* on entry:*
+;* pl=0 for upper/lower case *
+;* pl=1 for upper case only *
+;* w$ = text that was wrapped *
+;* or text to edit in *
+;* edit mode. *
+;* p$ = text for prompt *
+;* .x register holds mode *
+;* .y register holds password mode
+;* flags *
+;********************************
+;* on exit:
+;* an$ = text that was typed *
+;* w$ = text that was wrapped *
+;* location (chat) holds:
+;* 0 = normal *
+;* 1 = delete on column one *
+;* or dot on column one *
+;* 2 = chat check hit *
+;* 3 = carrier/time loss *
+;********************************
 
 inline:
-	stx editor //flags
+	stx editor ;flags
 	sty passmode
 	ldx #var_pl_float
 	jsr usevar
-	lda varbuf //case lock
+	lda varbuf ;case lock
 	and #1
 	sta case
 inline0:
 	ldy #$00
 	sty index
-	sty tmp1 //chars typed
+	sty tmp1 ;chars typed
 	sty mjump
-	sty chat //result code
+	sty chat ;result code
 	sty buffer
 	jsr prprompt
 
@@ -114,7 +114,7 @@ inline0:
 	and #editor_word_wrap | editor_edit_mode
 	beq in0c
 
-// copy wrapped word to input buffer
+; copy wrapped word to input buffer
 
 	ldx #var_w_string
 	jsr usevar
@@ -128,7 +128,7 @@ in0:
 	cpy #0
 	bne in0
 in0c:
-	ldy #0 //print buffer
+	ldy #0 ;print buffer
 	cpy tmp1
 	beq in0d
 in0a:
@@ -152,13 +152,13 @@ in0d:
 	jsr prprompt
 in0b:
 
-// clear word wrap string
+; clear word wrap string
 
 	jsr zero
 	ldx #var_w_string
 	jsr putvar
 
-// input main loop
+; input main loop
 
 in1:
 	jsr xgetin
@@ -167,7 +167,7 @@ in1:
 	jsr carchk
 	beq in1a
 
-// carrier lost, exit with empty input
+; carrier lost, exit with empty input
 
 	lda #0
 	sta index
@@ -398,22 +398,22 @@ ctrlb1:
 ctrlb2:
 	jmp in1
 
-// handle the command escape charater (dot)
+; handle the command escape charater (dot)
 
 dot:
 
-// are we on the first column?
+; are we on the first column?
 
 	cpy #0
 	bne dot1
 
-// do we care about a dot on the first column?
+; do we care about a dot on the first column?
 
 	lda editor
 	and #editor_dot_on_column_one
 	beq dot1
 
-// exit
+; exit
 
 	lda #1
 	sta chat
@@ -517,10 +517,10 @@ prprompt:
 prpr1:
 	rts
 
-// check for printable characters
-// returns
-//   carry clear if non-printable
-//   carry set if printable
+; check for printable characters
+; returns
+;   carry clear if non-printable
+;   carry set if printable
 
 ctrlchk:
 	pha
@@ -563,7 +563,7 @@ ctrlch1:
 	clc
 	rts
 
-// carry clear if color chr
+; carry clear if color chr
 colorchk:
 	sty cytmp
 	ldy #15
@@ -584,11 +584,11 @@ prcr:
 	lda #$0d
 	jmp xchrout
 
-// password input routine
-// input
-//   X = additional password flags
-// output
-//   same as inline0
+; password input routine
+; input
+;   X = additional password flags
+; output
+;   same as inline0
 
 password:
 	lda #1
@@ -615,7 +615,7 @@ useeditr:
 	sta editjmp+1
 	jsr editswap
 editjmp:
-// target of self-modifying code
+; target of self-modifying code
 	jsr editor_exec_address
 editswap:
 	pha

@@ -1,13 +1,13 @@
 .pseudopc wedge_exec_address {
 .namespace wedge {
 
-// jump table
+; jump table
 
-// xx00: install w/o error trap
-// xx03: install w/error trap
-// xx06: load after filename is set
-// xx09: save array pointers
-// xx0c: restore array pointers
+; xx00: install w/o error trap
+; xx03: install w/error trap
+; xx06: load after filename is set
+; xx09: save array pointers
+; xx0c: restore array pointers
 
 start:
 	jmp install
@@ -379,12 +379,12 @@ wgone:
 	lda 52
 	sbc 50
 	bne wgone1
-// less than 256 bytes free, force
-// out of memory error for safety
+; less than 256 bytes free, force
+; out of memory error for safety
 	ldx #1
 	jsr arrayrs0
 	ldx #16
-	jmp error //outofm
+	jmp error ;outofm
 wgone1:
 	lda #r6510_basic_ram
 	sta r6510
@@ -506,7 +506,7 @@ arrayoff:
 	ldy #2
 	rts
 
-//* copy pointers for arrays *
+;* copy pointers for arrays *
 arraysv0:
 	jsr arrayoff
 arsv1:
@@ -524,7 +524,7 @@ arsv1:
 	bpl arsv1
 	rts
 
-//* restore pointers for arrays *
+;* restore pointers for arrays *
 arrayrs0:
 	lda $2f
 	sta $ac

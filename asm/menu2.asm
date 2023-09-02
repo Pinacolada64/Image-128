@@ -96,7 +96,7 @@ stcount:
 	.byte 0
 
 addstr:
-	jsr evalstrx //key$
+	jsr evalstrx ;key$
 	ldx #0
 	ldy #0
 	cmp #1
@@ -116,7 +116,7 @@ addstr1:
 	sta ($14),y
 	iny
 	sta ($14),y
-	jsr evalstrx //type$
+	jsr evalstrx ;type$
 	sta stcount
 	stx addstr2+1
 	sty addstr2+2
@@ -141,7 +141,7 @@ addstr3:
 	cpx #4
 	bcc addstr3
 addstr4:
-	jsr evalstrx //title$
+	jsr evalstrx ;title$
 	sta stcount
 	stx addstr5+1
 	sty addstr5+2
@@ -191,25 +191,25 @@ addarr:
 	pha
 	lda $15
 	pha
-	jsr evalstrx //key$
+	jsr evalstrx ;key$
 	ldy #0
 	lda ($22),y
 	sta keyvalue
-	jsr evalstrx //type$
+	jsr evalstrx ;type$
 	stx addarr6+1
 	sty addarr6+2
 	jsr evalbytx
 	stx itemsiz
-	jsr fnvarx //flags
+	jsr fnvarx ;flags
 	stx addarr2+1
 	sty addarr2+2
 	jsr getword
 	stx bitvalue+1
 	sty bitvalue
-	jsr fnvarx //type
+	jsr fnvarx ;type
 	stx addarr5+1
 	sty addarr5+2
-	jsr fnvarx //title
+	jsr fnvarx ;title
 	stx addarr7+1
 	sty addarr7+2
 	jsr evalbytx

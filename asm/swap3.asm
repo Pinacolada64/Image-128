@@ -16,7 +16,7 @@ hc00f:
 hc012:
 	jmp write_interface_byte
 
-// jump table routines
+; jump table routines
 
 outastr:
 	lda #0
@@ -43,9 +43,9 @@ output:
 	lda #55
 	jmp usetbl1
 
-// file read routines
+; file read routines
 
-//* unabortable for new user
+;* unabortable for new user
 newuser:
 	lda #1
 	sta readmode
@@ -55,7 +55,7 @@ relread:
 	lda #$bf
 	sta read1b+1
 
-//* main file reader
+;* main file reader
 read0:
 	cpx #$00
 	beq read0a
@@ -105,7 +105,7 @@ read2:
 	sta readmode
 	rts
 
-// movie view
+; movie view
 
 movie:
 	sty movdly
@@ -135,7 +135,7 @@ movie2:
 movdly:
 	.byte 0
 
-// print copyright message
+; print copyright message
 
 copyrite:
 	lda outastrp+1
@@ -179,7 +179,7 @@ mult3a:
 	tay
 	rts
 
-//* convert date to string *
+;* convert date to string *
 convdate:
 	jsr timezone
 	lda datebuf
@@ -494,9 +494,9 @@ write_interface_byte_load:
 	rts
 
 interface_byte_table:
-	.word llen    // input line length
-//	.word local   // local-only output flag
-//	.word mci     // enable MCI in output
+	.word llen    ; input line length
+;	.word local   ; local-only output flag
+;	.word mci     ; enable MCI in output
 interface_byte_table_end:
 }
 }

@@ -58,32 +58,32 @@ putln2:
 
 ;* find descriptor for tt$(.x)
 findarr:
-	stx varpnt	; $47
+	stx varpnt	; c64: $47
 	lda #0
-	asl varpnt	; $47
+	asl varpnt	; c64: $47
 	rol
-	sta varpnt+1	; $48
+	sta varpnt+1	; c64: $48
 	txa
 	clc
-	adc varpnt	; $47
-	sta varpnt	; $47
+	adc varpnt	; c64: $47
+	sta varpnt	; c64: $47
 	lda #0
-	adc varpnt+1	; $48
-	sta varpnt+1	; $48
+	adc varpnt+1	; c64: $48
+	sta varpnt+1	; c64: $48
 	clc
-	lda arytab	; $2f
-	adc varpnt	; $47
-	sta varpnt	; $47
-	lda arytab+1	; $30
-	adc varpnt+1	; $48
-	sta varpnt+1	; $48
+	lda arytab	; c64: $2f
+	adc varpnt	; c64: $47
+	sta varpnt	; c64: $47
+	lda arytab+1	; c64: $30
+	adc varpnt+1	; c64: $48
+	sta varpnt+1	; c64: $48
 	clc
 	lda #7
-	adc varpnt	; $47
-	sta varpnt	; $47
+	adc varpnt	; c64: $47
+	sta varpnt	; c64: $47
 	lda #0
-	adc varpnt+1	; $48
-	sta varpnt+1	; $48
+	adc varpnt+1	; c64: $48
+	sta varpnt+1	; c64: $48
 	rts
 
 ;* get variable pointer of basic variable .x in vars table
@@ -92,26 +92,25 @@ findarr:
 ;	.y: < variable pointer
 gvarptr:
 	txa
-; TODO:	jsr bank_vars_in ?
 	asl
 	tay
 	clc
 	lda vars,y
-	adc vartab	; $2d
+	adc vartab	; c64: $2d
 	tax
 	lda vars+1,y
-	adc vartab+1	; $2e
+	adc vartab+1	; c64: $2e
 	tay
 	rts
 
 varname:
 	jsr gvarptr
-	stx varpnt	; $47
-	sty varpnt+1	; $48
+	stx varpnt	; c64: $47
+	sty varpnt+1	; c64: $48
 	rts
 findvar:
-	sta varnam	; $45
-	stx varnam+1	; $46
+	sta varnam	; c64: $45
+	stx varnam+1	; c64: $46
 	jmp findvar1
 
 ;* print string variable
@@ -155,7 +154,7 @@ putvar2:
 	ldy #4
 putvar1:
 	lda var,y
-	sta (varpnt),y	; $47
+	sta (varpnt),y	; c64: $47
 	dey
 	bpl putvar1
 	rts
@@ -195,8 +194,10 @@ vars:
 ;	byte $50, $c8	; 13 ph$: phone number
 	byte $45, $cd	; 13 em$: email address
 	byte $41, $cb	; 14 ak$: separator line + "{f6}"
-	byte $4c, $50	; 15 lp
-	byte $50, $4c	; 16 pl
+	byte $4c, $50	; 15 lp: Disable or enable word-wrap for & text output.
+			;	lp=0: disable word-wrap, lp=1: enable word-wrap
+	byte $50, $4c	; 16 pl: Case flag for user input.
+			;	FIXME: pl=0: uppercase/lowercase, pl=1: uppercase only (like £Ix)?
  	byte $52, $43	; 17 rc
 	byte $53, $48	; 18 sh: spacebar hit
 	byte $4d, $57	; 19 mw
@@ -218,9 +219,9 @@ vars:
 	byte $43, $b2	; 35 c2$: "Exiting Chat Mode" string
 	byte $43, $cf	; 36 co$: computer type string
 	byte $43, $c8	; 37 ch$: copy of co$?
-	byte $cb, $d0	; 38 kp%: keypress?
+	byte $cb, $d0	; 38 kp%: keypress ascii value?
 	byte $43, $b3	; 39 c3$: "Returning to Editor" string
-	byte $46, $b1	; 40 f1$: programmable function key definition
+	byte $46, $b1	; 40 f1$: programmable function key definitions
 	byte $46, $b2	; 41 f2$
 	byte $46, $b3	; 42 f3$
 	byte $46, $b4	; 43 f4$

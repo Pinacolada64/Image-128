@@ -24,7 +24,7 @@ xx0c:
 xx0f:
 	jmp setbaud
 
-	//     300   600  1200 2400 4800
+	;     300   600  1200 2400 4800
 strt:
 	.word 4915, 2550, 1090, 459, 220
 full:
@@ -52,9 +52,9 @@ oldclr:
 oldchr:
 	.byte $24
 	.word nchrin
-//oldout:
-//	.byte $26
-//	.word nchrout
+;oldout:
+;	.byte $26
+;	.word nchrout
 oldget:
 	.byte $2a
 	.word ngetin
@@ -264,7 +264,7 @@ rsout1:
 	and #flag_dsr_r_mask
 	beq strtup
 
-// update TX window
+; update TX window
 
 	ldy #0
 outdisp:
@@ -359,7 +359,7 @@ rsget1:
 	and #flag_dsr_r_mask
 	beq ret1
 
-// update RX window
+; update RX window
 
 	ldy #0
 inpdisp:
@@ -444,10 +444,10 @@ setbaud1:
 	sta $dd0f
 	rts
 
-//nchrout:
-//	jsr disab
-//	jsr oldout
-//	jmp inabl
+;nchrout:
+;	jsr disab
+;	jsr oldout
+;	jmp inabl
 
 nopen:
 	jsr disab

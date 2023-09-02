@@ -8,7 +8,7 @@
 {asm}
 bank_prg_in	= $0c03
 bank_vars_in	= $0c06
-; buffer	= $199e ; $50 bytes
+
 {include:equates.asm}
 {include:strio.asm}
 {include:varbl.asm}

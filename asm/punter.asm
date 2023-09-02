@@ -6,31 +6,31 @@
 
 * = protostart "punter.prg"
 
-// modem file number
+; modem file number
 mfile = 131
-// disk file number
+; disk file number
 dfile = 2
-// disk error channel
+; disk error channel
 errch = 15
 
-//on entry:
+;on entry:
 
-// upload - file open to #dfile
-// dnload - file open to #dfile
-// multiup - an$=filename,t
-// multidn - nothing special
+; upload - file open to #dfile
+; dnload - file open to #dfile
+; multiup - an$=filename,t
+; multidn - nothing special
 
-//on exit:
+;on exit:
 
-// upload - a%=# blocks (0 = abort)
-// ........ b%=# bad blocks
-// ........ rc=# bytes sent
-// dnload - a%=# blocks (0 = abort)
-// ........ b%=# bad blocks
-// ........ rc=# bytes received
-// multiup -rc=1
-// multidn -an$="filename,t" ""=end
-// ........ rc=(1=ok, 0=aborted)
+; upload - a%=# blocks (0 = abort)
+; ........ b%=# bad blocks
+; ........ rc=# bytes sent
+; dnload - a%=# blocks (0 = abort)
+; ........ b%=# bad blocks
+; ........ rc=# bytes received
+; multiup -rc=1
+; multidn -an$="filename,t" ""=end
+; ........ rc=(1=ok, 0=aborted)
 
 xxx = 0
 goo = 1
@@ -46,38 +46,38 @@ okm = 9
 pbuf1= $400
 pbuf2= $500
 
-// start of the screen line with transfer time
+; start of the screen line with transfer time
 pbuf3= $630
 
-// index of the transfer time display
+; index of the transfer time display
 tcount = 16
 
 codebuf = pbuf3 + 26
 
 display_state = pbuf3 + 30
 
-// start of the screen line with the good/bad counts
+; start of the screen line with the good/bad counts
 pbuf0= $658
 
-// index of the good count display
+; index of the good count display
 gcount = 11
 
-// index of the bad count display
+; index of the bad count display
 bcount = 23
 
-// index of the byte count display
+; index of the byte count display
 ncount = 38
 
 
 recmodem_st_got_buffer = $01
 recmodem_st_timed_out =  $02
 
-// Spec says 5 seconds, but we're only using one byte,
-// so 4 seconds is the best whole number we can do
+; Spec says 5 seconds, but we're only using one byte,
+; so 4 seconds is the best whole number we can do
 
 recmodem_timeout_jiffies = 240
 
-// offsets into the block header
+; offsets into the block header
 
 header_checksum_lsb = 0
 header_checksum_msb = 1
@@ -89,22 +89,22 @@ header_block_number_msb = 6
 
 header_size = 7
 
-// start - jump table
+; start - jump table
 ml:
 	lda defflag
 	and #2
 	inx
 	beq protonum
 	dex
-	beq upload0 //0
+	beq upload0 ;0
 	dex
-	beq dnload0 //1
+	beq dnload0 ;1
 	dex
-	beq multiup0 //2
+	beq multiup0 ;2
 	dex
-	beq multidn0 //3
+	beq multidn0 ;3
 	dex
-	beq setflag //4
+	beq setflag ;4
 	bne getflag
 
 defflag:
@@ -112,13 +112,13 @@ defflag:
 flagbyte:
 	.byte 0
 
-flag_relaxed =  %00000001 // use relaxed timing
-flag_filetype = %00000010 // accept/send file type for single file transfers
+flag_relaxed =  %00000001 ; use relaxed timing
+flag_filetype = %00000010 ; accept/send file type for single file transfers
 
 versiond:
 	.text version
 
-// code accept timing
+; code accept timing
 t1:
 	.byte 36, 144
 
@@ -171,7 +171,7 @@ getflag:
 	ldx #var_a_integer
 	jmp putvar
 
-// multi- send
+; multi- send
 multiup:
 	jsr setup
 	tsx
@@ -218,7 +218,7 @@ multiup4:
 	sta bytes+2
 	rts
 
-//multi-recieve
+;multi-recieve
 multidn:
 	jsr setup
 	tsx
@@ -287,17 +287,17 @@ multidn6:
 multidn7:
 	jmp multiup4
 
-// check carrier/abort
+; check carrier/abort
 
 exit0:
 
-// if the commodore key is pressed, abort the transfer
+; if the commodore key is pressed, abort the transfer
 
 	lda $28d
 	cmp #2
 	beq exit_cleanup
 
-// if carrier is lost, abort the transfer
+; if carrier is lost, abort the transfer
 
 	lda flag_dcd_addr
 	and #flag_dcd_r_mask
@@ -307,19 +307,19 @@ exit0:
 
 exit:
 
-// if the commodore key is pressed, abort the transfer
+; if the commodore key is pressed, abort the transfer
 
 	lda $28d
 	cmp #2
 	beq exit_cleanup
 
-// if carrier is lost, abort the transfer
+; if carrier is lost, abort the transfer
 
 	lda flag_dcd_addr
 	and #flag_dcd_r_mask
 	bne ext2
 
-// exit and abort the transfer
+; exit and abort the transfer
 
 exit_cleanup:
 	ldx stack
@@ -348,7 +348,7 @@ setup:
 	sta flagbyte
 	rts
 
-// get # bytes and exit
+; get # bytes and exit
 xfer1:
 	lda #1
 	sta irqcount
@@ -385,7 +385,7 @@ xfer1:
 	sta r6510
 	lda #0
 	sta $65
-	// TODO get a label for this
+	; TODO get a label for this
 	jsr $bc4f
 	pla
 	sta r6510
@@ -396,7 +396,7 @@ xfer1:
 	ldx #var_rc_float
 	jmp putvar
 
-// wait for code received
+; wait for code received
 
 accept:
 	sta bitpat
@@ -407,7 +407,7 @@ accept:
 
 acc1:
 
-// clear timer for timeout check
+; clear timer for timeout check
 
 	lda #$00
 	sta jiffy
@@ -417,7 +417,7 @@ accept_loop:
 	bcs accept_no_char
 acc3:
 
-// shift code buffer
+; shift code buffer
 
 	ldx codebuf+1
 	stx codebuf
@@ -428,7 +428,7 @@ acc3:
 	jsr chkcod
 	beq acc1
 
-// calculate mask from code number
+; calculate mask from code number
 
 	lda #1
 acc4:
@@ -439,15 +439,15 @@ acc4:
 	and bitpat
 	beq accept_loop
 
-// expected code received
+; expected code received
 
-// if relaxed, don't worry about extra characters
+; if relaxed, don't worry about extra characters
 
 	lda flagbyte
 	and #flag_relaxed
 	bne acc5
 
-// if there is an extra character, start over
+; if there is an extra character, start over
 	jsr getnumx
 	bcc acc3
 acc5:
@@ -457,7 +457,7 @@ acc5:
 
 accept_no_char:
 
-// check for timeout
+; check for timeout
 
 	ldx #0
 	lda flagbyte
@@ -474,9 +474,9 @@ accept_timed_out:
 	sta $96
 	rts
 
-// check of codebuf contains a code
-// return with code in .A and bitcnt
-// returns 255 if no match found
+; check of codebuf contains a code
+; return with code in .A and bitcnt
+; returns 255 if no match found
 
 chkcod:
 	ldx #syn
@@ -500,13 +500,13 @@ chkcod_matched:
 	txa
 	cmp #xxx
 	bne chkcode_not_xxx
-// abort if xxx code received
+; abort if xxx code received
 	jmp exit_cleanup
 chkcode_not_xxx:
 	cmp #255
 	rts
 
-//codes.........01234567..8..9
+;codes.........01234567..8..9
 char1:
 	.byte ascii_ctrl_x
 	.text "gbass"
@@ -551,9 +551,9 @@ getnum0:
 	jsr exit0
 	jmp getnum1
 
-// get a character from the modem
-// if a character is available, returns with character in .A, carry clear, and status (st) zero
-// if no character is available, returns 0 in .A, carry set, and status (st) 2
+; get a character from the modem
+; if a character is available, returns with character in .A, carry clear, and status (st) zero
+; if no character is available, returns 0 in .A, carry set, and status (st) 2
 
 getnumx:
 	jsr exit
@@ -604,13 +604,13 @@ rch1:
 
 rch2:
 
-// wait for ack
+; wait for ack
 
 	lda #1<<ack
 	jsr accept
 	beq rch3
 
-// ack not received
+; ack not received
 	dec rechand_retry_counter
 	bne rch2
 
@@ -801,14 +801,14 @@ recmodem_not_ack_in_buffer:
 	cpy bufcount
 	bne rcm1
 
-// got all of our bytes
+; got all of our bytes
 
 	lda #recmodem_st_got_buffer
 	sta $96
 	rts
 
-// we got an "ack" in the buffer
-// treat that like a timeout
+; we got an "ack" in the buffer
+; treat that like a timeout
 
 recmodem_ack_in_buffer:
 
@@ -960,7 +960,7 @@ transmit:
 	lda #0
 	sta ($64),y
 	iny
-	sta ($64),y //6
+	sta ($64),y ;6
 tra1:
 	jsr tranhand
 	beq tra1
@@ -991,7 +991,7 @@ rec1:
 	bne rec5
 	jsr clrchn
 
-// first block
+; first block
 
 	lda bufcount
 	cmp #header_size
@@ -1118,16 +1118,16 @@ trt0:
 	jsr altbuf
 	ldy #4
 	lda #8
-	sta ($64),y //4
+	sta ($64),y ;4
 	jsr thisbuf
 	ldy #5
 	lda #$ff
-	sta ($64),y //5
+	sta ($64),y ;5
 	iny
-	sta ($64),y //6
+	sta ($64),y ;6
 	lda filetyp
 	iny
-	sta ($64),y //7
+	sta ($64),y ;7
 	lda #1
 	sta specmode
 trt1:
@@ -1278,7 +1278,7 @@ chkmark:
 	lda #52
 	jmp usetbl1
 
-//increment byte count
+;increment byte count
 commbyte:
 	tya
 	pha
@@ -1297,7 +1297,7 @@ cmb6:
 commcnt:
 	.byte 0
 
-//increment good blocks
+;increment good blocks
 goodblok:
 	inc blocks
 	bne goodb1
@@ -1306,7 +1306,7 @@ goodb1:
 	ldx #gcount
 	jmp counter0
 
-//increment bad blocks
+;increment bad blocks
 badblok:
 	inc badblks
 	bne badb1

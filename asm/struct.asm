@@ -1,63 +1,63 @@
 .pseudopc protostart {
 .namespace structml {
 
-//putstruc - put string into struct
-// &,nn,0,num,arry(a,b),string$
-// arry(a,b) = starting element
-// num = # of bytes
-// string$ = the string
+;putstruc - put string into struct
+; &,nn,0,num,arry(a,b),string$
+; arry(a,b) = starting element
+; num = # of bytes
+; string$ = the string
 
-//getstruc - get string from struct
-// &,nn,1,num,arry(a,b),string$
-// arry(a,b) = starting element
-// num = # of bytes
-// string$ = the string
+;getstruc - get string from struct
+; &,nn,1,num,arry(a,b),string$
+; arry(a,b) = starting element
+; num = # of bytes
+; string$ = the string
 
-//lodstruc - load structure
-// &,nn,2,0,arry(a,b),"file",dev
-// arry(a,b) = starting element
-// "file" = filename
-// dev = device #
+;lodstruc - load structure
+; &,nn,2,0,arry(a,b),"file",dev
+; arry(a,b) = starting element
+; "file" = filename
+; dev = device #
 
-//savstruc - save structure
-// &,nn,3,0,arry(a,b),bytes,"file",dev
-// arry(a,b) = starting element
-// bytes = # of bytes
-// "file" = filename
-// dev = device #
+;savstruc - save structure
+; &,nn,3,0,arry(a,b),bytes,"file",dev
+; arry(a,b) = starting element
+; bytes = # of bytes
+; "file" = filename
+; dev = device #
 
-//putdate - put date into struct
-// &,nn,4,0,arry(a,b),string$
-// arry(a,b) = starting element
-// string$ = the date string
+;putdate - put date into struct
+; &,nn,4,0,arry(a,b),string$
+; arry(a,b) = starting element
+; string$ = the date string
 
-//getdate - get date from struct
-// &,nn,5,0,arry(a,b),string$
-// arry(a,b) = starting element
-// string$ = the string
+;getdate - get date from struct
+; &,nn,5,0,arry(a,b),string$
+; arry(a,b) = starting element
+; string$ = the string
 
-//doscan - scan structures
-// &,nn,6,num,com,a(a,b),b(a,b),l,bits,test
-// com = command number
-// com = 0: 2 byte and, <>0
-// com = 1: 2 byte and, ==0
-// com = 2: 2 byte cmp, <
-// com = 3: 2 byte cmp, >=
-// com = 4: date cmp, <
-// com = 5: date cmp, >=
-// num = # of structures to scan
-// a(a,b) = starting flags element
-// b(a,b) = starting object element
-// bits = the bits to set if true
-// test = the object to test for
+;doscan - scan structures
+; &,nn,6,num,com,a(a,b),b(a,b),l,bits,test
+; com = command number
+; com = 0: 2 byte and, <>0
+; com = 1: 2 byte and, ==0
+; com = 2: 2 byte cmp, <
+; com = 3: 2 byte cmp, >=
+; com = 4: date cmp, <
+; com = 5: date cmp, >=
+; num = # of structures to scan
+; a(a,b) = starting flags element
+; b(a,b) = starting object element
+; bits = the bits to set if true
+; test = the object to test for
 
-ilen = $61 //1
-istr = $62 //2
-iptr = $64 //2
-jlen = $69 //1
-jstr = $6a //2
-jptr = $6c //2
-temp = $14 //2
+ilen = $61 ;1
+istr = $62 ;2
+iptr = $64 ;2
+jlen = $69 ;1
+jstr = $6a ;2
+jptr = $6c ;2
+temp = $14 ;2
 
 opandy=57
 opcmpy=217
@@ -98,18 +98,18 @@ strucrts:
 	rts
 
 functbl:
-	.word putdate //4
-	.word getdate //5
-	.word doscan //6
-	.word sort //7
-	.word scannums //8
-	.word scansum //9
-	.word cpystruc //10
-	.word scanstr //11
-	.word gamescan //12
-	.word textread //13
+	.word putdate ;4
+	.word getdate ;5
+	.word doscan ;6
+	.word sort ;7
+	.word scannums ;8
+	.word scansum ;9
+	.word cpystruc ;10
+	.word scanstr ;11
+	.word gamescan ;12
+	.word textread ;13
 
-// TODO move variable selection here since only one is used
+; TODO move variable selection here since only one is used
 putvar:
 	lda #30
 	jmp usetbl1
@@ -541,17 +541,17 @@ sort9:
 	bne sort1
 	rts
 
-// scan numbers
-// &,nn,8,num,siz,acs,a(a,b),res%(s),start
+; scan numbers
+; &,nn,8,num,siz,acs,a(a,b),res%(s),start
 
-// i/GF example:
-// &,60,8,s%(0,0),80,1,s%(0,1),e%(1),1
+; i/GF example:
+; &,60,8,s%(0,0),80,1,s%(0,1),e%(1),1
 
-// i/lo.instant example:
-// &,52,4,3:&,60,8,fb%(.,.),60,2^(a%+3),fb%(11,1),ff%(1),1
+; i/lo.instant example:
+; &,52,4,3:&,60,8,fb%(.,.),60,2^(a%+3),fb%(11,1),ff%(1),1
 
-// returns a%, # of results
-// returns res%(), 1-dimensional array of results, 1-a%
+; returns a%, # of results
+; returns res%(), 1-dimensional array of results, 1-a%
 scannums:
 	jsr getsize
 	jsr getword
@@ -617,8 +617,8 @@ scannum6:
 	ldx #var_a_integer
 	jmp putvar
 
-// sum
-// &,nn,9,num,siz,a(a,b)
+; sum
+; &,nn,9,num,siz,a(a,b)
 
 scansum:
 	jsr getsize
@@ -651,8 +651,8 @@ scansum4:
 	ldx #var_a_integer
 	jmp putvar
 
-// copy
-// &,nn,10,size,a1(a,b),a2(a,b)
+; copy
+; &,nn,10,size,a1(a,b),a2(a,b)
 
 cpystruc:
 	jsr fnvar
@@ -671,8 +671,8 @@ cpys2:
 	bcc cpys1
 	rts
 
-// scan for string
-// &,nn,11,num,siz,op,str,a1(a,b),a2(b),start
+; scan for string
+; &,nn,11,num,siz,op,str,a1(a,b),a2(b),start
 
 stroplo:
 	.byte <strcmp,<strptn
@@ -776,7 +776,7 @@ arrays2:
 	.byte $80, $80, $80, $80, $80
 	.text "CO"
 
-// clear an array
+; clear an array
 clrarr:
 	cpx #12
 	bcs clrar7
@@ -849,8 +849,8 @@ clrar6:
 clrar7:
 	rts
 
-// game scan
-// &,60,12,count,size,a$,a%(a,b),b$
+; game scan
+; &,60,12,count,size,a$,a%(a,b),b$
 
 gamescan:
 	jsr evalbyt
@@ -900,9 +900,9 @@ game2:
 	iny
 	rts
 
-// textread:
+; textread:
 
-// &,60,13,number,reclen,scan(),bits,text(),strlen
+; &,60,13,number,reclen,scan(),bits,text(),strlen
 
 textread:
 	jsr getsize

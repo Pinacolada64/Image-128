@@ -2,8 +2,6 @@
 ; * string output routines *
 ; *
 
-	varbuf	= var	; used in strio.s
-
 ; * output string
 outstr:
 	lda #0
@@ -303,14 +301,14 @@ newdate:
 	ldx #var_an_string
 	jsr usevar
 	lda varbuf
-	cmp #11	;  length in .a
+	cmp #11		;  length in .a
 	bne newd0	;  not 11 bytes? rts
-	ldy #7	;  offset 6 (10s digit hour)
+	ldy #7		;  offset 6 (10s digit hour)
 	lda (varbuf+1),y
 	and #'1'	;  is hour even or odd?
 	cmp #'1'
 	bne newd2
-	iny	;  offset 7
+	iny		;  offset 7
 	lda (varbuf+1),y
 	cmp #'2'
 	bne newd2

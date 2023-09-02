@@ -12,7 +12,7 @@ hc009:
 hc00c:
 	jmp sound
 
-// jump table routines
+; jump table routines
 
 xchrout:
 	sta $fe
@@ -48,7 +48,7 @@ output:
 	lda #55
 	jmp usetbl1
 
-// chat mode
+; chat mode
 chatmode:
 	lda #$00
 	sta $fe
@@ -96,7 +96,7 @@ chat5:
 	ldx #var_co_string
 	jmp btmvar
 
-// terminal mode
+; terminal mode
 
 term0:
 	lda #0
@@ -120,7 +120,7 @@ term1:
 	jsr outansi
 	jmp term
 
-// output to screen, interpret ansi
+; output to screen, interpret ansi
 outansi:
 	lda flag_ans_addr
 	and #flag_ans_l_mask
@@ -327,7 +327,7 @@ ansiprm4:
 	sta ansiprm
 	jmp ansiprm1
 
-// print string variable to bottom
+; print string variable to bottom
 btmvar:
 	inc scnlock
 	lda scnmode

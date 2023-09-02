@@ -23,11 +23,11 @@ pbuf1= $400
 pbuf2= $500
 pbuf3= $630
 
-//flagbyte:
+;flagbyte:
 
-// 1 = 0=normal,1=relaxed
-// 2 = 0=128b,1=1k
-// 4 =
+; 1 = 0=normal,1=relaxed
+; 2 = 0=128b,1=1k
+; 4 =
 
 ml:
 	inx
@@ -212,17 +212,17 @@ calcsum2:
 	pla
 	rts
 
-// check carrier/abort
+; check carrier/abort
 
 exit:
 
-// if the commodore key is pressed, abort the transfer
+; if the commodore key is pressed, abort the transfer
 
-	lda $028d
-	cmp #2
+	lda shflag		; c64: $028d
+	cmp #COMMODORE_KEY	; 2
 	beq exit1
 
-// if carrier is lost, abort the transfer
+; if carrier is lost, abort the transfer
 
 	lda flag_dcd_addr
 	and #flag_dcd_r_mask
@@ -230,7 +230,7 @@ exit:
 
 	rts
 
-// exit and abort the transfer
+; exit and abort the transfer
 
 exit1:
 	ldx stack
@@ -576,12 +576,12 @@ xsend5:
 xsend6:
 	jmp exit1
 
-// initial handshake
-// exits with crcflag indicating if CRC was selected
+; initial handshake
+; exits with crcflag indicating if CRC was selected
 
 xrecvcrc:
 
-// try three times to get a response with 'c' (CRC mode)
+; try three times to get a response with 'c' (CRC mode)
 
 	lda #1
 	sta crcflag
@@ -595,7 +595,7 @@ xrecvc1:
 	dec bufnum
 	bne xrecvc1
 
-// try three times to get a response with NAK (non-CRC mode)
+; try three times to get a response with NAK (non-CRC mode)
 
 	lda #3
 	sta bufnum
@@ -644,22 +644,22 @@ recvblk0:
 	ldx #0
 	stx kflag
 
-// check for default handshake indicator
+; check for default handshake indicator
 
 	cmp #chrsoh
 	beq recvblk5
 
-// check for 1k handshake indicator
+; check for 1k handshake indicator
 
 	cmp #chrstx
 	beq recvblk1
 
-// check for cancel
+; check for cancel
 
 	cmp #chrcan
 	beq recvblk3
 
-// check for end of transmission
+; check for end of transmission
 
 	cmp #chreot
 	beq recvblk4
@@ -668,7 +668,7 @@ recvblk2:
 	jsr waitch02
 	bcc recvblk2
 
-// didn't get something we recognized in time, send NAK
+; didn't get something we recognized in time, send NAK
 
 	lda #chrnak
 	jsr sendbyte
@@ -676,40 +676,40 @@ recvblk2:
 	jsr badblk
 	jmp recvblk
 
-// cancel received
+; cancel received
 
 recvblk3:
 	jsr waitch02
 	bcs recvblk2
 
-// need two in a row to actual cancel
+; need two in a row to actual cancel
 
 	cmp #chrcan
 	bne recvblk2
 
-// exit with code 1 - cancelled
+; exit with code 1 - cancelled
 
 	ldx #1
 	rts
 
-// end of transmission received
+; end of transmission received
 
 recvblk4:
 	lda #chrack
 	jsr sendbyte
 
-// exit with code 2 - success
+; exit with code 2 - success
 
 	ldx #2
 	rts
 
-// 1k buffer start of data received
+; 1k buffer start of data received
 
 recvblk1:
 	ldx #1
 	stx kflag
 
-// start of data received
+; start of data received
 
 recvblk5:
 	jsr waitch02
@@ -818,7 +818,7 @@ recvbuf1:
 	jsr calcsum
 	ldy buffer_index
 	sta ($b0),y
-// temporary - show buffer data on screen
+; temporary - show buffer data on screen
 	sta pbuf1,y
 
 	iny

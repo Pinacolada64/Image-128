@@ -15,20 +15,20 @@ devnum = 186
 src = $fb
 dst = $fd
 
-	// link to next line (bogus, gets fixed by basic loader)
+	; link to next line (bogus, gets fixed by basic loader)
 	.byte $1b, $1b
-	// line number
+	; line number
     	.word 1990
-	// "sys" token
+	; "sys" token
 	    .byte $9e
         .text toIntString(start)
 	.text " "
-	// "new" token
+	; "new" token
 	.byte $a2
 	.text " image software"
-	// end of basic line
+	; end of basic line
         .byte 0
-	// end of basic program
+	; end of basic program
 	.word 0
 
 * = $081e
@@ -125,7 +125,7 @@ fill_loop:
 	sta rs232,y
 	dey
 	bpl fill_loop
-// load "ml"
+; load "ml"
 	lda #file1_end - file1
 	ldx #<file1
 	ldy #>file1

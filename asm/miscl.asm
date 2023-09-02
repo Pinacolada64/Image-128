@@ -158,13 +158,13 @@ cursp4:
 
 cursmode:
 	ldx #16
-	jsr chkflag //asc
+	jsr chkflag ;asc
 	bne cursmod1
 	lda #1
 	rts
 cursmod1:
 	ldx #18
-	jsr chkflag //ans
+	jsr chkflag ;ans
 	beq cursmod2
 	lda #2
 	rts
@@ -283,7 +283,7 @@ lock:
 	bpl idle
 	cmp port_load+1
 	beq lock1
-	ldy #$cc // reverse uppercase L
+	ldy #$cc ; reverse uppercase L
 	sty tdisp+31
 	jsr tdelay
 	bne lock
@@ -325,16 +325,16 @@ block:
 	sta ltk_redbuf
 	stx ltk_redbuf+1
 lu_load:
-// changed by self-modifying code
+; changed by self-modifying code
 	lda #0
 	sec
 blkl_load:
-// changed by self-modifying code
+; changed by self-modifying code
 	adc #0
 	tax
 	lda #0
 blkh_load:
-// changed by self-modifying code
+; changed by self-modifying code
 	adc #0
 	tay
 	lda #10

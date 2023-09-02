@@ -121,7 +121,7 @@ outmodm1:
 	lda flag_asc_addr
 	and #flag_asc_r_mask
 
-// TODO clean this up, can eliminate php/plp
+; TODO clean this up, can eliminate php/plp
 	php
 	lda #13
 	plp

@@ -6,9 +6,9 @@
 
 t3 = 70
 
-mfile = 131 //modem file number
-dfile = 2 //disk file number
-errch = 15 //disk error channel
+mfile = 131 ;modem file number
+dfile = 2 ;disk file number
+errch = 15 ;disk error channel
 
 xxx = 0
 goo = 1
@@ -32,15 +32,15 @@ reset = rsinabl
 relaxflg:
 	.byte 0
 
-//serialp:
-//	.byte "A"
-//serialn:
-//	.word 3
+;serialp:
+;	.byte "A"
+;serialn:
+;	.word 3
 
-//code accept
+;code accept
 t1:
 	.byte 35,100
-//receive timing
+;receive timing
 t2:
 	.byte 16,30
 
@@ -56,19 +56,19 @@ entry:
 	tya
 	inx
 	dex
-	beq jupload //0
+	beq jupload ;0
 	dex
-	beq jdnload //1
+	beq jdnload ;1
 	dex
-	beq jupname //2
+	beq jupname ;2
 	dex
-	beq jdnname //3
+	beq jdnname ;3
 	dex
-	beq juprelx //4
+	beq juprelx ;4
 	dex
-	beq jdnrelx //5
+	beq jdnrelx ;5
 	dex
-	beq jmodemx //6
+	beq jmodemx ;6
 	rts
 
 jupname:
@@ -86,20 +86,20 @@ jdnrelx:
 jmodemx:
 	jmp modemchk
 
-// check carrier/abort
+; check carrier/abort
 exit:
-//	txa
-//	pha
+;	txa
+;	pha
 	lda $28d
 	cmp #2
 	beq ext1
-//	ldx #4
-//	lda bsnpre-4,x
-//	cmp serialp-4,x
-//	lda bsnval-4,x
-//	cmp serialn-4,x
-//	lda bsnval-3,x
-//	cmp serialn-3,x
+;	ldx #4
+;	lda bsnpre-4,x
+;	cmp serialp-4,x
+;	lda bsnval-4,x
+;	cmp serialn-4,x
+;	lda bsnval-3,x
+;	cmp serialn-3,x
 	lda carrst
 	bmi ext2
 ext1:
@@ -112,11 +112,11 @@ ext0:
 	sta 512
 	jsr nobytes
 ext2:
-//	pla
-//	tax
+;	pla
+;	tax
 	rts
 
-// get # bytes and exit
+; get # bytes and exit
 xfer1:
 	lda blocks
 	sta varbuf+1
@@ -128,7 +128,7 @@ xfer1:
 	sta 512
 	rts
 
-// check for code
+; check for code
 accept:
 	sta bitpat
 	lda #$00
@@ -212,7 +212,7 @@ chc4:
 	cmp #255
 	rts
 
-//codes.........012345
+;codes.........012345
 char1:
 	.byte ascii_ctrl_x
 	.text "gbass"
@@ -457,35 +457,35 @@ trh8:
 	lda #1<<snb
 	jsr accept
 	bne trh8
-// lda #10
-// sta bufcount
+; lda #10
+; sta bufcount
 trh9:
 	ldx #syn
 	jsr sendcode
 	lda #1<<syn
 	jsr accept
-// bne trha
-// dec bufcount
-// bne trh9
-//trha:
-//	lda #3
-//	sta bufcount
+; bne trha
+; dec bufcount
+; bne trh9
+;trha:
+;	lda #3
+;	sta bufcount
 trhb:
 	ldx #snb
 	jsr sendcode
-// lda #0
-// jsr accept //wait
-// dec bufcount
-// bne trhb
+; lda #0
+; jsr accept ;wait
+; dec bufcount
+; bne trhb
 	lda #1
 	rts
 
-//returns:
+;returns:
 
-// 1 = buffer is full
-// 2 = timeout, stuff in buffer
-// 3 = timeout, buffer empty
-// 4 = timeout, "ack" in buffer
+; 1 = buffer is full
+; 2 = timeout, stuff in buffer
+; 3 = timeout, buffer empty
+; 4 = timeout, "ack" in buffer
 recmodem:
 	ldy #$00
 	lda recsize
@@ -1155,7 +1155,7 @@ modemc9:
 	ldx #var_b_string
 	jmp putvar
 
-//increment byte count
+;increment byte count
 commbyte:
 	tya
 	pha
@@ -1174,7 +1174,7 @@ cmb6:
 commcnt:
 	.byte 0
 
-//increment good blocks
+;increment good blocks
 goodblok:
 	inc blocks
 	bne goodb1
@@ -1183,7 +1183,7 @@ goodb1:
 	ldx #gcount
 	jmp counter0
 
-//increment bad blocks
+;increment bad blocks
 badblok:
 	inc badblks
 	bne badb1

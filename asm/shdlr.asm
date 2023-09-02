@@ -275,8 +275,8 @@ poscrsr:
 	clc
 	jmp $fff0
 
-//* output routine to fix 1200 and
-//* do the transmit window
+;* output routine to fix 1200 and
+;* do the transmit window
 
 out0:
 	sta $9e
@@ -476,7 +476,7 @@ hea24:
 	tay
 	rts
 
-// toggle full screen
+; toggle full screen
 setmode:
 	cpx scnmode
 	beq setmode1
@@ -562,9 +562,9 @@ swapscn3:
 	pla
 	sta $d1
 	rts
-//*
-//* decimal to ascii routine *
-//*
+;*
+;* decimal to ascii routine *
+;*
 decimal:
 	sta binary
 	stx binary+1
@@ -595,9 +595,9 @@ dectbl1:
 	.byte <10000, <1000, <100, <10, <1
 dectbl2:
 	.byte >10000, >1000, >100, >10, >1
-//*
-//* memory and trace update
-//*
+;*
+;* memory and trace update
+;*
 trace0:
 	inc scnlock
 	lda scnmode

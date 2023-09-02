@@ -1,7 +1,7 @@
-//*irq routine
+;*irq routine
 
-//* counter to execute a different
-//* part of the routine each jiffy
+;* counter to execute a different
+;* part of the routine each jiffy
 
 irq:
 	jsr irq9
@@ -31,19 +31,19 @@ irq0a:
 irqjmp:
 	jmp $ffff
 irqtbl:
-	.word irq1 //page
-	.word irq2 //time
-	.word irq3 //blanker
-	.word irq4 //handle lightbar f-keys?
-	.word irq5 //carrier
-	.word irq6 //flag
-	.word irq7 //display lightbar checkmarks
-	.word irq4 //handle lightbar f-keys?
+	.word irq1 ;page
+	.word irq2 ;time
+	.word irq3 ;blanker
+	.word irq4 ;handle lightbar f-keys?
+	.word irq5 ;carrier
+	.word irq6 ;flag
+	.word irq7 ;display lightbar checkmarks
+	.word irq4 ;handle lightbar f-keys?
 
 caseflag:
 	.byte 255
 
-//* chat page
+;* chat page
 
 irq1:
 	ldy #4
@@ -89,7 +89,7 @@ irq1f:
 pagecol:
 	.byte 1,15,12,11,12,15
 
-//* update time on screen
+;* update time on screen
 
 timeflag:
 	.byte 0
@@ -177,7 +177,7 @@ ha872:
 	sec
 	sbc scs
 	cld
-// display tsr
+; display tsr
 ha083:
 	jsr bcdtoa
 	pha
@@ -205,12 +205,12 @@ tchk1:
 tchk2:
 	rts
 
-// Read the "time still remaining"
-// returns
-//   A = the value of tr%
-//   X = preserved
-//   Y = trashed
-//   flags set with load of A
+; Read the "time still remaining"
+; returns
+;   A = the value of tr%
+;   X = preserved
+;   Y = trashed
+;   flags set with load of A
 
 gettsr:
 	txa
@@ -225,7 +225,7 @@ gettsr:
 	pla
 	tax
 getts1:
-// target of self-modifying code
+; target of self-modifying code
 	lda $ffff,y
 	rts
 settsr:
@@ -233,13 +233,13 @@ settsr:
 	jsr gettsr
 	pla
 setts1:
-// target of self-modifying code
+; target of self-modifying code
 	sta $ffff,y
 	rts
 
-//* make string out of current date
-//* for d1$ (convert from 6 byte to
-//* 11 byte format)
+;* make string out of current date
+;* for d1$ (convert from 6 byte to
+;* 11 byte format)
 
 mkdate:
 	pha
@@ -373,7 +373,7 @@ dispd6:
 	lda #'M'
 	jsr dispdt
 	lda #' '
-//* convert to screen, store it
+;* convert to screen, store it
 dispdt:
 	pha
 	and caseflag
@@ -391,7 +391,7 @@ dispdt3:
 	pla
 	rts
 
-//* convert bcd to ascii
+;* convert bcd to ascii
 bcdtoa:
 	tax
 	lsr
@@ -407,7 +407,7 @@ bcdtoa:
 	tya
 	rts
 
-//* display time remaining
+;* display time remaining
 
 disptime:
 	ldx #32
@@ -472,13 +472,13 @@ chkblnk:
 bits:
 	.byte 1,2,4,8,16,32,64,128
 
-// backward compatibility with mxor location
+; backward compatibility with mxor location
 
 mxor_compat:
 	lda mxor
 
 mxor_shadow:
-	cmp #0 // target of self-modifying code
+	cmp #0 ; target of self-modifying code
 	bne mxor_unchanged
 
 mxor_changed:
@@ -500,8 +500,8 @@ mxor_cleared:
 mxor_unchanged:
 	rts
 
-// update dcd-r flag based on carrier check
-// invert if dcd-l flag is set
+; update dcd-r flag based on carrier check
+; invert if dcd-l flag is set
 
 carrier_update:
 	lda flag_dcd_addr
@@ -518,7 +518,7 @@ carrier_update_not_present:
 	lda #1
 	sta carrst
 
-	lda #$a0 // reverse space
+	lda #$a0 ; reverse space
 	sta tdisp+39
 
 	lda flag_dcd_addr
@@ -537,7 +537,7 @@ carrier_update_present:
 	ora #128
 	sta carrst
 
-	lda #$fa // reverse checkmark
+	lda #$fa ; reverse checkmark
 	sta tdisp+39
 
 	lda flag_dcd_addr
@@ -545,14 +545,14 @@ carrier_update_present:
 	sta flag_dcd_addr
 	rts
 
-// update carrier flags/display interrupt timeslot
+; update carrier flags/display interrupt timeslot
 
 irq5:
 	jsr mxor_compat
 	jsr carrier_update
-// intentional fall-through
+; intentional fall-through
 
-// update the bottom-left corner of the screen
+; update the bottom-left corner of the screen
 
 bottom_left_check_update:
 	lda flag_asc_addr
@@ -560,12 +560,12 @@ bottom_left_check_update:
 	bne bottom_left_check_cleared
 
 bottom_left_check_set:
-	lda #$fa // reverse checkmark
+	lda #$fa ; reverse checkmark
 	sta tdisp
 	rts
 
 bottom_left_check_cleared:
-	lda #$a0 // reverse space
+	lda #$a0 ; reverse space
 	sta tdisp
 	rts
 
@@ -573,11 +573,11 @@ irq6:
 	lda carrst
 	and #127
 irq6a:
-// target of self-modifying code
+; target of self-modifying code
 	cmp #1
 	beq irq6b
 
-// carrst low bits changed
+; carrst low bits changed
 
 	sta irq6a+1
 
@@ -589,7 +589,7 @@ irq6b:
 	lda flag_loc_addr
 	and #flag_loc_l_mask
 irq6c:
-// target of self-modifying code
+; target of self-modifying code
 	cmp #0
 	beq irq6d
 	sta irq6c+1
@@ -604,7 +604,7 @@ irq6d:
 	lda flag_frd_addr
 	and #flag_frd_l_mask
 	ldy #0
-// TODO probably can eliminate the tax here by reordering
+; TODO probably can eliminate the tax here by reordering
 	tax
 	beq irq6e
 	ldy comqc
@@ -613,10 +613,10 @@ irq6e:
 	sty fredmode
 	rts
 
-//* display lightbar checkmarks
+;* display lightbar checkmarks
 irq7:
 
-// self modifying code changes this
+; self modifying code changes this
 
 	ldy #1
 	lda bar
@@ -645,7 +645,7 @@ irq7:
 
 irq7a:
 
-// self modifying code changes this
+; self modifying code changes this
 
 	adc #0
 	tay
@@ -673,14 +673,14 @@ irq7c:
 irq7z:
 	rts
 
-// display either a space or a checkmark for a lightbar flag
+; display either a space or a checkmark for a lightbar flag
 
 irq7d:
 	lsr
 	pha
 	lda #' '
 	bcc irq7e
-	lda #$7a // "checkmark"
+	lda #$7a ; "checkmark"
 irq7e:
 	jsr irq7f
 	pla
@@ -690,14 +690,14 @@ irq7j:
 	lda bartbl,y
 	iny
 
-// write a single character to the on-screen lightbar
+; write a single character to the on-screen lightbar
 
 irq7f:
 	ora #$80
 	sta ldisp,x
 irq7g:
 
-// self-modifying code changes this
+; self-modifying code changes this
 
 	lda #15
 	sta lcolr,x
@@ -707,7 +707,7 @@ irq7g:
 irq7h:
 	pha
 
-// set the highlight color for this lightbar position
+; set the highlight color for this lightbar position
 
 	lda #15
 	cpx tmpbar
@@ -744,10 +744,10 @@ chkflags:
 	tax
 	pla
 
-// at this point:
-// A = bit mask
-// X = index into the flag bytes
-// Y = function number
+; at this point:
+; A = bit mask
+; X = index into the flag bytes
+; Y = function number
 
 	iny
 	dey
@@ -773,26 +773,26 @@ chkflag8:
 	txa
 	rts
 
-// clear a flag
+; clear a flag
 
 chkflag0:
 	eor #$ff
 	and chktbl,x
 	jmp chkflag6
 
-// set a flag
+; set a flag
 
 chkflag1:
 	ora chktbl,x
 	jmp chkflag6
 
-// toggle a flag
+; toggle a flag
 
 chkflag2:
 	eor chktbl,x
 	jmp chkflag6
 
-// read a flag (basic, result in a%)
+; read a flag (basic, result in a%)
 
 chkflag3:
 	ldy #0
@@ -806,14 +806,14 @@ chkflg3a:
 	jsr putvar
 	jmp chkflag8
 
-// set selected position
+; set selected position
 
 chkflag4:
 	lda $ff
 	sta bar
 	jmp chkflag7
 
-// read a flag (ml), result in accumulator
+; read a flag (ml), result in accumulator
 
 chkflag5:
 	and chktbl,x
@@ -992,7 +992,7 @@ settim5:
 	rts
 
 irq4:
-	lda 197	// current key pressed
+	lda 197	; current key pressed
 	cmp oldkey
 	beq irq4c
 	sta oldkey
@@ -1003,7 +1003,7 @@ irq4:
 	and #3
 	asl
 	sta tmpkey
-	lda 653	// C=, Ctrl, Shift hit?
+	lda 653	; C=, Ctrl, Shift hit?
 	cmp #2
 	bcs irq4d
 	and #1
@@ -1019,7 +1019,7 @@ irq4:
 irq4a:
 	jmp $ffff
 irq4b:
-// target of self-modifying code
+; target of self-modifying code
 	lda ktbl1,y
 irq4c:
 	rts
@@ -1097,16 +1097,16 @@ t1fk7:
 	beq t1fk7c
 	rts
 t1fk7a:
-	jmp t3init //acs
+	jmp t3init ;acs
 t1fk7b:
-	jmp t2init //tsr
+	jmp t2init ;tsr
 t1fk7c:
 	lda outptr6+1
 	eor #1
 	sta outptr6+1
 	rts
 
-//edit users time
+;edit users time
 ktbl2:
 	.word t2fk1,t2fk2
 	.word t2fk3,t2fk4
@@ -1162,7 +1162,7 @@ t2fk7:
 	ldx #6
 	jmp t1init
 
-//edit users access
+;edit users access
 ktbl3:
 	.word t3fk1,t3fk2
 	.word t3fk5,t3fk5
@@ -1181,7 +1181,7 @@ t3init:
 	sty t3fk7a+2
 	ldy #1
 t3ini1:
-// target of self-modifying code
+; target of self-modifying code
 	lda $ffff,y
 	and #$0f
 	ora #$b0
@@ -1212,24 +1212,24 @@ t3fk7:
 	and #$0f
 	ldy #1
 t3fk7a:
-// target of self-modifying code
+; target of self-modifying code
 	sta $ffff,y
 	ldx #2
 	jmp t1init
 
-// code relies on the order of these two
+; code relies on the order of these two
 
 minhi:
 	.byte 0
 minlo:
 	.byte 0
 
-// convert time of day into minute of the day
-// input:
-// Y - hour of the day in BCD format
-// X - minute of the hour in BCD format
-// output:
-// minhi/minlo - minute of the day? (0 to 1439)
+; convert time of day into minute of the day
+; input:
+; Y - hour of the day in BCD format
+; X - minute of the hour in BCD format
+; output:
+; minhi/minlo - minute of the day? (0 to 1439)
 
 cminute:
 	lda #0
@@ -1240,13 +1240,13 @@ cminute:
 	bne cmin1
 	lda #0
 cmin1:
-// A = hours in BCD ($00 to $11)
+; A = hours in BCD ($00 to $11)
 	cmp #$10
 	bcc cmin2
 	sec
 	sbc #($10-10)
 cmin2:
-// A = hours in binary (0 to 11)
+; A = hours in binary (0 to 11)
 	sta minlo
 	asl
 	adc minlo
@@ -1255,19 +1255,19 @@ cmin2:
 	asl
 	adc minlo
 	sta minlo
-// (minlo/minhi) = hours * 15 (0 to 165)
+; (minlo/minhi) = hours * 15 (0 to 165)
 	lda bootdate+4
 	bpl cmin_not_pm
 cmin_is_pm:
 	lda #180
 	jsr cmin_sum
 cmin_not_pm:
-// (minlo/minhi) = hours_am_pm * 15 (0 to 345)
+; (minlo/minhi) = hours_am_pm * 15 (0 to 345)
 	asl minlo
 	rol minhi
 	asl minlo
 	rol minhi
-// (minlo/minhi) = hours * 60 (0 to 1380)
+; (minlo/minhi) = hours * 60 (0 to 1380)
 	lda bootdate+5
 	and #$70
 	sta cmin_not_pm1+1
@@ -1275,13 +1275,13 @@ cmin_not_pm:
 	lsr
 	clc
 cmin_not_pm1:
-// target of self modifying code
+; target of self modifying code
 	adc #0
 	lsr
 	jsr cmin_sum
 	lda bootdate+5
 	and #$0f
-// intentional fall-through
+; intentional fall-through
 
 cmin_sum:
 	clc
@@ -1294,11 +1294,11 @@ cmin_sum_no_carry:
 
 alarm:
 
-// calculate minute of the day
+; calculate minute of the day
 
 	jsr cminute
 
-// assign to mn% variable
+; assign to mn% variable
 
 	ldx #var_mn_integer
 	jsr gvarptr
@@ -1312,14 +1312,14 @@ alarmy:
 	dey
 	bpl alarmx
 
-//
+;
 
 	lda #0
 alarm0:
 	sta alarm1+1
 alarm1:
 
-// target of self-modifying code
+; target of self-modifying code
 
 	ldx #0
 	lda alarmtb,x
@@ -1385,5 +1385,5 @@ alarm9:
 	sta flag_net_addr
 	rts
 
-	ldx bootdate+5 // minute
-	ldy bootdate+4 // hours
+	ldx bootdate+5 ; minute
+	ldy bootdate+4 ; hours

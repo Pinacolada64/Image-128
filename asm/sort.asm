@@ -1,16 +1,16 @@
-{include:"equates.s"}
+{include:"equates.asm"}
 
 * = protostart "sort.prg"
 
-ilen = $61 //1
-istr = $62 //2
-iptr = $64 //2
-jlen = $69 //1
-jstr = $6a //2
-jptr = $6c //2
-temp = $14 //2
+ilen = $61 ;1
+istr = $62 ;2
+iptr = $64 ;2
+jlen = $69 ;1
+jstr = $6a ;2
+jptr = $6c ;2
+temp = $14 ;2
 
-// sys 49152,a$(1),n
+; sys 49152,a$(1),n
 
 		jmp sort
 

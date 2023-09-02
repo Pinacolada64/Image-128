@@ -4,9 +4,9 @@
 hi = 51
 size = 128
 
-// setup gc parameters
+; setup gc parameters
 gc:
-	lda #$c7 // reverse uppercase G
+	lda #$c7 ; reverse uppercase G
 	sta tdisp+31
 	lda 3
 	pha
@@ -31,7 +31,7 @@ gc:
 gc0:
 	lda #0
 	sta gcindex
-// loop thru scalars
+; loop thru scalars
 	lda 45
 	ldx 46
 	sta 3
@@ -61,7 +61,7 @@ gc2:
 	lda #7
 	jsr add3
 	jmp gc1
-// loop thru arrays
+; loop thru arrays
 gc4:
 	lda 3
 	cmp 49

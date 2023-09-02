@@ -3,7 +3,7 @@
 
 .var editor_version = "01/22/91 06:51p"
 
-//* editor sub-system
+;* editor sub-system
 
 temp = $6f
 temp1 = $5f
@@ -12,16 +12,16 @@ delx = $52
 numx = $14
 numy = $15
 
-	jmp entry1 //no text
-	jmp entry2 //re-enter main
-	jmp entry3 //re-enter not command
+	jmp entry1 ;no text
+	jmp entry2 ;re-enter main
+	jmp entry3 ;re-enter not command
 
-//exits:
+;exits:
 
-// .x=0 - aborted
-// .x=1 - save .a=lines
-// .x=2 - command typed .a=char
-// .x=3 - help command
+; .x=0 - aborted
+; .x=1 - save .a=lines
+; .x=2 - command typed .a=char
+; .x=3 - help command
 
 done:
 	sta 780
@@ -85,11 +85,11 @@ getc2:
 	beq ret
 getc3:
 	cmp #1
-	bne getc4 //dot
+	bne getc4 ;dot
 	jmp command
 getc4:
 	cmp #3
-	bne ret //drop
+	bne ret ;drop
 drop:
 	ldx #0
 	jmp done
@@ -231,19 +231,19 @@ compoint:
 comflag:
 	.byte 0
 
-// offset 1 in comlist is %aaab
-// aaa= which parameter routine
-// b= dissallow if buffer empty
+; offset 1 in comlist is %aaab
+; aaa= which parameter routine
+; b= dissallow if buffer empty
 
 paramrtn:
-	.word getcr //000x
-	.word lastline //001x
-	.word alllines //010x
-	.word firstlin //011x
-	.word gettxm //100x
-	.word getzero //101x
-	.word nothing //110x
-	.word prcr //111x
+	.word getcr ;000x
+	.word lastline ;001x
+	.word alllines ;010x
+	.word firstlin ;011x
+	.word gettxm ;100x
+	.word getzero ;101x
+	.word nothing ;110x
+	.word prcr ;111x
 
 comlist:
 
@@ -385,7 +385,7 @@ tvers:
 	.text "Version"
 	.byte 0
 
-//get params/default to last line
+;get params/default to last line
 lastline:
 	ldx mline
 	dex
@@ -393,23 +393,23 @@ lastline:
 	tay
 	jmp getxy
 
-//get params/default to all lines
+;get params/default to all lines
 alllines:
 	ldx #1
 	ldy mline
 	dey
 	jmp getxy
 
-//get param/default to 1st line
+;get param/default to 1st line
 firstlin:
 	ldx #1
 	jmp getx
 
-//no parameters/instant command
+;no parameters/instant command
 nothing:
 	rts
 
-//get param/default to zero
+;get param/default to zero
 getzero:
 	ldx #0
 	jmp getnumx
