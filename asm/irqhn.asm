@@ -4,7 +4,7 @@
 ;* part of the routine each jiffy
 
 irq:
-	jsr irq9
+	jsr irq9	; cursor stuff
 	jsr irq10
 	inc idlejif
 	lda mupcase
@@ -29,6 +29,7 @@ irq0:
 irq0a:
 	sty irq0+1
 irqjmp:
+; target of self-modifying code
 	jmp $ffff
 irqtbl:
 	.word irq1 ;page
@@ -824,8 +825,8 @@ tmpbar:
 
 fkey:
 	ldx tmpkey
-	lda 653
-	and #4
+	lda shflag	; c64: 653
+	and #CONTROL_KEY; 4
 	bne fkey1
 	inx
 fkey1:
@@ -874,25 +875,26 @@ fkey4:
 	rts
 
 irq9:
+; cursor stuff
 	jsr $ffea
-	lda $cc
+	lda crsrmode	; c64: $cc
 	bne irq9f
-	dec $cd
+	dec blnct	; c64: $cd
 	bne irq9f
 	lda #$14
-	sta $cd
-	ldy $d3
-	lsr $cf
-	ldx $0287
-	lda ($d1),y
+	sta blnct	; c64: $cd
+	ldy pntr	; c64: $d3
+	lsr blnon	; c64: $cf
+	ldx gdcol	; c64: $0287
+	lda (pnt),y	; c64: ($d1),y
 	bcs irq9e
-	inc $cf
-	sta $ce
+	inc blnon	; c64: $cf
+	sta undchr	; c64: $ce
 	jsr $ea24
-	lda ($f3),y
-	sta $287
-	ldx $0286
-	lda $ce
+	lda (colptr),y	; c64: ($f3),y
+	sta gdcol	; c64: $287
+	ldx color	; c64: $0286
+	lda undchr	; c64: $ce
 irq9e:
 	eor #$80
 	jsr $ea1c
@@ -992,7 +994,7 @@ settim5:
 	rts
 
 irq4:
-	lda 197	; current key pressed
+	lda lstx	; c64: 197. last key pressed
 	cmp oldkey
 	beq irq4c
 	sta oldkey
@@ -1003,8 +1005,8 @@ irq4:
 	and #3
 	asl
 	sta tmpkey
-	lda 653	; C=, Ctrl, Shift hit?
-	cmp #2
+	lda shflag		; c64: 653 C=, Ctrl, Shift hit?
+	cmp #COMMODORE_KEY	; 2
 	bcs irq4d
 	and #1
 	sta shfkey
