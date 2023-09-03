@@ -45,7 +45,7 @@
 ; color chr$() codes:
 	chr_black	= $90
 	chr_white	= $05
-	chr_red	= $1c
+	chr_red		= $1c
 	chr_cyan	= $9f
 	chr_purple	= $9c
 	chr_green	= $1e
@@ -65,7 +65,7 @@
 ; [?]  : not certain of purpose of routine
 ; ($xx): Indirect addressing: $xx *256+ ($xx+1)
 
-;	; 128	; c64
+;		; 128	; c64
 	d6510	= $00	; 128: 8502 I/O port data direction register
 	r6510	= $01	; 128: 8502 I/O port data register
 	bank	= $02	; 128: token 'search' looks for, or bank #
@@ -77,15 +77,15 @@
 	tansgn	= $12
 ;	curlin	= $16	; c64: $14-$15. integer line number value
 	poker	= $16	; c128: temp integer value (used by adrfor)
-	linnum	= $16	; c128: temp integer value (used by adrfor)
-		; TODO: rename ($3b) "linnum" to "curlin" in source modules to
+	linnum	= $16	; c64: $14-$15. c128: $16-$17. temp integer value (used by adrfor)
+		; TODO: rename "linnum" ($16-$17) to "curlin" ($3b-$3c) in source modules to
 		; avoid using wrong label @ $16
 ; relocated 2 bytes up from c64 zero-page:
 	temppt	= $18	; c64: $16. Pointer to the Next Available Space in the Temporary String Stack
 	lastpnt	= $19	; c64: ($17). Pointer to the Address of the Last String in the Temporary String Stack
 	tempst	= $1b	; c64: $19-$21. c128: $1b-$23. Descriptor Stack for Temporary Strings
-	index_24= $24	; c128: $24-$27. Miscellaneous Temporary Pointers and Save Area
-		; official name is "index", renamed to not conflict with BBS flag @ $d00f
+	index_24= $24	; c64: $22-$25. c128: $24-$27. Miscellaneous Temporary Pointers and Save Area
+			; official name is "index", renamed to not conflict with BBS flag @ $d00f
 	resho	= $28	; c64: $26-$2a. c128: $28-$2c. Floating point product of multiply
 	txttab	= $2d	; c64: ($2b). pointer to start of BASIC text in bank 0
 	vartab	= $2f	; c64: ($2d). pointer to start of BASIC variables in bank 1
@@ -94,15 +94,12 @@
 	fretop	= $35	; c64: ($33). pointer to bottom of dynamic string storage in bank 1
 	frespc	= $37	; c64: ($35). pointer to most recently used string in bank 1
 	memsiz	= $39	; c64: ($37). pointer to top of dynamic string storage in bank 1
-;	linnum	= $3b	; c64: ($14). Current BASIC Line Number
-		; TODO: rename ($3b) "linnum" to "curlin" in source modules to
-		; avoid using wrong label @ $17
-;	curlin	= $3b	; c128 label
-	oldtxt	= $1202	; c64: $3d-$3e. Pointer to the start of current line
-	txtptr	= $3d	; c128 label. Pointer to address of current BASIC statement
+	curlin	= $3b	; c64: ($39). Current BASIC Line Number
+	oldtxt	= $1202	; c64: ($3d). Pointer to the start of current line
+	txtptr	= $3d	; c64: ($7a). Pointer to address of current BASIC statement
 	form	= $3f	; c128: used by "print using"
-	datlin	= $41	; current "data" line #
-	datptr	= $43	; current "data" item address
+	datlin	= $41	; c64: ($3f). current "data" line #
+	datptr	= $43	; c64: ($41). current "data" item address
 	inpptr	= $45	; vector: input routine
 	varnam	= $47	; c64: $45/$46. c128: $47/$48. bytes of current BASIC variable name
 	varpnt	= $49	; c64: ($47): pointer: current BASIC variable descriptor
@@ -116,11 +113,11 @@
 	numwork	= $57	; $57-$5c: 6 bytes. FIXME: move elsewhere? or share with $63-$68?
 
 	var	= $0063	; c64: $61-$66. c128: $63-$67. FAC1, Floating Point Accumulator #1
+	varbuf	= var	; used by varbl.asm
 	fac2	= $6a	; c64: $69-$6e? c128: $6a-$6e. FAC2
 	arisgn	= $71	; c64: $6f. arithmetic sign
 	fbufpt	= $74	; c64: $71-$72. series evaluation pointer
 	chrinc	= $76	; c128: flag if 10K hires screen allocated
-
 	status	= $90	; same: Kernal I/O Status Word
 	xsav	= $97	; same: Temporary .X Register Save Area
 ;
@@ -149,14 +146,12 @@
 	lstx	= $c5	; c128: tape read/write data
 	ribuf	= $c8	; c64: ($f7). vector to rs232 input buffer address
 	robuf	= $ca	; c64: ($f9). vector to rs232 output buffer address
-	ndx	= $d0	; c64: 198 / $c6. number of characters in keyboard buffer
 
 	sfdx	= $cb	; c64: $cb. flag: print shifted characters
-;	= 	; c128: 866-875/$0362-$036B. c64: 601-610/$0259-$0262.
-;		; Table of active logical file numbers
+;	= 		; c128: 866-875/$0362-$036B. c64: 601-610/$0259-$0262.
+;			; Table of active logical file numbers
 	crsw	= $d6	; c64: $d0. Flag: Input from Keyboard or Screen
 	pnt	= $e0	; c64: ($d1). Pointer to the address of the current screen line
-;	pntr	= $ec	; c64: $d3. cursor column on current line
 	qtsw	= $f4	; c64: $d4. quote mode flag
 	lnmx	= $ee	; c64: $d5. Maximum length of physical screen line
 	tblx	= $eb	; c64: $d6. Current cursor physical line number
@@ -170,9 +165,10 @@
 	free_fe	= $fe
 
 ;
-; screen parameters
+; cursor stuff
 ;
-	rvs	= $f3	; c64: $c7. Flag: Print Reverse Characters? 0=No
+	pntr	= $ec	; c64: $d3. cursor column on current line
+	curptr	= $e0	; c64: $d1-$d2. Pointer to address of current screen line
 	blnon	= $0a26	; c64: $cf. Flag: Was last cursor blink on or off?
 ; FIXME: one label or the other please :)
 	crsrmode= $0a27	; c64: $cc. Flag: Cursor enable. 0=enabled, <>0=disabled.
@@ -180,30 +176,45 @@
 
 	blnct	= $0a28	; c64: $cd. Cursor blink countdown.
 	undchr	= $0a29	; c64: $ce. Character under cursor.
-	curptr	= $e0	; c64: $d1-$d2. Pointer to address of current screen line
+	gdcol	= $0a2a	; c64: $0287. Color of character under cursor
+;
+; screen parameters
+;
 	scnpos	= $ec	; c64: $d3. current screen column (0-39)
 	scnclm	= scnpos; screen column
 	sline	= $eb	; c64: $d6. current screen row (0-24)
 	colptr	= $e2	; c64: ($f3). Pointer to the address of the current screen color RAM location
+	rvs	= $f3	; c64: $c7. Flag: Print Reverse Characters? 0=No
+	color	= $f1	; c64: $0286/646. Current foreground text color
+	undcol	= 647	; $0287
 
 ; immediate mode input buffer	(c64: $0200-$0258,  88/$58 bytes,
 ;		c128: $0200-$02a0, 160/$a0 bytes)
 
+;
+; keyboard stuff:
+;
+	lstx	= $d5	; c64: 197 / $c5. last key pressed
+	ndx	= $d0	; c64: 198 / $c6. number of characters in keyboard buffer
+	shflag	= $d3	; c64: $028d/653. Shift, C=, Ctrl, Alt keys: 1=pressed
+	SHIFT_KEY	= %00000001
+	COMMODORE_KEY	= %00000010
+	CONTROL_KEY	= %00000100
+	ALT_KEY		= %00001000
+
 	keyd	= $034a	; c64: $0277. keyboard buffer (both 10 bytes)
-	gdcol	= $0a2a	; c64: $0287. Color of character under cursor
+
 ;
 ; system vectors
 ;
 	IERROR	= $0300	; [$4d3f] Indirect vector into BASIC error handling routine
 	IMAIN	= $0302	; [$4db7] Indirect vector into BASIC main loop
+	IGONE	= $0308	; [$a7e4] Indirect vector into executing next BASIC token
+	IEVAL	= $030a	; [$ae86] Indirect vector into evaluating single-term arithmetic
+			;		expression
+	USRADD	= $0311	; Vector to USR function address
 	ICHROUT	= $0326	; Indirect vector into BASIC CHROUT
 
-	shflag	= $d3	; c64: $028d. Shift, Ctrl, C=, Alt keys
-
-; original docs had this labeled "mcolor," same as $07ec (MCI color).
-; I'm favoring "color," "Mapping the C64"'s label:
-	color	= 646	; $0286: Current Foreground Color for Text
-	undcol	= 647	; $0287
 
 	sat	= $0376	; c64: $026d. secondary address table
 	chrget	= $0380	; c64: $0073
@@ -231,10 +242,10 @@
 	cphase	= $0ad9	; 2777
 	key	= $0ada	; 2778
 	shft	= $0adb	; 2779: 5 bytes
-	; $0adc ; 2780
-	; $0add ; 2781
-	; $0ade ; 2782
-	; $0adf ; 2783
+		; $0adc ; 2780
+		; $0add ; 2781
+		; $0ade ; 2782
+		; $0adf ; 2783
 	ptrlnfd	= $0ae0	; 2784: [1.2: 17136] printer linefeed: +/IM.misc
 	ha577	= $0ae1	; 2785
 	mask	= $0ae2	; 2786: [1.2: 17138] password mask character
@@ -554,13 +565,14 @@
 	chkcom	= $795c	; c64: $aefd. check if next character is comma, return "?syntax  error" if not
 	synerr	= $4c83	; c64: $af08. emit "?syntax  error" [verified]
 
+	ptrget	= $b08b ; c64: $b08b. Search for a Variable and Set It Up If It Is Not Found
 	ptrget1	= $b0e7	; set up descriptor stored in ($45) [varname],
 		; returns address in (varpnt)
 	ilqerr	= $7d28	; c64: $b248. issue "?illegal quantity  error"
-	retbyt	= $b3a2
+	retbyt	= $b3a2	; c64: 4 bytes after POS
 	makerm1	= $b475	; c64: midway through str$()
 	frestr	= $b6a3	; c64: $b6a3: discard a temporary string
-	getbytc	= $b79b
+	getbytc	= $b79b	; c64: convert ascii program text digits 0-255 to value in .x
 	getnum	= $87f4	; c64: $b7eb. get 8-bit value (0-255)
 	retval	= $bc49
 
@@ -618,6 +630,8 @@
 	syscll	= $e130
 	getfile	= $e1d4 ; 57812 (print last filename in BASIC)
 ;	prtscn	= $e716	; c64: output char in .a to screen regardless of output device
+
+	exitint	= $ff37	; c64: $ea81. exit interrupt; pull registers off stack, RTI
 
 	setmsg	= $ff90
 	readst	= $ffb7
