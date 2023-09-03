@@ -145,7 +145,7 @@ swapper0:
 	sty swappg2	; destination page
 	stx swapsiz	; how many pages to swap
 swapagn0:
-	lda #$d3 ; reverse capital "S"
+	lda #$d3	; reverse capital "S"
 	sta tdisp+31
 	jsr rsdisab
 	sei
@@ -219,7 +219,7 @@ findvar1:
 	lda #r6510_normal
 	sta r6510
 	jsr ptrget1
-	jmp exitint
+	jmp @>exitint
 
 ; relink basic program lines
 
@@ -229,21 +229,22 @@ relink:
 	lda #r6510_normal
 	sta r6510
 	jsr linkprg
-	jmp exitint
+	jmp @>exitint
 
 fpout:
-; output floating point value in .a
+; FIXME: output floating point value in .a
 ;	lda r6510
 ;	pha
 ;	lda #r6510_normal
 ;	sta r6510
 	tax
 	lda #$00
+;	jsr bank_in_vars
 	jsr jfout	; c128: $8e32. print 16-bit digit, > .a, < .x
 ;	jsr $bddd	;  c64: $bddd. convert contents of fac1 to string, pointed to by > .a < .y
-;	jsr bank0
-;	jmp exitint
-	rts
+;	jsr bank_in_prg
+	jmp @>exitint
+
 
 ; make a dynamic string
 
@@ -255,21 +256,22 @@ makeroom:
 	sta r6510
 	txa
 	jsr makerm1
-exitint:
+@exitint:
+; local label; the global label is $ff37
 	pla
 	sta r6510
 	rts
 
 mlgosub:
-	lda $7b
+	lda txtptr+1	; c64: $7b
 	pha
-	lda $7a
+	lda txtptr	; c64: $7a
 	pha
-	lda $3a
+	lda curlin+1	; c64: $3a
 	pha
-	lda $39
+	lda curlin	; c64: $39
 	pha
-	lda #$8d	; 'return' token
+	lda #$8d	; 'gosub' token
 	pha
 mlresume:
 	lda #r6510_normal
@@ -285,7 +287,7 @@ mlgoto:
 	sta r6510
 	stx linnum	; c64: $14
 	sty linnum+1	; c64: $15
-	jsr $a8a3	; c64: $a8a3, 3 bytes past GOTO
+	jsr goto	; c64: $a8a3, 3 bytes past GOTO
 	pla
 	sta r6510
 	rts
@@ -375,16 +377,16 @@ fnvar0:
 	lda #r6510_normal
 	sta r6510
 	jsr chkcom
-	jsr $b08b
-	ldx $47
-	ldy $48
+	jsr $b08b	; c64: ptrget
+	ldx varpnt	; c64: $47
+	ldy varpnt+1	; c64: $48
 	pla
 	sta r6510
 	rts
 fnvar2:
 	jsr fnvar
-	stx $14
-	sty $15
+	stx curlin	; c64: $14
+	sty curlin+1	; c64: $15
 	rts
 
 evalstr0:
@@ -394,13 +396,13 @@ evalstr0:
 	sta r6510
 	jsr chkcom
 	jsr frmeval	; c64: $ad9e
-	jsr $b6a3
+	jsr frestr	; c64: $b6a3
 	pha
 	lda rom0
 	sta r6510
 	pla
-	ldx $22
-	ldy $23
+	ldx index_24	; c64: $22
+	ldy index_24+1	; c64: $23
 	rts
 
 evalbyt0:
@@ -409,8 +411,8 @@ evalbyt0:
 	lda #r6510_normal
 	sta r6510
 	jsr chkcom
-	jsr $0079
-	jsr $b79e
+	jsr chrgot	; c64: $0079
+	jsr $b79e	; c64: $b79e. FIXME: 3 bytes past getbytc
 	lda rom0
 	sta r6510
 	rts
@@ -423,8 +425,8 @@ evalint0:
 	jsr chkcom
 	jsr frmnum
 	jsr getadr
-	ldx $14
-	ldy $15
+	ldx linnum	; c64: $14
+	ldy linnum+1	; c64: $15
 	lda rom0
 	sta r6510
 	rts
@@ -588,7 +590,7 @@ rast0:
 	lda #1
 	sta $d019
 	inc raster+1
-	jmp $febc
+	jmp $ff37	; c64: $febc. pull registers from stack, RTI
 
 rast1:
 	nop
@@ -621,7 +623,7 @@ newirq0:
 newirq1:
 	pla
 	sta r6510
-	jmp $ea81
+	jmp @>exitint	; c64: $ea81
 
 ; far call to the error handler
 
