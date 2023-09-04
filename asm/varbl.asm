@@ -86,10 +86,14 @@ findarr:
 	sta varpnt+1	; c64: $48
 	rts
 
-;* get variable pointer of basic variable .x in vars table
-; returns:
+;* get variable pointer of basic variable
+; enter:
+;	.x: index of variable in vars table
+; exit:
 ;	.x: > variable pointer
 ;	.y: < variable pointer
+; called from:
+;	irqhn.asm
 gvarptr:
 	txa
 	asl

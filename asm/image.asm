@@ -96,7 +96,7 @@ start:
 	lda #$17
 	sta $d018
 	lda #clear_screen
-	jsr $e716
+	jsr prtscn	; c64: $e716
 	lda #27
 	sta $d011
 	jmp $a8f8

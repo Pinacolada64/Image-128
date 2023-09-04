@@ -71,7 +71,7 @@ intro_loop1:
 	lda #$17
 	sta $d018
 	lda #clear_screen
-	jsr chrout	; $e716
+	jsr prtscn	; c64: $e716
 	lda #27
 	sta $d011
 ;fake lightbar table

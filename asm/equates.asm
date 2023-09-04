@@ -629,7 +629,7 @@
 
 	syscll	= $e130
 	getfile	= $e1d4 ; 57812 (print last filename in BASIC)
-;	prtscn	= $e716	; c64: output char in .a to screen regardless of output device
+	prtscn	= $c72d	; c64: $e716. output char in .a to screen regardless of output device
 
 	exitint	= $ff37	; c64: $ea81. exit interrupt; pull registers off stack, RTI
 
