@@ -43,31 +43,31 @@ tload:
 openroom:
 	ldy #0
 openroo1:
-	cpy $b7
+	cpy fnlen	; $b7
 	beq openroo2
-	lda ($bb),y
+	lda (fnadr),y	; ($bb),y
 	sta fbuf,y
 	iny
 	cpy #20
 	bcc openroo1
 openroo2:
 	sty filename_len
-	lda $ba
+	lda fa		; $ba
 	sta fdev
-	lda $b9
+	lda sa		; $b9
 	and #31
 	sta loadflag
 	jsr collect
-	ldx $31
-	ldy $32
+	ldx strend	; $31
+	ldy strend+1	; c64: $32
 	stx $ac
 	sty $ad
-	ldx $33
-	ldy $34
-	stx $ae
+	ldx fretop	; c64: $33
+	ldy fretop+1	; c64: $34
+	stx eal		; c64: $ae
 	sty $af
-	stx $31
-	sty $32
+	stx strend	; c64: $31
+	sty strend+1	; c64: $32
 	ldx #$2f
 	jsr oprm
 	ldx #$2d
@@ -106,7 +106,7 @@ loadfile:
 	lda filename_len
 	jsr setnam
 	lda #0
-	ldx $ae
+	ldx eal	; c64: $ae
 	ldy $af
 	jsr loadf
 	bcc loadfil1
@@ -118,14 +118,14 @@ loadfil1:
 	jsr linkprg
 
 	lda l1x+1
-	cmp 57
+	cmp curlin	; c64: $39/57
 	lda l2x+1
-	sbc 58
+	sbc curlin+1	; c64: $3a/58
 	bcs chopfile
 	lda #<(prgstart-1)
-	sta $7a
+	sta txtptr	; c64: $7a
 	lda #>(prgstart-1)
-	sta $7b
+	sta txtptr+1	; c64: $7b
 
 chopfile:
 	ldx #<65535
@@ -136,13 +136,13 @@ chopfil1:
 	jsr scan0
 	ldy #0
 	tya
-	sta ($ae),y
+	sta (eal),y	; ($ae),y
 	iny
-	sta ($ae),y
+	sta (eal),y	; ($ae),y
 	clc
 	lda #2
-	adc $ae
-	sta $ae
+	adc eal	; c64: $ae
+	sta eal	; c64: $ae
 	lda #0
 	adc $af
 	sta $af
@@ -152,7 +152,7 @@ closroom:
 	ldy $2e
 	stx $ac
 	sty $ad
-	ldx $ae
+	ldx eal	; c64: $ae
 	ldy $af
 	stx $2d
 	sty $2e
@@ -169,7 +169,7 @@ clrm:
 	sta $b1
 clrm1:
 	lda ($ac),y
-	sta ($ae),y
+	sta (eal),y	; c64: ($ae),y
 	lda $ac
 	cmp 0,x
 	bne clrm0
@@ -181,13 +181,13 @@ clrm0:
 	bne clrm2
 	inc $ad
 clrm2:
-	inc $ae
+	inc eal	; c64: $ae
 	bne clrm3
 	inc $af
 clrm3:
 	jmp clrm1
 clrm4:
-	lda $ae
+	lda eal	; c64: $ae
 	sta 0,x
 	lda $af
 	sta 1,x
@@ -200,27 +200,27 @@ scan0:
 	stx $ac
 	sty $ad
 scan1:
-	stx $ae
+	stx eal	; $ae
 	sty $af
 	ldy #2
-	lda ($ae),y
+	lda (eal),y	; ($ae),y
 l1x:
 	cmp #0
 	iny
-	lda ($ae),y
+	lda (eal),y	; ($ae),y
 l2x:
 	sbc #0
 	bcs scan3
 scan2:
-	lda $ae
-	ldx $af
-	sta $ac
-	stx $ad
+	lda eal		; $ae
+	ldx eal+1	; $af
+	sta sal		; $ac
+	stx sal+1	; $ad
 	ldy #0
-	lda ($ae),y
+	lda (eal),y	; ($ae),y
 	tax
 	iny
-	lda ($ae),y
+	lda (eal),y	; ($ae),y
 	tay
 	bne scan1
 scan3:
@@ -234,30 +234,30 @@ oprm:
 	lda 1,x
 	sta $b1
 oprm1:
-	lda $ac
+	lda sal		; $ac
 	cmp 0,x
 	bne oprm0
-	lda $ad
+	lda sal+1	; $ad
 	cmp 1,x
 	beq oprm4
 oprm0:
-	lda $ac
+	lda sal		; $ac
 	bne oprm2
-	dec $ad
+	dec sal+1	; $ad
 oprm2:
-	dec $ac
-	lda $ae
+	dec sal		; $ac
+	lda eal		; $ae
 	bne oprm3
-	dec $af
+	dec eal+1	; $af
 oprm3:
-	dec $ae
-	lda ($ac),y
-	sta ($ae),y
+	dec eal		; $ae
+	lda (sal),y	; ($ac),y
+	sta (eal),y	; ($ae),y
 	jmp oprm1
 oprm4:
-	lda $ae
+	lda eal		; $ae
 	sta 0,x
-	lda $af
+	lda eal+1	; $af
 	sta 1,x
 	cli
 	rts
@@ -453,15 +453,15 @@ getparm1:
 	rts
 
 wtrap:
-	stx $030c
-	lda $39
-	sta $030d
-	lda $3a
-	sta $030e
+	stx sareg	; c64: $030c
+	lda curlin	; c64: $39
+	sta sxreg	; c64: $030d
+	lda curlin+1	; c64: $3a
+	sta syreg	; c64: $030e
 	lda #<$e38b
-	sta $300
+	sta IERROR	; $300
 	lda #>$e38b
-	sta $301
+	sta IERROR+1	; $301
 	ldx #$fa
 	txs
 	lda #25
@@ -481,20 +481,20 @@ install0:
 	lda #<wtrap0
 	ldx #>wtrap0
 install1:
-	sta $300
-	stx $301
+	sta IERROR	; $300
+	stx IERROR+1	; $301
 	lda #<wgone0
 	ldx #>wgone0
-	sta $308
-	stx $309
+	sta IGONE	; $308
+	stx IGONE+1	; $309
 	lda #<weval0
 	ldx #>weval0
-	sta $30a
-	stx $30b
+	sta IEVAL	; $30a
+	stx IEVAL+1	; $30b
 	lda #<wfunc0
 	ldx #>wfunc0
-	sta $311
-	stx $312
+	sta USRADD	; $311
+	stx USRADD+1	; $312
 	rts
 
 arrayoff:
@@ -511,11 +511,11 @@ arraysv0:
 	jsr arrayoff
 arsv1:
 	sec
-	lda $2f,y
-	sbc $2d
+	lda arytab,y	; c64: $2f
+	sbc vartab	; c64: $2d
 	sta arryptrs+0,x
-	lda $30,y
-	sbc $2e
+	lda arytab+1,y	; c64: $30
+	sbc vartab+1	; c64: $2e
 	sta arryptrs+1,x
 	inx
 	inx
@@ -526,46 +526,46 @@ arsv1:
 
 ;* restore pointers for arrays *
 arrayrs0:
-	lda $2f
-	sta $ac
-	lda $30
-	sta $ad
+	lda arytab	; c64: $2f
+	sta sal		; c64: $ac
+	lda arytab+1	; c64: $30
+	sta sal+1	; c64: $ad
 	jsr arrayoff
 arrs1:
 	clc
 	lda arryptrs+0,x
-	adc $2d
-	sta $2f,y
+	adc vartab	; c64: $2d
+	sta arytab,y	; c64: $2f
 	lda arryptrs+1,x
-	adc $2e
-	sta $30,y
+	adc vartab+1	; c64: $2e
+	sta arytab+1,y	; c64: $30
 	inx
 	inx
 	dey
 	dey
 	bpl arrs1
-	lda $2f
-	sta $ae
-	lda $30
-	sta $af
+	lda arytab	; c64: $2f
+	sta eal		; c64: $ae
+	lda arytab+1	; c64: $30
+	sta eal+1	; c64: $af
 	ldy #0
 	beq arrs2
 arrs3:
-	inc $ac
+	inc sal		; c64: $ac
 	bne arrs3a
-	inc $ad
+	inc sal+1	; c64: $ad
 arrs3a:
-	inc $ae
+	inc eal		; c64: $ae
 	bne arrs2
-	inc $af
+	inc eal+1	; c64: $af
 arrs2:
-	lda ($ac),y
-	sta ($ae),y
-	lda $ae
-	cmp $31
+	lda (sal),y	; c64: ($ac),y
+	sta (eal),y	; c64: ($ae),y
+	lda eal		; c64: $ae
+	cmp strend	; c64: $31
 	bne arrs3
-	lda $af
-	cmp $32
+	lda eal+1	; c64: $af
+	cmp strend+1	; c64: $32
 	bne arrs3
 	rts
 
@@ -576,6 +576,3 @@ collect:
 	jsr swapper
 	jsr gc
 	jmp swapagn
-
-}
-}
