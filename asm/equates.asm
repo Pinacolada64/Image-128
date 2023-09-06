@@ -69,6 +69,10 @@
 	d6510	= $00	; 128: 8502 I/O port data direction register
 	r6510	= $01	; 128: 8502 I/O port data register
 	bank	= $02	; 128: token 'search' looks for, or bank #
+	ssreg	= $05	; c64: 783/$030f. save .s register
+	sareg	= $06	; c64: 780/$030c. save .a register
+	sxreg	= $07	; c64: 781/$030d. save .x register
+	syreg	= $08	; c64: 782/$030e. save .y register
 	charac	= $09	; search character
 	endchr	= $0a	; flag: scan for quote at end of string
 	dimflg	= $0e	; c64: $0c. default array dimension
@@ -118,12 +122,13 @@
 	arisgn	= $71	; c64: $6f. arithmetic sign
 	fbufpt	= $74	; c64: $71-$72. series evaluation pointer
 	chrinc	= $76	; c128: flag if 10K hires screen allocated
+;
+; $90-$c4 seem to be the same between c64/c128
+;
 	status	= $90	; same: Kernal I/O Status Word
 	xsav	= $97	; same: Temporary .X Register Save Area
 ;
 ; rs232
-;
-; $90-$c4 seem to be the same between c64/c128
 ;
 	dfltn	= $99	; same. Default Input Device (Set to 0 for Keyboard)
 	dflto	= $9a	; same. default output device
@@ -148,7 +153,7 @@
 	robuf	= $ca	; c64: ($f9). vector to rs232 output buffer address
 
 	sfdx	= $cb	; c64: $cb. flag: print shifted characters
-;	= 		; c128: 866-875/$0362-$036B. c64: 601-610/$0259-$0262.
+;		=	; c128: 866-875/$0362-$036B. c64: 601-610/$0259-$0262.
 ;			; Table of active logical file numbers
 	crsw	= $d6	; c64: $d0. Flag: Input from Keyboard or Screen
 	pnt	= $e0	; c64: ($d1). Pointer to the address of the current screen line
@@ -188,9 +193,6 @@
 	color	= $f1	; c64: $0286/646. Current foreground text color
 	undcol	= 647	; $0287
 
-; immediate mode input buffer	(c64: $0200-$0258,  88/$58 bytes,
-;		c128: $0200-$02a0, 160/$a0 bytes)
-
 ;
 ; keyboard stuff:
 ;
@@ -202,7 +204,11 @@
 	CONTROL_KEY	= %00000100
 	ALT_KEY		= %00001000
 
+			; immediate mode input buffer
+			; (c64: $0200-$0258,  88/$58 bytes,
+	buf	= $0200	; c128: $0200-$02a0, 160/$a0 bytes)
 	keyd	= $034a	; c64: $0277. keyboard buffer (both 10 bytes)
+	fkeybuf	= $100a ; c64: 679. c128: $100a-$10ff (4106-4351), $f5 (245) bytes
 
 ;
 ; system vectors
@@ -212,6 +218,7 @@
 	IGONE	= $0308	; [$a7e4] Indirect vector into executing next BASIC token
 	IEVAL	= $030a	; [$ae86] Indirect vector into evaluating single-term arithmetic
 			;		expression
+		= $030c
 	USRADD	= $0311	; Vector to USR function address
 	ICHROUT	= $0326	; Indirect vector into BASIC CHROUT
 
@@ -264,7 +271,6 @@
 
 ; $0aff: end of unused block
 
-	fkeybuf	= $100a ; c64: 679. c128: $100a-$10ff (4106-4351), $f5 (245) bytes
 	adray1	= $117a	; c64: $03. Vector: Routine to Convert a Number from Floating Point to Signed Integer
 	adray2	= $117c	; c64: $05. Vector: Routine to Convert a Number from Integer to Floating Point
 
@@ -311,9 +317,6 @@
 	tcolr	= $d800 + (40*24) ; 960
 
 	ntscpal = $0a03	; c64: $02a6, c128: 255=pal, 1=ntsc
-
-;	ribuf	= $0b00	; rs232 input buffer
-;	robuf	= $0b80	; rs232 output buffer
 
 ;
 ; temporary storage for 8 rows of screen mask
@@ -565,8 +568,10 @@
 	chkcom	= $795c	; c64: $aefd. check if next character is comma, return "?syntax  error" if not
 	synerr	= $4c83	; c64: $af08. emit "?syntax  error" [verified]
 
-	ptrget	= $b08b ; c64: $b08b. Search for a Variable and Set It Up If It Is Not Found
-	ptrget1	= $b0e7	; set up descriptor stored in ($45) [varname],
+	ptrget	= $b08b ; FIXME c64: $b08b. read variable name from BASIC text.
+			; Search for a Variable and Set It Up If It Is Not Found
+			; Returns: variable name in varpnt/varpnt+1,
+	ptrget1	= $b0e7	; FIXME c64: $b0e7. set up descriptor stored in ($45) [varname],
 		; returns address in (varpnt)
 	ilqerr	= $7d28	; c64: $b248. issue "?illegal quantity  error"
 	retbyt	= $b3a2	; c64: 4 bytes after POS
@@ -627,7 +632,7 @@
 
 ; Kernal routines:
 
-	syscll	= $e130
+	syscll	= $5885	; c64: $e130. handle sys statement
 	getfile	= $e1d4 ; 57812 (print last filename in BASIC)
 	prtscn	= $c72d	; c64: $e716. output char in .a to screen regardless of output device
 
@@ -639,7 +644,7 @@
 	setnam	= $ffbd
 	openf	= $ffc0
 	closef	= $ffc3
-	chkin	= $ffc6
+	chkin	= $ffc6	; same. .x: lfn#; set current input file
 	chkout	= $ffc9
 	clrchn	= $ffcc
 	chrin	= $ffcf
