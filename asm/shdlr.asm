@@ -163,7 +163,7 @@ scroll:
 	pha
 	lda $ad
 	pha
-	lda $ae
+	lda eal	; c64: $ae
 	pha
 	lda $af
 	pha
@@ -178,13 +178,13 @@ scroll0:
 	sty $ac
 	sta $ad
 	jsr calccol
-	sty $ae
+	sty eal	; c64: $ae
 	sta $af
 	ldy #39
 scroll1:
 	lda ($ac),y
 	sta ($d1),y
-	lda ($ae),y
+	lda (eal),y	; ($ae),y
 	sta ($f3),y
 	dey
 	bpl scroll1
@@ -192,7 +192,7 @@ scroll1:
 	lda $ad
 	sty $d1
 	sta $d2
-	ldy $ae
+	ldy eal	; c64: $ae
 	lda $af
 	sty $f3
 	sta $f4
@@ -202,7 +202,7 @@ scroll2:
 	pla
 	sta $af
 	pla
-	sta $ae
+	sta eal	; c64: $ae
 	pla
 	sta $ad
 	pla
@@ -505,7 +505,7 @@ swapscn:
 	pha
 	lda $ad
 	pha
-	lda $ae
+	lda eal	; c64: $ae
 	pha
 	lda $af
 	pha
@@ -521,7 +521,7 @@ swapscn1:
 	sty $ac
 	sta $ad
 	jsr calccol0
-	sty $ae
+	sty eal	; c64: $ae
 	sta $af
 	ldy #39
 swapscn2:
@@ -533,10 +533,10 @@ swapscn2:
 	sta ($ac),y
 	lda ($f3),y
 	pha
-	lda ($ae),y
+	lda (eal),y	; ($ae),y
 	sta ($f3),y
 	pla
-	sta ($ae),y
+	sta (eal),y	; ($ae),y
 	dey
 	bpl swapscn2
 swapscn3:
@@ -548,7 +548,7 @@ swapscn3:
 	pla
 	sta $af
 	pla
-	sta $ae
+	sta eal	; c64: $ae
 	pla
 	sta $ad
 	pla

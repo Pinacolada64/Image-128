@@ -137,6 +137,7 @@
 ;	jiffy	= $a2	; FIXME: collision at 2593
 	sal	= $ac	; pointer: tape buffer / screen scrolling
 	eal	= $ae	; tape end addresses / end of program
+	cmp0	= $b0	; $b0/$b1. tape timing constants, temp usage
 	nxtbit	= $b5	; RS-232 transmit: next bit to be sent
 	rodata	= $b6	; RS-232 Output Byte Buffer
 	fnlen	= $b7	; same. filename length
@@ -218,7 +219,7 @@
 	IGONE	= $0308	; [$a7e4] Indirect vector into executing next BASIC token
 	IEVAL	= $030a	; [$ae86] Indirect vector into evaluating single-term arithmetic
 			;		expression
-		= $030c
+
 	USRADD	= $0311	; Vector to USR function address
 	ICHROUT	= $0326	; Indirect vector into BASIC CHROUT
 
@@ -526,7 +527,7 @@
 ; transfer protocol area (c64: 2680 bytes)
 
 	protosta= $1c00	; c64: $c000	; FIXME: maybe
-	protoend= $2000 ; c64: $ca80	; FIXME: maybe
+	protoend= $199f ; c64: $ca80	; FIXME: maybe
 
 ; 9216 - 1280 = 7,936 free
 
@@ -555,11 +556,11 @@
 	linkprg	= $af87 ; c64: $a533
 	gone1	= $a7e7 ; for extra keywords
 	gone2	= $a7ea
-	gosub	= $59cf	; c128: handle the 'gosub' statement
-	goto	= $59db	; c128: handle the 'goto' statement
+	gosub	= $59cf	; c64: $a883. handle the 'gosub' statement
+	goto	= $59db	; c64: $a8a0. handle the 'goto' statement
 	run	= $5a9b ; c64: $a871. handle the 'run' statement
 	linget	= $50a0	; c64: $a96b. Creates integer value from a character string
-	frnum	= $77d7	; c64: $ad8a. get arbitrary numeric expression. returns in fac1.
+	frmnum	= $77d7	; c64: $ad8a. get arbitrary numeric expression. returns in fac1.
 	getadr	= $880f	; c64: $b7f7. call chkcom, frnum, adrfor.
 	adrfor	= $8815 ; c128 only? get 16-bit number in fac1, return < .y & $16, > .a & $17
 	frmevl	= $af96	; c64: $ad9e. evaluate string/math expressions
@@ -572,12 +573,13 @@
 			; Search for a Variable and Set It Up If It Is Not Found
 			; Returns: variable name in varpnt/varpnt+1,
 	ptrget1	= $b0e7	; FIXME c64: $b0e7. set up descriptor stored in ($45) [varname],
-		; returns address in (varpnt)
+			; returns address in (varpnt)
 	ilqerr	= $7d28	; c64: $b248. issue "?illegal quantity  error"
-	retbyt	= $b3a2	; c64: 4 bytes after POS
+	retbyt	= $b3a2	; c64: sta #$00, tax, stx valtyp [$0f] (numeric), sta var+1 [$64, fac1+1],
+			; sty var+2 [$65, fac1+2], ldx #$90, lda $62 (sign?), eor #$ff (invert?), ...?
 	makerm1	= $b475	; c64: midway through str$()
 	frestr	= $b6a3	; c64: $b6a3: discard a temporary string
-	getbytc	= $b79b	; c64: convert ascii program text digits 0-255 to value in .x
+	getbytc	= $87f4	; c64: $b79b. convert ascii program text value 0-255 to value in .x
 	getnum	= $87f4	; c64: $b7eb. get 8-bit value (0-255)
 	retval	= $bc49
 

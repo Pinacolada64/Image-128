@@ -1,6 +1,4 @@
-.pseudopc wedge_exec_address {
-.namespace wedge {
-
+orig wedge_exec_address
 ; jump table
 
 ; xx00: install w/o error trap
@@ -60,12 +58,12 @@ openroo2:
 	jsr collect
 	ldx strend	; $31
 	ldy strend+1	; c64: $32
-	stx $ac
-	sty $ad
+	stx sal		; c64: $ac
+	sty sal+1	; c64: $ad
 	ldx fretop	; c64: $33
 	ldy fretop+1	; c64: $34
 	stx eal		; c64: $ae
-	sty $af
+	sty eal+1	; c64: $af
 	stx strend	; c64: $31
 	sty strend+1	; c64: $32
 	ldx #$2f
@@ -106,8 +104,8 @@ loadfile:
 	lda filename_len
 	jsr setnam
 	lda #0
-	ldx eal	; c64: $ae
-	ldy $af
+	ldx eal		; c64: $ae
+	ldy eal+1	; c64: $af
 	jsr loadf
 	bcc loadfil1
 	jsr chopfile
@@ -141,21 +139,21 @@ chopfil1:
 	sta (eal),y	; ($ae),y
 	clc
 	lda #2
-	adc eal	; c64: $ae
-	sta eal	; c64: $ae
+	adc eal		; c64: $ae
+	sta eal		; c64: $ae
 	lda #0
-	adc $af
-	sta $af
+	adc eal+1	; c64: $af
+	sta eal+1	; c64: $af
 
 closroom:
-	ldx $2d
-	ldy $2e
-	stx $ac
-	sty $ad
-	ldx eal	; c64: $ae
-	ldy $af
-	stx $2d
-	sty $2e
+	ldx txttab	; c64: $2d
+	ldy txttab+1	; c64: $2e
+	stx sal		; c64: $ac
+	sty sal+1	; $ad
+	ldx eal		; c64: $ae
+	ldy eal+1	; c64: $af
+	stx txttab	; c64: $2d
+	sty txttab+1	; c64: $2e
 	ldx #$2f
 	jsr clrm
 	ldx #$31
@@ -164,44 +162,44 @@ clrm:
 	sei
 	ldy #0
 	lda 0,x
-	sta $b0
+	sta cmp0	; c64: $b0
 	lda 1,x
-	sta $b1
+	sta cmp0+1	; c64: $b1
 clrm1:
-	lda ($ac),y
+	lda (sal),y	; c64: ($ac),y
 	sta (eal),y	; c64: ($ae),y
-	lda $ac
+	lda sal		; c64: $ac
 	cmp 0,x
 	bne clrm0
-	lda $ad
+	lda sal+1	; c64: $ad
 	cmp 1,x
 	beq clrm4
 clrm0:
-	inc $ac
+	inc sal		; c64: $ac
 	bne clrm2
-	inc $ad
+	inc sal+1	; c64: $ad
 clrm2:
-	inc eal	; c64: $ae
+	inc eal		; c64: $ae
 	bne clrm3
-	inc $af
+	inc eal+1	; c64: $af
 clrm3:
 	jmp clrm1
 clrm4:
-	lda eal	; c64: $ae
+	lda eal		; c64: $ae
 	sta 0,x
-	lda $af
+	lda eal+1	; c64: $af
 	sta 1,x
 	cli
 	rts
 
 scan0:
-	ldx $2b
-	ldy $2c
-	stx $ac
-	sty $ad
+	ldx txttab	; c64: $2b
+	ldy txttab+1	; c64: $2c
+	stx sal		; c64: $ac
+	sty sal+1	; $ad
 scan1:
-	stx eal	; $ae
-	sty $af
+	stx eal		; $ae
+	sty eal+1	; $af
 	ldy #2
 	lda (eal),y	; ($ae),y
 l1x:
@@ -230,34 +228,34 @@ oprm:
 	sei
 	ldy #0
 	lda 0,x
-	sta $b0
+	sta cmp0	; $b0
 	lda 1,x
-	sta $b1
+	sta cmp0+1	; $b1
 oprm1:
-	lda sal		; $ac
+	lda sal		; c64: $ac
 	cmp 0,x
 	bne oprm0
-	lda sal+1	; $ad
+	lda sal+1	; c64: $ad
 	cmp 1,x
 	beq oprm4
 oprm0:
-	lda sal		; $ac
+	lda sal		; c64: $ac
 	bne oprm2
-	dec sal+1	; $ad
+	dec sal+1	; c64: $ad
 oprm2:
-	dec sal		; $ac
-	lda eal		; $ae
+	dec sal		; c64: $ac
+	lda eal		; c64: $ae
 	bne oprm3
-	dec eal+1	; $af
+	dec eal+1	; c64: $af
 oprm3:
-	dec eal		; $ae
-	lda (sal),y	; ($ac),y
-	sta (eal),y	; ($ae),y
+	dec eal		; c64: $ae
+	lda (sal),y	; c64: ($ac),y
+	sta (eal),y	; c64: ($ae),y
 	jmp oprm1
 oprm4:
-	lda eal		; $ae
+	lda eal		; c64: $ae
 	sta 0,x
-	lda eal+1	; $af
+	lda eal+1	; c64: $af
 	sta 1,x
 	cli
 	rts
@@ -283,7 +281,7 @@ pokefix1:
 
 tpoke:
 	jsr chrget
-	jsr getnum
+	jsr getbytc	; was getnum (label only used once here)
 	jsr pokefix
 	ldy #0
 	txa
@@ -294,7 +292,7 @@ tsys:
 	jsr chrget
 	jsr frmnum
 	jsr getadr
-	lda $15
+	lda linnum	; c64: $15
 	cmp #$ff
 	beq tsys1
 	cmp #$c0
@@ -307,15 +305,15 @@ tsys1:
 tnew:
 	jsr chrget
 	jsr linget
-	ldx $14
-	ldy $15
+	ldx linnum	; c64: $14
+	ldy linnum+1	; c64: $15
 	jsr chopfil1
 	jmp gone2
 
 thex:
 	ldx #0
-	stx $62
-	stx $63
+	stx var+1	; c64: $62
+	stx var+2	; c64: $63
 thex1:
 	jsr chrget
 	bcc thex2
@@ -328,13 +326,13 @@ thex2:
 	and #$f
 	ldx #4
 thex3:
-	asl $63
-	rol $62
+	asl var+2	; c64: $63
+	rol var		; c64: $62
 	bcs thex4
 	dex
 	bne thex3
-	ora $63
-	sta $63
+	ora var+2	; c64: $63
+	sta var+2	; c64: $63
 	bcc thex1
 thex4:
 	jmp ilqerr
@@ -368,16 +366,16 @@ tampr:
 	jmp gone2
 
 wgone:
-	lda 51
-	cmp 49
-	lda 52
-	sbc 50
+	lda fretop	; c64: $33/51
+	cmp strend	; c64: $31/49
+	lda fretop+1	; c64: $34/52
+	sbc strend+1	; c64: $32/50
 	bne wgone1
 	jsr collect
-	lda 51
-	cmp 49
-	lda 52
-	sbc 50
+	lda fretop	; c64: $33/51
+	cmp strend	; c64: $31/49
+	lda fretop+1	; c64: $34/52
+	sbc strend+1	; c64: $32/50
 	bne wgone1
 ; less than 256 bytes free, force
 ; out of memory error for safety
@@ -408,7 +406,7 @@ wgone1:
 weval:
 	jsr chrget
 	ldx #0
-	stx $d
+	stx valtyp	; $d
 	cmp #'$'
 	beq hex0
 	cmp #peektok
@@ -433,14 +431,14 @@ peek0:
 
 getaxy:
 	jsr getparm
-	stx 780
+	stx sareg	; c64: 780
 	jsr getparm
-	stx 781
+	stx sxreg	; c64: 781
 	jsr getparm
-	stx 782
-	lda 780
-	ldx 781
-	ldy 782
+	stx syreg	; c64: 782
+	lda sareg	; c64: 780
+	ldx sxreg	; c64: 781
+	ldy syreg	; c64: 782
 	rts
 
 getparm:
@@ -458,20 +456,20 @@ wtrap:
 	sta sxreg	; c64: $030d
 	lda curlin+1	; c64: $3a
 	sta syreg	; c64: $030e
-	lda #<$e38b
+	lda #<$4d3f	; c64: <$e38b, contents of ($0300)
 	sta IERROR	; $300
-	lda #>$e38b
+	lda #>$4d3f	; c64: >$e38b, contents of ($0300)
 	sta IERROR+1	; $301
 	ldx #$fa
 	txs
 	lda #25
-	sta 22
+	sta temppt	; c64: $16/22
 	lda #<trapline
-	sta $14
+	sta linnum	; c64: $14
 	lda #>trapline
-	sta $15
-	jsr $a8a3
-	jmp $a7ae
+	sta linnum+1	; c64: $15
+	jsr goto+3	; c64: $a8a3
+	jmp newstt	; c64: $a7ae
 
 install:
 	lda #<$e38b
