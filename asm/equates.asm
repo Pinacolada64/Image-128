@@ -24,6 +24,8 @@
 	ascii_ctrl_x	= 24
 
 	comma		= $2c	; avoids assembler addressing mode errors with cmp ","
+	colon		= 58
+	apostrophe	= 39
 
 ; TODO: change these to c64list quoter equates
 	cursor_right	= $1d
@@ -63,7 +65,7 @@
 ; same: memory address same between c64/c128
 ; [1.2]: labels/memory address is the same as 1.2
 ; [?]  : not certain of purpose of routine
-; ($xx): Indirect addressing: $xx *256+ ($xx+1)
+; ($xx): Indirect addressing: $xx *256+ $xx+1
 
 ;		; 128	; c64
 	d6510	= $00	; 128: 8502 I/O port data direction register
@@ -107,14 +109,13 @@
 	inpptr	= $45	; vector: input routine
 	varnam	= $47	; c64: $45/$46. c128: $47/$48. bytes of current BASIC variable name
 	varpnt	= $49	; c64: ($47): pointer: current BASIC variable descriptor
-	lstpnt 	= $4b	; pointer: index variable for "for...next"
-	forpnt	= $4b
+	forpnt 	= $4b	; pointer: index variable for "for...next"
 	opmask	= $4f	; c64: $4d. math operator table displacement
 	defpnt	= $52	; c64: $4e. pointer to current DEF FN descriptor
 	dscpnt	= $52	; c64: $50. temporary pointer to current string descriptor
-	four6	= $53	; FIXME: move elsewhere
+;	four6	= $53	; FIXME: move elsewhere
 	jmper	= $56	; c64: $54. $56-$58. jump to function instruction
-	numwork	= $57	; $57-$5c: 6 bytes. FIXME: move elsewhere? or share with $63-$68?
+	numwork	= $57	; $57-$60: 9 bytes.
 
 	var	= $0063	; c64: $61-$66. c128: $63-$67. FAC1, Floating Point Accumulator #1
 	varbuf	= var	; used by varbl.asm
@@ -209,6 +210,7 @@
 			; (c64: $0200-$0258,  88/$58 bytes,
 	buf	= $0200	; c128: $0200-$02a0, 160/$a0 bytes)
 	keyd	= $034a	; c64: $0277. keyboard buffer (both 10 bytes)
+	keyrept	= $0a22 ; c64: 650. 128 = most keys repeat, 0=no keys repeat
 	fkeybuf	= $100a ; c64: 679. c128: $100a-$10ff (4106-4351), $f5 (245) bytes
 
 ;
@@ -277,7 +279,6 @@
 
 	emptym0	= 711	; FIXME: $02c7-$02ff (711-767), $39 (57) bytes
 
-	keyrept	= $0a22 ; [c64: 650] 128 = most keys repeat, 0=no keys repeat
 
 ;	cassbuff= $0b00 ; [c64: 828] $0b00-$0bbf (2816-3007, 191 bytes).
 		; During BOOT command, image of boot sector is held
@@ -539,49 +540,48 @@
 ; variable creation
 ; these are from Rene Belzen's excellent article on the 128's BASIC Interpreter.
 
-	getpos	= $7aaf	; find or create a variable in bank 1.
-		; returns address < in .a & $49, > in .y & $4a
 	addrbyt	= $8803	; calls addrbyt (16-bit), chkcom (,), getbyt (8-bit).
 		; returns .x: 8-bit value, < $16, > $17: 16-bit value.
 
 ; FIXME BASIC ROM routines:
 
 	newstt	= $4af6	; c64: $a7ae. Execute the next BASIC statement
-	ready	= $4d37	; jump to basic "ready." prompt [verified]
+	ready	= $4d37	; c64: $a474. jump to basic "ready." prompt [verified]
 	error	= $4d7c	; c64: $a437. print specified error in .x
 
-	jfout	= $8e32	; print 16-bit digit, > .a, < .x
-
-	primm	= $9281	; print immediate: print null-terminated string after call
+	jfout	= $8e32	; c64: $bdcd. print 16-bit digit, > .a, < .x
+	fout	= $8e42	; c64: $bddd. floating point num to ascii digits.
+	primm	= $9281	; 128: print immediate: print null-terminated string after call
 	linkprg	= $af87 ; c64: $a533
-	gone1	= $a7e7 ; for extra keywords
-	gone2	= $a7ea
+	gone1	= $4aa2 ; c64: $a7e7. for extra keywords
+	gone2	= $4ba9	; c64: $a7ea. jmp newstt. FIXME
+			; 128: 2nd byte in 2-byte tokens
 	gosub	= $59cf	; c64: $a883. handle the 'gosub' statement
 	goto	= $59db	; c64: $a8a0. handle the 'goto' statement
 	run	= $5a9b ; c64: $a871. handle the 'run' statement
 	linget	= $50a0	; c64: $a96b. Creates integer value from a character string
 	frmnum	= $77d7	; c64: $ad8a. get arbitrary numeric expression. returns in fac1.
-	getadr	= $880f	; c64: $b7f7. call chkcom, frnum, adrfor.
+	getadr	= $880f	; c64: $b7f7. call chkcom, frmnum, adrfor.
 	adrfor	= $8815 ; c128 only? get 16-bit number in fac1, return < .y & $16, > .a & $17
-	frmevl	= $af96	; c64: $ad9e. evaluate string/math expressions
-	eval1	= $ae8d
-	parchk	= $aef1 ; parentheses check: '(', ')'
+	frmevl	= $779f	; c64: $ad9e. evaluate string/math expressions
+	eval1	= $ae8d	; c64: $ae8d. c128: near eval, $78d7 FIXME
+	parchk	= $7950	; C64: $aef1. parentheses check: '(', ')'
 	chkcom	= $795c	; c64: $aefd. check if next character is comma, return "?syntax  error" if not
 	synerr	= $4c83	; c64: $af08. emit "?syntax  error" [verified]
 
-	ptrget	= $b08b ; FIXME c64: $b08b. read variable name from BASIC text.
+	ptrget	= $7aaf ; c64: $b08b. read variable name from BASIC text.
 			; Search for a Variable and Set It Up If It Is Not Found
-			; Returns: variable name in varpnt/varpnt+1,
-	ptrget1	= $b0e7	; FIXME c64: $b0e7. set up descriptor stored in ($45) [varname],
+			; Returns address < in .a & $49 (varpnt), > in .y & $4a (varpnt+1)
+	ptrget1	= $7b0b	; c64: $b0e7. search for variable name in ($47) [varnam],
 			; returns address in (varpnt)
 	ilqerr	= $7d28	; c64: $b248. issue "?illegal quantity  error"
-	retbyt	= $b3a2	; c64: sta #$00, tax, stx valtyp [$0f] (numeric), sta var+1 [$64, fac1+1],
+	givayf	= $8c70	; c64: $b391. integer to fac1
+	retbyt	= $b3a2	; FIXME c64: sta #$00, tax, stx valtyp [$0f] (numeric), sta var+1 [$64, fac1+1],
 			; sty var+2 [$65, fac1+2], ldx #$90, lda $62 (sign?), eor #$ff (invert?), ...?
-	makerm1	= $b475	; c64: midway through str$()
-	frestr	= $b6a3	; c64: $b6a3: discard a temporary string
+	makerm1	= $b475	; c64: midway through str$(). C128: FIXME
+	frestr	= $877e	; c64: $b6a3: discard a temporary string
 	getbytc	= $87f4	; c64: $b79b. convert ascii program text value 0-255 to value in .x
-	getnum	= $87f4	; c64: $b7eb. get 8-bit value (0-255)
-	retval	= $bc49
+	retval	= $bc49	; FIXME
 
 ;
 ; garbage collection stuff
@@ -635,8 +635,8 @@
 ; Kernal routines:
 
 	syscll	= $5885	; c64: $e130. handle sys statement
-	getfile	= $e1d4 ; 57812 (print last filename in BASIC)
-	prtscn	= $c72d	; c64: $e716. output char in .a to screen regardless of output device
+	getfile	= $91ae	; C64: $e1d4/57812 (print last filename in BASIC)
+	prtscn	= $c72d	; c64: $e716. output char in .a to screen regardless of output device [verified]
 
 	exitint	= $ff37	; c64: $ea81. exit interrupt; pull registers off stack, RTI
 

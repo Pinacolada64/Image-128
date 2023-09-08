@@ -355,7 +355,7 @@ getval:
 	lda #<$100
 	sta index_24	; c64: $22
 	lda #>$100
-	sta index_24	; c64: $23
+	sta index_24+1	; c64: $23
 	ldx #0
 getval1:
 	lda $100,x
