@@ -1,0 +1,14 @@
+{def:version_number = "9/7/2023"}
+10 print"BASIC: ";{usedef:version_number}
+20 print"In ML: ";:sys{sym:print_string}
+{asm}
+; can't use same label as the BASIC one
+; version_number = "9/7/2023"
+print_string:
+    lda #<version_number
+    ldy #>version_number
+    jmp $ab1e
+version_number:
+    ascii {usedef:version_number}
+    byte $00
+{endasm}
