@@ -446,7 +446,7 @@ tr2:
 	ascii "-ABCDEFGHIJKLMNOPQRSTUVWXYZ*!!**"
 	ascii " !---!*!-*!****-"
 	ascii "****!!!---******"
-; .encoding "petscii_mixed"
+{alpha:normal}	; .encoding "petscii_mixed"
 
 ; tblcta1
 tr3:

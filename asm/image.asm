@@ -1,3 +1,5 @@
+{alpha:normal}	; .encoding "petscii_mixed"
+
 {include:"equates.asm"}
 
 * = $0801 ; image.prg

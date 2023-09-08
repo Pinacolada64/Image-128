@@ -1,4 +1,4 @@
-; .encoding "petscii_mixed"
+{alpha:normal}	; .encoding "petscii_mixed"
 
 {include:"equates.asm"}
 
