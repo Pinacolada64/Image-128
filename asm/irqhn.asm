@@ -32,17 +32,17 @@ irqjmp:
 ; target of self-modifying code
 	jmp $ffff
 irqtbl:
-	.word irq1 ;page
-	.word irq2 ;time
-	.word irq3 ;blanker
-	.word irq4 ;handle lightbar f-keys?
-	.word irq5 ;carrier
-	.word irq6 ;flag
-	.word irq7 ;display lightbar checkmarks
-	.word irq4 ;handle lightbar f-keys?
+	word irq1 ;page
+	word irq2 ;time
+	word irq3 ;blanker
+	word irq4 ;handle lightbar f-keys?
+	word irq5 ;carrier
+	word irq6 ;flag
+	word irq7 ;display lightbar checkmarks
+	word irq4 ;handle lightbar f-keys?
 
 caseflag:
-	.byte 255
+	byte 255
 
 ;* chat page
 
@@ -88,12 +88,12 @@ irq1f:
 	rts
 
 pagecol:
-	.byte 1,15,12,11,12,15
+	byte 1,15,12,11,12,15
 
 ;* update time on screen
 
 timeflag:
-	.byte 0
+	byte 0
 
 irq2:
 	lda min
@@ -471,7 +471,7 @@ chkblnk:
 	jmp chkflag
 
 bits:
-	.byte 1,2,4,8,16,32,64,128
+	byte 1,2,4,8,16,32,64,128
 
 ; backward compatibility with mxor location
 
@@ -821,7 +821,7 @@ chkflag5:
 	jmp chkflag8
 
 tmpbar:
-	.byte 0
+	byte 0
 
 fkey:
 	ldx tmpkey
@@ -946,7 +946,7 @@ irq10d:
 
 settim:
 	lda #$01
-	.byte $2c
+	byte $2c
 setalm:
 	lda #$81
 	sta ciacrb
@@ -1029,17 +1029,17 @@ irq4d:
 	jmp fkey
 
 tmpkey:
-	.byte 0
+	byte 0
 oldkey:
-	.byte 64
+	byte 64
 shfkey:
-	.byte 0
+	byte 0
 
 ktbl1:
-	.word t1fk1,t1fk2
-	.word t1fk3,t1fk4
-	.word t1fk5,t1fk6
-	.word t1fk7,t1fk7
+	word t1fk1,t1fk2
+	word t1fk3,t1fk4
+	word t1fk5,t1fk6
+	word t1fk7,t1fk7
 
 t1init:
 	ldy #0
@@ -1110,10 +1110,10 @@ t1fk7c:
 
 ;edit users time
 ktbl2:
-	.word t2fk1,t2fk2
-	.word t2fk3,t2fk4
-	.word t2fk5,t2fk6
-	.word t2fk7,t2fk7
+	word t2fk1,t2fk2
+	word t2fk3,t2fk4
+	word t2fk5,t2fk6
+	word t2fk7,t2fk7
 
 t2init:
 	ldx #<ktbl2
@@ -1121,14 +1121,14 @@ t2init:
 	jmp usekey
 t2fk1:
 	lda #0
-	.byte $2c
+	byte $2c
 t2fk2:
 	lda #101
 t2fk2a:
 	jmp settsr
 t2fk3:
 	ldx #1
-	.byte $2c
+	byte $2c
 t2fk4:
 	ldx #10
 t2fk4a:
@@ -1146,7 +1146,7 @@ t2fk4b:
 	jmp disptime
 t2fk5:
 	ldx #1
-	.byte $2c
+	byte $2c
 t2fk6:
 	ldx #10
 t2fk6a:
@@ -1166,10 +1166,10 @@ t2fk7:
 
 ;edit users access
 ktbl3:
-	.word t3fk1,t3fk2
-	.word t3fk5,t3fk5
-	.word t3fk3,t3fk3
-	.word t3fk7,t3fk7
+	word t3fk1,t3fk2
+	word t3fk5,t3fk5
+	word t3fk3,t3fk3
+	word t3fk7,t3fk7
 
 t3init:
 	ldx #<ktbl3
@@ -1222,9 +1222,9 @@ t3fk7a:
 ; code relies on the order of these two
 
 minhi:
-	.byte 0
+	byte 0
 minlo:
-	.byte 0
+	byte 0
 
 ; convert time of day into minute of the day
 ; input:

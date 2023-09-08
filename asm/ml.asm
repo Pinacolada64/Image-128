@@ -1,5 +1,5 @@
-revision = 1
-version_string = "2023-08-30 12:08"
+{buildrev:.\revision}
+revision = {usevar:__BuildRev}
 
 {include:"equates.asm"}
 
@@ -45,7 +45,7 @@ gc_module_size = * - gc_load_address
 ;;; extended command set
 ;;;
 
-; $e400 - e.c.asm. checker
+; $e400 - e.c.s. checker
 
 {include:"ecs.asm"}
 
@@ -64,7 +64,7 @@ ecs_module_size = * - ecs_load_address
 room_in_struct = swap1_load_address - *
 
 ; pad to the start of the next module
-	align  room_in_struct,0
+	align room_in_struct,0
 struct_module_size = * - struct_load_address
 
 ;;;
@@ -241,10 +241,9 @@ fpout:
 	lda #$00
 ;	jsr bank_in_vars
 	jsr jfout	; c128: $8e32. print 16-bit digit, > .a, < .x
-;	jsr $bddd	;  c64: $bddd. convert contents of fac1 to string, pointed to by > .a < .y
+;	jsr fout	;  c64: $bddd. convert contents of fac1 to string, pointed to by > .a < .y
 ;	jsr bank_in_prg
 	jmp @>exitint
-
 
 ; make a dynamic string
 
@@ -287,7 +286,7 @@ mlgoto:
 	sta r6510
 	stx linnum	; c64: $14
 	sty linnum+1	; c64: $15
-	jsr goto	; c64: $a8a3, 3 bytes past GOTO
+	jsr goto+3	; c64: $a8a3, 3 bytes past GOTO
 	pla
 	sta r6510
 	rts
@@ -348,15 +347,15 @@ getstr:
 	jsr frmeval	; c64: $ad9e
 	bit valtyp	; c64: $0d, $80=numeric
 	bpl getval
-	jsr $b6a3	; c64: $b6a3: frestr
+	jsr frestr	; c64: $b6a3: frestr
 	tax
 	jmp getstr1
 getval:
-	jsr $bddd
+	jsr fout	; c64: $bddd
 	lda #<$100
-	sta $22
+	sta index_24	; c64: $22
 	lda #>$100
-	sta $23
+	sta index_24	; c64: $23
 	ldx #0
 getval1:
 	lda $100,x
@@ -367,8 +366,8 @@ getstr1:
 	pla
 	sta r6510
 	txa
-	ldx $22
-	ldy $23
+	ldx index_24	; c64: $22
+	ldy index_24+1	; c64: $23
 	rts
 
 fnvar0:
@@ -377,7 +376,7 @@ fnvar0:
 	lda #r6510_normal
 	sta r6510
 	jsr chkcom
-	jsr $b08b	; c64: ptrget
+	jsr ptrget	; c64: $b08b
 	ldx varpnt	; c64: $47
 	ldy varpnt+1	; c64: $48
 	pla
@@ -394,7 +393,7 @@ evalstr0:
 	sta rom0
 	lda #r6510_normal
 	sta r6510
-	jsr chkcom
+	jsr chkcom	; c64: $aefd
 	jsr frmeval	; c64: $ad9e
 	jsr frestr	; c64: $b6a3
 	pha
@@ -412,7 +411,7 @@ evalbyt0:
 	sta r6510
 	jsr chkcom
 	jsr chrgot	; c64: $0079
-	jsr $b79e	; c64: $b79e. FIXME: 3 bytes past getbytc
+	jsr getbytc+3	; c64: $b79e. FIXME: getbytc+3
 	lda rom0
 	sta r6510
 	rts
@@ -502,9 +501,9 @@ chkspcl1:
 	rts
 
 usetbl0:
-	sta 780
-	stx 781
-	sty 782
+	sta sareg	; c64: 780
+	stx sxreg	; c64: 781
+	sty syreg	; c64: 782
 
 ; get index into jump table in X
 	asl
@@ -543,17 +542,17 @@ usetbl0:
 	bcs jump
 	sty jump+1
 	stx jump+2
-	ldx 781
-	ldy 782
+	ldx sxreg	; c64: 781
+	ldy syreg	; c64: 782
 
 ; jump to the target (self modifying code sets the address)
 
 jump:
 	jsr $ffff
-	sta 780
+	sta sareg	; c64: 780
 	pla
 	sta r6510
-	lda 780
+	lda sareg	; c64: 780
 nothing:
 	rts
 
@@ -639,9 +638,9 @@ room_in_interface_page = $ce00 - *
 ; buffer page
 
 d1str:
-	cbm "           "
+	ascii "           "
 spchars:
-	byte ",:",34,"*?=",13,"^"
+	ascii comma,colon,34,"*?=",13,"^"
 
 ; pad up to fbuf start
 	align  fbuf-*,0
@@ -689,7 +688,10 @@ decchr:
 ; the date this ml was made
 
 version:
-	cbm version_string
+	ascii {usevar:__BuildDate}
+	ascii " "
+	ascii {usevar:__BuildTime}
+
 version_length = * - version
 
 ; version in floating point

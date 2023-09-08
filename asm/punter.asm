@@ -1,10 +1,10 @@
-.encoding "petscii_mixed"
+{alpha:normal}	; .encoding "petscii_mixed"
 
-.var version = "9107098721"
+version = "9107098721"
 
 {include:"equates.asm"}
 
-* = protostart "punter.prg"
+* = protostart ; "punter.prg"
 
 ; modem file number
 mfile = 131
@@ -108,19 +108,19 @@ ml:
 	bne getflag
 
 defflag:
-	.byte 0
+	byte 0
 flagbyte:
-	.byte 0
+	byte 0
 
 flag_relaxed =  %00000001 ; use relaxed timing
 flag_filetype = %00000010 ; accept/send file type for single file transfers
 
 versiond:
-	.text version
+	ascii version
 
 ; code accept timing
 t1:
-	.byte 36, 144
+	byte 36, 144
 
 protonum:
 	lda #0
@@ -508,19 +508,19 @@ chkcode_not_xxx:
 
 ;codes.........01234567..8..9
 char1:
-	.byte ascii_ctrl_x
-	.text "gbass"
-	.byte ensh, ascii_ctrl_d, 13
-	.text "o"
+	byte ascii_ctrl_x
+	ascii "gbass"
+	byte ensh, ascii_ctrl_d, 13
+	ascii "o"
 char2:
-	.byte ascii_ctrl_x
-	.text "oac/y"
-	.byte ensh, ascii_ctrl_d, 10
-	.text "k"
+	byte ascii_ctrl_x
+	ascii "oac/y"
+	byte ensh, ascii_ctrl_d, 10
+	ascii "k"
 char3:
-	.byte ascii_ctrl_x
-	.text "odkbn"
-	.byte ensh, ascii_ctrl_d, 0, 13
+	byte ascii_ctrl_x
+	ascii "odkbn"
+	byte ensh, ascii_ctrl_d, 0, 13
 
 sendcode:
 	txa
@@ -587,7 +587,7 @@ get2:
 	rts
 
 rechand_retry_counter:
-	.byte 0
+	byte 0
 
 rechand:
 	sta gbsave
@@ -703,7 +703,7 @@ trh4:
 	jsr dummyblk
 trh5:
 	lda #'-'
-	.byte $2c
+	byte $2c
 trh6:
 	lda #':'
 	jsr prtdash
@@ -759,7 +759,7 @@ trhb:
 	rts
 
 recmodem_index:
-	.byte 0
+	byte 0
 
 recmodem:
 	lda #0
@@ -1212,49 +1212,49 @@ nobytes:
 	rts
 
 bytes:
-	.byte 0,0,0
+	byte 0,0,0
 blocks:
-	.word 0
+	word 0
 badblks:
-	.word 0
+	word 0
 limit:
-	.byte 0
+	byte 0
 bitpnt:
-	.byte $20
+	byte $20
 bitcnt:
-	.byte $0f
+	byte $0f
 bitpat:
-	.byte $04
+	byte $04
 gbsave:
-	.byte $00
+	byte $00
 bufcount:
-	.byte $07
+	byte $07
 delay:
-	.byte $00
+	byte $00
 skpdelay:
-	.byte $00
+	byte $00
 endflag:
-	.byte $00
+	byte $00
 check:
-	.word $0000,$0000
+	word $0000,$0000
 check1:
-	.word $0000,$0000
+	word $0000,$0000
 bufpnt:
-	.byte $00
+	byte $00
 recsize:
-	.byte $07
+	byte $07
 maxsize:
-	.byte $ff
+	byte $ff
 blocknum:
-	.word $0000
+	word $0000
 stack:
-	.byte $f6
+	byte $f6
 oldtrans:
-	.byte 0
+	byte 0
 dontdash:
-	.byte $00
+	byte $00
 specmode:
-	.byte $00
+	byte $00
 
 getln:
 	lda #35
@@ -1295,7 +1295,7 @@ cmb6:
 	tay
 	rts
 commcnt:
-	.byte 0
+	byte 0
 
 ;increment good blocks
 goodblok:

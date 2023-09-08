@@ -228,7 +228,7 @@ outmdm3:
 outmdm2:
 	rts
 outmdmc:
-	.byte 0
+	byte 0
 
 outptr:
 ;  target of self-modifying code (was mprtr)
@@ -302,14 +302,14 @@ xgetin:
 	jsr xgetchr
 	cmp #cursor_home
 	beq xgetin
-	cmp #british_pound
+	cmp #'{pound}'
 	bne xgetin2
 	lda editor
 	and #$08
 	bne xgetin1
 	jmp xgetin
 xgetin1:
-	lda #british_pound
+	lda #'{pound}'
 xgetin2:
 	rts
 

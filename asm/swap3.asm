@@ -1,5 +1,5 @@
-.pseudopc protostart {
-.namespace swap3 {
+; .pseudopc protostart {
+; .namespace swap3 {
 
 hc000:
 	jmp read0
@@ -20,25 +20,25 @@ hc012:
 
 outastr:
 	lda #0
-	.byte $2c
+	byte $2c
 dskin:
 	lda #2
-	.byte $2c
+	byte $2c
 usevar:
 	lda #29
-	.byte $2c
+	byte $2c
 putvar:
 	lda #30
-	.byte $2c
+	byte $2c
 zero:
 	lda #31
-	.byte $2c
+	byte $2c
 minusone:
 	lda #32
-	.byte $2c
+	byte $2c
 prtvar0:
 	lda #46
-	.byte $2c
+	byte $2c
 output:
 	lda #55
 	jmp usetbl1
@@ -118,7 +118,7 @@ movie1:
 	pha
 	jsr clrchn
 	ldx movdly
-	ldy#0
+	ldy #0
 dl1:
 	dey
 	bne dl1
@@ -133,7 +133,7 @@ dl1:
 movie2:
 	rts
 movdly:
-	.byte 0
+	byte 0
 
 ; print copyright message
 
@@ -164,9 +164,9 @@ loop:
 	jmp prtvar0
 
 copymsg:
-	.byte function_key_6, british_pound, 95
-	.text "07IMAGE BBS 64 V" + version_number
-	.byte function_key_6
+	ascii "{f6}{pound}{backarrow}07Image BBS 128 v"
+	ascii {usevar:version_number}
+	ascii "{f6}"
 copymsg_end:
 
 mult3:
@@ -333,17 +333,17 @@ mtoh3:
 	rts
 
 dday:
-	.byte 0
+	byte 0
 dyear:
-	.byte 0
+	byte 0
 dmonth:
-	.byte 0
+	byte 0
 ddate:
-	.byte 0
+	byte 0
 dhour:
-	.byte 0
+	byte 0
 dmin:
-	.byte 0
+	byte 0
 
 timezone:
 	ldx #0
@@ -494,9 +494,9 @@ write_interface_byte_load:
 	rts
 
 interface_byte_table:
-	.word llen    ; input line length
-;	.word local   ; local-only output flag
-;	.word mci     ; enable MCI in output
+	word llen    ; input line length
+;	word local   ; local-only output flag
+;	word mci     ; enable MCI in output
 interface_byte_table_end:
-}
-}
+; ; }
+; ; }

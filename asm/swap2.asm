@@ -1,5 +1,5 @@
-.pseudopc protostart {
-.namespace swap2 {
+; .pseudopc protostart {
+; .namespace swap2 {
 
 hc000:
 	jmp term
@@ -208,13 +208,13 @@ ansim3:
 
 ansib:
 	lda #cursor_down
-	.byte $2c
+	byte $2c
 ansic:
 	lda #cursor_right
-	.byte $2c
+	byte $2c
 ansid:
 	lda #cursor_left
-	.byte $2c
+	byte $2c
 ansia:
 	lda #cursor_up
 ansia1:
@@ -269,22 +269,22 @@ ansirpt1:
 	rts
 
 reptcnt:
-	.byte 0
+	byte 0
 reptchr:
-	.byte 0
+	byte 0
 ansibuf:
-	.text "                  "
+	ascii "                  "
 ansiptr:
-	.byte 0
+	byte 0
 ansiposh:
-	.byte 0
+	byte 0
 ansiposv:
-	.byte 0
+	byte 0
 ansiprm:
-	.byte 0
+	byte 0
 ansiclrs:
-	.byte cursor_black, cursor_red, cursor_green, cursor_yellow
-	.byte cursor_blue, cursor_purple, cursor_cyan, cursor_white
+	byte cursor_black, cursor_red, cursor_green, cursor_yellow
+	byte cursor_blue, cursor_purple, cursor_cyan, cursor_white
 
 ansiparm:
 	lda #0
@@ -388,11 +388,11 @@ isalpha1:
 	rts
 
 lotbl:
-	.byte <convnam,<convdsk
-	.byte <convimg,<chkspcl
+	byte <convnam,<convdsk
+	byte <convimg,<chkspcl
 hitbl:
-	.byte >convnam,>convdsk
-	.byte >convimg,>chkspcl
+	byte >convnam,>convdsk
+	byte >convimg,>chkspcl
 
 convert0:
 	rts
@@ -421,10 +421,10 @@ convs3:
 	rts
 
 convd0:
-	.text ",:"
-	.byte function_key_5
-	.text "*?="
-	.byte function_key_6, function_key_8
+	ascii ",:"
+	ascii "{f5}"
+	ascii "*?="
+	ascii "{f6}{f8}"
 convdsk:
 	cmp #133
 	bcc convd1
@@ -437,7 +437,7 @@ convd1:
 	rts
 
 convnam:
-	cmp #'''
+	cmp #apostrophe
 	beq convn3
 	jsr isalpha
 	bcs convn1
@@ -456,7 +456,7 @@ convn3:
 	rts
 
 convi0:
-	.text "$,*?:=;"
+	ascii "$,*?:=;"
 convimg:
 	ldx #6
 convi1:
@@ -543,13 +543,13 @@ sound4:
 	rts
 
 sndvec:
-	.byte 0,1,5,6,4,7,8,12,13,11,14,15,19,20,18
+	byte 0,1,5,6,4,7,8,12,13,11,14,15,19,20,18
 
 timetbl:
-	.byte 010,020,030,040
-	.byte 050,060,070,080
-	.byte 090,100,110,120
-	.byte 150,180,240,001
+	byte 010,020,030,040
+	byte 050,060,070,080
+	byte 090,100,110,120
+	byte 150,180,240,001
 
-}
-}
+; ; }
+; ; }

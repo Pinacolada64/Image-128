@@ -1,20 +1,20 @@
 modst:
-	.word prgstart
+	word prgstart
 
 modtbl:
-	.word 0 ;0
-	.word 0 ;1
-	.word protostart ;2
-	.word 0 ;3
-	.word 0 ;4
-	.word 0 ;5
-	.word 0 ;6
-	.word pmodetbl ;7
-	.word bartbl ;8
-	.word alarmtb ;9
-	.word tblatc ;10
-	.word tblcta ;11
-	.word netalrm ;12
+	word 0 ;0
+	word 0 ;1
+	word protostart ;2
+	word 0 ;3
+	word 0 ;4
+	word 0 ;5
+	word 0 ;6
+	word pmodetbl ;7
+	word bartbl ;8
+	word alarmtb ;9
+	word tblatc ;10
+	word tblcta ;11
+	word netalrm ;12
 
 ;* program load routines
 

@@ -8,18 +8,18 @@
 
 	jmp pathfind
 
-	.byte 255
-	.text version
+	byte 255
+	ascii version
 
 src:
-	.byte 0
+	byte 0
 dst:
-	.byte 0
+	byte 0
 
 dir:
-	.fill 32, 0
+	area 32, 0
 nod:
-	.fill 32, 0
+	area 32, 0
 
 pathfind:
 	txa

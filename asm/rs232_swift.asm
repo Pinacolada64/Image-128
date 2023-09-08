@@ -98,62 +98,62 @@ xx0f:
 	jmp setbaud
 
 bauds:
-	.byte %00010101 ; 0300
-	.byte %00010110 ; 0600
-	.byte %00010111 ; 1200
-	.byte %00011000 ; 2400
-	.byte %00011010 ; 4800
-	.byte %00011100 ; 9600
-	.byte %00011110 ;19200
-	.byte %00011111 ;38400
+	byte %00010101 ; 0300
+	byte %00010110 ; 0600
+	byte %00010111 ; 1200
+	byte %00011000 ; 2400
+	byte %00011010 ; 4800
+	byte %00011100 ; 9600
+	byte %00011110 ;19200
+	byte %00011111 ;38400
 
 ; shadow command byte
 ; this is the last value set on the port
 ; which should be restored after disabling then enabling interrupts
 
 shcomm:
-	.byte comint_rx
+	byte comint_rx
 
 status_shadow:
-	.byte 0
+	byte 0
 
 vectbl:
 
 oldnmi:
-	.byte $18
-	.word nmi64
+	byte $18
+	word nmi64
 oldopn:
-	.byte $1a
-	.word nopen
+	byte $1a
+	word nopen
 oldcls:
-	.byte $1c
-	.word nclose
+	byte $1c
+	word nclose
 oldchk:
-	.byte $1e
-	.word nchkin
+	byte $1e
+	word nchkin
 oldcho:
-	.byte $20
-	.word nchkout
+	byte $20
+	word nchkout
 oldclr:
-	.byte $22
-	.word nclrch
+	byte $22
+	word nclrch
 oldchr:
-	.byte $24
-	.word nchrin
+	byte $24
+	word nchrin
 ;oldout:
-;	.byte $26
-;	.word nchrout
+;	byte $26
+;	word nchrout
 oldget:
-	.byte $2a
-	.word ngetin
+	byte $2a
+	word ngetin
 oldload:
-	.byte $30
-	.word nload
+	byte $30
+	word nload
 oldsave:
-	.byte $32
-	.word nsave
+	byte $32
+	word nsave
 
-	.byte 0
+	byte 0
 
 setup:
 
@@ -421,7 +421,7 @@ rsout_blocking:
 	jmp rsget_done
 
 xtmp:
-	.byte 0
+	byte 0
 
 nosuch:
 	jmp nofile

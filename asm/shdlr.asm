@@ -227,21 +227,21 @@ scline1:
 	rts
 
 chrtbl:
-	.word scupc,scupc
-	.word scrvs,scrvs
-	.word schome,scclear
-	.word scrt,sclf
-	.word scdn,scup
-	.word scret,scdel
-	.word scbell
+	word scupc,scupc
+	word scrvs,scrvs
+	word schome,scclear
+	word scrt,sclf
+	word scdn,scup
+	word scret,scdel
+	word scbell
 chrs:
-	.byte swlc, swuc
-	.byte reverse_on, reverse_off
-	.byte cursor_home, clear_screen
-	.byte cursor_right, cursor_left
-	.byte cursor_down, cursor_up
-	.byte carriage_return, cbm_backspace
-	.byte ascii_bel
+	byte swlc, swuc
+	byte reverse_on, reverse_off
+	byte cursor_home, clear_screen
+	byte cursor_right, cursor_left
+	byte cursor_down, cursor_up
+	byte carriage_return, cbm_backspace
+	byte ascii_bel
 chrs_end:
 
 cleanup:
@@ -261,7 +261,7 @@ fixlinks:
 	rts
 
 botline:
-	.byte 22
+	byte 22
 
 poscrsr:
 	txa
@@ -592,9 +592,9 @@ dec3:
 	rts
 
 dectbl1:
-	.byte <10000, <1000, <100, <10, <1
+	byte <10000, <1000, <100, <10, <1
 dectbl2:
-	.byte >10000, >1000, >100, >10, >1
+	byte >10000, >1000, >100, >10, >1
 ;*
 ;* memory and trace update
 ;*
@@ -666,9 +666,9 @@ trace7:
 	rts
 
 oldline:
-	.word 0
+	word 0
 oldmem:
-	.word 0
+	word 0
 
 dspidle:
 	sta idlesec

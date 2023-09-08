@@ -1,8 +1,6 @@
-.encoding "petscii_mixed"
-
 {include:"equates.asm"}
 
-* = $0801 "image.prg"
+* = $0801 ; image.prg
 
 scnmem = $0400
 chrmem = $2000
@@ -16,20 +14,20 @@ src = $fb
 dst = $fd
 
 	; link to next line (bogus, gets fixed by basic loader)
-	.byte $1b, $1b
+	byte $1b, $1b
 	; line number
-    	.word 1990
+    	word 1990
 	; "sys" token
-	    .byte $9e
-        .text toIntString(start)
-	.text " "
+	    byte $9e
+        ascii toIntString(start)
+	ascii " "
 	; "new" token
-	.byte $a2
-	.text " image software"
+	byte $a2
+	ascii " image software"
 	; end of basic line
-        .byte 0
+        byte 0
 	; end of basic program
-	.word 0
+	word 0
 
 * = $081e
 
@@ -115,7 +113,8 @@ loop:
 	rts
 
 file1:
-	.text "ml " + version_number
+	ascii "ml 128 "
+	ascii {usevar:version_number}
 file1_end:
 
 boot:

@@ -1,13 +1,13 @@
-.encoding "petscii_mixed"
+{alpha:normal}	; .encoding "petscii_mixed"
 
-.var version = "03/22/90 01:08a"
+version = "03/22/90 01:08a"
 
 {include:"equates.asm"}
 
 * = protostart "post.prg"
 
 	jmp proto4
-	.byte 255
+	byte 255
 
 ; proto 4 for posts (++ post)
 
@@ -16,23 +16,23 @@
 ; "high" index
 
 h_msb:
-	.byte 0
+	byte 0
 h_lsb:
-	.byte 0
+	byte 0
 
 ; "low" index
 
 l_msb:
-	.byte  0
+	byte  0
 l_lsb:
-	.byte 0
+	byte 0
 
 ; current index
 
 x_msb:
-	.byte 0
+	byte 0
 x_lsb:
-	.byte 0
+	byte 0
 
 ; buffer for sending positioning commands for rel files
 
@@ -46,33 +46,33 @@ x_lsb:
 ; }
 
 ptrcom:
-	.text "p"
-	.byte 2
+	ascii "p"
+	byte 2
 ptr_lsb:
-	.byte 0
+	byte 0
 ptr_msb:
-	.byte 0
+	byte 0
 ptrpos:
-	.byte 1, 13
+	byte 1, 13
 
 ; end of positioning command buffer
 
 xx_lsb:
-	.byte 0
+	byte 0
 xx_msb:
-	.byte 0
+	byte 0
 ptr2_lsb:
-	.byte 0
+	byte 0
 ptr2_msb:
-	.byte 0
+	byte 0
 copy0:
-	.byte $ff
-	.word $ffff
+	byte $ff
+	word $ffff
 copy1:
-	.byte $ff
-	.byte $ff
+	byte $ff
+	byte $ff
 fake:
-	.word copy2
+	word copy2
 
 ; FIND      &,16
 ; Uses a binary search to find the string AN$ in the REL file.
@@ -352,8 +352,8 @@ sendloop:
 	jmp clrchn
 
 copy2:
-	.byte $ff
-	.word $ffff
+	byte $ff
+	word $ffff
 
 ; ptr = memory(last + x * 2)
 
@@ -399,7 +399,7 @@ compare1:
 ; length of the string in "buffer"
 
 xlen1:
-	.byte 0
+	byte 0
 
 ;load index file to end of proto
 
@@ -703,12 +703,12 @@ setskip:
 ; requested number of lines to skip when reading a record
 
 skip:
-	.byte 0
+	byte 0
 
 ; holds the counter used to skip lines while reading, decrements to zero
 
 skip2:
-	.byte 0
+	byte 0
 
 postload:
 	lda copy1
@@ -1073,13 +1073,13 @@ reader:
 	jmp usetbl1
 
 vers:
-	.text version
-	.byte 13
-	.text "So long, and thanks for all the fish!"
-	.byte 13
-	.text "---------------------------------------"
-	.byte 13
-	.text "Copr.1990 New Image"
+	ascii version
+	byte 13
+	ascii "So long, and thanks for all the fish!"
+	byte 13
+	ascii "---------------------------------------"
+	byte 13
+	ascii "Copr.1990 New Image"
 
 ; index file is stored in memory here
 

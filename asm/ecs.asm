@@ -1,5 +1,5 @@
-.pseudopc protostart {
-.namespace ecsml {
+orig protostart
+; ; .namespace ecsml {
 
 a=0
 ecsdefs_size = $a00 ; 2560 bytes decimal
@@ -87,7 +87,7 @@ ecsgoto:
 	pha
 	lda #r6510_normal
 	sta r6510
-	jsr $a8a3
+	jsr goto+3	; c64: $a8a3
 	pla
 	sta r6510
 	rts
@@ -204,9 +204,9 @@ ecsnext1:
 	beq ecsquit
 
 acc:
-	.word 0
+	word 0
 zzf:
-	.byte 0
+	byte 0
 
 ; check long command, cc=not equal
 ecslong:
@@ -495,9 +495,6 @@ ecssave:
 	lda #varbuf
 	jmp savef
 
-.align 32
+align 32,$00
 
 ecsdefs:
-
-}
-}

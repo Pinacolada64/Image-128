@@ -26,40 +26,40 @@ xx0f:
 
 	;     300   600  1200 2400 4800
 strt:
-	.word 4915, 2550, 1090, 459, 220
+	word 4915, 2550, 1090, 459, 220
 full:
-	.word 3410, 1705,  845, 421, 200
+	word 3410, 1705,  845, 421, 200
 baudofs:
-	.word 3410, 1706,  852, 426, 213
+	word 3410, 1706,  852, 426, 213
 
 vectbl:
 
 oldnmi:
-	.byte $18
-	.word nmi64
+	byte $18
+	word nmi64
 oldopn:
-	.byte $1a
-	.word nopen
+	byte $1a
+	word nopen
 oldcls:
-	.byte $1c
-	.word nclose
+	byte $1c
+	word nclose
 oldchk:
-	.byte $1e
-	.word nchkin
+	byte $1e
+	word nchkin
 oldclr:
-	.byte $22
-	.word nclrch
+	byte $22
+	word nclrch
 oldchr:
-	.byte $24
-	.word nchrin
+	byte $24
+	word nchrin
 ;oldout:
-;	.byte $26
-;	.word nchrout
+;	byte $26
+;	word nchrout
 oldget:
-	.byte $2a
-	.word ngetin
+	byte $2a
+	word ngetin
 
-	.byte 0
+	byte 0
 
 setup:
 	ldx #0
@@ -331,7 +331,7 @@ back:
 	jsr oldchk
 	jmp inabl
 xtmp:
-	.byte 0
+	byte 0
 
 ngetin:
 	pha
@@ -409,7 +409,7 @@ getenabl:
 	rts
 
 dtrtable:
-	.byte 0, 38
+	byte 0, 38
 
 setdtr:
 	and #1

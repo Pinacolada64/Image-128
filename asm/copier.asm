@@ -1,8 +1,8 @@
-.encoding "petscii_mixed"
+; .encoding "petscii_mixed"
 
 {include:"equates.asm"}
 
-* = protostart "copier.prg"
+* = protostart ; "copier.prg"
 
 status = $90
 
@@ -138,11 +138,11 @@ nxtcount:
 	jmp $ffc3 ; close
 
 buflen:
-	.byte 0
+	byte 0
 flen:
-	.byte 0,0,0
+	byte 0,0,0
 done:
-	.byte 0
+	byte 0
 
 goodbyte:
 	ldx #ncount

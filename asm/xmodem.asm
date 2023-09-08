@@ -1,10 +1,10 @@
-.var version = "9107098739"
+version = "9107098739"
 
-.encoding "petscii_mixed"
+{alpha:normal}	; .encoding "petscii_mixed"
 
 {include:"equates.asm"}
 
-* = protostart "xmodem.prg"
+* = protostart ; "xmodem.prg"
 
 chrack = 6
 chrnak = 21
@@ -45,11 +45,11 @@ ml:
 	bne getflag
 
 defflag:
-	.byte 0
+	byte 0
 flagbyte:
-	.byte 0
+	byte 0
 versiond:
-	.text version
+	ascii {usedef:version}
 
 protonum:
 	lda #0
@@ -79,7 +79,7 @@ getflag:
 	jmp putvar
 
 t1:
-	.byte 60,240
+	byte 60,240
 
 setup:
 	lda #52
@@ -381,7 +381,7 @@ sendblk:
 	lda kflag
 	beq sendblk1
 	lda #chrstx
-	.byte $2c
+	byte $2c
 sendblk1:
 	lda #chrsoh
 	jsr sendbyte
@@ -797,7 +797,7 @@ savebuf2:
 	jmp clrchn
 
 buffer_index:
-	.byte 0
+	byte 0
 
 recvbuf:
 	ldy #0
@@ -846,45 +846,45 @@ recvbuf3:
 	rts
 
 blocknum:
-	.byte 0
+	byte 0
 blockrcv:
-	.byte 0,0
+	byte 0,0
 blocksiz:
-	.word 1024
+	word 1024
 crcflag:
-	.byte 0
+	byte 0
 kflag:
-	.byte 1
+	byte 1
 bufnum:
-	.byte 0
+	byte 0
 abrtflag:
-	.byte 0
+	byte 0
 endflag:
-	.byte 0
+	byte 0
 lastbuf:
-	.byte 0
+	byte 0
 waitsec:
-	.byte 0
+	byte 0
 stack:
-	.byte 0
+	byte 0
 oldtrans:
-	.byte 0
+	byte 0
 bytes:
-	.byte 0,0,0
+	byte 0,0,0
 crc:
-	.word 0
+	word 0
 crc1:
-	.word 0
+	word 0
 checksum:
-	.byte 0
+	byte 0
 charval:
-	.byte 0
+	byte 0
 errors:
-	.byte 0
+	byte 0
 blocks:
-	.word 0
+	word 0
 badblks:
-	.word 0
+	word 0
 
 xsendnam:
 	tsx
@@ -904,7 +904,7 @@ xsendn2:
 	beq xsendn4
 xsendn3:
 	lda (varbuf+1),y
-	cmp #','
+	cmp #comma
 	beq xsendn5
 	cmp #65
 	bcc xsendn7

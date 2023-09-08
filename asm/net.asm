@@ -1,4 +1,4 @@
-.encoding "petscii_mixed"
+{alpha:normal}	; .encoding "petscii_mixed"
 
 {include:"equates.asm"}
 
@@ -30,19 +30,19 @@ reset = rsinabl
 	jmp entry
 
 relaxflg:
-	.byte 0
+	byte 0
 
 ;serialp:
-;	.byte "A"
+;	asciiA"
 ;serialn:
-;	.word 3
+;	word 3
 
 ;code accept
 t1:
-	.byte 35,100
+	byte 35,100
 ;receive timing
 t2:
-	.byte 16,30
+	byte 16,30
 
 entry:
 	txa
@@ -214,14 +214,14 @@ chc4:
 
 ;codes.........012345
 char1:
-	.byte ascii_ctrl_x
-	.text "gbass"
+	byte ascii_ctrl_x
+	ascii "gbass"
 char2:
-	.byte ascii_ctrl_x
-	.text "oac/y"
+	byte ascii_ctrl_x
+	ascii "oac/y"
 char3:
-	.byte ascii_ctrl_x
-	.text "odkbn"
+	byte ascii_ctrl_x
+	ascii "odkbn"
 
 sendcode:
 	txa
@@ -414,7 +414,7 @@ trh4:
 	jsr dummyblk
 trh5:
 	lda #'-'
-	.byte $2c
+	byte $2c
 trh6:
 	lda #':'
 	jsr prtdash
@@ -989,63 +989,63 @@ dobytes4:
 	rts
 
 bytes:
-	.byte 0,0,0
+	byte 0,0,0
 bytec:
-	.word 0
+	word 0
 blocks:
-	.word 0
+	word 0
 bitpnt:
-	.byte $20
+	byte $20
 bitcnt:
-	.byte $0f
+	byte $0f
 bitpat:
-	.byte $04
+	byte $04
 tmer1:
-	.word $0000
+	word $0000
 gbsave:
-	.byte $00
+	byte $00
 bufcount:
-	.byte $07
+	byte $07
 delay:
-	.byte $00
+	byte $00
 skpdelay:
-	.byte $00
+	byte $00
 endflag:
-	.byte $00
+	byte $00
 check:
-	.word $0000,$0000
+	word $0000,$0000
 check1:
-	.word $0000,$0000
+	word $0000,$0000
 bufpnt:
-	.byte $00
+	byte $00
 recsize:
-	.byte $07
+	byte $07
 maxsize:
-	.byte $ff
+	byte $ff
 blocknum:
-	.word $0000
+	word $0000
 stack:
-	.byte $f6
+	byte $f6
 dontdash:
-	.byte $00
+	byte $00
 specmode:
-	.byte $00
+	byte $00
 dash:
-	.byte $00
+	byte $00
 codebuf:
-	.text "   "
+	ascii "   "
 numx:
-	.byte 0
+	byte 0
 repeat:
-	.byte 0
+	byte 0
 badcount:
-	.byte 0
+	byte 0
 tcount:
-	.byte 0
+	byte 0
 ackcount:
-	.byte 0
+	byte 0
 badblks:
-	.word 0
+	word 0
 
 getln:
 	lda #35
@@ -1172,7 +1172,7 @@ cmb6:
 	tay
 	rts
 commcnt:
-	.byte 0
+	byte 0
 
 ;increment good blocks
 goodblok:

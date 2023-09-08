@@ -25,9 +25,9 @@ ml3:
 	jmp rs232
 
 rslow:
-	.byte <rs232a, <rs232b
+	byte <rs232a, <rs232b
 rshigh:
-	.byte >rs232a, >rs232b
+	byte >rs232a, >rs232b
 
 rs232a:
 	{include:"rs232_user.bin"}

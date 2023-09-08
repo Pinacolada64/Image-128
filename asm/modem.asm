@@ -170,9 +170,9 @@ outmodl:
 outmodl1:
 	lda #'2'
 	jsr ansicom
-	.encoding "ascii"
+	{alpha:ascii}		; .encoding "ascii"
 	lda #'J'
-	.encoding "petscii_mixed"
+	{alpha:normal)	; .encoding "petscii_mixed"
 	jmp outm
 
 outmodhm:
@@ -182,9 +182,9 @@ outmodhm:
 	jsr outm
 	lda #'1'
 	jsr outm
-	.encoding "ascii"
+	{alpha:ascii}	; .encoding "ascii"
 	lda #'H'
-	.encoding "petscii_mixed"
+	{alpha:normal}	; .encoding "petscii_mixed"
 	jmp outm
 
 outmodc:
@@ -216,20 +216,20 @@ ansi2:
 	rts
 
 ansiclrs:
-	.text "7716524333107247"
+	ascii "7716524333107247"
 ansiints:
-	.text "0100000100110110"
+	ascii "0100000100110110"
 ansibuf:
-	.byte 27
-	.text "[0;"
+	byte 27
+	ascii "[0;"
 ansiint:
-	.text "0;"
+	ascii "0;"
 ansir1:
-	.text "3"
+	ascii "3"
 ansicol:
-	.text "1;"
+	ascii "1;"
 ansir2:
-	.text "4"
+	ascii "4"
 ansibak:
-	.text "0"
-	.byte $6d, 0
+	ascii "0"
+	byte $6d, 0

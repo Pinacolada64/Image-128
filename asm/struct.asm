@@ -1,5 +1,5 @@
-.pseudopc protostart {
-.namespace structml {
+; .pseudopc protostart {
+; .namespace structml {
 
 ;putstruc - put string into struct
 ; &,nn,0,num,arry(a,b),string$
@@ -98,16 +98,16 @@ strucrts:
 	rts
 
 functbl:
-	.word putdate ;4
-	.word getdate ;5
-	.word doscan ;6
-	.word sort ;7
-	.word scannums ;8
-	.word scansum ;9
-	.word cpystruc ;10
-	.word scanstr ;11
-	.word gamescan ;12
-	.word textread ;13
+	word putdate ;4
+	word getdate ;5
+	word doscan ;6
+	word sort ;7
+	word scannums ;8
+	word scansum ;9
+	word cpystruc ;10
+	word scanstr ;11
+	word gamescan ;12
+	word textread ;13
 
 ; TODO move variable selection here since only one is used
 putvar:
@@ -120,19 +120,19 @@ xchrout1:
 	jmp usetbl1
 
 count:
-	.byte 0
+	byte 0
 func:
-	.byte 0
+	byte 0
 size:
-	.byte 0
+	byte 0
 scanfor:
-	.byte 0,0,0,0,0,0
+	byte 0,0,0,0,0,0
 bitmask:
-	.word 0
+	word 0
 invert:
-	.byte 0
+	byte 0
 oper:
-	.byte 0
+	byte 0
 
 getsize:
 	jsr evalbyt
@@ -250,11 +250,11 @@ getd4:
 	rts
 
 opc1:
-	.byte opandy,opcmpy
+	byte opandy,opcmpy
 opc2:
-	.byte opbne, opbcc
+	byte opbne, opbcc
 opc3:
-	.byte opbeq, opbcs
+	byte opbeq, opbcs
 
 scanbits:
 	txa
@@ -383,13 +383,13 @@ doscan15:
 	jmp putvar
 
 i:
-	.word 0
+	word 0
 j:
-	.word 0
+	word 0
 n:
-	.word 0
+	word 0
 base:
-	.word 0
+	word 0
 
 calcp:
 	stx temp
@@ -675,9 +675,9 @@ cpys2:
 ; &,nn,11,num,siz,op,str,a1(a,b),a2(b),start
 
 stroplo:
-	.byte <strcmp,<strptn
+	byte <strcmp,<strptn
 strophi:
-	.byte >strcmp,>strptn
+	byte >strcmp,>strptn
 
 scanstr:
 	jsr getsize
@@ -770,11 +770,11 @@ scanstr5:
 	jmp putvar
 
 arrays1:
-	.text "tbdenACDEFAS"
+	ascii "tbdenACDEFAS"
 arrays2:
-	.text "TBTDN"
-	.byte $80, $80, $80, $80, $80
-	.text "CO"
+	ascii "TBTDN"
+	byte $80, $80, $80, $80, $80
+	ascii "CO"
 
 ; clear an array
 clrarr:
@@ -957,5 +957,5 @@ textr10:
 	bcc textr9
 	jmp textr4
 
-}
-}
+; ; }
+; ; }

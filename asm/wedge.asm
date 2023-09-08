@@ -25,12 +25,12 @@ wfunc0:
 	txa
 	tay
 	lda #$00
-	jmp $b391
+	jmp givayf	; c64: $b391
 
 filename_len:
-	.byte 0
+	byte 0
 fdev:
-	.byte 0
+	byte 0
 
 tload:
 	jsr chrget

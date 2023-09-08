@@ -1,7 +1,7 @@
 stcount:
-	.byte 0
+	byte 0
 stsize:
-	.byte 0
+	byte 0
 
 lodstruc:
 	jsr fnvar
@@ -340,8 +340,8 @@ blkh_load:
 	lda #10
 	plp
 	jsr ltk_driver
-	.word ltk_redbuf
-	.byte 1
+	word ltk_redbuf
+	byte 1
 	ldx ltk_redbuf+1
 	lda ltk_redbuf
 	jsr ltk_bankin

@@ -15,13 +15,13 @@ temp = $14 ;2
 		jmp sort
 
 i:
-		.word 0
+		word 0
 j:
-		.word 0
+		word 0
 n:
-		.word 0
+		word 0
 base:
-		.word 0
+		word 0
 
 calcptr:
 		stx temp

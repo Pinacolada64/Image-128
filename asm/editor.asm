@@ -1,12 +1,11 @@
-.pseudopc editor_exec_address {
-.namespace editorml {
+orig editor_exec_address
 
-.var editor_version = "01/22/91 06:51p"
+editor_version = "01/22/91 06:51p"
 
 ;* editor sub-system
 
-temp = $6f
-temp1 = $5f
+temp	= arisgn	; c64: $6f. 128: $71
+temp1	= numwork + 8	; c64: $5f
 temp2 = $60
 delx = $52
 numx = $14
@@ -37,7 +36,7 @@ done:
 	rts
 
 passflag:
-	.byte 0
+	byte 0
 
 entry2:
 	lda case
@@ -130,8 +129,8 @@ store:
 	rts
 
 dotmsg:
-	.byte 8
-	.text "Command:"
+	byte 8
+	ascii "Command:"
 dodot:
 	lda #0
 	sta passflag
@@ -223,167 +222,167 @@ comjump:
 	jsr $ffff
 	jmp main0
 stack:
-	.byte 0
+	byte 0
 comchar:
-	.byte 0
+	byte 0
 compoint:
-	.byte 0
+	byte 0
 comflag:
-	.byte 0
+	byte 0
 
 ; offset 1 in comlist is %aaab
 ; aaa= which parameter routine
-; b= dissallow if buffer empty
+; b= disallow if buffer empty
 
 paramrtn:
-	.word getcr ;000x
-	.word lastline ;001x
-	.word alllines ;010x
-	.word firstlin ;011x
-	.word gettxm ;100x
-	.word getzero ;101x
-	.word nothing ;110x
-	.word prcr ;111x
+	word getcr	;000x
+	word lastline	;001x
+	word alllines	;010x
+	word firstlin	;011x
+	word gettxm	;100x
+	word getzero	;101x
+	word nothing	;110x
+	word prcr	;111x
 
 comlist:
 
-	.text "a"
-	.byte %0000
-	.word tabrt,abort
-	.text "b"
-	.byte %1000
-	.word tbnnr,banner
-	.text "c"
-	.byte %1010
-	.word tmrgn,margin
-	.text "d"
-	.byte %0011
-	.word tdele,delet
-	.text "e"
-	.byte %0011
-	.word tedit,editlns
-	.text "f"
-	.byte %0101
-	.word tfind,find
-	.text "h"
-	.byte %1110
-	.word thelp,help
-	.text "i"
-	.byte %0111
-	.word tinst,insert
-	.text "j"
-	.byte %1101
-	.word tjust,justify
-	.text "k"
-	.byte %0101
-	.word trepl,repl
-	.text "l"
-	.byte %0101
-	.word tlist,clist
-	.text "m"
-	.byte %0101
-	.word tmcir,mciread
-	.text "n"
-	.byte %0001
-	.word tclrt,clrtx
-	.text "o"
-	.byte %1100
-	.word tline,linnum
-	.text "r"
-	.byte %0101
-	.word tread,cread
-	.text "s"
-	.byte %0001
-	.word tsave,csave
-	.text "t"
-	.byte %1110
-	.word ttext,ctext
-	.text "v"
-	.byte %1110
-	.word tvers,cvers
-	.text "x"
-	.byte %1100
-	.word texit,exit
-	.text "y"
-	.byte %0011
-	.word tmove,cmove
-	.text "z"
-	.byte %0011
-	.word tcopy,ccopy
-	.byte ensh
-	.byte %1110
-	.word thelp,help
-	.text "#"
-	.byte %1110
-	.word tscal,scale
-	.byte 0
+	ascii "a"
+	byte %0000
+	word tabrt,abort
+	ascii "b"
+	byte %1000
+	word tbnnr,banner
+	ascii "c"
+	byte %1010
+	word tmrgn,margin
+	ascii "d"
+	byte %0011
+	word tdele,delet
+	ascii "e"
+	byte %0011
+	word tedit,editlns
+	ascii "f"
+	byte %0101
+	word tfind,find
+	ascii "h"
+	byte %1110
+	word thelp,help
+	ascii "i"
+	byte %0111
+	word tinst,insert
+	ascii "j"
+	byte %1101
+	word tjust,justify
+	ascii "k"
+	byte %0101
+	word trepl,repl
+	ascii "l"
+	byte %0101
+	word tlist,clist
+	ascii "m"
+	byte %0101
+	word tmcir,mciread
+	ascii "n"
+	byte %0001
+	word tclrt,clrtx
+	ascii "o"
+	byte %1100
+	word tline,linnum
+	ascii "r"
+	byte %0101
+	word tread,cread
+	ascii "s"
+	byte %0001
+	word tsave,csave
+	ascii "t"
+	byte %1110
+	word ttext,ctext
+	ascii "v"
+	byte %1110
+	word tvers,cvers
+	ascii "x"
+	byte %1100
+	word texit,exit
+	ascii "y"
+	byte %0011
+	word tmove,cmove
+	ascii "z"
+	byte %0011
+	word tcopy,ccopy
+	byte ensh
+	byte %1110
+	word thelp,help
+	ascii "#"
+	byte %1110
+	word tscal,scale
+	byte 0
 
 tabrt:
-	.text "Abort"
-	.byte 0
+	ascii "Abort"
+	byte 0
 tbnnr:
-	.text "Banner"
-	.byte 0
+	ascii "Banner"
+	byte 0
 tdele:
-	.text "Delete"
-	.byte 0
+	ascii "Delete"
+	byte 0
 tedit:
-	.text "Edit"
-	.byte 0
+	ascii "Edit"
+	byte 0
 tfind:
-	.text "Find"
-	.byte 0
+	ascii "Find"
+	byte 0
 thelp:
-	.text "Help!"
-	.byte 0
+	ascii "Help!"
+	byte 0
 tinst:
-	.text "Insert"
-	.byte 0
+	ascii "Insert"
+	byte 0
 tjust:
-	.text "Justify (C,E,I,L,P,R,U)"
-	.byte 0
+	ascii "Justify (C,E,I,L,P,R,U)"
+	byte 0
 trepl:
-	.text "Replace"
-	.byte 0
+	ascii "Replace"
+	byte 0
 tlist:
-	.text "List"
-	.byte 0
+	ascii "List"
+	byte 0
 tmcir:
-	.text "MCI Read"
-	.byte 0
+	ascii "MCI Read"
+	byte 0
 tclrt:
-	.text "Clear Text"
-	.byte 0
+	ascii "Clear Text"
+	byte 0
 tread:
-	.text "Read"
-	.byte 0
+	ascii "Read"
+	byte 0
 tsave:
-	.text "Save Text"
-	.byte 0
+	ascii "Save Text"
+	byte 0
 ttext:
-	.text "Text Transfer On"
-	.byte 0
+	ascii "Text Transfer On"
+	byte 0
 texit:
-	.text "Exit"
-	.byte 0
+	ascii "Exit"
+	byte 0
 tline:
-	.text "Line Numbers"
-	.byte 0
+	ascii "Line Numbers"
+	byte 0
 tmrgn:
-	.text "Columns"
-	.byte 0
+	ascii "Columns"
+	byte 0
 tcopy:
-	.text "Copy"
-	.byte 0
+	ascii "Copy"
+	byte 0
 tmove:
-	.text "Move"
-	.byte 0
+	ascii "Move"
+	byte 0
 tscal:
-	.text "Scale"
-	.byte 0
+	ascii "Scale"
+	byte 0
 tvers:
-	.text "Version"
-	.byte 0
+	ascii "Version"
+	byte 0
 
 ;get params/default to last line
 lastline:
@@ -479,7 +478,7 @@ banner4:
 banner5:
 	rts
 blen:
-	.byte 0
+	byte 0
 
 delet:
 	ldx #<delmsg1
@@ -509,14 +508,14 @@ dele4:
 delet1:
 	jmp dontdo
 delmsg1:
-	.text "(Line"
-	.byte 0
+	ascii "(Line"
+	byte 0
 delmsg2:
-	.text " To"
-	.byte 0
+	ascii " To"
+	byte 0
 delmsg3:
-	.text " Deleted.)"
-	.byte 13, 0
+	ascii " Deleted.)"
+	byte 13, 0
 
 find:
 	inc comflag
@@ -543,8 +542,8 @@ find2:
 	rts
 
 tfind1:
-	.text "Search Phrase:"
-	.byte 0
+	ascii "Search Phrase:"
+	byte 0
 
 repl:
 	inc comflag
@@ -588,11 +587,11 @@ repl2:
 	rts
 
 trepl1:
-	.text "Search Phrase:"
-	.byte 0
+	ascii "Search Phrase:"
+	byte 0
 trepl2:
-	.text "Replace With :"
-	.byte 0
+	ascii "Replace With :"
+	byte 0
 
 help:
 	ldx #3
@@ -648,37 +647,37 @@ justif0:
 	jmp dontdo
 
 tcen:
-	.text "Center"
-	.byte 0
+	ascii "Center"
+	byte 0
 texp:
-	.text "Expand"
-	.byte 0
+	ascii "Expand"
+	byte 0
 tpak:
-	.text "Packed"
-	.byte 0
+	ascii "Packed"
+	byte 0
 tlft:
-	.text "Left"
-	.byte 0
+	ascii "Left"
+	byte 0
 trgt:
-	.text "Right"
-	.byte 0
+	ascii "Right"
+	byte 0
 tind:
-	.text "Indent"
-	.byte 0
+	ascii "Indent"
+	byte 0
 tund:
-	.text "Un-Indent"
-	.byte 0
+	ascii "Un-Indent"
+	byte 0
 
 justcom:
-	.byte 0
+	byte 0
 justtxt:
-	.word tcen,texp,tpak,tlft
-	.word trgt,tind,tund
+	word tcen,texp,tpak,tlft
+	word trgt,tind,tund
 justcoms:
-	.word jcenter,jexpand
-	.word jpacked,jleft
-	.word jright,jindent
-	.word jundent
+	word jcenter,jexpand
+	word jpacked,jleft
+	word jright,jindent
+	word jundent
 
 justify1:
 	stx justcom
@@ -740,9 +739,9 @@ read0:
 read1:
 	jmp dontdo
 mciflg:
-	.byte 0
+	byte 0
 wrapfl:
-	.byte 0
+	byte 0
 
 csave:
 	lda cline
@@ -786,10 +785,10 @@ pr1:
 pr2:
 	rts
 msg4:
-	.text " On."
-	.byte 13,0
-	.text " Off."
-	.byte 13,0
+	ascii " On."
+	byte 13,0
+	ascii " Off."
+	byte 13,0
 
 margin:
 	ldx numx
@@ -812,8 +811,8 @@ mar2:
 	jsr prtnum
 	jmp prcr
 marmsg:
-	.text "Set To: "
-	.byte 0
+	ascii "Set To: "
+	byte 0
 
 ccopy:
 	ldx #<cpymsg
@@ -845,8 +844,8 @@ copy1:
 	sta cline
 	jmp dontdo
 cpymsg:
-	.text "Copy To:"
-	.byte 0
+	ascii "Copy To:"
+	byte 0
 
 cmove:
 	ldx #<movmsg
@@ -878,8 +877,8 @@ move1:
 	sta cline
 	jmp dontdo
 movmsg:
-	.text "Move To:"
-	.byte 0
+	ascii "Move To:"
+	byte 0
 
 scale:
 	lda #scalemsg_end - scalemsg
@@ -887,16 +886,13 @@ scale:
 	ldy #>scalemsg
 	jmp prmsg0
 scalemsg:
-	.byte function_key_6
-	.byte british_pound
-	.text "_101"
-	.byte british_pound
-	.text "_202"
-	.byte british_pound
-	.text "_303"
-	.byte function_key_6
-	.text "0123456789012345678901234567890123456789"
-	.byte function_key_6
+	ascii "{f6}"
+	ascii "{pound}{backarrow}101"
+	ascii "{pound}{backarrow}202"
+	ascii "{pound}{backarrow}303"
+	ascii "{f6}"
+	ascii "0123456789012345678901234567890123456789"
+	ascii "{f6}"
 scalemsg_end:
 
 cvers:
@@ -905,9 +901,11 @@ cvers:
 	ldy #>versmsg
 	jmp prmsg0
 versmsg:
-	.byte function_key_6
-	.text "Image BBS " + version_number + " Editor (" + editor_version + ")"
-	.byte function_key_6
+	ascii "{f6}Image BBS 128 "
+	ascii {usevar:version_number}
+	ascii " Editor ("
+	ascii {usevar:editor_version}
+	ascii "){f6}"
 versmsg_end:
 
 delc:
@@ -987,8 +985,8 @@ doj2:
 jump:
 	jmp $ffff
 jdone:
-	.text "Done."
-	.byte 0
+	ascii "Done."
+	byte 0
 
 jleft:
 	lda index
@@ -1185,15 +1183,15 @@ findln6:
 	jsr prtlnx
 	jmp findln7
 flen:
-	.byte 0
+	byte 0
 ftmpx:
-	.byte 0
+	byte 0
 rtmpx:
-	.byte 0
+	byte 0
 rlen:
-	.byte 0
+	byte 0
 fflg:
-	.byte 0
+	byte 0
 
 repllns:
 	ldx numx
@@ -1288,8 +1286,8 @@ replln1:
 	jsr prmsg3
 	jmp replln7
 trepln:
-	.text "Too Big. Can't Replace."
-	.byte 13,0
+	ascii "Too Big. Can't Replace."
+	byte 13,0
 
 dellns:
 	ldx numy
@@ -1404,13 +1402,13 @@ editln10:
 	ldy #>(editnoc+1)
 	jmp prmsg
 editnoc:
-	.byte 13
-	.text "(No Change.)"
-	.byte 13
+	byte 13
+	ascii "(No Change.)"
+	byte 13
 editext:
-	.byte 13
-	.text "Command:Exit"
-	.byte 13
+	byte 13
+	ascii "Command:Exit"
+	byte 13
 
 del11:
 	ldx #$0b
@@ -1595,8 +1593,7 @@ prtnum:
 	sta mci
 	rts
 prtn:
-	.byte british_pound
-	.text "%a"
+	ascii "{pound}%a"
 
 doline:
 	lda mline
@@ -1631,10 +1628,10 @@ noline:
 	sta case
 	rts
 msg3:
-	.text "** End Of Memory **"
-	.byte 13
-	.text "Type 'S' To Save, Or 'H' For Help."
-	.byte 13,0
+	ascii "** End Of Memory **"
+	byte 13
+	ascii "Type 'S' To Save, Or 'H' For Help."
+	byte 13,0
 
 getnumm:
 	stx numx
@@ -1820,8 +1817,7 @@ prcolor:
 	ldy #>color
 	jmp prmsg0
 color:
-	.byte british_pound
-	.text "q0"
+	ascii "{pound}q0"
 
 xchrout:
 	sta $fe
@@ -1884,27 +1880,27 @@ prmsg5:
 	rts
 
 tmpa:
-	.byte 0
+	byte 0
 tmpx:
-	.byte 0
+	byte 0
 tmpx1:
-	.byte 0
+	byte 0
 tmpy:
-	.byte 0
+	byte 0
 
 bitbuf:
-	.fill 8, 0
+	area 8, 0
 rvsflag:
-	.byte reverse_off
+	byte reverse_off
 
 quadrvs:
-	.fill 5, reverse_off
-	.fill 3, reverse_on
-	.fill 3, reverse_off
-	.fill 5, reverse_on
+	area 5, reverse_off
+	area 3, reverse_on
+	area 3, reverse_off
+	area 5, reverse_on
 quadchr:
-	.byte $20, $ac, $bb, $a2, $bc, $a1, $bf, $be
-	.byte $be, $bf, $a1, $bc, $a2, $bb, $ac, $20
+	byte $20, $ac, $bb, $a2, $bc, $a1, $bf, $be
+	byte $be, $bf, $a1, $bc, $a2, $bb, $ac, $20
 
 quad:
 	sta tmpa
@@ -1991,10 +1987,8 @@ conver1a:
 	rts
 
 spchars:
-	.text ",:"
-	.byte 34
-	.text "*?="
-	.byte 13
-	.text "^"
-}
-}
+	ascii ",:"
+	byte 34
+	ascii "*?="
+	byte 13
+	ascii "^"

@@ -1,5 +1,5 @@
-.pseudopc protostart {
-.namespace swap1 {
+; .pseudopc protostart {
+; .namespace swap1 {
 
 hc000:
 	jmp inline
@@ -207,16 +207,16 @@ put0:
 put1:
 	jmp in1
 ctrlchrs:
-	.byte $04, ensh, 13, 20, $15,$16, $17, $18, $19, swlc, $02
-	.text "./"
+	byte $04, ensh, 13, 20, $15,$16, $17, $18, $19, swlc, $02
+	ascii "./"
 ctrlend:
 
 ctrl:
-	.word ctrld,ctrli,ctrlm
-	.word ctrlt,ctrlu,ctrlv
-	.word ctrlw,ctrlx,ctrly
-	.word ctrln,ctrlb,dot
-	.word dot
+	word ctrld,ctrli,ctrlm
+	word ctrlt,ctrlu,ctrlv
+	word ctrlw,ctrlx,ctrly
+	word ctrln,ctrlb,dot
+	word dot
 in3:
 	txa
 	asl
@@ -356,7 +356,7 @@ ctrlw1:
 	jmp in1
 
 ctrlx:
-	lda #british_pound
+	lda #'{pound}'
 	jsr xchrout
 	jsr prcr
 	jmp inline0
@@ -635,7 +635,7 @@ editswap:
 	rts
 
 edittbl:
-	.byte 0,3,6
+	byte 0,3,6
 
-}
-}
+; ; }
+; ; }

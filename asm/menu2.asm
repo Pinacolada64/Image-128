@@ -1,8 +1,8 @@
-.encoding "petscii_mixed"
+{alpha:normal}	; .encoding "petscii_mixed"
 
 {include:"equates.asm"}
 
-* = protostart "menu2.prg"
+* = protostart ; "menu2.prg"
 
 ml:
 	stx ml1+1
@@ -91,9 +91,9 @@ xgetin:
 	jmp usetbl1
 
 stsize:
-	.byte 0
+	byte 0
 stcount:
-	.byte 0
+	byte 0
 
 addstr:
 	jsr evalstrx ;key$
@@ -168,23 +168,23 @@ addstr7:
 	rts
 
 keyvalue:
-	.byte 0
+	byte 0
 itemsiz:
-	.byte 0
+	byte 0
 bitvalue:
-	.word 0
+	word 0
 titlsize:
-	.byte 0
+	byte 0
 maxcount:
-	.byte 0
+	byte 0
 chkcount:
-	.byte 0
+	byte 0
 addcount:
-	.byte 0
+	byte 0
 maxadd:
-	.byte 0
+	byte 0
 arrvalue:
-	.word 0
+	word 0
 
 addarr:
 	lda $14
@@ -419,31 +419,31 @@ putl1:
 	rts
 
 menubase:
-	.word 0
+	word 0
 n:
-	.byte 0
+	byte 0
 w:
-	.byte 0
+	byte 0
 r:
-	.byte 0
+	byte 0
 c:
-	.byte 0
+	byte 0
 a:
-	.byte 0
+	byte 0
 x:
-	.byte 0
+	byte 0
 y:
-	.byte 0
+	byte 0
 px:
-	.byte 0
+	byte 0
 py:
-	.byte 0
+	byte 0
 sx:
-	.byte 0
+	byte 0
 sy:
-	.byte 0
+	byte 0
 cp:
-	.byte 0
+	byte 0
 
 usemenu:
 	jsr evalbytx
@@ -697,11 +697,11 @@ puti9:
 	jmp put1
 
 findflag:
-	.byte 0
+	byte 0
 key1:
-	.byte 0
+	byte 0
 key2:
-	.byte 0
+	byte 0
 
 cursmenu:
 	jsr evalbytx

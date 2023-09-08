@@ -1,18 +1,18 @@
 inline:
 	lda #00
-	.byte $2c
+	byte $2c
 clrarr:
 	lda #11
-	.byte $2c
+	byte $2c
 sound:
 	lda #25
-	.byte $2c
+	byte $2c
 inline0:
 	lda #63
-	.byte $2c
+	byte $2c
 convstr:
 	lda #64
-	.byte $2c
+	byte $2c
 convert:
 	lda #65
 	jmp usetbl1
@@ -135,6 +135,6 @@ callswp1:
 	rts
 
 callpage:
-	.byte 0
+	byte 0
 calltemp:
-	.byte 0
+	byte 0

@@ -5,14 +5,14 @@
 domci0:
 	jmp notc1
 domci:
-	cmp #british_pound
+	cmp #'{pound}'
 	bne domci0
 	ldx mci
 	bne domci0
 	inc $96
 	ldy $96
 	lda ($71),y
-	cmp #british_pound
+	cmp #'{pound}'
 	beq domci0
 	and #63
 	sta mcom
@@ -56,37 +56,37 @@ comjmp:
 combad:
 	jmp notc
 mcom:
-	.byte 0
+	byte 0
 mnum:
-	.byte 3
+	byte 3
 mchr:
-	.byte 0
+	byte 0
 mnum2:
-	.byte 0
+	byte 0
 mchr2:
-	.byte 0
+	byte 0
 mval:
-	.byte 0
+	byte 0
 mchr3:
-	.byte 0
+	byte 0
 
 comtbl:
-	.word notc,coma,comb,comc
-	.word comd,come,comf,comg
-	.word comh,comi,comj,comk
-	.word coml,mcicomm,comn,como
-	.word comp,comq,comr,coms
-	.word comt,comu,comv,comw
-	.word comx,comy,notc,notc
-	.word notc,notc,notc,ctab
-	.word notc,cvar,notc,clen
-	.word cstr,cnum,notc,notc
+	word notc,coma,comb,comc
+	word comd,come,comf,comg
+	word comh,comi,comj,comk
+	word coml,mcicomm,comn,como
+	word comp,comq,comr,coms
+	word comt,comu,comv,comw
+	word comx,comy,notc,notc
+	word notc,notc,notc,ctab
+	word notc,cvar,notc,clen
+	word cstr,cnum,notc,notc
 
 ; TODO change to a table of variable indices
 mcivars:
-	.text "d1ldnarnphbnb"
-	.byte $80
-	.text "and2d3akltd4agccdd"
+	ascii "d1ldnarnphbnb"
+	byte $80
+	ascii "and2d3akltd4agccdd"
 
 mcivar:
 	txa
@@ -99,22 +99,22 @@ mcivar:
 	jmp usevar0
 
 colors:
-	.byte cursor_cyan ; (default color)
-	.byte cursor_white
-	.byte cursor_red
-	.byte cursor_cyan
-	.byte cursor_purple
-	.byte cursor_green
-	.byte cursor_blue
-	.byte cursor_yellow
-	.byte cursor_orange
-	.byte cursor_brown
-	.byte cursor_lt_red
-	.byte cursor_gray1
-	.byte cursor_gray2
-	.byte cursor_lt_green
-	.byte cursor_lt_blue
-	.byte cursor_gray3
+	byte cursor_cyan ; (default color)
+	byte cursor_white
+	byte cursor_red
+	byte cursor_cyan
+	byte cursor_purple
+	byte cursor_green
+	byte cursor_blue
+	byte cursor_yellow
+	byte cursor_orange
+	byte cursor_brown
+	byte cursor_lt_red
+	byte cursor_gray1
+	byte cursor_gray2
+	byte cursor_lt_green
+	byte cursor_lt_blue
+	byte cursor_gray3
 
 ;* \a - compare to variable
 coma:
@@ -128,7 +128,7 @@ coma1:
 	inc $96
 	ldy $96
 	lda ($71),y
-	cmp #british_pound
+	cmp #'{pound}'
 	beq coma3
 coma2:
 	cmp $ffff,x
@@ -148,7 +148,7 @@ coma5:
 	cpy #80
 	beq coma6
 	lda ($71),y
-	cmp #british_pound
+	cmp #'{pound}'
 	bne coma5
 coma6:
 	rts
@@ -578,11 +578,11 @@ cnum3:
 	bne cnum1
 	rts
 cnumf:
-	.byte 0
+	byte 0
 cnumd:
-	.byte 0
+	byte 0
 cnumc:
-	.text "0"
+	ascii "0"
 
 ;\_ - mci tab
 ctab:
@@ -622,7 +622,7 @@ repchr2:
 notc:
 	dec $96
 	dec $96
-	lda #british_pound
+	lda #'{pound}'
 notc1:
 	cmp #$04
 	bne domode

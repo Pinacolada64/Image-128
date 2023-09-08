@@ -1,5 +1,5 @@
-.pseudopc protostart {
-.namespace gcml {
+; .pseudopc protostart {
+; .namespace gcml {
 
 hi = 51
 size = 128
@@ -287,19 +287,19 @@ collect2:
 	jmp collect1
 
 gcindex:
-	.byte 0
+	byte 0
 gctemp:
-	.byte 0
+	byte 0
 lo:
-	.word 0
+	word 0
 tblpl:
-	.fill size, 0
+	area size, 0
 tblph:
-	.fill size, 0
+	area size, 0
 tbldl:
-	.fill size, 0
+	area size, 0
 tbldh:
-	.fill size, 0
+	area size, 0
 
-}
-}
+; ; }
+; ; }
