@@ -898,7 +898,7 @@ xsendnam:
 	jsr xsendcrc
 xsendn2:
 	ldx #var_an_string
-	jsr usevar
+	jsr @>usevar
 	ldy #0
 	lda varbuf
 	beq xsendn4
@@ -978,7 +978,7 @@ xrecvn2:
 getmdm:
 	lda #4
 	jmp usetbl1
-usevar:
+@usevar:
 	lda #29
 	jmp usetbl1
 putvar:

@@ -2,7 +2,8 @@
 ; Image BBS 128 v1.0 equates
 ; based on Ray Kelm's work on Image BBS 64
 ;
-
+; the version of this ML:
+{def:version_number = "1.0"}
 ;
 ; printable characters
 ;
@@ -112,10 +113,10 @@
 	forpnt 	= $4b	; pointer: index variable for "for...next"
 	opmask	= $4f	; c64: $4d. math operator table displacement
 	defpnt	= $52	; c64: $4e. pointer to current DEF FN descriptor
-	dscpnt	= $52	; c64: $50. temporary pointer to current string descriptor
-;	four6	= $53	; FIXME: move elsewhere
-	jmper	= $56	; c64: $54. $56-$58. jump to function instruction
-	numwork	= $57	; $57-$60: 9 bytes.
+	dscpnt	= $52	; c64: $50-$52. 128: $52-$54. temporary pointer to current string descriptor
+;	four6	= $53	; c64: constant for garbage collection. FIXME: move elsewhere
+	jmper	= $56	; c64: $54-$56. 128: $56-$58. jump to 'fn' instruction
+	numwork	= $57	; c64: $57-$60. 128: $59-$62. 9 bytes.
 
 	var	= $0063	; c64: $61-$66. c128: $63-$67. FAC1, Floating Point Accumulator #1
 	varbuf	= var	; used by varbl.asm
@@ -150,7 +151,6 @@
 	mych	= $bf	; same. serial word buffer
 	stal	= $c1	; same. I/O start address (lo)
 	stah	= $c2	; same. I/O start address (hi)
-	lstx	= $c5	; c128: tape read/write data
 	ribuf	= $c8	; c64: ($f7). vector to rs232 input buffer address
 	robuf	= $ca	; c64: ($f9). vector to rs232 output buffer address
 
@@ -586,13 +586,13 @@
 ;
 ; garbage collection stuff
 ;
-	gc	= $c000	; module load addr
+	gc_load	= $c000	; module load addr
 	gchide	= $e000	; swaps to
 	gclen	= 4	; # pages
 ;
 ; extended command set stuff:
 ;
-	ecs	= $c000	; module load addr
+	ecs_load= $c000	; module load addr
 	ecshide	= $e400	; swaps to
 	ecslen	= 10	; # pages (seems like a lot)
 

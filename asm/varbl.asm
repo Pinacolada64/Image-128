@@ -119,7 +119,7 @@ findvar:
 
 ;* print string variable
 prtvar:
-	jsr usevar
+	jsr @>usevar
 	jmp outstr
 
 ;* print string variable w/mci
@@ -134,7 +134,7 @@ prtvar0:
 	rts
 
 ;* get variable descriptor
-usevar:
+@usevar:
 	jsr varname
 	jmp usevar2
 usevar0:

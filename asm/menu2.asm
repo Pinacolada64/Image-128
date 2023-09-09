@@ -86,7 +86,7 @@ xchrout1:
 	jmp usetbl1
 xchrout2:
 	rts
-xgetin:
+:
 	lda #23
 	jmp usetbl1
 
@@ -720,7 +720,7 @@ cursm1:
 cursm2:
 	ldx cp
 	jsr calcbase
-	jsr xgetin
+	jsr @<xgetin
 	ldx key1
 	stx key2
 	sta key1

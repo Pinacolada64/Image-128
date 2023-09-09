@@ -1,19 +1,19 @@
 ; .pseudopc protostart {
 ; .namespace swap3 {
 
-hc000:
+@hc000:
 	jmp read0
-hc003:
+@hc003:
 	jmp newuser
-hc006:
+@hc006:
 	jmp relread
-hc009:
+@hc009:
 	jmp convdate
-hc00c:
+@hc00c:
 	jmp copyrite
-hc00f:
+@hc00f:
 	jmp read_interface_byte
-hc012:
+@hc012:
 	jmp write_interface_byte
 
 ; jump table routines
@@ -24,7 +24,7 @@ outastr:
 dskin:
 	lda #2
 	byte $2c
-usevar:
+@usevar:
 	lda #29
 	byte $2c
 putvar:
@@ -95,7 +95,7 @@ read1b:
 	lda readmode
 	bne readf
 	ldx #var_rc_float
-	jsr usevar
+	jsr @<usevar
 	lda varbuf
 	beq readf
 read2:
@@ -144,11 +144,11 @@ copyrite:
 	sta jmptbl+1
 
 	ldy #copymsg_end - copymsg - 1
-loop:
+@:
 	lda copymsg,y
 	sta buffer,y
 	dey
-	bpl loop
+	bpl <@
 
 	lda #copymsg_end-copymsg
 	sta varbuf
@@ -164,6 +164,8 @@ loop:
 	jmp prtvar0
 
 copymsg:
+; "----+----+----+----+----+----+----+----+"
+; "       Image BBS 128 v1.0"
 	ascii "{f6}{pound}{backarrow}07Image BBS 128 v"
 	ascii {usedef:version_number}
 	ascii "{f6}"

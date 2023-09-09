@@ -197,11 +197,11 @@ getversn:
 	jsr putvar
 
 	ldy #4
-loop:
+@:
 	lda versnum,y
 	sta var,y
 	dey
-	bpl loop
+	bpl @<
 	ldx #15
 	jmp putvar ;lp
 
@@ -328,12 +328,12 @@ outastr1:
 	stx var+1
 	sty var+2
 	sta var
-	jsr outstr
+	jsr @>outstr
 	jsr chrgot
 	bne outastr1
 outastr2:
 	rts
-outastr:
+@outastr:
 	jsr chrgot
 	bne outastr1
 	ldx #1
@@ -494,7 +494,7 @@ chkspcl0:
 	sec
 	sbc #$85
 	tax
-	lda spchars,x
+	lda @>spchars,x
 	ldx cxsav
 chkspcl1:
 	cmp #0
@@ -539,21 +539,22 @@ usetbl0:
 	lda #>caller
 	sta jump+2
 	cpx #>kernal_rom_start
-	bcs jump
-	sty jump+1
-	stx jump+2
+	bcs @>jump
+	sty @>jump+1
+	stx @>jump+2
 	ldx sxreg	; c64: 781
 	ldy syreg	; c64: 782
 
 ; jump to the target (self modifying code sets the address)
 
-jump:
+@jump:
 	jsr $ffff
 	sta sareg	; c64: 780
 	pla
 	sta r6510
 	lda sareg	; c64: 780
-nothing:
+@nothing:
+; no reference in this file
 	rts
 
 ; new system chrout routine
@@ -639,7 +640,7 @@ room_in_interface_page = $ce00 - *
 
 d1str:
 	ascii "           "
-spchars:
+@spchars:
 	ascii comma,colon,34,"*?=",13,"^"
 
 ; pad up to fbuf start

@@ -57,7 +57,7 @@ iptr = $64 ;2
 jlen = $69 ;1
 jstr = $6a ;2
 jptr = $6c ;2
-temp = $14 ;2
+@temp = $14 ;2
 
 opandy=57
 opcmpy=217
@@ -67,14 +67,13 @@ opbeq =240
 opbcs =176
 
 makerm = $b475
-chkcom = $aefd
 getnxt = $e206
 
 defbase= $c600
 
-entry1:
+@entry1:
 	jmp clrarr
-entry2:
+@entry2:
 	sty count
 	stx func
 	lda r6510
@@ -110,20 +109,21 @@ functbl:
 	word textread ;13
 
 ; TODO move variable selection here since only one is used
-putvar:
+@putvar:
 	lda #30
 	jmp usetbl1
-xchrout:
-	sta $fe
-xchrout1:
-	lda #24
-	jmp usetbl1
+; not called:
+;xchrout:
+;	sta $fe
+;xchrout1:
+;	lda #24
+;	jmp usetbl1
 
 count:
 	byte 0
 func:
 	byte 0
-size:
+@size:
 	byte 0
 scanfor:
 	byte 0,0,0,0,0,0
@@ -136,7 +136,7 @@ oper:
 
 getsize:
 	jsr evalbyt
-	stx size
+	stx @<size
 	rts
 getword:
 	jsr evalint
@@ -367,7 +367,7 @@ doscan12:
 	ldx #2
 doscan13:
 	clc
-	lda size
+	lda @<size
 	adc $69,x
 	sta $69,x
 	bcc doscan14
@@ -380,7 +380,7 @@ doscan14:
 	bne doscan3
 doscan15:
 	ldx #var_a_integer
-	jmp putvar
+	jmp @<putvar
 
 i:
 	word 0
@@ -392,8 +392,8 @@ base:
 	word 0
 
 calcp:
-	stx temp
-	sty temp+1
+	stx @<temp
+	sty @<temp+1
 	txa
 	asl
 	tax
@@ -402,10 +402,10 @@ calcp:
 	tay
 	clc
 	txa
-	adc temp
+	adc @<temp
 	tax
 	tya
-	adc temp+1
+	adc @<temp+1
 	tay
 	clc
 	txa
@@ -416,16 +416,16 @@ calcp:
 	tay
 	rts
 calcs:
-	stx temp
-	sty temp+1
+	stx @<temp
+	sty @<temp+1
 	ldy #0
-	lda (temp),y
+	lda (@<temp),y
 	pha
 	iny
-	lda (temp),y
+	lda (@<temp),y
 	tax
 	iny
-	lda (temp),y
+	lda (@<temp),y
 	tay
 	pla
 	rts
@@ -603,7 +603,7 @@ scannum3:
 scannum4:
 	inc varbuf
 	clc
-	lda size
+	lda @<size
 	adc $6b
 	sta $6b
 	bcc scannum5
@@ -615,7 +615,7 @@ scannum6:
 	lda #0
 	sta varbuf
 	ldx #var_a_integer
-	jmp putvar
+	jmp @<putvar
 
 ; sum
 ; &,nn,9,num,siz,a(a,b)
@@ -639,7 +639,7 @@ scansum2:
 	sta varbuf,y
 	dey
 	bpl scansum2
-	lda size
+	lda @<size
 	adc $6b
 	sta $6b
 	bcc scansum3
@@ -649,7 +649,7 @@ scansum3:
 	bne scansum1
 scansum4:
 	ldx #var_a_integer
-	jmp putvar
+	jmp @<putvar
 
 ; copy
 ; &,nn,10,size,a1(a,b),a2(a,b)
@@ -731,11 +731,11 @@ scanstr1:
 	lda count
 	beq scanstr5
 	ldy #0
-loop:
+@:
 	lda (istr),y
 	beq scanstr2
 	iny
-	bne loop
+	bne <@
 scanstr2:
 	sty ilen
 scanstr0:
@@ -752,7 +752,7 @@ scanstr0:
 scanstr3:
 	inc iptr
 	clc
-	lda size
+	lda @<size
 	adc istr
 	sta istr
 	bcc scanstr4
@@ -767,7 +767,7 @@ scanstr5:
 	lsr
 	sta varbuf+1
 	ldx #var_a_integer
-	jmp putvar
+	jmp @<putvar
 
 arrays1:
 	ascii "tbdenACDEFAS"
@@ -854,7 +854,7 @@ clrar7:
 
 gamescan:
 	jsr evalbyt
-	stx size
+	stx @<size
 	jsr evalstr
 	lda $22
 	sta game2+1
@@ -878,7 +878,7 @@ game1:
 	sty index
 	clc
 	lda $14
-	adc size
+	adc @<size
 	sta $14
 	lda $15
 	adc #0
@@ -929,14 +929,14 @@ textr3:
 textr4:
 	clc
 	lda textr3+1
-	adc size
+	adc @<size
 	sta textr3+1
 	bcc textr5
 	inc textr3+2
 textr5:
 	clc
 	lda textr9+1
-	adc size
+	adc @<size
 	sta textr9+1
 	bcc textr6
 	inc textr9+2

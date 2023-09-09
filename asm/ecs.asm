@@ -177,7 +177,7 @@ ecsquit:
 	sta varbuf+3
 	sta varbuf+4
 	ldx #var_a_integer
-	jmp putvar
+	jmp @>putvar
 
 ecsnext:
 	ldy #0
@@ -253,7 +253,7 @@ ecslong7:
 	lda #>buffer
 	sta varbuf+2
 	ldx #var_b_string
-	jsr putvar
+	jsr @>putvar
 	ldy #24
 	ldx #0
 ecslong8:
@@ -272,14 +272,14 @@ ecslong9:
 	lda #>buf2
 	sta varbuf+2
 	ldx #var_a_string
-	jsr putvar
+	jsr @>putvar
 	ldy #31
 	lda (varbuf+3),y
 	sta varbuf+1
 	lda #0
 	sta varbuf
 	ldx #var_b_integer
-	jsr putvar
+	jsr @>putvar
 	sec
 	rts
 
@@ -325,14 +325,14 @@ ecsshrt4:
 	lda #>buffer
 	sta varbuf+2
 	ldx #var_b_string
-	jsr putvar
+	jsr @>putvar
 	ldy #7
 	lda (varbuf+3),y
 	sta varbuf+1
 	lda #0
 	sta varbuf
 	ldx #var_b_integer
-	jsr putvar
+	jsr @>putvar
 	ldx #var_a_string
 	jsr usevar
 	lda #0
@@ -342,7 +342,7 @@ ecsshrt4:
 	lda #>buf2
 	sta varbuf+2
 	ldx #var_a_string
-	jsr putvar
+	jsr @>putvar
 	sec
 	rts
 
@@ -371,7 +371,7 @@ ecsg2:
 	sta varbuf+3
 	sta varbuf+4
 	ldx #var_a_integer
-	jmp putvar
+	jmp @>putvar
 
 ecsput:
 	sty $6c
@@ -450,7 +450,7 @@ putln:
 usevar:
 	lda #29
 	jmp usetbl1
-putvar:
+@putvar:
 	lda #30
 	jmp usetbl1
 

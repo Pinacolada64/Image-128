@@ -1,15 +1,15 @@
 ; .pseudopc protostart {
 ; .namespace swap2 {
 
-hc000:
+@hc000:
 	jmp term
-hc003:
+@hc003:
 	jmp chatmode
-hc006:
+@hc006:
 	jmp btmvar
-hc009:
+@hc009:
 	jmp convert
-hc00c:
+@hc00c:
 	jmp sound
 
 ; jump table routines
@@ -88,7 +88,7 @@ chat3:
 	ldx #var_c2_string
 	jsr prtvar0
 	lda editor
-	and #130
+	and #130	; %1000 0010
 	beq chat5
 	ldx #var_c3_string
 	jsr prtvar0
@@ -201,7 +201,7 @@ ansim2:
 	sec
 	sbc #30
 	tax
-	lda ansiclrs,x
+	lda @>ansiclrs,x
 ansim3:
 	jsr outscn0
 	jmp outansi0
@@ -282,7 +282,7 @@ ansiposv:
 	byte 0
 ansiprm:
 	byte 0
-ansiclrs:
+@ansiclrs:
 	byte cursor_black, cursor_red, cursor_green, cursor_yellow
 	byte cursor_blue, cursor_purple, cursor_cyan, cursor_white
 
@@ -338,7 +338,7 @@ btm0:
 	sta adisp+24,y
 	dey
 	bpl btm0
-	jsr usevar
+	jsr @<usevar
 	ldy #0
 	ldx #0
 	lda varbuf
@@ -405,7 +405,7 @@ convert:
 	lda hitbl,x
 	sta convs2+2
 	ldx #var_an_string
-	jsr usevar
+	jsr @<usevar
 	ldy #0
 	ldx #0
 convs1:

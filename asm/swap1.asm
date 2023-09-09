@@ -2,7 +2,7 @@
 ; .namespace swap1 {
 
 hc000:
-	jmp inline
+	jmp @>inline
 hc003:
 	jmp inline0
 hc006:
@@ -12,7 +12,7 @@ hc009:
 
 ; jump table routines
 
-xgetin:
+@xgetin:
 	lda #23
 	jmp usetbl1
 
@@ -39,10 +39,10 @@ xchrout1:
 	tax
 	pla
 	rts
-usevar:
+@usevar:
 	lda #29
 	jmp usetbl1
-putvar:
+@putvar:
 	lda #30
 	jmp usetbl1
 zero:
@@ -65,39 +65,39 @@ chatmode:
 	jmp usetbl1
 
 ;********************************
-;* string input routines
+;*     string input routines    *
 ;********************************
 
 ;********************************
-;* input line to an$ *
+;*       input line to an$      *
 ;********************************
-;* on entry:*
-;* pl=0 for upper/lower case *
-;* pl=1 for upper case only *
-;* w$ = text that was wrapped *
-;* or text to edit in *
-;* edit mode. *
-;* p$ = text for prompt *
-;* .x register holds mode *
-;* .y register holds password mode
-;* flags *
+;* on entry:                    *
+;* pl=0 for upper/lower case    *
+;* pl=1 for upper case only     *
+;* w$ = text that was wrapped   *
+;* or text to edit in           *
+;* edit mode.                   *
+;* p$ = text for prompt         *
+;* .x register holds mode       *
+;* .y register holds password   *
+;*    mode flags                *
 ;********************************
-;* on exit:
-;* an$ = text that was typed *
-;* w$ = text that was wrapped *
-;* location (chat) holds:
-;* 0 = normal *
-;* 1 = delete on column one *
-;* or dot on column one *
-;* 2 = chat check hit *
-;* 3 = carrier/time loss *
+;* on exit:                     *
+;* an$ = text that was typed    *
+;* w$ = text that was wrapped   *
+;* location (chat) holds:       *
+;* 0 = normal                   *
+;* 1 = delete on column one     *
+;*     or dot on column one     *
+;* 2 = chat check hit           *
+;* 3 = carrier/time loss        *
 ;********************************
 
-inline:
+@inline:
 	stx editor ;flags
 	sty passmode
 	ldx #var_pl_float
-	jsr usevar
+	jsr @<usevar
 	lda varbuf ;case lock
 	and #1
 	sta case
@@ -117,7 +117,7 @@ inline0:
 ; copy wrapped word to input buffer
 
 	ldx #var_w_string
-	jsr usevar
+	jsr @<usevar
 	ldy varbuf
 	beq in1
 	sty tmp1
@@ -156,12 +156,12 @@ in0b:
 
 	jsr zero
 	ldx #var_w_string
-	jsr putvar
+	jsr @<putvar
 
 ; input main loop
 
 in1:
-	jsr xgetin
+	jsr @<xgetin
 	sta $fe
 
 	jsr carchk
@@ -274,7 +274,7 @@ ctrlm:
 	lda #>buffer
 	sta varbuf+2
 	ldx #var_an_string
-	jsr putvar
+	jsr @<putvar
 	jmp memory
 
 ctrlt:
@@ -461,7 +461,7 @@ wrap2:
 	lda #>buf2
 	sta varbuf+2
 	ldx #var_w_string
-	jsr putvar
+	jsr @<putvar
 	jmp ctrlm
 wrap3:
 	ldx #0
@@ -488,7 +488,7 @@ wrap5:
 	lda #>buf2
 	sta varbuf+2
 	ldx #var_w_string
-	jsr putvar
+	jsr @<putvar
 wrap6:
 	ldy tmp3
 	iny

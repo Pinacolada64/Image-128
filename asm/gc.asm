@@ -5,6 +5,7 @@ hi = 51
 size = 128
 
 ; setup gc parameters
+; avoid duplicate label (gc = $c000, the load address of the module)
 gc:
 	lda #$c7 ; reverse uppercase G
 	sta tdisp+31
@@ -20,6 +21,11 @@ gc:
 	pha
 	lda 8
 	pha
+
+; garbage collection is totally different on the 128;
+; skip all this, pull values and turn the indicator off
+	jmp gc7
+
 	lda 49
 	ldx 50
 	sta lo
@@ -300,6 +306,3 @@ tbldl:
 	area size, 0
 tbldh:
 	area size, 0
-
-; ; }
-; ; }
