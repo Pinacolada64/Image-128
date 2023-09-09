@@ -116,7 +116,7 @@ loop:
 
 file1:
 	ascii "ml 128 "
-	ascii {usevar:version_number}
+	ascii {usedef:version_number}
 file1_end:
 
 boot:

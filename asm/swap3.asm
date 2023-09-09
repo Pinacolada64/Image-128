@@ -165,7 +165,7 @@ loop:
 
 copymsg:
 	ascii "{f6}{pound}{backarrow}07Image BBS 128 v"
-	ascii {usevar:version_number}
+	ascii {usedef:version_number}
 	ascii "{f6}"
 copymsg_end:
 

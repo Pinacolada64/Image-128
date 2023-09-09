@@ -1,5 +1,5 @@
-{buildrev:.\revision}
-revision = {usevar:__BuildRev}
+{def:revision = {buildrev:.\revision}}
+{'info:Code revision {usedef:revision}.}
 
 {include:"equates.asm"}
 
@@ -688,9 +688,9 @@ decchr:
 ; the date this ml was made
 
 version:
-	ascii {usevar:__BuildDate}
+	ascii {usedef:__BuildDate}
 	ascii " "
-	ascii {usevar:__BuildTime}
+	ascii {usedef:__BuildTime}
 
 version_length = * - version
 

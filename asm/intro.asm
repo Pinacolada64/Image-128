@@ -527,7 +527,7 @@ startmsg:
 
 bootvers:
 	ascii "{clear} Image BBS 128 v"
-	ascii {usevar:version_number}
+	ascii {usedef:version_number}
 	ascii " {pound}$a{f6}"
 bootvers_end:
 

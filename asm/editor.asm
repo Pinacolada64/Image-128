@@ -1,15 +1,15 @@
 orig editor_exec_address
 
-editor_version = "01/22/91 06:51p"
+{def:editor_version = "01/22/91 06:51p"}
 
 ;* editor sub-system
 
 temp	= arisgn	; c64: $6f. 128: $71
 temp1	= numwork + 8	; c64: $5f
-temp2 = $60
-delx = $52
-numx = $14
-numy = $15
+temp2	= numwork + 9	; c64: $60
+delx	= dscpnt + 2	; c64: $52
+numx	= poker		; c64: $14. 128: $16
+numy	= poker + 1	; c64: $15. 128: $17
 
 	jmp entry1 ;no text
 	jmp entry2 ;re-enter main
@@ -287,7 +287,7 @@ comlist:
 	word tclrt,clrtx
 	ascii "o"
 	byte %1100
-	word tline,linnum
+	word tline,@>linnum
 	ascii "r"
 	byte %0101
 	word tread,cread
@@ -766,7 +766,7 @@ exit:
 exit1:
 	jmp dontdo
 
-linnum:
+@linnum:
 	lda flags
 	eor #2
 	sta flags
@@ -902,9 +902,9 @@ cvers:
 	jmp prmsg0
 versmsg:
 	ascii "{f6}Image BBS 128 "
-	ascii {usevar:version_number}
+	ascii {usedef:version_number}
 	ascii " Editor ("
-	ascii {usevar:editor_version}
+	ascii {usedef:editor_version}
 	ascii "){f6}"
 versmsg_end:
 

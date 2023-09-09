@@ -172,7 +172,7 @@ outmodl1:
 	jsr ansicom
 	{alpha:ascii}		; .encoding "ascii"
 	lda #'J'
-	{alpha:normal)	; .encoding "petscii_mixed"
+	{alpha:normal}		; .encoding "petscii_mixed"
 	jmp outm
 
 outmodhm:
