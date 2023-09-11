@@ -2,7 +2,7 @@
 ; .namespace swap3 {
 
 @hc000:
-	jmp read0
+	jmp @>read0
 @hc003:
 	jmp newuser
 @hc006:
@@ -10,7 +10,7 @@
 @hc009:
 	jmp convdate
 @hc00c:
-	jmp copyrite
+	jmp @>copyrite
 @hc00f:
 	jmp read_interface_byte
 @hc012:
@@ -18,28 +18,28 @@
 
 ; jump table routines
 
-outastr:
+@outastr:
 	lda #0
 	byte $2c
-dskin:
+@dskin:
 	lda #2
 	byte $2c
 @usevar:
 	lda #29
 	byte $2c
-putvar:
+@putvar:
 	lda #30
 	byte $2c
-zero:
+@zero:
 	lda #31
 	byte $2c
 minusone:
 	lda #32
 	byte $2c
-prtvar0:
+@prtvar0:
 	lda #46
 	byte $2c
-output:
+@output:
 	lda #55
 	jmp usetbl1
 
@@ -49,14 +49,14 @@ output:
 newuser:
 	lda #1
 	sta readmode
-	jmp read0
+	jmp @>read0
 
 relread:
 	lda #$bf
 	sta read1b+1
 
 ;* main file reader
-read0:
+@read0:
 	cpx #$00
 	beq read0a
 	stx filenum
@@ -71,23 +71,23 @@ readf:
 	lda $90
 	sta dstat
 	lda index
-	beq read1
+	beq @>read1
 	lda buf2
 	cmp #'^'
 	beq read2
-read1:
-	jsr zero
+@read1:
+	jsr @<zero
 	lda index
 	cmp #80
 	beq read1a
 	jsr minusone
 read1a:
 	ldx #var_lp_float
-	jsr putvar
-	jsr zero
+	jsr @<putvar
+	jsr @<zero
 	ldx #var_rc_float
-	jsr putvar
-	jsr outastr
+	jsr @<putvar
+	jsr @<outastr
 	lda dstat
 read1b:
 	and #$ff
@@ -124,7 +124,7 @@ dl1:
 	bne dl1
 	dex
 	bne dl1
-	jsr output
+	jsr @<output
 	pla
 	ldx chat
 	bne movie2
@@ -137,7 +137,7 @@ movdly:
 
 ; print copyright message
 
-copyrite:
+@copyrite:
 	lda outastrp+1
 	sta jmptbl
 	lda outastrp+2
@@ -158,10 +158,10 @@ copyrite:
 	sta varbuf+2
 
 	ldx #var_an_string
-	jsr putvar
+	jsr @<putvar
 
 	ldx #var_an_string
-	jmp prtvar0
+	jmp @<prtvar0
 
 copymsg:
 ; "----+----+----+----+----+----+----+----+"
@@ -473,7 +473,7 @@ read_interface_byte_load:
 	bne read_interface_byte_done
 	tay
 	ldx #var_a_integer
-	jsr putvar
+	jsr @<putvar
 read_interface_byte_done:
 	rts
 

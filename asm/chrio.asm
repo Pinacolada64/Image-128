@@ -286,11 +286,11 @@ outptr4:
 	rts
 
 ; * output carriage return
-prcr:
+@prcr:
 	lda #$0d
 	jmp xchrout
 ; * output delete character
-prdel:
+@prdel:
 	lda #$14
 	jmp xchrout
 

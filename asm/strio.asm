@@ -173,31 +173,31 @@ ctrlchk0:
 	rts
 
 ;  carry clear if control
-ctrlchk:
+@ctrlchk:
 	pha
 	lda editor
 	and #1
-	beq ctrlch0
+	beq @>ctrlch0
 	pla
-ctrlchk1:
+@ctrlchk1:
 	jsr colorchk
-	bcc ctrlch2
+	bcc @>ctrlch2
 	jsr ctrlchk2
-	bcc ctrlch2
+	bcc @>ctrlch2
 	pha
-ctrlch0:
+@ctrlch0:
 	pla
 	cmp #32
 	bcc ctrlch1
 	cmp #128
-	bcc ctrlch2
+	bcc @>ctrlch2
 	cmp #160
-	bcs ctrlch2
+	bcs @>ctrlch2
 	cmp #133
 	bcc ctrlch1
 	cmp #141
 	bcs ctrlch1
-ctrlch2:
+@ctrlch2:
 	sec
 	rts
 ctrlch1:

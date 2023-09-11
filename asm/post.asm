@@ -330,7 +330,7 @@ check1:
 check2:
 	ldx #2
 	ldy #0
-	jsr dskin
+	jsr @>dskin
 
 	lda skip2
 	bne check1
@@ -736,7 +736,7 @@ postld1:
 
 	ldx #2
 	ldy #3
-	jsr dskin
+	jsr @>dskin
 
 	lda buf2
 	sta ptr_lsb
@@ -749,7 +749,7 @@ postld1:
 	ldx #2
 	cpy #0
 	beq postld3
-	jsr dskin
+	jsr @>dskin
 	ldy #0
 postld2:
 	lda buf2,y
@@ -849,7 +849,7 @@ postsv0:
 
 	ldx #2
 	ldy #2
-	jsr dskin
+	jsr @>dskin
 
 	jsr sendcom
 
@@ -1042,7 +1042,7 @@ tenwait:
 ;  Y = bytes to read (0 means read up to carriage return, max 80)
 ; data read will be in the a$ variable, and in buf2
 
-dskin:
+@dskin:
 	lda #2
 	jmp usetbl1
 

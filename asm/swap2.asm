@@ -4,41 +4,41 @@
 @hc000:
 	jmp term
 @hc003:
-	jmp chatmode
+	jmp @>chatmode
 @hc006:
 	jmp btmvar
 @hc009:
-	jmp convert
+	jmp @>convert
 @hc00c:
 	jmp sound
 
 ; jump table routines
 
-xchrout:
+@xchrout:
 	sta $fe
 	lda #24
 	jmp usetbl1
-usevar:
+@usevar:
 	lda #29
 	jmp usetbl1
-chatchk:
+@chatchk:
 	lda #43
 	jmp usetbl1
 prtvar:
 	lda #45
 	jmp usetbl1
-prtvar0:
+@prtvar0:
 	lda #46
 	jmp usetbl1
 getkbd:
 	lda #48
 	jmp usetbl1
-getmod:
+@getmod:
 	lda #49
 	jmp usetbl1
 outscn0:
 	sta $fe
-outscn:
+@outscn:
 	lda #50
 	jmp usetbl1
 outmod:
@@ -49,7 +49,7 @@ output:
 	jmp usetbl1
 
 ; chat mode
-chatmode:
+@chatmode:
 	lda #$00
 	sta $fe
 	sta chatpage
@@ -72,12 +72,12 @@ chat1:
 chat1a:
 	jsr getkbd
 	bne chat2
-	jsr getmod
+	jsr @<getmod
 	beq chat1
 chat2:
 	cmp #cursor_home
 	beq chat1
-	jsr xchrout
+	jsr @<xchrout
 	jmp chat1
 chat3:
 	pla
@@ -114,7 +114,7 @@ term2:
 	sta $fe
 	jsr outmod
 term1:
-	jsr getmod
+	jsr @<getmod
 	lda $fe
 	beq term
 	jsr outansi
@@ -125,7 +125,7 @@ outansi:
 	lda flag_ans_addr
 	and #flag_ans_l_mask
 	bne outansi2
-	jmp outscn
+	jmp @<outscn
 outansi1:
 	inx
 	stx ansiptr
@@ -396,7 +396,7 @@ hitbl:
 
 convert0:
 	rts
-convert:
+@convert:
 	dex
 	cpx #4
 	bcs convert0
@@ -551,5 +551,5 @@ timetbl:
 	byte 090,100,110,120
 	byte 150,180,240,001
 
-; ; }
-; ; }
+; }
+; }

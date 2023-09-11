@@ -29,7 +29,7 @@ outmodh1:
 	lda #dish
 	jmp outm
 
-outmod:
+@outmod:
 	lda flag_asc_addr
 	and #flag_asc_l_mask
 	bne outmod0
@@ -204,7 +204,7 @@ ansi:
 ansi1:
 	tya
 	pha
-	lda ansibuf,y
+	lda @>ansibuf,y
 	beq ansi2
 	jsr outm
 	pla
@@ -219,7 +219,7 @@ ansiclrs:
 	ascii "7716524333107247"
 ansiints:
 	ascii "0100000100110110"
-ansibuf:
+@ansibuf:
 	byte 27
 	ascii "[0;"
 ansiint:

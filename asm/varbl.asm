@@ -9,7 +9,7 @@ getarr:
 	jmp usevar1
 
 ;* get and copy memory to buffer
-getln:
+@getln:
 	jsr getarr
 	ldy var
 	sty index
@@ -26,7 +26,7 @@ getln1:
 	rts
 
 ;* print tt$(.a)
-prtln:
+@prtln:
 	jsr getarr
 	jmp outstr
 
@@ -38,7 +38,7 @@ putarr:
 	jmp putvar1
 
 ;* put and store string
-putln:
+@putln:
 	txa
 	pha
 	lda index
@@ -118,17 +118,17 @@ findvar:
 	jmp findvar1
 
 ;* print string variable
-prtvar:
+@prtvar:
 	jsr @>usevar
 	jmp outstr
 
 ;* print string variable w/mci
-prtvar0:
+@prtvar0:
 	lda mci
 	pha
 	lda #0
 	sta mci
-	jsr prtvar
+	jsr @<prtvar
 	pla
 	sta mci
 	rts
@@ -149,7 +149,7 @@ usevar1:
 	rts
 
 ;* put variable descriptor
-putvar:
+@putvar:
 	jsr varname
 	jmp putvar2
 putvar0:
@@ -163,7 +163,7 @@ putvar1:
 	bpl putvar1
 	rts
 
-zero:
+@zero:
 	lda #0
 	ldy #4
 zero1:
@@ -171,8 +171,8 @@ zero1:
 	dey
 	bpl zero1
 	rts
-minusone:
-	jsr zero
+@minusone:
+	jsr @<zero
 	lda #$81
 	sta var
 	rts

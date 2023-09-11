@@ -185,14 +185,14 @@ calcgoto:
 calcgot1:
 	jmp mlgosub
 
-ecschk:
+@ecschk:
 	stx stsize
 	sty stcount
 	jsr evalint
 	sty ecsc5+1
 	stx ecsc6+1
 	jsr fnvar
-	stx ecsc3+1
+	stx @>ecsc3+1
 	sty ecsc4+1
 	jsr evalstr
 	sta index
@@ -200,9 +200,9 @@ ecschk:
 ecsc1:
 	lda #0
 	cpy index
-	bcs ecsc2
+	bcs @>ecsc2
 	lda ($22),y
-ecsc2:
+@ecsc2:
 	sta buf2,y
 	iny
 	cpy #8
@@ -210,7 +210,7 @@ ecsc2:
 	lda index
 	beq ecsquit
 	ldy #0
-ecsc3:
+@ecsc3:
 	lda #0
 	sta varbuf+3
 ecsc4:

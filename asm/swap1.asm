@@ -4,7 +4,7 @@
 hc000:
 	jmp @>inline
 hc003:
-	jmp inline0
+	jmp @>inline0
 hc006:
 	jmp password
 hc009:
@@ -101,7 +101,7 @@ chatmode:
 	lda varbuf ;case lock
 	and #1
 	sta case
-inline0:
+@inline0:
 	ldy #$00
 	sty index
 	sty tmp1 ;chars typed
@@ -179,7 +179,7 @@ in1a:
 	jsr chatchk
 	beq in1b
 	jsr chatmode
-	jmp inline0
+	jmp @>inline0
 in1b:
 	lda $fe
 	ldy index
@@ -359,7 +359,7 @@ ctrlx:
 	lda #'{pound}'
 	jsr xchrout
 	jsr prcr
-	jmp inline0
+	jmp @>inline0
 
 ctrly:
 	ldy index
@@ -580,7 +580,7 @@ colrch1:
 	clc
 	rts
 
-prcr:
+@prcr:
 	lda #$0d
 	jmp xchrout
 
@@ -604,7 +604,7 @@ password:
 	ora #passmode_show_mask
 	sta passmode
 
-	jsr inline0
+	jsr @>inline0
 
 	lda #passmode_off
 	sta passmode
@@ -636,6 +636,3 @@ editswap:
 
 edittbl:
 	byte 0,3,6
-
-; ; }
-; ; }
