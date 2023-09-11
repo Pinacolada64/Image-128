@@ -1,6 +1,6 @@
 outscn:
 
-outscn0:
+@outscn0:
 	lda #0
 	sta idlejif
 	tax
@@ -55,7 +55,7 @@ sc8:
 	lda #0
 	sta scnpos
 	lda #39
-	sta 213
+	sta lnmx	; c64: $d5/213. max screen line length
 	jsr fixlink
 	jmp sccrsr
 sc5:
@@ -159,13 +159,13 @@ scbell1:
 
 scroll:
 	inc scnlock
-	lda $ac
+	lda sal		; c64: $ac
 	pha
-	lda $ad
+	lda sal+1	; same: $ad
 	pha
 	lda eal	; c64: $ae
 	pha
-	lda $af
+	lda eal+1	; same: \$af
 	pha
 	ldx #0
 	jsr he9f0
@@ -175,38 +175,38 @@ scroll0:
 	cpx #24
 	beq scroll2
 	jsr calcscn
-	sty $ac
-	sta $ad
+	sty sal		; c64: $ac
+	sta sal+1	; same: $ad
 	jsr calccol
-	sty eal	; c64: $ae
-	sta $af
+	sty eal		; c64: $ae
+	sta eal+1	; same: \$af
 	ldy #39
 scroll1:
-	lda ($ac),y
-	sta ($d1),y
-	lda (eal),y	; ($ae),y
-	sta ($f3),y
+	lda (sal),y	; same: ($ac),y
+	sta (pnt),y	; c64:  ($d1),y
+	lda (eal),y	; same: ($ae),y
+	sta (colptr),y	; c64:  ($f3),y
 	dey
 	bpl scroll1
-	ldy $ac
-	lda $ad
-	sty $d1
-	sta $d2
-	ldy eal	; c64: $ae
-	lda $af
-	sty $f3
-	sta $f4
+	ldy sal		; same: $ac
+	lda sal+1	; same: $ad
+	sty pnt		; c64:  $d1
+	sta pnt+1	; c64:  $d2
+	ldy eal		; same: $ae
+	lda eal+1	; same: $af
+	sty colptr	; c64:  $f3
+	sta colptr+1	; c64:  $f4
 	jmp scroll0
 scroll2:
 	jsr scline0
 	pla
-	sta $af
+	sta eal+1	; same: $af
 	pla
-	sta eal	; c64: $ae
+	sta eal		; c64:  $ae
 	pla
-	sta $ad
+	sta sal+1	; same: $ad
 	pla
-	sta $ac
+	sta sal		; same: $ac
 	dec sline
 	jsr sccrsr
 	dec scnlock
@@ -218,10 +218,10 @@ scline:
 scline0:
 	ldy #39
 scline1:
-	lda 646
-	sta ($f3),y
+	lda color	; c64:  646
+	sta (colptr),y	; c64:  ($f3),y
 	lda #32
-	sta ($d1),y
+	sta (pnt),y	; c64:  ($d1),y
 	dey
 	bpl scline1
 	rts
@@ -246,18 +246,21 @@ chrs_end:
 
 cleanup:
 	lda #39
-	sta 213
+	sta lnmx	; c64: $d5/213
 	lda #0
-	sta 212
+	sta qtsw	; c64: 212
 	lda #0
-	sta 216
+	sta insrt	; c64: 216
 
 fixlink:
 	ldx sline
 fixlinks:
-	lda 217,x
-	ora #128
-	sta 217,x
+; c128 line link table is a bitmap from $035e-$361 (4 bytes, 24 bits)
+;	lda 217,x
+;	ora #128
+;	sta 217,x
+; clear line link bitmap, row in .x:
+	jsr $cb74
 	rts
 
 botline:
@@ -344,7 +347,7 @@ crsroff:
 	ldx undcol
 	ldy #0
 	sty crsrmode
-	jsr $ea13
+	jsr $ea13	; FIXME: set cursor blink timing & color memory address
 crsroff1:
 	rts
 
@@ -429,9 +432,9 @@ calcscn1:
 	lda hibytes,x
 	rts
 calcscn2:
-	lda $ecf0,x
+	lda $ecf0,x	; FIXME: Low Byte Table of Screen Line Addresses
 	tay
-	lda $d9,x
+	lda $d9,x	; FIXME: screen line link table
 	and #$03
 	ora #$04
 	rts
@@ -449,9 +452,9 @@ calccol1:
 	lda hibytec,x
 	rts
 calccol2:
-	lda $ecf0,x
+	lda $ecf0,x	; FIXME: Low Byte Table of Screen Line Addresses
 	tay
-	lda $d9,x
+	lda $d9,x	; FIXME: Screen line link table
 	and #$03
 	ora #$d8
 	rts
@@ -460,8 +463,8 @@ he9f0:
 	tya
 	pha
 	jsr calcscn
-	sty $d1
-	sta $d2
+	sty pnt		; c64: $d1
+	sta pnt+1	; c64: $d2
 	pla
 	tay
 	rts
@@ -470,8 +473,8 @@ hea24:
 	tya
 	pha
 	jsr calccol
-	sty $f3
-	sta $f4
+	sty colptr	; c64: $f3
+	sta colptr+1	; c64: $f4
 	pla
 	tay
 	rts
@@ -493,21 +496,21 @@ setmode2:
 	jsr crsroff
 
 swapscn:
-	lda $d1
+	lda curptr	; c64: $d1
 	pha
-	lda $d2
+	lda curptr+1	; c64: $d2
 	pha
-	lda $f3
+	lda colptr	; c64: $f3
 	pha
-	lda $f4
+	lda colptr+1	; c64: $f4
 	pha
-	lda $ac
+	lda sal		; c64: $ac
 	pha
-	lda $ad
+	lda sal+1	; same: $ad
 	pha
-	lda eal	; c64: $ae
+	lda eal		; c64: $ae
 	pha
-	lda $af
+	lda eal+1	; same: \$af
 	pha
 	lda scnmode
 	pha
@@ -516,27 +519,27 @@ swapscn1:
 	jsr he9f0
 	jsr hea24
 	jsr calcscn0
-	cmp $d2
+	cmp curptr+1	; c64: $d2
 	beq swapscn3
-	sty $ac
-	sta $ad
+	sty sal		; c64: $ac
+	sta sal+1	; same: $ad
 	jsr calccol0
-	sty eal	; c64: $ae
-	sta $af
+	sty eal		; c64: $ae
+	sta eal+1	; same: \$af
 	ldy #39
 swapscn2:
-	lda ($d1),y
+	lda (curptr),y	; c64: ($d1),y
 	pha
-	lda ($ac),y
-	sta ($d1),y
+	lda (sal),y	; same: ($ac),y
+	sta (curptr),y	; c64: ($d1),y
 	pla
-	sta ($ac),y
-	lda ($f3),y
+	sta (sal),y	; same: ($ac),y
+	lda (colptr),y	; c64:  ($f3),y
 	pha
-	lda (eal),y	; ($ae),y
-	sta ($f3),y
+	lda (eal),y	; same: ($ae),y
+	sta (colptr),y	; c64:  ($f3),y
 	pla
-	sta (eal),y	; ($ae),y
+	sta (eal),y	; same: ($ae),y
 	dey
 	bpl swapscn2
 swapscn3:
@@ -546,25 +549,25 @@ swapscn3:
 	pla
 	sta scnmode
 	pla
-	sta $af
+	sta eal+1	; both: $af
 	pla
-	sta eal	; c64: $ae
+	sta eal		; both: $ae
 	pla
-	sta $ad
+	sta sal+1	; both: $ad
 	pla
-	sta $ac
+	sta sal		; both: $ac
 	pla
-	sta $f4
+	sta colptr+1	; c64:  $f4
 	pla
-	sta $f3
+	sta colptr	; c64:  $f3
 	pla
-	sta $d2
+	sta curptr+1	; c64:  $d2
 	pla
-	sta $d1
+	sta curptr	; c64: $d1
 	rts
-;*
+;****************************
 ;* decimal to ascii routine *
-;*
+;****************************
 decimal:
 	sta binary
 	stx binary+1
@@ -635,8 +638,8 @@ trace4:
 	lda flag_trc_addr
 	and #flag_trc_l_mask
 	beq trace7
-	lda 57
-	ldx 58
+	lda curlin	; c64: 57
+	ldx curlin+1	; c64: 58
 	cmp oldline
 	bne trace5
 	cpx oldline+1
@@ -655,8 +658,9 @@ trace5a:
 	ldx #0
 	ldy #200
 trace6:
-	lda 653
-	and #4
+; pause trace with Ctrl key
+	lda shflag	; c64: 653
+	and #CONTROL_KEY; 4
 	beq trace7
 	dex
 	bne trace6

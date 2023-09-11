@@ -10,7 +10,7 @@ jstr = $6a ;2
 jptr = $6c ;2
 temp = $14 ;2
 
-; sys 49152,a$(1),n
+; sys 49152,a$(1),n ; array name, starting element?
 
 		jmp sort
 
@@ -65,15 +65,15 @@ calcstr:
 sort:
 		lda #r6510_normal
 		sta r6510
-		jsr $aefd
-		jsr $b08b
-		ldx $47
-		ldy $48
+		jsr chkcom	; c64: $aefd
+		jsr ptrget	; c64: $b08b
+		ldx varpnt	; c64: $47
+		ldy varpnt+1	; c64: $48
 		stx base
 		sty base+1
-		jsr $aefd
-		jsr $ad8a
-		jsr $b7f7
+		jsr chkcom	; c64: $aefd
+		jsr frmnum	; c64: $ad8a
+		jsr getadr	; c64: $b7f7
 		ldx $14
 		ldy $15
 		stx n

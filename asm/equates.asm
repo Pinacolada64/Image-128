@@ -159,12 +159,10 @@
 ;			; Table of active logical file numbers
 	crsw	= $d6	; c64: $d0. Flag: Input from Keyboard or Screen
 	pnt	= $e0	; c64: ($d1). Pointer to the address of the current screen line
-	qtsw	= $f4	; c64: $d4. quote mode flag
-	lnmx	= $ee	; c64: $d5. Maximum length of physical screen line
-	tblx	= $eb	; c64: $d6. Current cursor physical line number
+	qtsw	= $f4	; c64: $d4/212. quote mode flag
 	zp_d7	= $f0	; c64: $d7. temp storage for ASCII value of last char printed
-	insrt	= $f5	; c64: $d8. insert mode flag
-;	ldtb1	= $d9	; c64: $d9-$f2. Screen line link table / editor temporary storage
+	insrt	= $f5	; c64: $d8/216. insert mode flag
+;	ldtb1	= $d9	; c64: $d9-$f2/217-242. Screen line link table / editor temporary storage
 
 	free_fb	= $fb
 	free_fc	= $fc
@@ -187,9 +185,10 @@
 ;
 ; screen parameters
 ;
+	sline	= $eb	; c64: $d6. current screen row (0-24)
 	scnpos	= $ec	; c64: $d3. current screen column (0-39)
 	scnclm	= scnpos; screen column
-	sline	= $eb	; c64: $d6. current screen row (0-24)
+	lnmx	= $ee	; c64: $d5. maximum screen line length
 	colptr	= $e2	; c64: ($f3). Pointer to the address of the current screen color RAM location
 	rvs	= $f3	; c64: $c7. Flag: Print Reverse Characters? 0=No
 	color	= $f1	; c64: $0286/646. Current foreground text color

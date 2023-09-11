@@ -9,6 +9,7 @@ size = 128
 gc:
 	lda #$c7 ; reverse uppercase G
 	sta tdisp+31
+
 	lda 3
 	pha
 	lda 4
@@ -23,6 +24,7 @@ gc:
 	pha
 
 ; garbage collection is totally different on the 128;
+; TODO: call regular garbage collection routine
 ; skip all this, pull values and turn the indicator off
 	jmp gc7
 

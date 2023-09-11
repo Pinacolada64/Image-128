@@ -134,9 +134,9 @@ chopfil1:
 	jsr scan0
 	ldy #0
 	tya
-	sta (eal),y	; ($ae),y
+	sta (eal),y	; same: ($ae),y
 	iny
-	sta (eal),y	; ($ae),y
+	sta (eal),y	; same: ($ae),y
 	clc
 	lda #2
 	adc eal		; c64: $ae
@@ -149,7 +149,7 @@ closroom:
 	ldx txttab	; c64: $2d
 	ldy txttab+1	; c64: $2e
 	stx sal		; c64: $ac
-	sty sal+1	; $ad
+	sty sal+1	; c64: $ad
 	ldx eal		; c64: $ae
 	ldy eal+1	; c64: $af
 	stx txttab	; c64: $2d
@@ -166,9 +166,9 @@ clrm:
 	lda 1,x
 	sta cmp0+1	; c64: $b1
 clrm1:
-	lda (sal),y	; c64: ($ac),y
-	sta (eal),y	; c64: ($ae),y
-	lda sal		; c64: $ac
+	lda (sal),y	; same: ($ac),y
+	sta (eal),y	; same: ($ae),y
+	lda sal		; same: $ac
 	cmp 0,x
 	bne clrm0
 	lda sal+1	; c64: $ad
@@ -201,11 +201,11 @@ scan1:
 	stx eal		; $ae
 	sty eal+1	; $af
 	ldy #2
-	lda (eal),y	; ($ae),y
+	lda (eal),y	; same: ($ae),y
 l1x:
 	cmp #0
 	iny
-	lda (eal),y	; ($ae),y
+	lda (eal),y	; same: ($ae),y
 l2x:
 	sbc #0
 	bcs scan3
@@ -215,10 +215,10 @@ scan2:
 	sta sal		; $ac
 	stx sal+1	; $ad
 	ldy #0
-	lda (eal),y	; ($ae),y
+	lda (eal),y	; same: ($ae),y
 	tax
 	iny
-	lda (eal),y	; ($ae),y
+	lda (eal),y	; same: ($ae),y
 	tay
 	bne scan1
 scan3:
@@ -248,14 +248,14 @@ oprm2:
 	bne oprm3
 	dec eal+1	; c64: $af
 oprm3:
-	dec eal		; c64: $ae
-	lda (sal),y	; c64: ($ac),y
-	sta (eal),y	; c64: ($ae),y
+	dec eal		; same: $ae
+	lda (sal),y	; same: ($ac),y
+	sta (eal),y	; same: ($ae),y
 	jmp oprm1
 oprm4:
-	lda eal		; c64: $ae
+	lda eal		; same: $ae
 	sta 0,x
-	lda eal+1	; c64: $af
+	lda eal+1	; same: $af
 	sta 1,x
 	cli
 	rts
@@ -542,25 +542,25 @@ arrs1:
 	dey
 	dey
 	bpl arrs1
-	lda arytab	; c64: $2f
-	sta eal		; c64: $ae
-	lda arytab+1	; c64: $30
-	sta eal+1	; c64: $af
+	lda arytab	; c64:  $2f
+	sta eal		; c64:  $ae
+	lda arytab+1	; c64:  $30
+	sta eal+1	; c64:  $af
 	ldy #0
 	beq arrs2
 arrs3:
-	inc sal		; c64: $ac
+	inc sal		; c64:  $ac
 	bne arrs3a
-	inc sal+1	; c64: $ad
+	inc sal+1	; c64:  $ad
 arrs3a:
-	inc eal		; c64: $ae
+	inc eal		; c64:  $ae
 	bne arrs2
-	inc eal+1	; c64: $af
+	inc eal+1	; c64:  $af
 arrs2:
-	lda (sal),y	; c64: ($ac),y
-	sta (eal),y	; c64: ($ae),y
-	lda eal		; c64: $ae
-	cmp strend	; c64: $31
+	lda (sal),y	; same: ($ac),y
+	sta (eal),y	; same: ($ae),y
+	lda eal		; same: $ae
+	cmp strend	; c64:  $31
 	bne arrs3
 	lda eal+1	; c64: $af
 	cmp strend+1	; c64: $32

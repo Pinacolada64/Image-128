@@ -33,7 +33,7 @@ ml5:
 
 fnvarx:
 	jsr chkcom
-	jsr $b08b
+	jsr ptrget	; c64: $b08b
 	ldx $47
 	ldy $48
 	rts
@@ -50,15 +50,15 @@ evalbytx:
 
 evalstrx:
 	jsr chkcom
-	jsr $ad9e
+	jsr frmeval	; c64: $ad9e
 	jsr $b6a3
 	cmp #0
 	rts
 
 getword:
-	jsr $aefd
-	jsr $ad8a
-	jsr $b7f7
+	jsr chkcom	; c64: $aefd
+	jsr frmnum	; c64: $ad8a
+	jsr getadr	; c64: $b7f7
 	ldx $14
 	ldy $15
 	rts
