@@ -1563,7 +1563,7 @@ putvar:
 @outastr:
 	lda #0
 	jmp usetbl1
-xgetin:
+@xgetin:
 	lda #23
 	jmp usetbl1
 @xchrout1:

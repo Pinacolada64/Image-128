@@ -98,7 +98,7 @@ mcivar:
 	lda mcivars,y
 	jmp usevar0
 
-colors:
+@colors:
 	byte cursor_cyan ; (default color)
 	byte cursor_white
 	byte cursor_red
@@ -176,7 +176,7 @@ comqc = *+1
 	beq comc2
 comc1:
 	tay
-	lda colors,y
+	lda @<colors,y
 	sta $fe
 	jmp output
 comc2:

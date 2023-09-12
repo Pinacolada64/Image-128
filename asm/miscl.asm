@@ -208,7 +208,7 @@ ecsc1:
 	cpy #8
 	bcc ecsc1
 	lda index
-	beq ecsquit
+	beq @>ecsquit
 	ldy #0
 @ecsc3:
 	lda #0
@@ -220,33 +220,33 @@ ecsc4:
 	sta varbuf+0
 	lda #1
 	sta varbuf+1
-ecsscan:
+@ecsscan:
 	ldy #2
 	lda (varbuf+3),y
 ecsc5:
 	and #0
-	bne ecsscan1
+	bne @>ecsscan1
 	ldy #3
 	lda (varbuf+3),y
 ecsc6:
 	and #0
-	beq ecsnext
-ecsscan1:
+	beq @>ecsnext
+@ecsscan1:
 	ldy #6
 	ldx #0
-ecsscan2:
+@ecsscan2:
 	lda (varbuf+3),y
 	iny
 	cmp buf2,x
-	bne ecsnext
+	bne @>ecsnext
 	cpy stsize
 	bcs ecsdone
 	inx
 	cpx #8
-	bcc ecsscan2
+	bcc @<ecsscan2
 	jmp ecsdone
 
-ecsnext:
+@ecsnext:
 	lda varbuf+3
 	clc
 	adc stsize
@@ -256,8 +256,8 @@ ecsnext:
 	sta varbuf+4
 	inc varbuf+1
 	dec stcount
-	bne ecsscan
-ecsquit:
+	bne @<ecsscan
+@ecsquit:
 	lda #0
 	sta varbuf
 	sta varbuf+1

@@ -257,12 +257,12 @@ mkdate1:
 	iny
 	rts
 
-mult3:
+@mult3:
 	tya
-	sta mult3a+1
+	sta @>mult3a+1
 	asl
 	clc
-mult3a:
+@mult3a:
 	adc #$00
 	tay
 	rts
@@ -283,7 +283,7 @@ makdate:
 	jsr mkdate
 dispdate:
 	ldy bootdate
-	jsr mult3
+	jsr @<mult3
 	ldx #0
 dispd1:
 	lda daytbl,y
@@ -300,7 +300,7 @@ dispd1:
 dispd1a:
 	tay
 	dey
-	jsr mult3
+	jsr @<mult3
 dispd2:
 	lda montbl,y
 	jsr dispdt
