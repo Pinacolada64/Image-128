@@ -884,11 +884,11 @@ irq9:
 	lda #$14
 	sta blnct	; c64: $cd
 	ldy pntr	; c64: $d3
-	lsr blnon	; c64: $cf
+	lsr crsrmode	; c64: $cf
 	ldx gdcol	; c64: $0287
 	lda (pnt),y	; c64: ($d1),y
 	bcs irq9e
-	inc blnon	; c64: $cf
+	inc crsrmode	; c64: $cf
 	sta undchr	; c64: $ce
 	jsr $ea24
 	lda (colptr),y	; c64: ($f3),y

@@ -174,11 +174,8 @@
 ;
 	pntr	= $ec	; c64: $d3. cursor column on current line
 	curptr	= $e0	; c64: $d1-$d2. Pointer to address of current screen line
-	blnon	= $0a26	; c64: $cf. Flag: Was last cursor blink on or off?
-; FIXME: one label or the other please :)
-	crsrmode= $0a27	; c64: $cc. Flag: Cursor enable. 0=enabled, <>0=disabled.
-	crsrflg	= $0a27	; c64: $cc. Cursor blink enable flag (0 = flashing cursor)
-
+	crsrmode= $0a26	; c64: $cf/207. Flag: Was last cursor blink on or off?
+	crsrflg	= $0a27	; c64: $cc/204. Cursor blink enable flag (0 = flashing cursor)
 	blnct	= $0a28	; c64: $cd. Cursor blink countdown.
 	undchr	= $0a29	; c64: $ce. Character under cursor.
 	gdcol	= $0a2a	; c64: $0287. Color of character under cursor
