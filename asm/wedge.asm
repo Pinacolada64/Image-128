@@ -444,7 +444,7 @@ getaxy:
 getparm:
 	jsr chrgot
 	ldx #0
-	cmp #','
+	cmp #comma
 	bne getparm1
 	jsr getbytc
 getparm1:
@@ -508,13 +508,16 @@ arrayoff:
 arraysv0:
 	jsr arrayoff
 arsv1:
+; &,27: save array pointer "level" in .x?
+arytab_hi = $0032	; dirty hack to assemble "lda arytab+1,y"
 	sec
 	lda arytab,y	; c64: $2f
 	sbc vartab	; c64: $2d
-	sta arryptrs+0,x
-	lda arytab+1,y	; c64: $30
+	sta arryptrs+0,x; $13d0
+;	lda arytab+1,y	; c64: $30
+	lda arytab_hi,y	; c64: $30
 	sbc vartab+1	; c64: $2e
-	sta arryptrs+1,x
+	sta arryptrs+1,x; $13d1
 	inx
 	inx
 	dey
@@ -536,7 +539,8 @@ arrs1:
 	sta arytab,y	; c64: $2f
 	lda arryptrs+1,x
 	adc vartab+1	; c64: $2e
-	sta arytab+1,y	; c64: $30
+;	sta arytab+1,y	; c64: $30
+	sta arytab_hi,y
 	inx
 	inx
 	dey

@@ -96,8 +96,8 @@
 	resho	= $28	; c64: $26-$2a. c128: $28-$2c. Floating point product of multiply
 	txttab	= $2d	; c64: ($2b). pointer to start of BASIC text in bank 0
 	vartab	= $2f	; c64: ($2d). pointer to start of BASIC variables in bank 1
-	arytab	= $31	; c64: ($2f). pointer to start of arrays in bank 1
-	strend	= $33	; c64: ($31). pointer to start of free memory in bank 1
+	arytab	= $0031	; c64: ($2f). pointer to start of arrays in bank 1
+	strend	= $33	; c64: ($31)/(49). pointer to start of free memory in bank 1
 	fretop	= $35	; c64: ($33). pointer to bottom of dynamic string storage in bank 1
 	frespc	= $37	; c64: ($35). pointer to most recently used string in bank 1
 	memsiz	= $39	; c64: ($37). pointer to top of dynamic string storage in bank 1
@@ -109,14 +109,14 @@
 	datptr	= $43	; c64: ($41). current "data" item address
 	inpptr	= $45	; vector: input routine
 	varnam	= $47	; c64: $45/$46. c128: $47/$48. bytes of current BASIC variable name
-	varpnt	= $49	; c64: ($47): pointer: current BASIC variable descriptor
+	varpnt	= $49	; c64: ($47)/(71): pointer: current BASIC variable descriptor
 	forpnt 	= $4b	; pointer: index variable for "for...next"
 	opmask	= $4f	; c64: $4d. math operator table displacement
 	defpnt	= $52	; c64: $4e. pointer to current DEF FN descriptor
 	dscpnt	= $52	; c64: $50-$52. 128: $52-$54. temporary pointer to current string descriptor
 ;	four6	= $53	; c64: constant for garbage collection. FIXME: move elsewhere
 	jmper	= $56	; c64: $54-$56. 128: $56-$58. jump to 'fn' instruction
-	numwork	= $57	; c64: $57-$60. 128: $59-$62. 9 bytes.
+	numwork	= $57	; c64: $57-$60. 128: $59-$62. both 9 bytes.
 
 	var	= $0063	; c64: $61-$66. c128: $63-$67. FAC1, Floating Point Accumulator #1
 	varbuf	= var	; used by varbl.asm
@@ -370,9 +370,9 @@
 	tblcta3	= $1640 ; $20 bytes
 	alarmtb	= $1660 ; $80 bytes: Alarm table [?]
 	date1	= $16e0 ; $20 bytes "Thu Sep 13, 2018 02:17 PM PSTxxx"
-	lobytes	= $1700 ; 25 bytes
+	lobytes	= $1700 ; 25 bytes: address of each line in screen RAM [?]
 	hibytes	= $1719 ; 25 bytes
-	lobytec	= $1732 ; 25 bytes
+	lobytec	= $1732 ; 25 bytes: address of each line in color RAM [?]
 	hibytec	= $174b ; 25 bytes
 	emptym4	= $1764 ; 28 bytes
 	pmodetbl= $1780 ; $80 bytes: MCI print mode table

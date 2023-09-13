@@ -51,25 +51,25 @@
 ; bits = the bits to set if true
 ; test = the object to test for
 
-ilen = $61 ;1
-istr = $62 ;2
-iptr = $64 ;2
-jlen = $69 ;1
-jstr = $6a ;2
-jptr = $6c ;2
-@temp = $14 ;2
+ilen	= var	; c64: $61 ;1
+istr	= var+1	; c64: $62 ;2
+iptr	= var+3	; c64: $64 ;2
+jlen	= var+6	; c64: $69 ;1
+jstr	= var+7	; c64: $6a ;2
+jptr	= var+9	; c64: $6c ;2
+@temp	= $14	; c64: $14 ;2
 
-opandy=57
-opcmpy=217
-opbne =208
-opbcc =144
-opbeq =240
-opbcs =176
+opandy	= $39	; 57
+opcmpy	= $d9	; 217
+opbne	= $d0	; 208
+opbcc	= $90	; 144
+opbeq	= $f0	; 240
+opbcs	= $b0	; 176
 
-makerm = $b475
-getnxt = $e206
+makerm	= $b475
+getnxt	= $e206
 
-defbase= $c600
+defbase	= $c600
 
 @entry1:
 	jmp clrarr
@@ -243,8 +243,8 @@ getd2:
 getd3:
 	ldy #4
 getd4:
-	lda $61,y
-	sta ($47),y
+	lda var,y	; $61,y
+	sta (varpnt),y	; ($47),y
 	dey
 	bpl getd4
 	rts
@@ -307,13 +307,13 @@ doscan1:
 doscan2:
 	sta checkc4+2
 	pla
-	sta $6c
+	sta jptr	; $6c
 	pla
-	sta $6b
+	sta jstr+1	; $6b
 	pla
-	sta $6a
+	sta jstr	; $6a
 	pla
-	sta $69
+	sta jlen	; $69
 	lda #0
 	sta varbuf
 	sta varbuf+1
@@ -326,14 +326,14 @@ doscan3:
 doscan5:
 	lda bitmask,y
 	eor #255
-	and ($69),y
-	sta ($69),y
+	and (jlen),y	; ($69),y
+	sta (jlen),y	; ($69),y
 	dey
 	bpl doscan5
 doscan6:
 	ldy #0
 doscan7:
-	lda ($6b),y
+	lda (jstr+1),y	; ($6b),y
 checkc0:
 	cmp scanfor,y
 checkc1:
@@ -358,8 +358,8 @@ doscan10:
 	ldy #1
 doscan11:
 	lda bitmask,y
-	ora ($69),y
-	sta ($69),y
+	ora (jlen),y	; ($69),y
+	sta (jlen),y	; ($69),y
 	dey
 	bpl doscan11
 	inc varbuf+1
@@ -368,10 +368,10 @@ doscan12:
 doscan13:
 	clc
 	lda @<size
-	adc $69,x
-	sta $69,x
+	adc (jlen),x	; $69,x
+	sta (jlen),x	; $69,x
 	bcc doscan14
-	inc $6a,x
+	inc (jstr),x	; $6a,x
 doscan14:
 	dex
 	dex
@@ -451,9 +451,9 @@ strptn:
 	ldy #0
 strptn1:
 	lda (jstr),y
-	cmp #function_key_2
+	cmp #function_key_2	; "?" wildcard
 	beq strptn2
-	cmp #function_key_7
+	cmp #function_key_7	; "*" wildcard
 	beq strptn4
 	cmp (istr),y
 	bne strptn4
@@ -515,7 +515,8 @@ sort3:
 sort7:
 	lda ilen,y
 	sta (jptr),y
-	lda jlen,y
+;	lda jlen,y
+	lda $0069,y
 	sta (iptr),y
 	sta ilen,y
 	dey
@@ -571,32 +572,32 @@ scannums:
 	sta varbuf+2
 	sta varbuf+1
 	pla
-	sta $6a
+	sta jstr	; $6a
 	pla
-	sta $69
+	sta jlen	; $69
 	pla
-	sta $6c
+	sta jptr	; $6c
 	pla
-	sta $6b
+	sta jstr+1	; $6b
 scannum1:
 	lda count
 	beq scannum6
 	ldy #0
 scannum2:
-	lda ($6b),y
+	lda (jstr+1),y	; ($6b),y
 	and scanfor
 	bne scannum3
 	iny
-	lda ($6b),y
+	lda (jstr+1),y	; ($6b),y
 	and scanfor+1
 	beq scannum4
 scannum3:
 	ldy varbuf+2
 	lda #0
-	sta ($69),y
+	sta (jlen),y	; ($69),y
 	iny
 	lda varbuf
-	sta ($69),y
+	sta (jlen),y	; ($69),y
 	iny
 	sty varbuf+2
 	inc varbuf+1
@@ -604,10 +605,10 @@ scannum4:
 	inc varbuf
 	clc
 	lda @<size
-	adc $6b
-	sta $6b
+	adc jstr+1	; $6b
+	sta jstr+1	; $6b
 	bcc scannum5
-	inc $6c
+	inc jptr	; $6c
 scannum5:
 	dec count
 	bne scannum1
@@ -623,8 +624,8 @@ scannum6:
 scansum:
 	jsr getsize
 	jsr fnvar
-	stx $6b
-	sty $6c
+	stx jstr+1	; $6b
+	sty jptr	; $6c
 	lda #0
 	sta varbuf
 	sta varbuf+1
@@ -634,16 +635,16 @@ scansum1:
 	ldy #1
 	clc
 scansum2:
-	lda ($6b),y
+	lda (jstr+1),y	; ($6b),y
 	adc varbuf,y
 	sta varbuf,y
 	dey
 	bpl scansum2
 	lda @<size
-	adc $6b
-	sta $6b
+	adc jstr	; $6b
+	sta jstr	; $6b
 	bcc scansum3
-	inc $6c
+	inc jptr	; $6c
 scansum3:
 	dec count
 	bne scansum1
@@ -694,7 +695,7 @@ scanstr:
 	tax
 	ldy #0
 scanstr_loop1:
-	lda ($22),y
+	lda (index_24),y	; ($22),y
 	sta buffer,y
 	iny
 	dex
@@ -770,6 +771,12 @@ scanstr5:
 	jmp @<putvar
 
 arrays1:
+; 0: tt$()	6: c%()
+; 1: bb$()	7: d%()
+; 2: dt$()	8: e%()
+; 3: ed$()	9: f%()
+; 4: nn$()	10: ac%()
+; 5: a%()	11: so%()
 	ascii "tbdenACDEFAS"
 arrays2:
 	ascii "TBTDN"
@@ -780,49 +787,49 @@ arrays2:
 clrarr:
 	cpx #12
 	bcs clrar7
-	lda 47
-	sta 71
-	lda 48
-	sta 72
+	lda arytab	; 47
+	sta varpnt	; 71
+	lda arytab+1	; 48
+	sta varpnt+1	; 72
 clrar0:
 	ldy #3
-	lda (71),y
+	lda (varpnt),y	; (71),y
 	sta 21
 	dey
-	lda (71),y
+	lda (varpnt),y	; (71),y
 	sta 20
 	dey
-	lda (71),y
+	lda (varpnt),y	; (71),y
 	cmp arrays2,x
 	bne clrar1
 	dey
-	lda (71),y
+	lda (varpnt),y	; (71),y
 	cmp arrays1,x
 	beq clrar3
 clrar1:
 	clc
 	lda 20
-	adc 71
-	sta 71
+	adc varpnt	; 71
+	sta varpnt	; 71
 	lda 21
-	adc 72
-	sta 72
-	lda 71
-	cmp 49
+	adc varpnt+1	; 72
+	sta varpnt+1	; 72
+	lda varpnt	; 71
+	cmp strend	; 49
 	bne clrar2
-	lda 72
-	cmp 50
+	lda varpnt+1	; 72
+	cmp strend+1	; 50
 	beq clrar7
 clrar2:
 	jmp clrar0
 clrar3:
 	clc
-	lda 71
+	lda varpnt	; 71
 	adc #7
-	sta 71
-	lda 72
+	sta varpnt	; 71
+	lda varpnt+1	; 72
 	adc #0
-	sta 72
+	sta varpnt+1	; 72
 	sec
 	lda 20
 	sbc #7
@@ -833,10 +840,10 @@ clrar3:
 clrar4:
 	ldy #0
 	tya
-	sta (71),y
-	inc 71
+	sta (varpnt),y	; (71),y
+	inc varpnt	; 71
 	bne clrar5
-	inc 72
+	inc varpnt+1	; 72
 clrar5:
 	lda 20
 	bne clrar6
@@ -856,9 +863,9 @@ gamescan:
 	jsr evalbyt
 	stx @<size
 	jsr evalstr
-	lda $22
+	lda index_24	; $22
 	sta game2+1
-	lda $23
+	lda index_24+1	; $23
 	sta game2+2
 	jsr fnvar1
 	jsr fnvar
@@ -887,15 +894,15 @@ game1:
 	bne game1
 	ldy #4
 game3:
-	lda $61,y
-	sta ($47),y
+	lda var,y	; $61,y
+	sta (varpnt),y	; ($47),y
 	dey
 	bpl game3
 	rts
 
 game2:
 	lda $ffff,x
-	sta ($62),y
+	sta (var+1),y	; ($62),y
 	inx
 	iny
 	rts
@@ -949,6 +956,7 @@ textr7:
 textr8:
 	ldy #0
 textr9:
+; self-modifying code:
 	lda $ffff,y
 	iny
 	jsr chrout
@@ -956,6 +964,3 @@ textr10:
 	cpx #0
 	bcc textr9
 	jmp textr4
-
-; ; }
-; ; }

@@ -944,7 +944,7 @@ xrecvnam:
 xrecvn1:
 	lda xbuf,y
 	beq xrecvn2
-	cmp #','
+	cmp #comma
 	beq xrecvn2
 	cmp #65
 	bcc xrecvn3
@@ -960,7 +960,7 @@ xrecvn3:
 	cpy #16
 	bcc xrecvn1
 xrecvn2:
-	lda #','
+	lda #comma
 	sta buffer,y
 	iny
 	lda #'s'

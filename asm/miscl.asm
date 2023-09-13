@@ -96,14 +96,14 @@ gets3:
 	cpy stcount
 	beq gets4
 	lda ($14),y
-	sta ($62),y
+	sta (var+1),y	; ($62),y
 	iny
 	bne gets3
 gets4:
 	ldy #4
 gets5:
-	lda $61,y
-	sta ($47),y
+	lda var,y	; $61,y
+	sta (varpnt),y	; ($47),y
 	dey
 	bpl gets5
 	rts
@@ -113,7 +113,7 @@ putfloat:
 	jsr fnvar
 	ldy #4
 putf1:
-	lda ($47),y
+	lda (varpnt),y	; ($47),y
 	sta ($14),y
 	dey
 	bpl putf1
@@ -125,7 +125,7 @@ getfloat:
 	ldy #4
 getf1:
 	lda ($14),y
-	sta ($47),y
+	sta (varpnt),y	; ($47),y
 	dey
 	bpl getf1
 	rts
