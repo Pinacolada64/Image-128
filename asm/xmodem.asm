@@ -898,7 +898,7 @@ xsendnam:
 	jsr xsendcrc
 xsendn2:
 	ldx #var_an_string
-	jsr @>usevar
+	jsr >@usevar
 	ldy #0
 	lda varbuf
 	beq xsendn4

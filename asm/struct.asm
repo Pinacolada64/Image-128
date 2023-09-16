@@ -1,3 +1,5 @@
+{include:equates.asm}
+orig protostart
 ; .pseudopc protostart {
 ; .namespace structml {
 
@@ -57,7 +59,7 @@ iptr	= var+3	; c64: $64 ;2
 jlen	= var+6	; c64: $69 ;1
 jstr	= var+7	; c64: $6a ;2
 jptr	= var+9	; c64: $6c ;2
-@temp	= $14	; c64: $14 ;2
+temp	= $14	; c64: $14 ;2
 
 opandy	= $39	; 57
 opcmpy	= $d9	; 217
@@ -136,7 +138,7 @@ oper:
 
 getsize:
 	jsr evalbyt
-	stx @<size
+	stx <@size
 	rts
 getword:
 	jsr evalint
@@ -367,7 +369,7 @@ doscan12:
 	ldx #2
 doscan13:
 	clc
-	lda @<size
+	lda <@size
 	adc (jlen),x	; $69,x
 	sta (jlen),x	; $69,x
 	bcc doscan14
@@ -380,7 +382,7 @@ doscan14:
 	bne doscan3
 doscan15:
 	ldx #var_a_integer
-	jmp @<putvar
+	jmp <@putvar
 
 i:
 	word 0
@@ -392,8 +394,8 @@ base:
 	word 0
 
 calcp:
-	stx @<temp
-	sty @<temp+1
+	stx <temp
+	sty <temp+1
 	txa
 	asl
 	tax
@@ -402,10 +404,10 @@ calcp:
 	tay
 	clc
 	txa
-	adc @<temp
+	adc <temp
 	tax
 	tya
-	adc @<temp+1
+	adc <temp+1
 	tay
 	clc
 	txa
@@ -416,16 +418,16 @@ calcp:
 	tay
 	rts
 calcs:
-	stx @<temp
-	sty @<temp+1
+	stx <temp
+	sty <temp+1
 	ldy #0
-	lda (@<temp),y
+	lda (<temp),y
 	pha
 	iny
-	lda (@<temp),y
+	lda (<temp),y
 	tax
 	iny
-	lda (@<temp),y
+	lda (<temp),y
 	tay
 	pla
 	rts
@@ -604,7 +606,7 @@ scannum3:
 scannum4:
 	inc varbuf
 	clc
-	lda @<size
+	lda <@size
 	adc jstr+1	; $6b
 	sta jstr+1	; $6b
 	bcc scannum5
@@ -616,7 +618,7 @@ scannum6:
 	lda #0
 	sta varbuf
 	ldx #var_a_integer
-	jmp @<putvar
+	jmp <@putvar
 
 ; sum
 ; &,nn,9,num,siz,a(a,b)
@@ -640,7 +642,7 @@ scansum2:
 	sta varbuf,y
 	dey
 	bpl scansum2
-	lda @<size
+	lda <@size
 	adc jstr	; $6b
 	sta jstr	; $6b
 	bcc scansum3
@@ -650,7 +652,7 @@ scansum3:
 	bne scansum1
 scansum4:
 	ldx #var_a_integer
-	jmp @<putvar
+	jmp <@putvar
 
 ; copy
 ; &,nn,10,size,a1(a,b),a2(a,b)
@@ -753,7 +755,7 @@ scanstr0:
 scanstr3:
 	inc iptr
 	clc
-	lda @<size
+	lda <@size
 	adc istr
 	sta istr
 	bcc scanstr4
@@ -768,7 +770,7 @@ scanstr5:
 	lsr
 	sta varbuf+1
 	ldx #var_a_integer
-	jmp @<putvar
+	jmp <@putvar
 
 arrays1:
 ; 0: tt$()	6: c%()
@@ -861,7 +863,7 @@ clrar7:
 
 gamescan:
 	jsr evalbyt
-	stx @<size
+	stx <@size
 	jsr evalstr
 	lda index_24	; $22
 	sta game2+1
@@ -885,7 +887,7 @@ game1:
 	sty index
 	clc
 	lda $14
-	adc @<size
+	adc <@size
 	sta $14
 	lda $15
 	adc #0
@@ -936,14 +938,14 @@ textr3:
 textr4:
 	clc
 	lda textr3+1
-	adc @<size
+	adc <@size
 	sta textr3+1
 	bcc textr5
 	inc textr3+2
 textr5:
 	clc
 	lda textr9+1
-	adc @<size
+	adc <@size
 	sta textr9+1
 	bcc textr6
 	inc textr9+2

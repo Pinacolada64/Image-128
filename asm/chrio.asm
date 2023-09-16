@@ -288,11 +288,11 @@ outptr4:
 ; * output carriage return
 @prcr:
 	lda #$0d
-	jmp @<xchrout
+	jmp <@xchrout
 ; * output delete character
 @prdel:
 	lda #$14
-	jmp @<xchrout
+	jmp <@xchrout
 
 ; * character input routines *
 
@@ -322,7 +322,7 @@ xgetchr0:
 	jsr getchr
 	jsr carchk
 	bne xgetchr1
-	jsr @<chatchk
+	jsr <@chatchk
 	bne xgetchr1
 	lda $fe
 	beq xgetchr0
@@ -349,7 +349,7 @@ inchr:
 ; * get character
 ; * with case setting
 getchr:
-	jsr @>getkbd
+	jsr >@getkbd
 	bne getchr1
 	jsr carchk4
 	bne getchr7

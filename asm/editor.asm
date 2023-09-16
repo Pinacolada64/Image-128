@@ -1,3 +1,5 @@
+{include:equates.asm}
+
 orig editor_exec_address
 
 {def:editor_version = "01/22/91 06:51p"}
@@ -57,7 +59,7 @@ entry1:
 
 main0:
 	jsr prcolor
-	jsr @>prcr
+	jsr prcr
 
 main:
 	tsx
@@ -79,7 +81,7 @@ getc1:
 getc2:
 	ldx modes
 	ldy passflag
-	jsr @>inline
+	jsr >@inline
 	lda chat
 	beq ret
 getc3:
@@ -145,7 +147,7 @@ dodot:
 	ldx #0
 	beq getcom0
 com1:
-	jsr @>xgetin
+	jsr >@xgetin
 	and #$7f
 	sta comchar
 	lda flag_loc_addr
@@ -242,7 +244,7 @@ paramrtn:
 	word gettxm	;100x
 	word getzero	;101x
 	word nothing	;110x
-	word @prcr	;111x
+	word prcr	;111x
 
 comlist:
 
@@ -287,7 +289,7 @@ comlist:
 	word tclrt,clrtx
 	ascii "o"
 	byte %1100
-	word tline,@>linnum
+	word tline,>@linnum
 	ascii "r"
 	byte %0101
 	word tread,cread
@@ -489,7 +491,7 @@ dele2:
 	cmp numy
 	beq dele3
 	lda #'s'
-	jsr @>xchrout
+	jsr >@xchrout
 	jsr prspc
 	lda numx
 	jsr prtnum
@@ -610,7 +612,7 @@ insert1:
 	rts
 
 justify:
-	jsr @>xgetin
+	jsr >@xgetin
 	and #$7f
 	ldx #$ff
 	cmp #'c'
@@ -727,7 +729,7 @@ cread:
 	lda #$00
 	sta flag1
 read0:
-	jsr @>prcr
+	jsr prcr
 	lda mciflg
 	sta mci
 	jsr prtlns
@@ -762,7 +764,7 @@ exit:
 	lda flags
 	and #$fe
 	sta flags
-	jmp @>prcr
+	jmp prcr
 exit1:
 	jmp dontdo
 
@@ -779,7 +781,7 @@ proff:
 pr1:
 	lda msg4,y
 	beq pr2
-	jsr @>xchrout
+	jsr >@xchrout
 	iny
 	bne pr1
 pr2:
@@ -809,7 +811,7 @@ mar2:
 	inx
 	txa
 	jsr prtnum
-	jmp @>prcr
+	jmp prcr
 marmsg:
 	ascii "Set To: "
 	byte 0
@@ -1126,7 +1128,7 @@ prtlnx:
 	txa
 	jsr prtnum
 	jsr prcol
-	jsr @>prcr
+	jsr prcr
 prtlnx1:
 	lda wrapfl
 	beq prtlnx2
@@ -1145,7 +1147,7 @@ prtlnx2:
 	jsr prtln
 	lda wrapfl
 	bne prtlnx3
-	jsr @>prcr
+	jsr prcr
 prtlnx3:
 	rts
 
@@ -1366,14 +1368,14 @@ editlnx:
 	lda temp3
 	jsr prtnum
 	jsr prcol
-	jsr @>prcr
+	jsr prcr
 	lda modes
 	and #$ef
 	ora #$a0
 	tax
 	lda #$81
 	sta mci
-	jsr @>inline
+	jsr >@inline
 	lda #$00
 	sta mci
 	lda chat
@@ -1414,12 +1416,12 @@ del11:
 	ldx #$0b
 	jmp xdels
 getcr:
-	jsr @>xgetin
+	jsr >@xgetin
 	cmp #13
 	beq getcr1
 	jmp dontdo
 getcr1:
-	jmp @>xchrout
+	jmp >@xchrout
 
 cleartt:
 	ldx lines
@@ -1612,7 +1614,7 @@ doln1:
 	and #1
 	beq noinst
 	lda #'I'
-	jsr @>xchrout
+	jsr >@xchrout
 noinst:
 	lda flags
 	and #3
@@ -1620,7 +1622,7 @@ noinst:
 	lda cline
 	jsr prtnum
 	jsr prcol
-	jsr @>prcr
+	jsr prcr
 noline:
 	lda #0
 	sta index
@@ -1786,7 +1788,7 @@ gettx0:
 	lda #16
 	sta llen
 	sty mci
-	jsr @<inline
+	jsr <@inline
 	pla
 	sta mci
 	pla
@@ -1797,19 +1799,19 @@ gettx0:
 
 prdel:
 	lda #$14
-	jmp @>xchrout
-@prcr:
+	jmp >@xchrout
+prcr:
 	lda #$0d
-	jmp @>xchrout
+	jmp >@xchrout
 bell:
 	lda #ascii_bel
-	jmp @>xchrout
+	jmp >@xchrout
 prcol:
 	lda #':'
-	jmp @>xchrout
+	jmp >@xchrout
 prspc:
 	lda #' '
-	jmp @>xchrout
+	jmp >@xchrout
 
 prcolor:
 	lda #3
@@ -1822,7 +1824,7 @@ reset_color:
 @xchrout:
 	sta $fe
 	pha
-	jsr @<xchrout1
+	jsr <@xchrout1
 	pla
 	rts
 
@@ -1851,7 +1853,7 @@ prmsg:
 	sta delx
 	ldx #var_a_string
 	jsr putvar
-	jsr @<outastr
+	jsr <@outastr
 	lda #1
 	sta mci
 	rts
@@ -1868,7 +1870,7 @@ prmsg4:
 	lda varbuf+2
 	pha
 	lda $fe
-	jsr @<xchrout
+	jsr <@xchrout
 	pla
 	sta varbuf+2
 	pla

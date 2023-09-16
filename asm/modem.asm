@@ -204,7 +204,7 @@ ansi:
 ansi1:
 	tya
 	pha
-	lda @>ansibuf,y
+	lda >@ansibuf,y
 	beq ansi2
 	jsr outm
 	pla

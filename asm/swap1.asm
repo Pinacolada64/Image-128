@@ -1,10 +1,12 @@
+{include:equates.asm}
+orig protostart
 ; .pseudopc protostart {
 ; .namespace swap1 {
 
 hc000:
-	jmp @>inline
+	jmp inline
 hc003:
-	jmp @>inline0
+	jmp inline0
 hc006:
 	jmp password
 hc009:
@@ -12,7 +14,7 @@ hc009:
 
 ; jump table routines
 
-@xgetin:
+xgetin:
 	lda #23
 	jmp usetbl1
 
@@ -39,10 +41,10 @@ xchrout1:
 	tax
 	pla
 	rts
-@usevar:
+usevar:
 	lda #29
 	jmp usetbl1
-@putvar:
+putvar:
 	lda #30
 	jmp usetbl1
 zero:
@@ -93,15 +95,15 @@ chatmode:
 ;* 3 = carrier/time loss        *
 ;********************************
 
-@inline:
+inline:
 	stx editor ;flags
 	sty passmode
 	ldx #var_pl_float
-	jsr @<usevar
+	jsr usevar
 	lda varbuf ;case lock
 	and #1
 	sta case
-@inline0:
+inline0:
 	ldy #$00
 	sty index
 	sty tmp1 ;chars typed
@@ -117,7 +119,7 @@ chatmode:
 ; copy wrapped word to input buffer
 
 	ldx #var_w_string
-	jsr @<usevar
+	jsr usevar
 	ldy varbuf
 	beq in1
 	sty tmp1
@@ -156,12 +158,12 @@ in0b:
 
 	jsr zero
 	ldx #var_w_string
-	jsr @<putvar
+	jsr putvar
 
 ; input main loop
 
 in1:
-	jsr @<xgetin
+	jsr xgetin
 	sta $fe
 
 	jsr carchk
@@ -179,7 +181,7 @@ in1a:
 	jsr chatchk
 	beq in1b
 	jsr chatmode
-	jmp @>inline0
+	jmp inline0
 in1b:
 	lda $fe
 	ldy index
@@ -274,7 +276,7 @@ ctrlm:
 	lda #>buffer
 	sta varbuf+2
 	ldx #var_an_string
-	jsr @<putvar
+	jsr putvar
 	jmp memory
 
 ctrlt:
@@ -359,7 +361,7 @@ ctrlx:
 	lda #'{pound}'
 	jsr xchrout
 	jsr prcr
-	jmp @>inline0
+	jmp inline0
 
 ctrly:
 	ldy index
@@ -461,7 +463,7 @@ wrap2:
 	lda #>buf2
 	sta varbuf+2
 	ldx #var_w_string
-	jsr @<putvar
+	jsr putvar
 	jmp ctrlm
 wrap3:
 	ldx #0
@@ -488,7 +490,7 @@ wrap5:
 	lda #>buf2
 	sta varbuf+2
 	ldx #var_w_string
-	jsr @<putvar
+	jsr putvar
 wrap6:
 	ldy tmp3
 	iny
@@ -580,7 +582,7 @@ colrch1:
 	clc
 	rts
 
-@prcr:
+prcr:
 	lda #$0d
 	jmp xchrout
 
@@ -604,7 +606,7 @@ password:
 	ora #passmode_show_mask
 	sta passmode
 
-	jsr @>inline0
+	jsr inline0
 
 	lda #passmode_off
 	sta passmode
@@ -625,7 +627,7 @@ editswap:
 	pha
 	lda #>editor_exec_address
 	ldy #>editor_swap_address
-	ldx #>editor_module_size
+	ldx #>8		; FIXME: '8' was 'editor_module_size'; 4K = 8 pages
 	jsr swapper
 	pla
 	tay

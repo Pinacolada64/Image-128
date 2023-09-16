@@ -1,14 +1,16 @@
+{include:equates.asm}
+orig protostart
 ; .pseudopc protostart {
 ; .namespace swap2 {
 
 @hc000:
 	jmp term
 @hc003:
-	jmp @>chatmode
+	jmp >@chatmode
 @hc006:
 	jmp btmvar
 @hc009:
-	jmp @>convert
+	jmp >@convert
 @hc00c:
 	jmp sound
 
@@ -72,12 +74,12 @@ chat1:
 chat1a:
 	jsr getkbd
 	bne chat2
-	jsr @<getmod
+	jsr <@getmod
 	beq chat1
 chat2:
 	cmp #cursor_home
 	beq chat1
-	jsr @<xchrout
+	jsr <@xchrout
 	jmp chat1
 chat3:
 	pla
@@ -114,7 +116,7 @@ term2:
 	sta $fe
 	jsr outmod
 term1:
-	jsr @<getmod
+	jsr <@getmod
 	lda $fe
 	beq term
 	jsr outansi
@@ -125,7 +127,7 @@ outansi:
 	lda flag_ans_addr
 	and #flag_ans_l_mask
 	bne outansi2
-	jmp @<outscn
+	jmp <@outscn
 outansi1:
 	inx
 	stx ansiptr
@@ -201,7 +203,7 @@ ansim2:
 	sec
 	sbc #30
 	tax
-	lda @>ansiclrs,x
+	lda >@ansiclrs,x
 ansim3:
 	jsr outscn0
 	jmp outansi0
@@ -283,8 +285,8 @@ ansiposv:
 ansiprm:
 	byte 0
 @ansiclrs:
-	byte cursor_black, cursor_red, cursor_green, cursor_yellow
-	byte cursor_blue, cursor_purple, cursor_cyan, cursor_white
+	byte chr_black, chr_red, chr_green, chr_yellow
+	byte chr_blue, chr_purple, chr_cyan, chr_white
 
 ansiparm:
 	lda #0
@@ -338,7 +340,7 @@ btm0:
 	sta adisp+24,y
 	dey
 	bpl btm0
-	jsr @<usevar
+	jsr <@usevar
 	ldy #0
 	ldx #0
 	lda varbuf
@@ -405,7 +407,7 @@ convert0:
 	lda hitbl,x
 	sta convs2+2
 	ldx #var_an_string
-	jsr @<usevar
+	jsr <@usevar
 	ldy #0
 	ldx #0
 convs1:

@@ -119,7 +119,7 @@ findvar:
 
 ;* print string variable
 @prtvar:
-	jsr @>usevar
+	jsr >@usevar
 	jmp outstr
 
 ;* print string variable w/mci
@@ -128,7 +128,7 @@ findvar:
 	pha
 	lda #0
 	sta mci
-	jsr @<prtvar
+	jsr <@prtvar
 	pla
 	sta mci
 	rts
@@ -172,7 +172,7 @@ zero1:
 	bpl zero1
 	rts
 @minusone:
-	jsr @<zero
+	jsr <@zero
 	lda #$81
 	sta var
 	rts

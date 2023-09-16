@@ -192,7 +192,7 @@ calcgot1:
 	sty ecsc5+1
 	stx ecsc6+1
 	jsr fnvar
-	stx @>ecsc3+1
+	stx >@ecsc3+1
 	sty ecsc4+1
 	jsr evalstr
 	sta index
@@ -200,7 +200,7 @@ calcgot1:
 ecsc1:
 	lda #0
 	cpy index
-	bcs @>ecsc2
+	bcs >@ecsc2
 	lda ($22),y
 @ecsc2:
 	sta buf2,y
@@ -208,7 +208,7 @@ ecsc1:
 	cpy #8
 	bcc ecsc1
 	lda index
-	beq @>ecsquit
+	beq >@ecsquit
 	ldy #0
 @ecsc3:
 	lda #0
@@ -225,12 +225,12 @@ ecsc4:
 	lda (varbuf+3),y
 ecsc5:
 	and #0
-	bne @>ecsscan1
+	bne >@ecsscan1
 	ldy #3
 	lda (varbuf+3),y
 ecsc6:
 	and #0
-	beq @>ecsnext
+	beq >@ecsnext
 @ecsscan1:
 	ldy #6
 	ldx #0
@@ -238,12 +238,12 @@ ecsc6:
 	lda (varbuf+3),y
 	iny
 	cmp buf2,x
-	bne @>ecsnext
+	bne >@ecsnext
 	cpy stsize
 	bcs ecsdone
 	inx
 	cpx #8
-	bcc @<ecsscan2
+	bcc <@ecsscan2
 	jmp ecsdone
 
 @ecsnext:
@@ -256,7 +256,7 @@ ecsc6:
 	sta varbuf+4
 	inc varbuf+1
 	dec stcount
-	bne @<ecsscan
+	bne <@ecsscan
 @ecsquit:
 	lda #0
 	sta varbuf

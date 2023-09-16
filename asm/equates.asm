@@ -71,6 +71,28 @@
 ;		; 128	; c64
 	d6510	= $00	; 128: 8502 I/O port data direction register
 	r6510	= $01	; 128: 8502 I/O port data register
+
+	r6510_loram		= %00000001 ; (out) 1=basic, 0=RAM
+	r6510_hiram		= %00000010 ; (out) 1=kernal, 0=RAM
+	r6510_charen 		= %00000100 ; (out) 1=I/O, 0=Character ROM
+	r6510_cassette_data 	= %00001000 ; (out) cassette port data output line
+	r6510_cassette_switch 	= %00010000 ; (in) senses the cassette switch
+	r6510_cassette_motor 	= %00100000 ; (out) 1=motor on, 0=motor off
+	r6510_nc1            	= %01000000 ; not connected
+	r6510_nc2            	= %10000000 ; not connected
+
+	; allow access to character ROM ($33)
+	r6510_char_rom = (r6510_cassette_motor | r6510_cassette_switch | r6510_hiram | r6510_loram)
+
+	; allow access to all ram ($34)
+	r6510_all_ram = (r6510_cassette_motor | r6510_cassette_switch | r6510_charen)
+
+	; "normal" for this register is $37
+	r6510_normal = (r6510_cassette_motor | r6510_cassette_switch | r6510_charen | r6510_hiram | r6510_loram)
+
+	; allow access to the RAM "underneath" the BASIC ROM ($36)
+	r6510_basic_ram = (r6510_cassette_motor | r6510_cassette_switch | r6510_charen | r6510_hiram)
+
 	bank	= $02	; 128: token 'search' looks for, or bank #
 	ssreg	= $05	; c64: 783/$030f. save .s register
 	sareg	= $06	; c64: 780/$030c. save .a register
@@ -522,9 +544,10 @@
 ; 2) protocols
 
 ; transfer protocol area (c64: 2680 bytes)
+; FIXME: this is screen editor ROM on the 128; it must be swapped out
 
-	protosta= $1c00	; c64: $c000	; FIXME: maybe
-	protoend= $199f ; c64: $ca80	; FIXME: maybe
+	protostart	= $c000	; c64: $c000
+	protoend	= $ca80 ; c64: $ca80
 
 ; 9216 - 1280 = 7,936 free
 
@@ -537,7 +560,7 @@
 ; these are from Rene Belzen's excellent article on the 128's BASIC Interpreter.
 
 	addrbyt	= $8803	; calls addrbyt (16-bit), chkcom (,), getbyt (8-bit).
-		; returns .x: 8-bit value, < $16, > $17: 16-bit value.
+			; returns .x: 8-bit value, < $16, > $17: 16-bit value.
 
 ; FIXME BASIC ROM routines:
 
@@ -578,6 +601,34 @@
 	frestr	= $877e	; c64: $b6a3: discard a temporary string
 	getbytc	= $87f4	; c64: $b79b. convert ascii program text value 0-255 to value in .x
 	retval	= $bc49	; FIXME
+
+;
+; address of modules in the ml file (where they initially load)
+;
+	wedge_load_address	= $6c00
+	editor_load_address	= $7000
+	gc_load_address		= $8000
+	ecs_load_address	= $8400
+	struct_load_address	= $8e00
+	swap1_load_address	= $9400
+	swap2_load_address	= $9800
+	swap3_load_address	= $9c00
+
+; address of modules when they are executing
+; swap modules use protostart if not listed here
+
+	wedge_exec_address	= $0c00	; FIXME: rs232 buffer
+	editor_exec_address	= $1800
+
+; address of modules when they are "swapped out," waiting to be used
+
+	editor_swap_address	= $d000
+	gc_swap_address		= $e000
+	ecs_swap_address	= $e400
+	struct_swap_address	= $ee00
+	swap1_swap_address	= $f400
+	swap2_swap_address	= $f800
+	swap3_swap_address	= $fc00
 
 ;
 ; garbage collection stuff
@@ -626,7 +677,7 @@
 		; 56577: CIA #2 Data Port B
 		; Bit 4: RS-232 carrier detect (DCD)/ Pin H of User Port
 
-	colors	= $e8da	; flashing chat page color table
+	romcolors= $0a80; c64: $e8da. table of chr$() values to print colors
 
 ; Kernal routines:
 
@@ -840,3 +891,18 @@ flag_dcd_r_mask	= %00001000	; 59 ($3b) Carrier present
 flag_dsr_addr	= chktbl + 7 	; DSR
 flag_dsr_l_mask	= %00010000	; 60 ($3c) DCD/DSR select: on = DSR, off = DCD
 flag_dsr_r_mask = %00100000	; 61 ($3d) enable RX/TX windows
+
+; editor input flags
+
+editor_allow_cursor_controls	= %00000001 ; allow cursor movement and color characters in input
+editor_dot_on_column_one	= %00000010 ; dot on column one exits input
+editor_show_prompt		= %00000100 ; show prompt
+editor_allow_mci		= %00001000 ; allow mci command character input
+editor_word_wrap		= %00010000 ; word wrap enabled
+editor_edit_mode		= %00100000 ; edit mode
+editor_ignore_time_remaining	= %01000000 ; ignore time remaining
+editor_backspace_on_column_one	= %10000000 ; backspace on column one exits input
+
+passmode_off			= %00000000 ; all password flags off
+passmode_show_mask		= %00000001 ; password mask enabled for output
+passmode_no_output		= %00000010 ; no output

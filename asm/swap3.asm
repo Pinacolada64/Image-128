@@ -1,8 +1,10 @@
+{include:equates.asm}
+orig protostart
 ; .pseudopc protostart {
 ; .namespace swap3 {
 
 @hc000:
-	jmp @>read0
+	jmp >@read0
 @hc003:
 	jmp newuser
 @hc006:
@@ -10,7 +12,7 @@
 @hc009:
 	jmp convdate
 @hc00c:
-	jmp @>copyrite
+	jmp >@copyrite
 @hc00f:
 	jmp read_interface_byte
 @hc012:
@@ -49,7 +51,7 @@ minusone:
 newuser:
 	lda #1
 	sta readmode
-	jmp @>read0
+	jmp >@read0
 
 relread:
 	lda #$bf
@@ -71,23 +73,23 @@ readf:
 	lda $90
 	sta dstat
 	lda index
-	beq @>read1
+	beq >@read1
 	lda buf2
 	cmp #'^'
 	beq read2
 @read1:
-	jsr @<zero
+	jsr <@zero
 	lda index
 	cmp #80
 	beq read1a
 	jsr minusone
 read1a:
 	ldx #var_lp_float
-	jsr @<putvar
-	jsr @<zero
+	jsr <@putvar
+	jsr <@zero
 	ldx #var_rc_float
-	jsr @<putvar
-	jsr @<outastr
+	jsr <@putvar
+	jsr <@outastr
 	lda dstat
 read1b:
 	and #$ff
@@ -95,7 +97,7 @@ read1b:
 	lda readmode
 	bne readf
 	ldx #var_rc_float
-	jsr @<usevar
+	jsr <@usevar
 	lda varbuf
 	beq readf
 read2:
@@ -124,7 +126,7 @@ dl1:
 	bne dl1
 	dex
 	bne dl1
-	jsr @<output
+	jsr <@output
 	pla
 	ldx chat
 	bne movie2
@@ -158,10 +160,10 @@ movdly:
 	sta varbuf+2
 
 	ldx #var_an_string
-	jsr @<putvar
+	jsr <@putvar
 
 	ldx #var_an_string
-	jmp @<prtvar0
+	jmp <@prtvar0
 
 copymsg:
 ; "----+----+----+----+----+----+----+----+"
@@ -473,7 +475,7 @@ read_interface_byte_load:
 	bne read_interface_byte_done
 	tay
 	ldx #var_a_integer
-	jsr @<putvar
+	jsr <@putvar
 read_interface_byte_done:
 	rts
 

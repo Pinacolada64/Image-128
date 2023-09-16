@@ -176,7 +176,7 @@ comqc = *+1
 	beq comc2
 comc1:
 	tay
-	lda @<colors,y
+	lda <@colors,y
 	sta $fe
 	jmp output
 comc2:

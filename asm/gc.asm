@@ -1,3 +1,4 @@
+{include:equates.asm}
 ; .pseudopc protostart {
 ; .namespace gcml {
 

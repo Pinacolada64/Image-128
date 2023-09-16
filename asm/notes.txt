@@ -1,1 +1,8 @@
 &a$,b$ (tabular output) may be supported. forgot where I saw that
+
+chr$() color table:
+c64:
+e8da 90 05 1c 9f  9c 1e 1f 9e  81 95 96 97  98 99 9a 9b
+c128:
+0a80
+1 c=59610:forx=0to15:y=peek(c+x):printchr$(y)"color"x:next

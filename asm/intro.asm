@@ -36,7 +36,7 @@ intro_loop1:
 	ldx #>wedge_module_size
 	jsr swapper
 
-;load "im" basic program
+;load "im 128" basic program
 
 	ldx #<prgstart
 	ldy #>prgstart
@@ -58,9 +58,9 @@ intro_loop1:
 	ldx devnum
 	ldy #0
 	jsr setlfs	; $ffba
-	lda file2
-	ldx #<(file2+1)
-	ldy #>(file2+1)
+	lda im_filename
+	ldx #<(im_filename+1)
+	ldy #>(im_filename+1)
 	jsr setnam	; $ffbd
 	jsr loadprg
 	lda #1
@@ -91,13 +91,13 @@ intro_loop3:
 	bne intro_loop3
 ; run program
 	lda #0
-	jsr run	; c64: $A871. RUN:    Perform RUN. c128: $5a9b
+	jsr run		; c64: $A871. RUN:    Perform RUN. c128: $5a9b
 	jmp newstt	; c64: $A7AE. NEWSTT: Set Up Next Statement for Execution
 
 ;* filenames
-file2:
-	byte 2
-	ascii "im"
+im_filename:
+	byte setup-im_filename
+	ascii "im 128"
 
 ;* setup routines *
 
@@ -105,18 +105,18 @@ file2:
 setup:
 	lda #0
 	tay
-setup_loop1:
+@:
 	sta cassbuff,y
 	iny
 	cpy #1024-cassbuff
-	bne setup_loop1
+	bne <@
 	ldy #0
-setup_loop2:
+@:
 	lda date2,y
 	sta date1,y
 	iny
 	cpy #28
-	bne setup_loop2
+	bne <@
 	lda #80
 	sta ptrclmn
 	lda #40
@@ -124,7 +124,7 @@ setup_loop2:
 	lda #1
 	sta local
 	ldy #0
-setup_loop3:
+@:
 	lda #32
 	sta tempscn+$00,y
 	sta tempscn+$a0,y
@@ -133,59 +133,59 @@ setup_loop3:
 	sta tempcol+$a0,y
 	iny
 	cpy #$a0
-	bne setup_loop3
+	bne <@
 	ldy #11
-setup_loop4:
+@:
 	lda daysofm0,y
 	sta daysofm,y
 	dey
-	bpl setup_loop4
+	bpl <@
 	jsr copytran
 	ldy #15
 	lda #16
-setup_loop5:
+@:
 	sta pmodetbl,y
 	dey
-	bpl setup_loop5
+	bpl <@
 	lda #255
 	sta pmodetbl+16
 	lda #0
 	sta pmodetbl+17
 	ldy #0
-setup_loop6:
+@:
 	lda #1
 	sta alarmtb,y
 	lda #0
 	sta alarmtb+1,y
 	iny
-	bpl setup_loop6
+	bpl <@
 	ldy #12*3-1
-setup_loop7:
+@:
 	lda montbl0,y
 	sta montbl,y
 	dey
-	bpl setup_loop7
+	bpl <@
 	ldy #8*3-1
-setup_loop8:
+@:
 	lda daytbl0,y
 	sta daytbl,y
 	dey
-	bpl setup_loop8
+	bpl <@
 	ldy #31
-setup_loop9:
+@:
 	lda date1fmt,y
 	sta date1,y
 	dey
-	bpl setup_loop9
+	bpl <@
 	ldy #64
-setup_loop10:
+@:
 	lda sndtbl0,y
 	sta sndtbl,y
 	dey
-	bpl setup_loop10
+	bpl <@
 	ldy #0
 	ldx #0
-setup_loop11:
+@:
 	lda screentb,y
 	iny
 	sta lobytes,x
@@ -200,7 +200,7 @@ setup_loop11:
 	sta hibytec,x
 	inx
 	cpx #25
-	bne setup_loop11
+	bne <@
 
 	lda chrout	; $ffd2
 	cmp #$20

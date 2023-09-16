@@ -21,7 +21,7 @@ wedge_module_size = * - wedge_load_address
 ;;; editor
 ;;;
 
-{include:"editor.asm"}
+embed "editor.bin"
 
 room_in_editor = gc_load_address - *
 
@@ -33,7 +33,7 @@ editor_module_size = * - editor_load_address
 ;;; garbage collection
 ;;;
 
-{include:"gc.asm"}
+embed "gc.bin"
 
 room_in_gc = ecs_load_address - *
 
@@ -47,7 +47,7 @@ gc_module_size = * - gc_load_address
 
 ; $e400 - e.c.s. checker
 
-{include:"ecs.asm"}
+embed "ecs.bin"
 
 room_in_ecs = struct_load_address - *
 
@@ -59,7 +59,7 @@ ecs_module_size = * - ecs_load_address
 ;;; struct
 ;;;
 
-{include:"struct.asm"}
+embed "struct.bin"
 
 room_in_struct = swap1_load_address - *
 
@@ -71,7 +71,7 @@ struct_module_size = * - struct_load_address
 ;;; swap1
 ;;;
 
-{include:"swap1.asm"}
+embed "swap1.bin"
 
 room_in_swap1 = swap2_load_address - *
 
@@ -83,7 +83,7 @@ swap1_module_size = * - swap1_load_address
 ;;; swap2
 ;;;
 
-{include:"swap2.asm"}
+embed "swap2.bin"
 
 room_in_swap2 = swap3_load_address - *
 
@@ -95,7 +95,7 @@ swap2_module_size = * - swap2_load_address
 ;;; swap3
 ;;;
 
-{include:"swap3.asm"}
+embed "swap3.bin"
 
 room_in_swap3 = jmptbl - *
 
@@ -201,7 +201,7 @@ getversn:
 	lda versnum,y
 	sta var,y
 	dey
-	bpl @<
+	bpl <@
 	ldx #15
 	jmp putvar ;lp
 
@@ -219,7 +219,7 @@ findvar1:
 	lda #r6510_normal
 	sta r6510
 	jsr ptrget1
-	jmp @>exitint
+	jmp >@exitint
 
 ; relink basic program lines
 
@@ -229,7 +229,7 @@ relink:
 	lda #r6510_normal
 	sta r6510
 	jsr linkprg
-	jmp @>exitint
+	jmp >@exitint
 
 fpout:
 ; FIXME: output floating point value in .a
@@ -243,7 +243,7 @@ fpout:
 	jsr jfout	; c128: $8e32. print 16-bit digit, > .a, < .x
 ;	jsr fout	;  c64: $bddd. convert contents of fac1 to string, pointed to by > .a < .y
 ;	jsr bank_in_prg
-	jmp @>exitint
+	jmp >@exitint
 
 ; make a dynamic string
 
@@ -328,7 +328,7 @@ outastr1:
 	stx var+1
 	sty var+2
 	sta var
-	jsr @>outstr
+	jsr >@outstr
 	jsr chrgot
 	bne outastr1
 outastr2:
@@ -494,7 +494,7 @@ chkspcl0:
 	sec
 	sbc #$85
 	tax
-	lda @>spchars,x
+	lda >@spchars,x
 	ldx cxsav
 chkspcl1:
 	cmp #0
@@ -539,9 +539,9 @@ usetbl0:
 	lda #>caller
 	sta jump+2
 	cpx #>kernal_rom_start
-	bcs @>jump
-	sty @>jump+1
-	stx @>jump+2
+	bcs >@jump
+	sty >@jump+1
+	stx >@jump+2
 	ldx sxreg	; c64: 781
 	ldy syreg	; c64: 782
 
@@ -623,7 +623,7 @@ newirq0:
 newirq1:
 	pla
 	sta r6510
-	jmp @>exitint	; c64: $ea81
+	jmp >@exitint	; c64: $ea81
 
 ; far call to the error handler
 
@@ -645,17 +645,17 @@ d1str:
 
 ; pad up to fbuf start
 	align  fbuf-*,0
-; fbuf:
+fbuf:
 	align $20, 20
 
 ; pad up to buf2 start
 	align  buf2-*,0
-; buf2:
+buf2:
 	align $20, 80
 
 ; pad up to buffer start
 	align  buffer-*,0
-; buffer:
+buffer:
 	align $20, 80
 
 ; date in 6 byte bcd format

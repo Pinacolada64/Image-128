@@ -259,7 +259,7 @@ mkdate1:
 
 @mult3:
 	tya
-	sta @>mult3a+1
+	sta >@mult3a+1
 	asl
 	clc
 @mult3a:
@@ -283,7 +283,7 @@ makdate:
 	jsr mkdate
 dispdate:
 	ldy bootdate
-	jsr @<mult3
+	jsr <@mult3
 	ldx #0
 dispd1:
 	lda daytbl,y
@@ -300,7 +300,7 @@ dispd1:
 dispd1a:
 	tay
 	dey
-	jsr @<mult3
+	jsr <@mult3
 dispd2:
 	lda montbl,y
 	jsr dispdt
