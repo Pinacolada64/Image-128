@@ -122,7 +122,7 @@
 	strend	= $33	; c64: ($31)/(49). pointer to start of free memory in bank 1
 	fretop	= $35	; c64: ($33). pointer to bottom of dynamic string storage in bank 1
 	frespc	= $37	; c64: ($35). pointer to most recently used string in bank 1
-	memsiz	= $39	; c64: ($37). pointer to top of dynamic string storage in bank 1
+	memsiz	= $39	; c64: ($37). pointer to top of BASIC [default: $feff]
 	curlin	= $3b	; c64: ($39). Current BASIC Line Number
 	oldtxt	= $1202	; c64: ($3d). Pointer to the start of current line
 	txtptr	= $3d	; c64: ($7a). Pointer to address of current BASIC statement
@@ -255,10 +255,12 @@
 	rodbs	= $0a1a ; c64: 669. RS-232: Index to Start of Transmit Buffer
 	rodbe	= $0a1b ; c64: 670. RS-232: Index to End of Transmit Buffer
 
-; 2670-2687 / $0A6E-$0A7F: Unused (17 bytes)
+; 2670-2687 / $0A6E-$0A7F: Unused [128 OS] (17 bytes)
+
+	ntscpal = $0a03	; c64: $02a6, c128: 255=pal, 1=ntsc
 
 ;
-; 2758-2815 / $0AC6-$0AFF: Unused (58 bytes)
+; 2758-2815 / $0AC6-$0AFF: [128 OS] Unused (58 bytes)
 ;
 	idlejif	= $0ad0	; 2768
 	idlesec	= $0ad1	; 2769
@@ -292,8 +294,11 @@
 
 ; $0aff: end of unused block
 
+; [128 OS]
 	adray1	= $117a	; c64: $03. Vector: Routine to Convert a Number from Floating Point to Signed Integer
 	adray2	= $117c	; c64: $05. Vector: Routine to Convert a Number from Integer to Floating Point
+	oldlin	= $1200 ; c64: ($3b). previous BASIC line number
+	usrpok	= $1219	; "usr" function jump vector. $1218 is $4c, the "jmp" opcode
 
 	emptym0	= 711	; FIXME: $02c7-$02ff (711-767), $39 (57) bytes
 
@@ -318,7 +323,8 @@
 ; $0E00-$0FFF / 3584-4095: Sprite Pattern Storage Area (511 / $1ff bytes)
 
 ;
-; screen display stuff:
+; screen display stuff (bank 1):
+; TODO: move to bank 1 so less banking back & forth?
 ; screen RAM is  1024-2023  ($0400-$07e7)
 ;  color RAM is 55296-56296 ($d800-$dbe7)
 ;
@@ -336,34 +342,32 @@
 	tdisp	= $0400 + (40*24) ; 960: time/date, time left, status flags
 	tcolr	= $d800 + (40*24) ; 960
 
-	ntscpal = $0a03	; c64: $02a6, c128: 255=pal, 1=ntsc
-
 ;
-; temporary storage for 8 rows of screen mask
-; $1000-$12ff / 4096-4863 ($2ff / 767 bytes) [from ray's memory map]
-;
-	tempscn = $1000 ; 4096, $200 (40 x 8 = 512) bytes
-	tempscn0= tempscn+(0*40) ; 000 lightbar row
-	tempscn1= tempscn+(1*40) ; 040 user
-	tempscn2= tempscn+(2*40) ; 080 last
-	tempscn3= tempscn+(3*40) ; 120 name
-	tempscn4= tempscn+(4*40) ; 160 mail
-	tempscn5= tempscn+(5*40) ; 200 area
-	tempscn6= tempscn+(6*40) ; 240 c=00003
-	tempscn7= tempscn+(7*40) ; 280 receive/transmit windows
-	tempcol	= $1140	; 4416, $140 bytes
-	tempcol0= tempcol+(0*40) ; 000
-	tempcol1= tempcol+(1*40) ; 040
-	tempcol2= tempcol+(2*40) ; 080
-	tempcol3= tempcol+(3*40) ; 120
-	tempcol4= tempcol+(4*40) ; 160
-	tempcol5= tempcol+(5*40) ; 200
-	tempcol6= tempcol+(6*40) ; 240
-	tempcol7= tempcol+(7*40) ; 280
-	emptym3	= $1280 ; 4736-4863, 127 bytes
+; temporary storage for bottom 8 rows of screen mask
+; c64: $1000-$12ff / 4096-4863 ($2ff / 767 bytes) [from ray's memory map]
+; 128: $3300-$3580
+	tempscn = $3300		;  $3300/13056, $200 (40 x 8 = 512) bytes
+				;  $addr +offset
+	tempscn0= tempscn+(0*40) ; $3300 +000 lightbar row
+	tempscn1= tempscn+(1*40) ; $3328 +040 user
+	tempscn2= tempscn+(2*40) ; $3350 +080 last
+	tempscn3= tempscn+(3*40) ; $3378 +120 name
+	tempscn4= tempscn+(4*40) ; $33a0 +160 mail
+	tempscn5= tempscn+(5*40) ; $33c8 +200 area
+	tempscn6= tempscn+(6*40) ; $33f0 +240 c=00003
+	tempscn7= tempscn+(7*40) ; $3418 +280 receive/transmit windows
 
-	oldlin	= $1200 ; c64: ($3b). previous BASIC line number
-	usrpok	= $1219	; "usr" function jump vector. $1218 is $4c, the "jmp" opcode
+	tempcol	= tmpscn +(8*40) ; $3440/13376, $200 bytes
+	tempcol0= tempcol+(0*40) ; $3440 +000
+	tempcol1= tempcol+(1*40) ; $3468 +040
+	tempcol2= tempcol+(2*40) ; $3490 +080
+	tempcol3= tempcol+(3*40) ; $34b8 +120
+	tempcol4= tempcol+(4*40) ; $34e0 +160
+	tempcol5= tempcol+(5*40) ; $3508 +200
+	tempcol6= tempcol+(6*40) ; $3530 +240
+	tempcol7= tempcol+(7*40) ; $3558 +280
+;	emptym3	= $1280 ; 4736-4863, 127 bytes
+
 
 ; 4862-4863 / $12FE-$12FF Unused (2 bytes)
 ; These locations are not used by any 128 ROM routine.
@@ -393,7 +397,7 @@
 	hibytes	= $1719 ; 25 bytes
 	lobytec	= $1732 ; 25 bytes: address of each line in color RAM [?]
 	hibytec	= $174b ; 25 bytes
-	emptym4	= $1764 ; 28 bytes
+	emptym4	= $1764 ; 28 bytes: TODO: remove
 	pmodetbl= $1780 ; $80 bytes: MCI print mode table
 	; $1800 : end of pmodetbl
 
@@ -523,16 +527,18 @@
 
 	buf2	= rs232	+ $4e	; 6478 / $194e-$199e: 80 / $50 bytes. c64: $ce27
 	buffer	= buf2	+ $50	; 6558 / $199e-$19ee: 80 / $50 bytes. c64: $ce77
-;	longdate= buffer+ ?	; starts at $cec7? im 3170
+;	longdate= buffer+ ?	; starts at $cec7? im 3170 $ce77 + $50 = $cf17
 
 ; $19dc-$1bff: $0223 / 547 bytes free
 
 ; TODO: $1a00-$1bff: $1ff / 511 bytes. room for IRQ/& jump tables?
 
-; $1bff: end of Application Program Area
+; Image '&' jump table:
+	jmptbl	= $1a00	; 71 * 2 = 142 bytes => 6798 / $1A8E
 
-; FIXME Image IRQ jump table (under ROM):
-	jmptbl	= $a000
+; 369 bytes free
+
+; $1bff: end of Application Program Area
 
 ; 7167 / $1C01: Normal start of BASIC text
 ; to reserve 9K RAM from 7168-16383 / $lC00-$3FFF: GRAPHIC l:GRAPHIC 0
@@ -543,15 +549,14 @@
 
 ; 2) protocols
 
-; transfer protocol area (c64: 2680 bytes)
-; FIXME: this is screen editor ROM on the 128; it must be swapped out
+; swap-to / transfer protocol area (c64: $a78/2680 bytes)
+; 128: $fff/4095 bytes
 
-	protostart	= $c000	; c64: $c000
-	protoend	= $ca80 ; c64: $ca80
+	protostart	= $1c00			; 128: $1c00. c64: $c000
+	protobuf	= protostart	+ $f00	; 128: $2b00. proto block transfer area
+	protoend	= protobuf	+ $ff	; 128: $2bff. c64: $ca80
 
-; 9216 - 1280 = 7,936 free
-
-; $2001 - ?: adjusted start of BASIC
+; $3601 - $feff: adjusted range of BASIC
 
 ; FIXME: modules, sub-modules load...?
 
@@ -631,17 +636,18 @@
 	swap3_swap_address	= $fc00
 
 ;
-; garbage collection stuff
+; garbage collection stuff:
 ;
-	gc_load	= $c000	; module load addr
-	gchide	= $e000	; swaps to
-	gclen	= 4	; # pages
+	gc_load		= protostart	; module load addr
+	gc_swap_address	= $e000		; swaps to
+	gclen		= 4		; # pages
 ;
 ; extended command set stuff:
 ;
-	ecs_load= $c000	; module load addr
-	ecshide	= $e400	; swaps to
-	ecslen	= 10	; # pages (seems like a lot)
+	ecs_load	= protostart	; module load addr
+	ecs_swap_address= $e400		; swaps to
+	ecslen		= 10		; # pages ($a00/2560 bytes, seems like a lot
+					;	but fits in protostart area)
 
 ;
 ; BBS flags (really, unused VIC-II registers)
@@ -711,7 +717,7 @@
 	systok	= 158	; sys $addr
 	loadtok	= 147	; load"filename",<device>,<segment>
 	newtok	= 162	; "new <line_num>" erases <line_num>-
-		; related: $51d6 handles the NEW statement
+			; related: $51d6 handles the NEW statement
 
 ;
 ; module addresses:

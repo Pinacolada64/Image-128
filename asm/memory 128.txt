@@ -1,0 +1,103 @@
+During boot (contents of the ML file)
+
+$6c00 to $6fff	Wedge code
+$7000 to $7fff	editor code
+$8000 to $83ff	Garbage collector
+$8400 to $8dff	ECS code
+$8e00 to $93ff	Struct code
+$9400 to $97ff	Swap1 code
+$9800 to $9bff	Swap2 code
+$9c00 to $9fff	Swap3 code
+
+Everything after this point is the same as the next section.
+
+[OS]:	memory reserved by 128 OS, often immutable
+[c64]:	location of data on c64
+[128]:	location of data on 128 (relocated compared to c64)
+
+While running:
+$0ad0 to $0aff	[128] pointers/flags
+$0b00 to $0bff	[128] normally available; used by JiffyDOS
+$0c00 to $0cff	[128] OS: $0ff/255 rs232 input buffer
+$0d00 to $0dff	[128] OS: $0ff/255 rs232 output buffer
+$0e00 to $0fff	[128] OS: $1ff/511 bytes [unused; sprite data]
+		WISH: put tempscn screen mask data here
+		-or-
+		WISH: put banking/misc other small routines here
+		WISH: put buffer page here [$0f00-$0fff]?
+
+$1000 to $10ff	[128 OS]: function key definition buffer
+
+$1200 to $12ff	[128 OS]: BASIC General-Purpose Working Storage
+
+$1300 to $1bff	[128 OS]: Start of Application Program Area ($8ff/2303 bytes)
+		Unused
+
+$1300 to $130f	chktbl
+$1310 to $13cf	bartbl
+$13d0 to $13df	array pointers
+$13e0 to $13ec	days per month
+$13ed to $13ef	2 [unused]
+$13f0 to $144f	sounds
+$1450 to $147f	net alarms
+$1480 to $14ff	ASCII to CBM translation table
+$1500 to $15ff	CBM to ASCII translation table
+$1600 to $161f	tblcta1
+$1620 to $163f	tblcta2
+$1640 to $165f	tblcta3
+$1660 to $16e0	alarm table
+$16e0 to $16ff	$1f/31 date buffer
+$1700 to $1718	lobytes: screen line text RAM addresses
+$1719 to $1731	hibytes: TODO: relocate $1700-$177f?  $7f/127 bytes
+$1732 to $174a	lobytec: screen line color RAM addresses
+$174b to $1763	hibytec
+$1764 to $177f	[c64] $1b/27 bytes [unused, TODO: remove?]
+$1780 to $17ff	$80/128 pmodetbl
+
+$1800 to $18ff	[128] relocated cassette buffer data/tables
+
+$1900 to $1911	[128] wedge jump table
+$1912 to $1926	[128] RS232 jump table
+$1927 to $194d	[128] interface page jump table [c64: $cd00]
+
+$1a00 to $1a8e	[128] '&' address jump table (71 * 2: 142)
+		$170/368 bytes free
+		TODO: move swap-to area up to $1b00?
+
+		$1bff: [128 OS] End of Application Program Area
+
+$1c00 to $2bff	[128] $0fff/4095 swap-to area (text editor, ecs, protocols, etc.)
+
+$2c00 to $35ff	[128] $09ff/2559
+
+$2c00 to $2eff	[c64] $02ff/767  RS232 driver
+$2f00 to $32ff	[c64] $03ff/1023 BASIC wedge
+$3300 to $35ff	[c64] $02ff/767  screen mask data
+		$9fd/2557 bytes
+
+$3600		Must be $00, needed for BASIC
+$3601 to $feff	$c8ff/51455 BASIC program area
+
+$a000 to $bfff	[c64] ROM: BASIC ROM
+		[c64] RAM: Image ML routines
+$c000 to $caff	[c64] $aff/2815 bytes
+		[128] ROM: BASIC Screen editor
+		[c64] RAM: "Protocol" block for loadable ML code
+$cb00 to $ccff	$1ff/511 swapper area
+		(TODO: determine if it includes a 1-page buffer for data transfer)
+$cd00 to $cdff	[c64] interface page
+$ce00 to $cdff	[c64] buffer page
+$cf00 to $cfff	[c64] $ff/255 bytes [unknown purpose]
+
+$d000 to $dfff	[128] I/O memory, BBS flags
+$d000 to $dfff	ROM: Character ROM
+		RAM: [c64] text editor swap location (code is here while not running)
+
+$e000 to $ffff	ROM: KERNAL ROM
+		RAM: Image ML "swap" code under ROM
+$e000 to $e3ff	RAM: garbage collector swap module [TODO: maybe not necessary?]
+$e400 to $edff	RAM: ECS swap module
+$ee00 to $f3ff	RAM: Struct swap module
+$f400 to $f7ff	RAM: Swap1 swap module
+$f800 to $fbff	RAM: Swap2 swap module
+$fc00 to $ffff	RAM: Swap3 swap module
