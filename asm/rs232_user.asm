@@ -1,10 +1,10 @@
 {include:"equates.asm"}
 
-* = $0800 "rs232_user.prg"
+orig rs232_exec_address ; "rs232_user.bin"
 
 rstkey = $fe56
 norest = $fe72
-nmiexit = $febc
+nmiexit = $ff37	; c64: $febc
 findfn = $f30f
 devnum = $f31f
 nofile = $f701

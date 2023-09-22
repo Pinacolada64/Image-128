@@ -8,7 +8,7 @@ set OUTPUT_PREFIX=ml 128 1_0.
 
 :: each of these files should include {uses:equates.asm},
 :: there is no command-line switch to include symbols
-for %%f in (editor gc ecs struct swap1 swap2 swap3) do %C64LIST% %%f.asm -bin:%%f.bin -ovr
+for %%f in (rs232_user rs232_swift rs232 wedge intro editor gc ecs struct swap1 swap2 swap3) do %C64LIST% %%f.asm -bin:%%f.bin -ovr
 
    %C64LIST% ml.asm -prg:"%OUTPUT_PREFIX%prg"
 :: %C64LIST% %OUTPUT_PREFIX.prg -d64:test.d64::"@ML 128 1.0" -verbose

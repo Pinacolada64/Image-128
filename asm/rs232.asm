@@ -1,6 +1,6 @@
 {include:"equates.asm"}
 
-* =  protostart "rs232.prg"
+orig protostart ; "rs232.prg"
 
 ml:
 	cpx #2
@@ -30,6 +30,6 @@ rshigh:
 	byte >rs232a, >rs232b
 
 rs232a:
-	{include:"rs232_user.bin"}
+	embed "rs232_user.bin"
 rs232b:
-	{include:"rs232_swift.bin"}
+	embed "rs232_swift.bin"

@@ -1,6 +1,6 @@
 {include:"equates.asm"}
 
-* = $0800 "rs232_swift.prg"
+orig rs232_exec_address ; "rs232_swift.bin"
 
 ; baudof = $299
 ; rodbe = $29e
