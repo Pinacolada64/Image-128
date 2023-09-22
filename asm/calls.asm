@@ -103,21 +103,21 @@ callswap:
 
 	lda callpage
 
- ; swap1, swap2, swap3 must be the same size
+; swap1, swap2, swap3 must be the same size
 
-	ldx #>swap1_module_size
+	ldx #swap1_pages
 	cmp #>swap1_swap_address
 	bcs callswp1
 
-	ldx #>struct_module_size
+	ldx #struct_pages
 	cmp #>struct_swap_address
 	bcs callswp1
 
-	ldx #>ecs_module_size
+	ldx #ecs_pages
 	cmp #>ecs_swap_address
 	bcs callswp1
 
-	ldx #gc_module_size
+	ldx #gc_pages
 
 ; swap the module to the execution address
 

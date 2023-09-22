@@ -6,6 +6,8 @@ A port of Image BBS 3.0 for the Commodore 64 to the Commodore 128.
 
 https://rvbelzen.tripod.com/128intpt/index.html
 
+[C64Studio](https://github.com/GeorgRottensteiner/C64Studio) by Georg Rottensteiner
+
 ## Design goals
 
 ### BASIC
