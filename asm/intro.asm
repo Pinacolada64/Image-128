@@ -1,5 +1,5 @@
 devnum = 186
-
+{include:equates.asm}
 {undef:use_ltk}	; Lt. Kernal emulation is not ready for VICE 128
 
 ; intro is a proto
@@ -11,16 +11,17 @@ devnum = 186
 
 intro:
 
-;fake rs232 driver filled with "RTS" instructions
+; fake rs232 driver filled with "RTS" instructions
+; (avoids crashing when rs232 enable/disable is called from swapper)
 
 	lda #$60
 	ldy #0
-intro_loop1:
+rs232_loop:
 	sta rs232,y
 	dey
-	bne intro_loop1
+	bne rs232_loop
 
-; move editor code to it's "swapped out" location
+; move editor code to its "swapped out" location
 ; also moves other modules after the editor
 ; TODO split this out to swap each module individually
 
@@ -77,18 +78,18 @@ intro_loop1:
 ;fake lightbar table
 	lda #0
 	ldy #0
-intro_loop2:
+chktbl_loop:
 	sta chktbl,y
 	iny
 	cpy #16
-	bne intro_loop2
+	bne chktbl_loop
 	lda #32
 	ldy #0
-intro_loop3:
+bartbl_loop:
 	sta bartbl,y
 	iny
 	cpy #192
-	bne intro_loop3
+	bne bartbl_loop
 ; run program
 	lda #0
 	jsr run		; c64: $A871. RUN:    Perform RUN. c128: $5a9b
@@ -105,18 +106,18 @@ im_filename:
 setup:
 	lda #0
 	tay
-@:
+zero_cassbuff:
 	sta cassbuff,y
 	iny
 	cpy #1024-cassbuff
-	bne <@
+	bne zero_cassbuff
 	ldy #0
-@:
+copy_date:
 	lda date2,y
 	sta date1,y
 	iny
 	cpy #28
-	bne <@
+	bne copy_date
 	lda #80
 	sta ptrclmn
 	lda #40
@@ -124,7 +125,7 @@ setup:
 	lda #1
 	sta local
 	ldy #0
-@:
+zero_tmmpscn:
 	lda #32
 	sta tempscn+$00,y
 	sta tempscn+$a0,y
@@ -133,59 +134,66 @@ setup:
 	sta tempcol+$a0,y
 	iny
 	cpy #$a0
-	bne <@
+	bne zero_tmmpscn
 	ldy #11
-@:
+copy_daysofm:
 	lda daysofm0,y
 	sta daysofm,y
 	dey
-	bpl <@
+	bpl copy_daysofm
+
 	jsr copytran
+
 	ldy #15
 	lda #16
-@:
+zero_pmodetbl:
 	sta pmodetbl,y
 	dey
-	bpl <@
+	bpl zero_pmodetbl
 	lda #255
 	sta pmodetbl+16
 	lda #0
 	sta pmodetbl+17
 	ldy #0
-@:
+alarmtb_loop:
 	lda #1
 	sta alarmtb,y
 	lda #0
 	sta alarmtb+1,y
 	iny
-	bpl <@
+	bpl alarmtb_loop
+
 	ldy #12*3-1
-@:
+months_loop:
 	lda montbl0,y
 	sta montbl,y
 	dey
-	bpl <@
+	bpl months_loop
+
 	ldy #8*3-1
-@:
+days_in_months_loop:
 	lda daytbl0,y
 	sta daytbl,y
 	dey
-	bpl <@
+	bpl days_in_months_loop
+
 	ldy #31
-@:
+date_format_loop:
 	lda date1fmt,y
 	sta date1,y
 	dey
-	bpl <@
+	bpl date_format_loop
+
 	ldy #64
-@:
+sound_loop:
 	lda sndtbl0,y
 	sta sndtbl,y
 	dey
-	bpl <@
+	bpl sound_loop
+
 	ldy #0
 	ldx #0
-@:
+screen_addresses_loop:
 	lda screentb,y
 	iny
 	sta lobytes,x
@@ -200,7 +208,7 @@ setup:
 	sta hibytec,x
 	inx
 	cpx #25
-	bne <@
+	bne screen_addresses_loop
 
 	lda chrout	; $ffd2
 	cmp #$20
@@ -232,7 +240,7 @@ setup1:
 	ldx #3
 	jsr comq	; set mci color default?
 	jsr startmsg
-	lda #$37	; ALL_RAM?
+	lda #r6510_normal ; $37
 	sta r6510	; $01
 	rts
 
@@ -289,16 +297,17 @@ setscrn:
 	jsr makdate
 	jmp dispdate
 
-;* find basic variable
+;* find BASIC variable
 getvarp:
+	jsr bank_vars_in
 	txa
 	asl
 	tay
 	lda varlist+1,y
 	tax
 	lda varlist,y
-	sta $45
-	stx $46
+	sta varnam	; c64: $45
+	stx varnam+1	; c64: $46
 	jmp findvar1
 
 ; ********************************
@@ -370,11 +379,11 @@ setp1:
 	asl
 	tay
 	sec
-	lda $47
-	sbc $2d
+	lda varpnt	; c64: $47
+	sbc vartab	; c64: $2d
 	sta vars,y
-	lda $48
-	sbc $2e
+	lda varpnt+1	; c64: $48
+	sbc vartab+1	; c64: $2e
 	sta vars+1,y
 	dec tmp1
 	bpl setp1
