@@ -4,106 +4,137 @@
 {include:"equates.asm"}
 
 ;;;
-;;; wedge
+;;; rs232: swap to $0c00
 ;;;
 
-orig wedge_load_address
-
-{include:"wedge.asm"}
-
-room_in_wedge = editor_load_address - *
-
-; pad to the start of the next module
-	align  room_in_wedge,0
-wedge_module_size = * - wedge_load_address
+rs232_load_address = *
+{include:rs232.bin}
+align $100,$00
+rs232_pages = (* - rs232_load_address) / 256 ; should be 2
 
 ;;;
-;;; editor
+;;; buffer page: swap to $0e00
 ;;;
 
-embed "editor.bin"
-
-room_in_editor = gc_load_address - *
-
-; pad to the start of the next module
-	align room_in_editor,0
-editor_module_size = * - editor_load_address
+buffer_page_start = *
+{include:buffer-page.asm}
+align $100,$00
+buffer_pages = (* - buffer_page_start) / 256
 
 ;;;
-;;; garbage collection
+;;; wedge: swap to $2f00
 ;;;
 
-embed "gc.bin"
+wedge_load_address = *
+wedge_swap_address = $2f00
 
-room_in_gc = ecs_load_address - *
+{include:"wedge.bin"}
 
-; pad to the start of the next module
-	align room_in_gc,0
-gc_module_size = * - gc_load_address
-
-;;;
-;;; extended command set
-;;;
-
-; $e400 - e.c.s. checker
-
-embed "ecs.bin"
-
-room_in_ecs = struct_load_address - *
-
-; pad to the start of the next module
-	align  room_in_ecs,0
-ecs_module_size = * - ecs_load_address
+align $0100,$00
+wedge_pages = (* - wedge_load_address) / 256
 
 ;;;
-;;; struct
+;;; & jump table: swap $1a00
+;;; just addresses, no need for a .bin file
 ;;;
 
-embed "struct.bin"
-
-room_in_struct = swap1_load_address - *
-
-; pad to the start of the next module
-	align room_in_struct,0
-struct_module_size = * - struct_load_address
-
-;;;
-;;; swap1
-;;;
-
-embed "swap1.bin"
-
-room_in_swap1 = swap2_load_address - *
-
-; pad to the start of the next module
-	align room_in_swap1, 0
-swap1_module_size = * - swap1_load_address
-
-;;;
-;;; swap2
-;;;
-
-embed "swap2.bin"
-
-room_in_swap2 = swap3_load_address - *
-
-; pad to the start of the next module
-	align  room_in_swap2,0
-swap2_module_size = * - swap2_load_address
-
-;;;
-;;; swap3
-;;;
-
-embed "swap3.bin"
-
-room_in_swap3 = jmptbl - *
-
-; pad to the start of the next module
-	align  room_in_swap3,0
-swap3_module_size = * - swap3_load_address
-
+wedge_load_address = *
+wedge_swap_address = $1a00
 {include:"jmptb.asm"}
+; pad to the start of the next module
+	align $100,0
+wedge_pages = (* - wedge_load_address) / 256
+
+;;;
+;;; intro "protocol": swap to $1c00
+;;; this should come after all the .bin files are included
+;;; since all the module sizes and load addresses have been
+;;; defined. the *_page_size label is used by the swapper to
+;;; move blocks of code to their *_load_address location.
+;;;
+
+intro_load_address = *
+intro_swap_address = protostart
+
+{include:"intro.bin"}
+align $100,$00
+intro_pages = (* - intro_load_address) / 256
+
+;;;
+;;; text editor: $7000
+;;;
+
+editor_load_address = *
+embed "editor.bin"
+align $100,$00
+editor_pages = (* - editor_load_address) / 256
+
+;;;
+;;; garbage collection: $8000
+;;;
+
+gc_load_address = *
+embed "gc.bin"
+; pad to the start of the next module:
+align $100,$00
+gc_pages = (* - gc_load_address) / 256
+
+;;;
+;;; extended command set: $8400
+;;;
+
+ecs_load_address = *
+ecs_swap_address = $e400
+embed "ecs.bin"
+; pad to the start of the next module
+align $100,$00
+ecs_pages = (* - ecs_load_address) / 256
+
+;;;
+;;; structures
+;;;
+
+struct_load_address = *
+struct_swap_address = $ee00
+embed "struct.bin"
+; pad to the start of the next module
+	area $100,$0
+struct_pages = (* - struct_load_address) / 256
+
+;;;
+;;; swap1: $9400
+;;;
+
+swap1_load_address = *
+swap1_swap_address = $f800
+embed "swap1.bin"
+; pad to the start of the next module
+	area $0f00, $00
+swap1_pages = (* - swap1_load_address) / 256
+
+;;;
+;;; swap2: $9800
+;;;
+
+swap2_load_address = *
+swap2_swap_address = $f800
+embed "swap2.bin"
+; pad to the start of the next module:
+align $100,$00
+swap2_pages = (* - swap2_load_address) / 256
+
+;;;
+;;; swap3: $9c00
+;;;
+
+swap3_load_address = *
+swap3_swap_address = $fc00
+embed "swap3.bin"
+; pad to the start of the next module:
+align $100,$00
+; pad to the start of the next module
+	align $100,$00
+swap3_pages = >(* - swap3_load_address) / 256
 
 {include:"strio.asm"}
 
@@ -127,18 +158,9 @@ swap3_module_size = * - swap3_load_address
 
 {include:"calls.asm"}
 
-; put intro program in
+align $100,$00
 
-room_under_basic_rom = protostart-*
-	align room_under_basic_rom,0
-
-{include:"intro.asm"}
-
-room_in_intro = $cb00 - *
-
-;* skip rest of proto area *
-
-	align room_in_intro,0
+addrcheck $ca00
 
 swapper0:
 	sta swappg1	; source page
@@ -182,7 +204,7 @@ swapr1:
 	sta r6510
 	cli
 	jsr rsinabl
-	lda #$a0
+	lda #$a0	; reverse space
 	sta tdisp+31
 	rts
 
@@ -211,9 +233,10 @@ scrnset:
 	stx $d011
 	rts
 
-; find a basic variable
+; find a BASIC variable
 
 findvar1:
+; TODO: jsr bank_in_vars
 	lda r6510
 	pha
 	lda #r6510_normal
@@ -221,7 +244,7 @@ findvar1:
 	jsr ptrget1
 	jmp >@exitint
 
-; relink basic program lines
+; relink BASIC program lines
 
 relink:
 	lda r6510
@@ -452,11 +475,9 @@ convchr1:
 	and #127
 	rts
 
-room_in_swapper = $cd00 - *
+	align $100,$00
 
-	align  room_in_swapper,0
-
-; interface page jmp table
+; interface page jmp table: $1b00
 
 hcd00:
 	jmp outastr
@@ -533,6 +554,7 @@ usetbl0:
 	plp
 
 ; if the target is under the kernel, call using "caller" swap code to visible memory
+; (calls.asm)
 
 	lda #<caller
 	sta jump+1
@@ -632,73 +654,4 @@ farerr:
 	sta r6510
 	jmp error
 
-room_in_interface_page = $ce00 - *
-
-	align  room_in_interface_page,0
-
-; buffer page
-
-d1str:
-	ascii "           "
-@spchars:
-	ascii comma,colon,34,"*?=",13,"^"
-
-; pad up to fbuf start
-	align  fbuf-*,0
-fbuf:
-	align $20, 20
-
-; pad up to buf2 start
-	align  buf2-*,0
-buf2:
-	align $20, 80
-
-; pad up to buffer start
-	align  buffer-*,0
-buffer:
-	align $20, 80
-
-; date in 6 byte bcd format
-
-bootdate:
-
-dateday:
-	byte $01
-datemon:
-	byte $12
-datedate:
-	byte $09
-dateyear:
-	byte $90
-	byte $20,$00
-
-; storage for conversion routines
-
-binary:
-	byte 0,0,0,0
-
-; days in each month
-
-ha560:
-	byte $31,$28,$31,$30,$31
-	byte $30,$31,$31,$30,$00
-decchr:
-	byte $30,$30,$30,$30,$30
-	byte $31,$30,$31
-
-; the date this ml was made
-
-version:
-	ascii {usedef:__BuildDate}
-	ascii " "
-	ascii {usedef:__BuildTime}
-
-version_length = * - version
-
-; version in floating point
-
-versnum:
-	byte $81, $00, $00, $00, $00 ; 1.0
-;	byte $81, $19, $99, $99, $9a ; 1.2
-;	byte $81, $26, $66, $66, $66 ; 1.3
-;	byte $82, $00, $00, $00, $00 ; 2.0
+	align $0100,$00	; pad to $ce00
