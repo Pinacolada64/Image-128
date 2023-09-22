@@ -54,10 +54,10 @@
 	word forcegc	;&,40
 	word setbaud	;&,41
 	word $e400	;42-ecs
-	word chatchk	;&,43 chrio.s
+	word chatchk	;&,43 chrio.asm
 	word trace	;&,44
 	word prtvar	;&,45
-	word prtvar0	;&,46
+	word prtvar0	;&,46 swap3.asm
 	word carchk	;&,47
 	word getkbd	;&,48
 	word getmod	;&,49
