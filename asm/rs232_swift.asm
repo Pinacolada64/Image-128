@@ -2,12 +2,10 @@
 
 orig rs232_exec_address ; "rs232_swift.bin"
 
-; baudof = $299
 ; rodbe = $29e
 ; rodbs = $29d
 ; ridbe = $29b
 ; ridbs = $29c
-; enabl = $2a1
 
 rstkey = $fe56
 norest = $fe72

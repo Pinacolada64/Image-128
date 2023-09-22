@@ -2,6 +2,9 @@
 
 orig rs232_exec_address ; "rs232_user.bin"
 
+enabl	= $2a1	; CIA #2 NMI flag
+baudof	= $299	; time required to send a bit
+
 rstkey = $fe56
 norest = $fe72
 nmiexit = $ff37	; c64: $febc
