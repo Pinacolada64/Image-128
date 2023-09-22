@@ -556,6 +556,55 @@
 	protobuf	= protostart	+ $f00	; 128: $2b00. proto block transfer area
 	protoend	= protobuf	+ $ff	; 128: $2bff. c64: $ca80
 
+; screen display stuff (bank 1):
+; TODO: move to bank 1 so less banking back & forth?
+; screen RAM is  1024-2023  ($0400-$07e7)
+;  color RAM is 55296-56296 ($d800-$dbe7)
+;
+; the screen line calculations are zero-based (top screen line is offset 0)
+; TODO: this will probably have to be made a table so we can refer to addresses
+; for the VDC - or maybe use its block copy feature
+;
+
+	ldisp	= $0400 + (40*16) ; 640: lightbar
+	lcolr	= $d800 + (40*16) ; 640
+	adisp	= $0400 + (40*22) ; 880: access? c=, n=, i=, a=, 16-character window
+	acolr	= $d800 + (40*22) ; 880
+	sdisp	= $0400 + (40*23) ; 920: receive/transmit windows, free memory
+	scolr	= $d800 + (40*23) ; 920
+	tdisp	= $0400 + (40*24) ; 960: time/date, time left, status flags
+	tcolr	= $d800 + (40*24) ; 960
+
+;
+; temporary storage for bottom 8 rows of screen mask
+; c64: $1000-$12ff / 4096-4863 ($2ff / 767 bytes) [from ray's memory map]
+; 128: $3300-$3580
+;
+	tempscn = $3300		;  $3300/13056, $200 (40 x 8 = 512) bytes
+				;  $addr +offset
+	tempscn0= tempscn+(0*40) ; $3300 +000 lightbar row
+	tempscn1= tempscn+(1*40) ; $3328 +040 user
+	tempscn2= tempscn+(2*40) ; $3350 +080 last
+	tempscn3= tempscn+(3*40) ; $3378 +120 name
+	tempscn4= tempscn+(4*40) ; $33a0 +160 mail
+	tempscn5= tempscn+(5*40) ; $33c8 +200 area
+	tempscn6= tempscn+(6*40) ; $33f0 +240 c=00003
+	tempscn7= tempscn+(7*40) ; $3418 +280 receive/transmit windows
+				 ; $3440
+
+	tempcol	= tempscn+(8*40) ; $3440/13376, $200 bytes
+	tempcol0= tempcol+(0*40) ; $3440 +000
+	tempcol1= tempcol+(1*40) ; $3468 +040
+	tempcol2= tempcol+(2*40) ; $3490 +080
+	tempcol3= tempcol+(3*40) ; $34b8 +120
+	tempcol4= tempcol+(4*40) ; $34e0 +160
+	tempcol5= tempcol+(5*40) ; $3508 +200
+	tempcol6= tempcol+(6*40) ; $3530 +240
+	tempcol7= tempcol+(7*40) ; $3558 +280
+				 ; $3580
+
+; $3581 - $3600: $80 / 128 bytes free
+
 ; $3601 - $feff: adjusted range of BASIC
 
 ; FIXME: modules, sub-modules load...?
