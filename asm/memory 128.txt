@@ -1,4 +1,5 @@
 During boot (contents of the ML file)
+Has to load above the start of BASIC to relocate code?
 
 $6c00 to $6fff	Wedge code
 $7000 to $7fff	editor code
@@ -15,16 +16,15 @@ Everything after this point is the same as the next section.
 [c64]:	location of data on c64
 [128]:	location of data on 128 (relocated compared to c64)
 
+		TODO: place banking/misc other small routines
+
 While running:
 $0ad0 to $0aff	[128] pointers/flags
 $0b00 to $0bff	[128] normally available; used by JiffyDOS
 $0c00 to $0cff	[128] OS: $0ff/255 rs232 input buffer
 $0d00 to $0dff	[128] OS: $0ff/255 rs232 output buffer
 $0e00 to $0fff	[128] OS: $1ff/511 bytes [unused; sprite data]
-		WISH: put tempscn screen mask data here
-		-or-
-		WISH: put banking/misc other small routines here
-		WISH: put buffer page here [$0f00-$0fff]?
+		Buffer page
 
 $1000 to $10ff	[128 OS]: function key definition buffer
 
@@ -58,11 +58,10 @@ $1800 to $18ff	[128] relocated cassette buffer data/tables
 
 $1900 to $1911	[128] wedge jump table
 $1912 to $1926	[128] RS232 jump table
-$1927 to $194d	[128] interface page jump table [c64: $cd00]
 
 $1a00 to $1a8e	[128] '&' address jump table (71 * 2: 142)
 		$170/368 bytes free
-		TODO: move swap-to area up to $1b00?
+$1b00 to $1b4d	[128] interface page jump table [c64: $cd00]
 
 		$1bff: [128 OS] End of Application Program Area
 
