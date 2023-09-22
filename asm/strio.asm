@@ -172,7 +172,7 @@ ctrlchk0:
 	pla
 	rts
 
-;  carry clear if control
+;  carry clear if control char
 @ctrlchk:
 	pha
 	lda editor
@@ -270,7 +270,7 @@ moreprmt_loop2:
 	iny
 	cpy varbuf
 	bcc moreprmt_loop2
-;  rs: \y0 could suppress printing "Yes![K]" or "No.[K]"
+;  TODO: rs: \y0 could suppress printing "Yes![K]" or "No.[K]"
 	lda #1	;  mci parameter?
 	jsr comy0
 	bne more1
