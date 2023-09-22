@@ -621,9 +621,9 @@
 
 ; address of modules when they are executing
 ; swap modules use protostart if not listed here
-
-	wedge_exec_address	= $0c00	; FIXME: rs232 buffer
-	editor_exec_address	= $1800
+	rs232_exec_address	= $0c00
+	wedge_exec_address	= $2f00
+	editor_exec_address	= protostart
 
 ; address of modules when they are "swapped out," waiting to be used
 
@@ -638,15 +638,15 @@
 ;
 ; garbage collection stuff:
 ;
-	gc_load		= protostart	; module load addr
+	gc_load_address	= protostart	; module load addr
 	gc_swap_address	= $e000		; swaps to
-	gclen		= 4		; # pages
+	gc_pages	= 4		; # pages
 ;
 ; extended command set stuff:
 ;
 	ecs_load	= protostart	; module load addr
 	ecs_swap_address= $e400		; swaps to
-	ecslen		= 10		; # pages ($a00/2560 bytes, seems like a lot
+	ecs_pages	= 10		; # pages ($a00/2560 bytes, seems like a lot
 					;	but fits in protostart area)
 
 ;
