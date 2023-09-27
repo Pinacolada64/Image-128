@@ -7,15 +7,15 @@
 3012 ba=dec("d700"):rem base address of chip (55040)
 3014 c=.
 3016 print "Get time/date from DS12C887 RTC:"
-3018 poke ba,4 :b=peek(ba+1):gosub 3080:hr=d:rem hour
+3018 poke ba,4 :gosub 3080:hr=d:rem hour
 3020 if hr=. then print "RTC not present at $"hex$(ba)".":end
-3022 poke ba,2 :b=peek(ba+1):gosub 3080:mi=d:rem minute
-3024 poke ba,0 :b=peek(ba+1):gosub 3080:sc=d:rem second
-3026 poke ba,6 :b=peek(ba+1):gosub 3080:dw=d:rem day of week (1=sun...7=sat)
-3028 poke ba,7 :b=peek(ba+1):gosub 3080:dt=d:rem day of month
-3030 poke ba,8 :b=peek(ba+1):gosub 3080:mo=d:rem month (1...12)
-3032 poke ba,9 :b=peek(ba+1):gosub 3080:yr=d:rem year
-3034 poke ba,50:b=peek(ba+1):gosub 3080:ce=d:rem century
+3022 poke ba,2 :gosub 3080:mi=d:rem minute
+3024 poke ba,0 :gosub 3080:sc=d:rem second
+3026 poke ba,6 :gosub 3080:dw=d:rem day of week (1=sun...7=sat)
+3028 poke ba,7 :gosub 3080:dt=d:rem day of month
+3030 poke ba,8 :gosub 3080:mo=d:rem month (1...12)
+3032 poke ba,9 :gosub 3080:yr=d:rem year
+3034 poke ba,50:gosub 3080:ce=d:rem century
 3036 rem show what we have got
 3038 a=hr:b=mo:print using "1) hr: ##";a;:printtab(20):print using "5) mo: ##";b
 3040 a=mi:b=dt:print using "2) mi: ##";a;:printtab(20):print using "6) dt: ##";b
@@ -29,8 +29,8 @@
 3056 print mid$("AP",2+(hr<12),1)+"M":rem am or pm
 3072 rem that's all folks
 3074 end
-3080 rem convert b (bcd) to d (dec)
-3082 d=int(b/16)*10+(b-16*int(b/16))
+3080 rem get value b from register, convert b (bcd) to d (dec)
+3082 b=peek(ba+1):d=int(b/16)*10+(b-16*int(b/16))
 3084 c=c+1:print using "#) in: bcd=##, out: dec=##";c,b,d
 3086 return
 4000 f$="read ds rtc":scratch(f$),u8:dsave(f$),onu8
