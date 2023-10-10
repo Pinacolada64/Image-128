@@ -1,8 +1,8 @@
-{alpha:normal}	; .encoding "petscii_mixed"
-
+{loadaddr:$1c01}
+{number:2023}
+    	sys{sym:start} new image software
+{asm}
 {include:"equates.asm"}
-
-* = $0801 ; image.prg
 
 scnmem = $0400
 chrmem = $2000
@@ -14,24 +14,6 @@ devnum = 186
 
 src = $fb
 dst = $fd
-
-	; link to next line (bogus, gets fixed by basic loader)
-	byte $1b, $1b
-	; line number
-    	word 1990
-	; "sys" token
-	    byte $9e
-        ascii toIntString(start)
-	ascii " "
-	; "new" token
-	byte $a2
-	ascii " image software"
-	; end of basic line
-        byte 0
-	; end of basic program
-	word 0
-
-* = $081e
 
 chrset:
 	.import c64 "chr.imagelogo"
