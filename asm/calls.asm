@@ -52,7 +52,7 @@ caller:
 
 	jsr callswap
 
-	lda 780
+	lda sareg	; c64:780
 	rts
 
 ; swap the new module in, call it, then swap it back out
@@ -68,23 +68,23 @@ caller1:
 	jsr callswap
 	pla
 	sta callpage
-	lda 780
+	lda sareg	; c64:780
 	rts
 
 ; call the target with the original register values
 
 caller2:
-	lda 780
-	ldx 781
-	ldy 782
+	lda sareg	; c64:780
+	ldx sxreg	; c64:781
+	ldy syreg	; c64:782
 
 ; self modifying code sets the low byte of the jump
 
 calljmp:
 	jsr protostart
-	sta 780
-	stx 781
-	sty 782
+	sta sareg	; c64:780
+	stx sxreg	; c64:781
+	sty syreg	; c64:782
 	rts
 
 callswap:

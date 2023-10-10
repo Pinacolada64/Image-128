@@ -25,16 +25,16 @@ numy	= poker + 1	; c64: $15. 128: $17
 ; .x=3 - help command
 
 done:
-	sta 780
-	stx 781
-	sty 782
+	sta sareg	; c64:780
+	stx sxreg	; c64:781
+	sty syreg	; c64:782
 	ldx stack
 	txs
 	ldy #0
 	sty mci
-	lda 780
-	ldx 781
-	ldy 782
+	lda sareg	; c64:780
+	ldx sxreg	; c64:781
+	ldy syreg	; c64:782
 	rts
 
 passflag:
