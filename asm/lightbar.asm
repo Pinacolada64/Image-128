@@ -58,10 +58,12 @@ lightbar_index:
 page0:
 	ascii "SysAcsLocTsrChtNewPrtU/D"
 ; alphabetical (mostly), each page a broad category:
-; quick BBS options:
+; common BBS options:
 ;	ascii "AcsChtLocResSysTsr"
-; x Sys  : Sysop available to chat; background page enable
-; x Cht  : Enter/exit chat mode;
+; x Sys  : Sysop available to chat
+; x Cht  : Enter/exit chat mode
+;   Cht x: Background chat page enable
+
 ; x U/D  : 300 Baud U/D Lockout
 ;   U/D x: Disable U/D Section
 page1:
@@ -69,10 +71,9 @@ page1:
 	ascii "AscAnsExpUnvTrcBelNetMac"
 ;	ascii "AscAnsBelDbgIdlMorTrc"
 ; x Dbg  : check to display more info in modules during debugging process
+;   Idl  : was "Alt"
 ; x Idl  : use color scheme 1/2 for last ten callers
-; x Mor  :
 ; x Trc  : Trace BASIC line numbers
-;   Trc x: Poll CMD real-time clock
 page2:
 ; caller options:
 	ascii "ChkMorFrdSubResMdmMnuXpr"
@@ -81,37 +82,53 @@ page2:
 ; Ans: ANSI color enable; ANSI graphics enable
 ; Mac: enable main prompt "macros"; FIXME
 ; Mnu: Graphic menu options
-; Xpr: Xpress logon options
+; x Mor  : More Prompt Enabled
+;   Mor x: More Prompt Ignored FIXME
+; x Xpr  : Xpress logon options
+;   Xpr x: Use 's.detect' fles
 page3:
 ; sysop-set BBS options:
-	ascii "ChkFrdMacNewSecSubUnv"
-; Chk: Mail check at logon
-; Frd: don't display color
+	ascii "ChkFrdMacMnuNewSecSubUnv"
+; x Chk  : Mail check at logon
+;   Chk x: Excessive chat request logoff
+; x Frd  : don't display color [keep as homage to Fred Dart]
+;   Frd x: undefined
 ; Mac: display main menu macros FIXME
+; x Mnu  : Is User in Menu Mode?
+;   Mnu  : Are Menus Available on BBS?
 ; New: block NEW users; screen blanking
 ; Sec: logon security check questions
 ; Sub: U/Ds or GF section closed
 ; Unv: Unvalidated files don't earn credit; auto-logoff
 ; unassigned:
-; background page enable
 ; disallow double calls
-; disable modem input
 page4:
 ; hardware options:
 	ascii "1.xSecMHzAltDbgDCDDSR$3e"
-;	ascii "CPUmHzScn4/8PrtMdmDCDDSR"
+;	ascii "CPUmHzScnPrtRTCCMDLtK"
 ; x CPU  : SuperCPU present
 ;   CPU x: SuperCPU at 20 mHz
-;   Alt  : now "Idl"
 ; x Scn  : Screen blanking enabled
-; x 4/8  : 40 columns?
-;   4/8  : 80 columns?
-; x Mdm  : Enable modem input
+;   Scn  : 40 columns?
+;   Scn x: 80 columns?
+; x Prt  : Print all text to printer
+;   Prt x: Print log entries to printer
+; x RTC  : RTC
+; x CMD  : CMD HD
+;   CMD x: poll CMD RTC & reset BBS clock
+; x LtK  : Lt. Kernal HD connected
+;   LtK x: Multiplexer connected
+
+;   LtK  : Lt Kernal HD
 page5:
+; modem options
 	ascii "$40$42$44$46$48$4a$4c$4e"
-;	ascii "RTCCMDLtK"
-; x RTC  : RTC; poll RTC & reset BBS clock
-;   CMD  : CMD HD
+;	ascii "MdmMntDCDDSRMnt"
+;   Trc x: Poll CMD real-time clock
+; x Mdm  : Enable modem input
+; x Mnt  : Zero tr% at Hit Backspace
+;   Mnt  : Modem Answer Disabled
+
 help_text:
 ; built-in help text if s.lightbar file missing:
 ; Sys:
