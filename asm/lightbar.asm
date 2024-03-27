@@ -2,36 +2,93 @@
 ; 1) options are scattered all over, some check mark slots are unused
 ; 2) some options are disabled by checking them; others are enabled by checking them.
 ;    this is inconsistent behavior
-; 2049
-orig $0801
+orig $1c01	; 7169
 
 ; basic sys line
-; 2049-2050 line link:
+; 7169-7170 line link:
 	word end_of_line
-; 2051-2052 line number:
+; 7171-7172 line number:
 	word 10
-;  2053     'sys' token:
+; 7173      'sys' token:
 	byte $9e
-; 2054-2057 address:
-	ascii "2061"
+; 7174-7177 address:
+	ascii "7181"
 end_of_line:
-; 2058      zero byte
+; 7178      zero byte
 	byte $00
-; 2059-2060 end of program:
+; 7179-7180 end of program:
 	word $0000
 
-strout	= $ab1e
-chrout	= $ffd2
+; VIC 40-column color RAM colors:
+VIC_BLACK	= 0
+VIC_WHITE	= 1
+VIC_RED		= 2
+VIC_CYAN	= 3
+VIC_PURPLE	= 4
+VIC_GREEN	= 5
+VIC_BLUE	= 6
+VIC_YELLOW	= 7
+VIC_ORANGE	= 8
+VIC_BROWN	= 9
+VIC_LIGHT_RED	= 10
+VIC_DARK_GRAY	= 11
+VIC_MED_GRAY	= 12
+VIC_LIGHT_GREEN	= 13
+VIC_LIGHT_BLUE	= 14
+VIC_LIGHT_GRAY	= 15
+
+; screen code printables:
+checkmark	= 186
+
+; TODO: Add VDC colors
+
+strout		= $ab1e
+chrout		= $ffd2
 check_stop_key	= $ffe1	; .z=1 if stop hit
 
-color_ram = $d800
+text_ram	= $0400
+color_ram	= $d800
 
-lightbar_row = color_ram + 40 * 20
+VIC_SCREEN_WIDTH = 40 ; 0-indexed, so is 0-39 (40)
+
+lightbar_text		= text_ram  + (VIC_SCREEN_WIDTH * 16)
+lightbar_color		= color_ram + (VIC_SCREEN_WIDTH * 16)
+screen_mask_text_base	= text_ram  + (VIC_SCREEN_WIDTH * 17)
+screen_mask_color_base	= color_ram + (VIC_SCREEN_WIDTH * 17)
+
+setup:
+	lda #'{clear}'
+	jsr chrout
+	lda #VIC_BLACK
+	sta $d020
+	sta $d021
+
+; copy screen mask data/color to screen
+	ldy #0; TODO: eventually #200 for 5 equal chunks
+copy_loop:
+	lda fake_lightbar_data,y
+; eor bit 7 to reverse char
+	eor #%10000000
+	sta lightbar_text,y
+	lda #VIC_LIGHT_GRAY
+	sta lightbar_color,y
+
+	lda screen_mask_data,y
+; eor bit 7 to reverse char
+	eor #%10000000
+	sta screen_mask_text_base,y
+	lda screen_mask_color,y
+	sta screen_mask_color_base,y
+
+	iny
+	cpy #VIC_SCREEN_WIDTH
+	bne copy_loop
+	rts
 
 draw_lightbar0:
-	lda lightbar_row
+	lda lightbar_text
 	sta draw_lightbar1+1
-	lda lightbar_row
+	lda lightbar_text+1
 	sta draw_lightbar1+2
 
 	ldy #$00
@@ -45,16 +102,27 @@ get_checktbl:
 draw_lightbar1:
 	sta $ffff,y
 
+keyboard_handler:
+; TODO: read HELP key
+; if hit, save contents of 16 character window.
+; put "Lightbar Help" in programmable 16-char window.
+; copy 5 screen mask lines color/text data somewhere.
+; save arrray pointers (use level 5, or the highest value).
+; load tt$() from s.lightbar.
+; display help text in screen mask area somehow. two lines at least, 1 for each checkmark option.
+
+	rts
+
 lightbar_page:
 	byte $00
 lightbar_position:
 	byte $04
 
 lightbar_index:
-; mybe just adc/sbc 8*3
+; maybe just adc/sbc 8*3
 	byte <page0,<page1,<page2,<page3,<page4
 	byte >page0,>page1,>page2,>page3,>page4
-{alpha:poke}
+{alpha:PokeAlt}
 page0:
 	ascii "SysAcsLocTsrChtNewPrtU/D"
 ; alphabetical (mostly), each page a broad category:
@@ -78,28 +146,29 @@ page2:
 ; caller options:
 	ascii "ChkMorFrdSubResMdmMnuXpr"
 ;	ascii "AscAnsMacMnuXpr"
-; Asc: ASCII translation; LF after CR
-; Ans: ANSI color enable; ANSI graphics enable
-; Mac: enable main prompt "macros"; FIXME
+;   Asc  : ASCII translation; LF after CR
+;   Ans  : ANSI color enable; ANSI graphics enable
+; x Mac  : enable main prompt "macros"
+;   Mac x: Enable mci in editor
 ; Mnu: Graphic menu options
 ; x Mor  : More Prompt Enabled
 ;   Mor x: More Prompt Ignored FIXME
 ; x Xpr  : Xpress logon options
-;   Xpr x: Use 's.detect' fles
 page3:
-; sysop-set BBS options:
+; sysop-set user-facing BBS options:
 	ascii "ChkFrdMacMnuNewSecSubUnv"
 ; x Chk  : Mail check at logon
 ;   Chk x: Excessive chat request logoff
 ; x Frd  : don't display color [keep as homage to Fred Dart]
-;   Frd x: undefined
-; Mac: display main menu macros FIXME
+;   Frd x: undefined: FIXME: forwarding something?
+; x Mac  : display main menu macros FIXME
 ; x Mnu  : Is User in Menu Mode?
 ;   Mnu  : Are Menus Available on BBS?
-; New: block NEW users; screen blanking
-; Sec: logon security check questions
-; Sub: U/Ds or GF section closed
-; Unv: Unvalidated files don't earn credit; auto-logoff
+; x New  : NEW users allowed
+; x Lgn  : Second security check question
+;   Lgn x: Display 's.detect' files
+;   Sub  : U/Ds or GF section closed
+; x Unv  : Unvalidated files earn credit; auto-logoff
 ; unassigned:
 ; disallow double calls
 page4:
@@ -110,20 +179,20 @@ page4:
 ;   CPU x: SuperCPU at 20 mHz
 ; x Scn  : Screen blanking enabled
 ;   Scn  : 40 columns?
-;   Scn x: 80 columns?
+;   Scn x: 80 columns? maybe 40/80 key instead
 ; x Prt  : Print all text to printer
 ;   Prt x: Print log entries to printer
 ; x RTC  : RTC
+;   RTC x: Periodic RTC poll to sync time
 ; x CMD  : CMD HD
 ;   CMD x: poll CMD RTC & reset BBS clock
 ; x LtK  : Lt. Kernal HD connected
 ;   LtK x: Multiplexer connected
 
-;   LtK  : Lt Kernal HD
 page5:
 ; modem options
 	ascii "$40$42$44$46$48$4a$4c$4e"
-;	ascii "MdmMntDCDDSRMnt"
+;	ascii "MdmMntDCDDSR"
 ;   Trc x: Poll CMD real-time clock
 ; x Mdm  : Enable modem input
 ; x Mnt  : Zero tr% at Hit Backspace
@@ -232,3 +301,56 @@ bits:
 	byte %01000000
 	byte %10000000
 
+; required to get upper/lowercase screen codes:
+{alpha:PokeAlt}
+fake_lightbar_data:
+	ascii " Sys  Acs ",checkmark,"Loc",checkmark," Tsr  Cht  New  Prt  U/D "
+screen_mask_data:
+; 0
+	ascii "User PINACOLADA{space:12}ID # DE1{space:4}"
+; 40
+	ascii "Last{space:22}Call{space:9}"
+; 80
+	ascii "Name{space:22}Prms{space:9}"
+; 120
+	ascii "Mail{space:22}Baud{space:9}"
+; 160
+	ascii "Area{space:22}User{space:9}"
+; 200
+	ascii "C=00004 N=001 I=000 A=9   Commodore 64  "
+; 240
+	ascii "R{space:10} M=18064  L=03006 {space:10}T"
+; 280
+	ascii checkmark,"Wed Mar 27, 2024 11:18 AM{space:5}"
+; 320
+{alpha:alt}
+
+screen_mask_color:
+; area <size>[, <fill>]
+; row 1:
+	area 04,VIC_LIGHT_GRAY
+	area 22,VIC_MED_GRAY
+	area 04,VIC_LIGHT_GRAY
+	area 09,VIC_MED_GRAY
+; row 2:
+	area 04,VIC_LIGHT_GRAY
+	area 22,VIC_MED_GRAY
+	area 04,VIC_LIGHT_GRAY
+	area 09,VIC_MED_GRAY
+; row 3:
+	area 04,VIC_LIGHT_GRAY
+	area 22,VIC_MED_GRAY
+	area 04,VIC_LIGHT_GRAY
+	area 09,VIC_MED_GRAY
+; row 4:
+	area 04,VIC_LIGHT_GRAY
+	area 22,VIC_MED_GRAY
+	area 04,VIC_LIGHT_GRAY
+	area 09,VIC_MED_GRAY
+; row 5:
+	area 04,VIC_LIGHT_GRAY
+	area 22,VIC_MED_GRAY
+	area 04,VIC_LIGHT_GRAY
+	area 09,VIC_MED_GRAY
+; rows 6-8:
+	area 40*3,VIC_WHITE
