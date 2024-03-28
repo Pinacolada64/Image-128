@@ -38,7 +38,7 @@ VIC_LIGHT_BLUE	= 14
 VIC_LIGHT_GRAY	= 15
 
 ; screen code printables:
-checkmark	= 186
+checkmark	= 122
 
 ; TODO: Add VDC colors
 
@@ -64,15 +64,8 @@ setup:
 	sta $d021
 
 ; copy screen mask data/color to screen
-	ldy #0; TODO: eventually #200 for 5 equal chunks
+	ldy #0
 copy_loop:
-	lda fake_lightbar_data,y
-; eor bit 7 to reverse char
-	eor #%10000000
-	sta lightbar_text,y
-	lda #VIC_LIGHT_GRAY
-	sta lightbar_color,y
-
 	lda screen_mask_data,y
 ; eor bit 7 to reverse char
 	eor #%10000000
@@ -81,25 +74,34 @@ copy_loop:
 	sta screen_mask_color_base,y
 
 	iny
-	cpy #VIC_SCREEN_WIDTH
+	; TODO: eventually #200 for 5 equal chunks
+	cpy #VIC_SCREEN_WIDTH * 5
 	bne copy_loop
-	rts
-
-draw_lightbar0:
-	lda lightbar_text
-	sta draw_lightbar1+1
-	lda lightbar_text+1
-	sta draw_lightbar1+2
 
 	ldy #$00
+draw_lightbar0:
+	lda fake_lightbar_data,y
+;	cmp #checkmark
+;	beq draw_lightbar1
+; eor bit 7 to reverse char
+	eor #%10000000
+draw_lightbar1:
+	sta lightbar_text,y
+	lda #VIC_LIGHT_GRAY
+	sta lightbar_color,y
+	iny
+	cpy VIC_SCREEN_WIDTH
+	bne draw_lightbar0
+	rts
 
+	ldy #$00
 get_checktbl:
 ; get checkmark status
 	lda chktbl,y
 	rol
 
 ; set color
-draw_lightbar1:
+draw_lightbar2:
 	sta $ffff,y
 
 keyboard_handler:
@@ -307,20 +309,20 @@ fake_lightbar_data:
 	ascii " Sys  Acs ",checkmark,"Loc",checkmark," Tsr  Cht  New  Prt  U/D "
 screen_mask_data:
 ; 0
-	ascii "User Pinacolada{space:12}ID # DE1{space:5}"
+	ascii "User Pinacolada            ID # DE1     "
 ; 40
-	ascii "Last Mar 26, 2024  5:33 PM Call 1/48{space:4}"
+	ascii "Last Mar 26, 2024  5:33 PM Call 1/48    "
 ; 80
-	ascii "Name Ryan Sherwood{space:9}Prms 40x25{space:3}"
+	ascii "Name Ryan Sherwood         Prms 40x25   "
 ; 120
-	ascii "Mail sym.rsherwood@gmail.co Baud Console{space:2}"
+	ascii "Mail sym.rsherwood@gmail.c Baud Console "
 ; 160
-	ascii "Area{space:22}User{space:9}"
+	ascii "Area Lightbar Mock-Up      User 2/2     "
 ; 200
 ;                                      |<- msg area ->|
 	ascii "C=00004 N=001 I=000 A=9 Screen Mask Test"
 ; 240
-	ascii "R{space:10} M=18064  L=03006 {space:10}T"
+	ascii "R{right:10} M=18064  L=03006 {right:10}T"
 ; 280
 	ascii checkmark,"Wed Mar 27, 2024 11:18 AM{space:5}"
 ; 320
@@ -332,27 +334,27 @@ screen_mask_color:
 	area 04,VIC_LIGHT_GRAY
 	area 23,VIC_MED_GRAY
 	area 04,VIC_LIGHT_GRAY
-	area 10,VIC_MED_GRAY
+	area 09,VIC_MED_GRAY
 ; row 2:
 	area 04,VIC_LIGHT_GRAY
 	area 23,VIC_MED_GRAY
 	area 04,VIC_LIGHT_GRAY
-	area 10,VIC_MED_GRAY
+	area 09,VIC_MED_GRAY
 ; row 3:
 	area 04,VIC_LIGHT_GRAY
 	area 23,VIC_MED_GRAY
 	area 04,VIC_LIGHT_GRAY
-	area 10,VIC_MED_GRAY
+	area 09,VIC_MED_GRAY
 ; row 4:
 	area 04,VIC_LIGHT_GRAY
 	area 23,VIC_MED_GRAY
 	area 04,VIC_LIGHT_GRAY
-	area 10,VIC_MED_GRAY
+	area 09,VIC_MED_GRAY
 ; row 5:
 	area 04,VIC_LIGHT_GRAY
 	area 23,VIC_MED_GRAY
 	area 04,VIC_LIGHT_GRAY
-	area 10,VIC_MED_GRAY
+	area 09,VIC_MED_GRAY
 ; rows 6-7:
 	area 24,VIC_WHITE
 	area 16,VIC_YELLOW
