@@ -307,17 +307,18 @@ fake_lightbar_data:
 	ascii " Sys  Acs ",checkmark,"Loc",checkmark," Tsr  Cht  New  Prt  U/D "
 screen_mask_data:
 ; 0
-	ascii "User PINACOLADA{space:12}ID # DE1{space:4}"
+	ascii "User Pinacolada{space:12}ID # DE1{space:5}"
 ; 40
-	ascii "Last{space:22}Call{space:9}"
+	ascii "Last Mar 26, 2024  5:33 PM Call 1/48{space:4}"
 ; 80
-	ascii "Name{space:22}Prms{space:9}"
+	ascii "Name Ryan Sherwood{space:9}Prms 40x25{space:3}"
 ; 120
-	ascii "Mail{space:22}Baud{space:9}"
+	ascii "Mail sym.rsherwood@gmail.co Baud Console{space:2}"
 ; 160
 	ascii "Area{space:22}User{space:9}"
 ; 200
-	ascii "C=00004 N=001 I=000 A=9   Commodore 64  "
+;                                      |<- msg area ->|
+	ascii "C=00004 N=001 I=000 A=9 Screen Mask Test"
 ; 240
 	ascii "R{space:10} M=18064  L=03006 {space:10}T"
 ; 280
@@ -329,28 +330,31 @@ screen_mask_color:
 ; area <size>[, <fill>]
 ; row 1:
 	area 04,VIC_LIGHT_GRAY
-	area 22,VIC_MED_GRAY
+	area 23,VIC_MED_GRAY
 	area 04,VIC_LIGHT_GRAY
-	area 09,VIC_MED_GRAY
+	area 10,VIC_MED_GRAY
 ; row 2:
 	area 04,VIC_LIGHT_GRAY
-	area 22,VIC_MED_GRAY
+	area 23,VIC_MED_GRAY
 	area 04,VIC_LIGHT_GRAY
-	area 09,VIC_MED_GRAY
+	area 10,VIC_MED_GRAY
 ; row 3:
 	area 04,VIC_LIGHT_GRAY
-	area 22,VIC_MED_GRAY
+	area 23,VIC_MED_GRAY
 	area 04,VIC_LIGHT_GRAY
-	area 09,VIC_MED_GRAY
+	area 10,VIC_MED_GRAY
 ; row 4:
 	area 04,VIC_LIGHT_GRAY
-	area 22,VIC_MED_GRAY
+	area 23,VIC_MED_GRAY
 	area 04,VIC_LIGHT_GRAY
-	area 09,VIC_MED_GRAY
+	area 10,VIC_MED_GRAY
 ; row 5:
 	area 04,VIC_LIGHT_GRAY
-	area 22,VIC_MED_GRAY
+	area 23,VIC_MED_GRAY
 	area 04,VIC_LIGHT_GRAY
-	area 09,VIC_MED_GRAY
-; rows 6-8:
-	area 40*3,VIC_WHITE
+	area 10,VIC_MED_GRAY
+; rows 6-7:
+	area 24,VIC_WHITE
+	area 16,VIC_YELLOW
+; row 8
+	area 40,VIC_WHITE
