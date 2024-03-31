@@ -51,10 +51,10 @@ color_ram	= $d800
 
 VIC_SCREEN_WIDTH = 40 ; 0-indexed, so is 0-39 (40)
 
-lightbar_text		= text_ram  + (VIC_SCREEN_WIDTH * 16)
-lightbar_color		= color_ram + (VIC_SCREEN_WIDTH * 16)
-screen_mask_text_base	= text_ram  + (VIC_SCREEN_WIDTH * 17)
-screen_mask_color_base	= color_ram + (VIC_SCREEN_WIDTH * 17)
+lightbar_text_addr	= text_ram  + (VIC_SCREEN_WIDTH * 16)
+lightbar_color_addr	= color_ram + (VIC_SCREEN_WIDTH * 16)
+screen_mask_text_addr	= text_ram  + (VIC_SCREEN_WIDTH * 17)
+screen_mask_color_addr	= color_ram + (VIC_SCREEN_WIDTH * 17)
 
 setup:
 	lda #'{clear}'
@@ -69,40 +69,98 @@ copy_loop:
 	lda screen_mask_data,y
 ; eor bit 7 to reverse char
 	eor #%10000000
-	sta screen_mask_text_base,y
+	sta screen_mask_text_addr,y
 	lda screen_mask_color,y
-	sta screen_mask_color_base,y
+	sta screen_mask_color_addr,y
 
 	iny
 	; TODO: eventually #200 for 5 equal chunks
-	cpy #VIC_SCREEN_WIDTH * 5
+	cpy #VIC_SCREEN_WIDTH * 6
 	bne copy_loop
 
-	ldy #$00
-draw_lightbar0:
-	lda fake_lightbar_data,y
-;	cmp #checkmark
-;	beq draw_lightbar1
-; eor bit 7 to reverse char
+; print 8 lightbar pages
+; 1) reset lightbar_page_index (which position, 0-7, we're drawing in the lightbar page)
+	lda #00
+	sta lightbar_page_index+1
+; 2) calculate which page we're on
+	clc
+	ldy #lightbar_page
+	lda lightbar_page_offsets,y
+; .y holds offset into lightbar_text_offsets
+	tay
+; change self-modifying draw_lightbar_current_position address
+	lda #<lightbar_text_offset_hi
+	sta draw_lightbar0+1
+	lda #>lightbar_text_offset_hi
+	sta draw_lightbar0+2
+; drawing lightbar text and lightbar checkmarks will be two separate IRQ tasks
+draw_lightbar_status0:
+; lightbar text address is self-modifying to free up .y
+	sta $ffff
+
+; get bits from checkmark table
+	lda chktbl,y
+	asl
+	bcc chktbl_clear
+; if set, draw checkmark:
+	lda #checkmark
+	jmp draw_lightbar3
+chktbl_clear:
+; otherwise, draw reversed space:
+	lda #32
+draw_lightbar3:
+; reverse char
 	eor #%10000000
+	sta draw_char
+draw_lightbar_status1:
+; 0   12   34   56   7 etc.
+; xSysxxAcsxxLocxxTsrx etc.
+; if checkline_index is even (bit #0=0), adc #3
+; if checkline_index is odd  (bit #0=1), adc #1
+	lda checkline_index
+	and #1
+	bne draw_checkline_add_1
+draw_checkline_add_3:
+	inc checkline_index
+	inc checkline_index
+draw_checkline_add_1:
+	inc checkline_index
+	ldy checkline_index
+draw_char:
+; char to print:
+	lda #$ff
+; eor bit 7 to reverse char on VIC; set 'reverse' attribute on VDC
+	eor #%10000000
+	sta lightbar_text,y
+
+; TODO: need an abstracted "jsr put_console_char" subroutine (&,50: outscn)
+; might put char .a at column .x, row .y
+; and be aware of 40/80 column mode.
+; surely one should be in the 128's ROM?
+;	bit vic_or_vdc	; using 40 or 80 columns?
+;	bcs using_80_columns
+;	cmp console_screen_width
+
+draw_lightbar0:
 draw_lightbar1:
 	sta lightbar_text,y
-	lda #VIC_LIGHT_GRAY
+
+; handle colors:
+; check for color change from background to highlight if lightbar_page_index = lightbar_position
+	lda lightbar_index
+	cmp lightbar_position
+	bne draw_lightbar_background
+	lda #mask_theme_lightbar_highlight
+	jmp draw_lightbar_color
+draw_lightbar_background:
+	lda #mask_theme_lightbar_background
+draw_lightbar_color:
 	sta lightbar_color,y
 	iny
 	cpy VIC_SCREEN_WIDTH
 	bne draw_lightbar0
+
 	rts
-
-	ldy #$00
-get_checktbl:
-; get checkmark status
-	lda chktbl,y
-	rol
-
-; set color
-draw_lightbar2:
-	sta $ffff,y
 
 keyboard_handler:
 ; TODO: read HELP key
@@ -113,21 +171,42 @@ keyboard_handler:
 ; load tt$() from s.lightbar.
 ; display help text in screen mask area somehow. two lines at least, 1 for each checkmark option.
 
+; T: change theme
 	rts
 
 lightbar_page:
+; which page of the lightbar is being displayed
 	byte $00
 lightbar_position:
+; which position (0-7) is to be highlighted
 	byte $04
-
 lightbar_index:
-; maybe just adc/sbc 8*3
-	byte <page0,<page1,<page2,<page3,<page4
-	byte >page0,>page1,>page2,>page3,>page4
+; which char in the lightbar line we are drawing:
+	byte $ff
+
+mask_theme_dark:
+	byte VIC_MED_GRAY
+mask_theme_light:
+	byte VIC_LIGHT_GRAY
+mask_theme_highlight:
+	byte VIC_WHITE
+mask_theme_lightbar_background:
+	byte VIC_MED_GRAY
+mask_theme_lightbar_highlight:
+	byte VIC_WHITE
+
+lightbar_page_offsets:
+	byte 0,8,16,24,32,40
+
+lightbar_text_offset_lo:
+	byte <page0,<page1,<page2,<page3,<page4,<page5
+lightbar_text_offset_hi:
+	byte >page0,>page1,>page2,>page3,>page4,>page5
+
 {alpha:PokeAlt}
 page0:
 	ascii "SysAcsLocTsrChtNewPrtU/D"
-; alphabetical (mostly), each page a broad category:
+; alphabetical within page (mostly), each page a broad category:
 ; common BBS options:
 ;	ascii "AcsChtLocResSysTsr"
 ; x Sys  : Sysop available to chat
@@ -281,6 +360,7 @@ help_text:
 
 chktbl:
 ; each 1 bit represents a check mark in the lightbar
+; 16 bits per page
 ; page 1:
 	byte %01010101,%10101010
 ; page 2:
@@ -305,8 +385,6 @@ bits:
 
 ; required to get upper/lowercase screen codes:
 {alpha:PokeAlt}
-fake_lightbar_data:
-	ascii " Sys  Acs ",checkmark,"Loc",checkmark," Tsr  Cht  New  Prt  U/D "
 screen_mask_data:
 ; 0
 	ascii "User Pinacolada            ID # DE1     "
@@ -327,6 +405,11 @@ screen_mask_data:
 	ascii checkmark,"Wed Mar 27, 2024 11:18 AM{space:5}"
 ; 320
 {alpha:alt}
+
+theme_table:
+; format: mask_dark, mask_light, lightbar_highlight, theme_name{0}
+	byte VIC_DARK_GRAY,VIC_MED_GRAY,VIC_WHITE
+	ascii "Standard Gray{0}"
 
 screen_mask_color:
 ; area <size>[, <fill>]
