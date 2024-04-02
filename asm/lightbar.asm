@@ -42,6 +42,16 @@ checkmark	= 122
 
 ; TODO: Add VDC colors
 
+; keyboard stuff:
+shflag		= $d3	; c64: $028d/653. Shift, C=, Ctrl, Alt keys: 1=pressed
+SHIFT_KEY	= %00000001
+COMMODORE_KEY	= %00000010
+CONTROL_KEY	= %00000100
+ALT_KEY		= %00001000
+
+lstx	= $d5	; c64: 197 / $c5. last key pressed
+
+; ROM routines:
 strout		= $ab1e
 chrout		= $ffd2
 check_stop_key	= $ffe1	; .z=1 if stop hit
@@ -55,6 +65,9 @@ lightbar_text_addr	= text_ram  + (VIC_SCREEN_WIDTH * 16)
 lightbar_color_addr	= color_ram + (VIC_SCREEN_WIDTH * 16)
 screen_mask_text_addr	= text_ram  + (VIC_SCREEN_WIDTH * 17)
 screen_mask_color_addr	= color_ram + (VIC_SCREEN_WIDTH * 17)
+
+; variables referenced by code:
+var_a_integer	= $ff
 
 setup:
 	lda #'{clear}'
@@ -80,6 +93,17 @@ copy_loop:
 	cpy #VIC_SCREEN_WIDTH * 6
 	bne copy_loop
 
+main_loop:
+{def:use_lightbar}
+{ifdef:use_lightbar}
+	jsr irq7	; display lightbar checkmarks
+	jsr irq4	; handle lightbar f-keys
+{endif}
+	jsr check_stop_key
+	bne main_loop
+basic:
+	rts
+
 ; print 8 lightbar pages
 ; 1) reset lightbar_label_index (which position, 0-7, we're drawing in the lightbar page)
 ;    reset lightbar_char_index (which character in the lightbar line we're drawing)
@@ -88,7 +112,7 @@ copy_loop:
 	sta lightbar_char_index
 ; 2) calculate which page we're on
 	clc
-	ldy #lightbar_page
+	ldy lightbar_page
 	lda lightbar_page_offsets,y
 ; .y holds offset into lightbar_text_offsets
 	tay
@@ -207,6 +231,8 @@ lightbar_text_offset_hi:
 	byte >page0,>page1,>page2,>page3,>page4,>page5
 
 {alpha:PokeAlt}
+bartbl:
+lightbar_text:
 page0:
 	ascii "SysAcsLocTsrChtNewPrtU/D"
 ; alphabetical within page (mostly), each page a broad category:
@@ -412,7 +438,7 @@ screen_mask_data:
 theme_table:
 ; format: mask_dark, mask_light, lightbar_highlight, theme_name{0}
 	byte VIC_DARK_GRAY,VIC_MED_GRAY,VIC_WHITE
-	ascii "Standard Gray{0}"
+	ascii "Standard Grays/White{0}"
 
 screen_mask_color:
 ; area <size>[, <fill>]
@@ -446,6 +472,339 @@ screen_mask_color:
 	area 16,VIC_YELLOW
 ; row 8
 	area 40,VIC_WHITE
+
+irq4:
+; handle lightbar f-keys
+	lda lstx	; c64: 197. last key pressed
+	cmp oldkey
+	beq irq4c
+	sta oldkey
+	cmp #3
+	bcc irq4c
+	cmp #7
+	bcs irq4c
+	and #3
+	asl
+	sta tmpkey
+	lda shflag		; c64: 653 C=, Ctrl, Shift hit?
+	cmp #COMMODORE_KEY	; 2
+	bcs irq4d
+	and #1
+	sta shfkey
+	ora tmpkey
+	asl
+	tay
+	jsr irq4b
+	sta irq4a+1
+	iny
+	jsr irq4b
+	sta irq4a+2
+irq4a:
+	jmp $ffff
+irq4b:
+; target of self-modifying code
+	lda ktbl1,y
+irq4c:
+	rts
+irq4d:
+	jmp fkey
+
+tmpkey:
+	byte 0
+oldkey:
+	byte 64
+shfkey:
+	byte 0
+
+ktbl1:
+	word t1fk1,t1fk2
+	word t1fk3,t1fk4
+	word t1fk5,t1fk6
+	word t1fk7,t1fk7
+
+t1init:
+	ldy #0
+	jsr chkflags
+	ldx #<ktbl1
+	ldy #>ktbl1
+usekey:
+	stx irq4b+1
+	sty irq4b+2
+	rts
+t1fk1:
+	ldx scnlock
+	bne t1fk3b
+	ldx scnmode
+	jmp setmode1
+t1fk2:
+	lda blnkflag
+	bne t1fk2a
+	jmp scrnoff
+t1fk2a:
+	jmp scrnon
+t1fk3:
+	dec bar
+t1fk3a:
+	inc irq7+1
+t1fk3b:
+	rts
+t1fk4:
+	sec
+	lda bar
+	sbc #8
+t1fk4a:
+	sta bar
+	jmp t1fk3a
+t1fk5:
+	inc bar
+	jmp t1fk3a
+t1fk6:
+	clc
+	lda bar
+	adc #8
+	jmp t1fk4a
+t1fk7:
+	lda bar
+	asl
+	ora shfkey
+	pha
+	tax
+	ldy #2
+	jsr chkflags
+	pla
+	cmp #2
+	beq t1fk7a
+	cmp #6
+	beq t1fk7b
+	cmp #12
+	beq t1fk7c
+	rts
+t1fk7a:
+	jmp t3init ;acs
+t1fk7b:
+	jmp t2init ;tsr
+t1fk7c:
+	lda outptr6+1
+	eor #1
+	sta outptr6+1
+	rts
+
+; placeholder code:
+t2init:
+t3init:
+fkey:
+setmode1:
+scrnoff:
+scrnon:
+	jmp main_loop
+
+outptr6:
+	word $ffff
+
+;* display lightbar checkmarks
+irq7:
+; self modifying code changes this
+	ldy #1
+	lda bar
+	and #63
+	sta bar
+	cpy #0
+	beq irq7z
+	lda scnmode
+	bne irq7z
+	lda #0
+	sta irq7+1
+	lda tmpbar
+	pha
+	lda bar
+	and #7
+	sta tmpbar
+	asl
+	asl
+	adc tmpbar
+	sta tmpbar
+	lda bar
+	and #$38
+	sta irq7a+1
+	asl
+	clc
+
+irq7a:
+; self modifying code changes this
+	adc #0
+	tay
+	lda bar
+	lsr
+	lsr
+	lsr
+	asl
+	tax
+	lda chktbl+1,x
+	pha
+	lda chktbl+0,x
+	ldx #0
+irq7b:
+	jsr irq7h
+	cpx #20
+	bcc irq7b
+	pla
+irq7c:
+	jsr irq7h
+	cpx #40
+	bcc irq7c
+	pla
+	sta tmpbar
+irq7z:
+	rts
+
+; display either a space or a checkmark for a lightbar flag
+
+irq7d:
+	lsr
+	pha
+	lda #' '
+	bcc irq7e
+	lda #$7a ; "checkmark"
+irq7e:
+	jsr irq7f
+	pla
+	rts
+
+irq7j:
+	lda bartbl,y
+	iny
+
+; write a single character to the on-screen lightbar
+
+irq7f:
+	ora #$80
+	sta lightbar_text_addr,x
+irq7g:
+; self-modifying code changes this
+	lda #15
+	sta lightbar_color_addr,x
+	inx
+	rts
+
+irq7h:
+	pha
+; set the highlight color for this lightbar position
+	lda #15
+	cpx tmpbar
+	bne irq7i
+	lda #1
+irq7i:
+	sta irq7g+1
+	pla
+	jsr irq7d
+	pha
+	jsr irq7j
+	jsr irq7j
+	jsr irq7j
+	pla
+	jmp irq7d
+
+chkflag:
+	ldy #5
+chkflags:
+	lda $ff
+	pha
+	stx $ff
+	txa
+	and #7
+	tax
+	lda bits,x
+	pha
+	lda $ff
+	lsr
+	lsr
+	lsr
+	and #$0f
+	tax
+	pla
+
+; at this point:
+; A = bit mask
+; X = index into the flag bytes
+; Y = function number
+
+	iny
+	dey
+	beq chkflag0
+	dey
+	beq chkflag1
+	dey
+	beq chkflag2
+	dey
+	beq chkflag3
+	dey
+	beq chkflag4
+	dey
+	beq chkflag5
+chkflag6:
+	sta chktbl,x
+chkflag7:
+	inc irq7+1
+chkflag8:
+	tax
+	pla
+	sta $ff
+	txa
+	rts
+
+; clear a flag
+
+chkflag0:
+	eor #$ff
+	and chktbl,x
+	jmp chkflag6
+
+; set a flag
+
+chkflag1:
+	ora chktbl,x
+	jmp chkflag6
+
+; toggle a flag
+
+chkflag2:
+	eor chktbl,x
+	jmp chkflag6
+
+; read a flag (basic, result in a%)
+
+chkflag3:
+	ldy #0
+	sty varbuf
+	and chktbl,x
+	beq chkflg3a
+	iny
+chkflg3a:
+	sty varbuf+1
+	ldx #var_a_integer
+	jsr putvar
+	jmp chkflag8
+
+; set selected position
+
+chkflag4:
+	lda $ff
+	sta bar
+	jmp chkflag7
+
+; read a flag (ml), result in accumulator
+
+chkflag5:
+	and chktbl,x
+	jmp chkflag8
+
+; variables & memory locations referenced by code:
+tmpbar:
+	byte 0
+bar:
+; position of lightbar highlight?
+	byte 4
+
 lightbar_char_index:
 ; position in the lightbar being drawn
 	byte $00
@@ -454,3 +813,22 @@ lightbar_label_index:
 ; which label (0-7) we're drawing on the page:
 	byte $00
 
+; screen stuff:
+scnmode:
+; $01: don't display screen mask
+; $00: display
+	byte $00
+
+scnlock:
+; $00: ignore f1 keypresses, never display screen mask
+	byte $00
+
+blnkflag:
+; $00: don't blank screen?
+	byte $00
+
+putvar:
+	rts
+
+varbuf:
+	area 7,$00
