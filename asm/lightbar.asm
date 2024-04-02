@@ -59,6 +59,8 @@ screen_mask_color_addr	= color_ram + (VIC_SCREEN_WIDTH * 17)
 setup:
 	lda #'{clear}'
 	jsr chrout
+	lda #'{lowercase}'
+	jsr chrout
 	lda #VIC_BLACK
 	sta $d020
 	sta $d021
@@ -79,9 +81,11 @@ copy_loop:
 	bne copy_loop
 
 ; print 8 lightbar pages
-; 1) reset lightbar_page_index (which position, 0-7, we're drawing in the lightbar page)
+; 1) reset lightbar_label_index (which position, 0-7, we're drawing in the lightbar page)
+;    reset lightbar_char_index (which character in the lightbar line we're drawing)
 	lda #00
-	sta lightbar_page_index+1
+	sta lightbar_label_index
+	sta lightbar_char_index
 ; 2) calculate which page we're on
 	clc
 	ldy #lightbar_page
@@ -112,20 +116,19 @@ draw_lightbar3:
 ; reverse char
 	eor #%10000000
 	sta draw_char
-draw_lightbar_status1:
+lightbar_label:
 ; 0   12   34   56   7 etc.
 ; xSysxxAcsxxLocxxTsrx etc.
-; if checkline_index is even (bit #0=0), adc #3
-; if checkline_index is odd  (bit #0=1), adc #1
-	lda checkline_index
+; if lightbar_label_index is even (bit #0=0), adc #3
+; if lightbar_label_index is odd  (bit #0=1), adc #1
+	lda lightbar_label_index
 	and #1
-	bne draw_checkline_add_1
-draw_checkline_add_3:
-	inc checkline_index
-	inc checkline_index
-draw_checkline_add_1:
-	inc checkline_index
-	ldy checkline_index
+	bne lightbar_label_index_add_1
+	inc lightbar_char_index
+	inc lightbar_char_index
+lightbar_label_index_add_1:
+	inc lightbar_char_index
+	ldy lightbar_char_index
 draw_char:
 ; char to print:
 	lda #$ff
@@ -147,15 +150,15 @@ draw_lightbar1:
 
 ; handle colors:
 ; check for color change from background to highlight if lightbar_page_index = lightbar_position
-	lda lightbar_index
+	lda lightbar_char_index
 	cmp lightbar_position
 	bne draw_lightbar_background
-	lda #mask_theme_lightbar_highlight
+	lda mask_theme_lightbar_highlight
 	jmp draw_lightbar_color
 draw_lightbar_background:
-	lda #mask_theme_lightbar_background
+	lda mask_theme_lightbar_background
 draw_lightbar_color:
-	sta lightbar_color,y
+	sta lightbar_color_addr,y
 	iny
 	cpy VIC_SCREEN_WIDTH
 	bne draw_lightbar0
@@ -443,3 +446,11 @@ screen_mask_color:
 	area 16,VIC_YELLOW
 ; row 8
 	area 40,VIC_WHITE
+lightbar_char_index:
+; position in the lightbar being drawn
+	byte $00
+
+lightbar_label_index:
+; which label (0-7) we're drawing on the page:
+	byte $00
+
