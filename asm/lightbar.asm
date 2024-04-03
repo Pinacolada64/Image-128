@@ -43,13 +43,25 @@ checkmark	= 122
 ; TODO: Add VDC colors
 
 ; keyboard stuff:
+ndx		= $d0	; c64: $c6/198. number of characters in keyboard buffer
 shflag		= $d3	; c64: $028d/653. Shift, C=, Ctrl, Alt keys: 1=pressed
 SHIFT_KEY	= %00000001
 COMMODORE_KEY	= %00000010
 CONTROL_KEY	= %00000100
 ALT_KEY		= %00001000
 
+
 lstx	= $d5	; c64: 197 / $c5. last key pressed
+
+; keyboard scan codes:
+F1_KEY		= 4
+F3_KEY		= 5
+F5_KEY		= 6
+F7_KEY		= 3
+
+HELP_KEY	= 64
+
+NO_KEY_PRESSED	= %01011000 ; +88
 
 ; ROM routines:
 strout		= $ab1e
@@ -103,6 +115,11 @@ main_loop:
 	jsr check_stop_key
 	bne main_loop
 basic:
+; clear keyboard buffer of any pending keypresses
+; TODO: clear f-key presses in case of JiffyDOS pre-programmed f-keys
+	lda #$00
+	sta ndx
+
 	rts
 
 ; print 8 lightbar pages
@@ -494,11 +511,20 @@ screen_mask_color:
 
 irq4:
 ; handle lightbar f-keys
+
+; in VICE:
+; host OS   C=     host OS   C=
+; -------   --     -------   --
+;       f1: f1           f3: f5
+; Shift+f1: f2     Shift+f3: f6
+;       f2: f3           f4: f7
+; Shift+f2: f4     Shift+f4: f8
+
 	lda lstx	; c64: 197. last key pressed
 	cmp oldkey
 	beq irq4c
 	sta oldkey
-	cmp #3
+	cmp #F7_KEY	; 3
 	bcc irq4c
 	cmp #7
 	bcs irq4c
