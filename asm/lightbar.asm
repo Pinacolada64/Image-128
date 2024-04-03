@@ -79,6 +79,7 @@ setup:
 	sta $d021
 
 ; copy screen mask data/color to screen
+; this will also be used for copying lightbar help text into mask
 	ldy #0
 copy_loop:
 	lda screen_mask_data,y
@@ -308,6 +309,16 @@ page5:
 ; x Mnt  : Zero tr% at Hit Backspace
 ;   Mnt  : Modem Answer Disabled
 
+page6:
+; undefined
+	ascii "$50$52$55$56$58$5a$5c$5e"
+page7:
+; undefined
+	ascii "$60$62$65$66$68$6a$6c$6e"
+page8:
+; alarm triggers
+	ascii "At1At2At3At4At5At6At7At8"
+
 help_text:
 ; built-in help text if s.lightbar file missing:
 ; Sys:
@@ -400,6 +411,12 @@ chktbl:
 	byte %10101010,%01010101
 ; page 5:
 	byte %01010101,%10101010
+; page 6:
+	byte %00110011,%11001100
+; page 7:
+	byte %00001111,%11110000
+; page 8:
+	byte %11001100,%00110011
 
 bits:
 ; which bit to set in chktbl byte depending on lightbar_position:
@@ -424,14 +441,16 @@ screen_mask_data:
 ; 120
 	ascii "Mail sym.rsherwood@gmail.c Baud Console "
 ; 160
-	ascii "Area Lightbar Mock-Up      User 2/2     "
+screen_mask_text_5_8:
+	ascii "Area Lightbar/Mask Mock-Up User 1/2     "
 ; 200
 ;                                      |<- msg area ->|
 	ascii "C=00004 N=001 I=000 A=9 Screen Mask Test"
 ; 240
-	ascii "R{right:10} M=18064  L=03006 {right:10}T"
+; 240: $a0 = 128 + 32 for reverse spaces
+	ascii "R{$a0:10} M=18064  L=03006 {$a0:10}T"
 ; 280
-	ascii checkmark,"Wed Mar 27, 2024 11:18 AM{space:5}"
+	ascii checkmark,"Wed Mar 27, 2024 11:18 AM{space:8}--:59 "
 ; 320
 {alpha:alt}
 
