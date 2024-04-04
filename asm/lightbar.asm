@@ -90,21 +90,78 @@ setup:
 	sta $d020
 	sta $d021
 
+; copy 1st half of screen mask:
+; text data:
+breakpoint:
+	lda #<screen_mask_text_1_4
+	sta source+1
+	lda #>screen_mask_text_1_4
+	sta source+2
+
+	lda #<screen_mask_text_addr
+	sta dest+1
+	lda #>screen_mask_text_addr
+	sta dest+2
+	jsr copy_init
+
+; color data:
+	lda #<screen_mask_color_1_4
+	sta source+1
+	lda #>screen_mask_color_1_4
+	sta source+2
+
+	lda #<screen_mask_color_addr
+	sta dest+1
+	lda #>screen_mask_color_addr
+	sta dest+2
+	jsr copy_init
+
+; copy 2nd half of screen mask
+; text data:
+	lda #<screen_mask_text_5_8
+	sta source+1
+	lda #>screen_mask_text_5_8
+	sta source+2
+
+	lda #<(screen_mask_text_addr + VIC_SCREEN_WIDTH * 4)
+	sta dest+1
+	lda #>(screen_mask_text_addr + VIC_SCREEN_WIDTH * 4)
+	sta dest+2
+	jsr copy_init
+; color data
+	lda #<screen_mask_color_5_8
+	sta source+1
+	lda #>screen_mask_color_5_8
+	sta source+2
+
+	lda #<(screen_mask_color_addr + VIC_SCREEN_WIDTH * 4)
+	sta dest+1
+	lda #>(screen_mask_color_addr + VIC_SCREEN_WIDTH * 4)
+	sta dest+2
+	jsr copy_init
+
+	jmp main_loop
+
+copy_init:
 ; copy screen mask data/color to screen
 ; this will also be used for copying lightbar help text into mask
 	ldy #0
+
 copy_loop:
-	lda screen_mask_data,y
+source:
+; copy 4 lines from source to dest
+	lda $ffff,y
 ; eor bit 7 to reverse char
+; FIXME: @ symbol
 	eor #%10000000
-	sta screen_mask_text_addr,y
-	lda screen_mask_color,y
+dest:
+	sta $ffff,y
 	sta screen_mask_color_addr,y
 
 	iny
-	; TODO: eventually #200 for 5 equal chunks
-	cpy #VIC_SCREEN_WIDTH * 6
+	cpy #VIC_SCREEN_WIDTH * 4
 	bne copy_loop
+	rts
 
 main_loop:
 {def:use_lightbar}
@@ -448,7 +505,7 @@ bits:
 
 ; required to get upper/lowercase screen codes:
 {alpha:PokeAlt}
-screen_mask_data:
+screen_mask_text_1_4:
 ; 0
 	ascii "User Pinacolada            ID # DE1     "
 ; 40
@@ -476,7 +533,7 @@ theme_table:
 	byte VIC_DARK_GRAY,VIC_MED_GRAY,VIC_WHITE
 	ascii "Standard Grays/White{0}"
 
-screen_mask_color:
+screen_mask_color_1_4:
 ; area <size>[, <fill>]
 ; row 1:
 	area 04,VIC_LIGHT_GRAY
@@ -498,15 +555,16 @@ screen_mask_color:
 	area 23,VIC_MED_GRAY
 	area 04,VIC_LIGHT_GRAY
 	area 09,VIC_MED_GRAY
+screen_mask_color_5_8:
 ; row 5:
 	area 04,VIC_LIGHT_GRAY
 	area 23,VIC_MED_GRAY
 	area 04,VIC_LIGHT_GRAY
 	area 09,VIC_MED_GRAY
-; rows 6-7:
+; row 6:
 	area 24,VIC_WHITE
 	area 16,VIC_YELLOW
-; row 8
+; rows 7-8
 	area 40,VIC_WHITE
 
 irq4:
