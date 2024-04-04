@@ -347,13 +347,15 @@ page3:
 ; x Frd  : don't display color [keep as homage to Fred Dart]
 ;   Frd x: undefined: FIXME: forwarding something?
 ; x Mac  : display main menu macros FIXME
-; x Mnu  : Is User in Menu Mode?
-;   Mnu  : Are Menus Available on BBS?
+; x Mnu  : Graphic Menus Available
+;   Mnu x: Graphic Menus Enabled
 ; x New  : NEW users allowed
 ; x Lgn  : Second security check question
 ;   Lgn x: Display 's.detect' files
-;   Sub  : U/Ds or GF section closed
-; x Unv  : Unvalidated files earn credit; auto-logoff
+; x Sub  : U/D section available
+;   Sub x: Sub-boards available
+; x Unv  : Unvalidated files earn credit
+;   Unv x: auto-logoff after file transfer done
 ; unassigned:
 ; disallow double calls
 page4:
@@ -367,12 +369,12 @@ page4:
 ;   Scn x: 80 columns? maybe 40/80 key instead
 ; x Prt  : Print all text to printer
 ;   Prt x: Print log entries to printer
-; x RTC  : RTC
-;   RTC x: Periodic RTC poll to sync time
-; x CMD  : CMD HD
-;   CMD x: poll CMD RTC & reset BBS clock
-; x LtK  : Lt. Kernal HD connected
-;   LtK x: Multiplexer connected
+; x RTC  : RTC present
+;   RTC x:
+; x CMD  : CMD HD present
+;   CMD x: Sync BBS clock with RTC
+; x LtK  : Lt. Kernal HD present
+;   LtK x: Multiplexer present
 
 page5:
 ; modem options
@@ -380,15 +382,15 @@ page5:
 ;	ascii "MdmMntDCDDSR"
 ;   Trc x: Poll CMD real-time clock
 ; x Mdm  : Enable modem input
-; x Mnt  : Zero tr% at Hit Backspace
+; x Mnt  : Zero tr% at "Hit Backspace"
 ;   Mnt  : Modem Answer Disabled
 
 page6:
 ; undefined
-	ascii "$50$52$55$56$58$5a$5c$5e"
+	ascii "$50$52$54$56$58$5a$5c$5e"
 page7:
 ; undefined
-	ascii "$60$62$65$66$68$6a$6c$6e"
+	ascii "$60$62$64$66$68$6a$6c$6e"
 page8:
 ; alarm triggers
 	ascii "At1At2At3At4At5At6At7At8"
@@ -398,16 +400,16 @@ help_text:
 ; Sys:
 	ascii "Sysop available for chat{0}"
 ; CHANGE: move to right Cht
-	ascii "Background page enable{0}"
+	ascii "Background page sound enable{0}"
 ; Acs:
-	ascii "Edit user's access{0}"
+	ascii "Edit user's access level{0}"
 	ascii "Block 300 BPS callers{0}"
 ; Loc:
-	ascii "Local mode (no modem I/O){0}"
+	ascii "Local mode (no modem output){0}"
 	ascii "ZZ (pseudo-local) mode{0}"
 ; Tsr:
-	ascii "Edit user’s time left{0}"
-	ascii "Toggle Prime Time{0}"
+	ascii "Edit user’s time still remaining{0}"
+	ascii "Toggle Prime Time on or off{0}"
 ; Cht:
 	ascii "Enter or exit chat mode{0}"
 ; CHANGE: move elsewhere
@@ -443,8 +445,8 @@ help_text:
 	ascii "{0}"
 	ascii "{0}"
 ; Mac:
-	ascii "{0}"
-	ascii "{0}"
+	ascii "Enable main prompt Macros{0}"
+	ascii "MCI enabled in text editor{0}"
 ; Chk:
 	ascii "{0}"
 	ascii "{0}"
