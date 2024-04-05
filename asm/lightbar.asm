@@ -90,6 +90,46 @@ setup:
 	sta $d020
 	sta $d021
 
+; copy opening instructions:
+; text data lines 1-4:
+	lda #<instructions_1_4
+	sta source+1
+	lda #>instructions_1_4
+	sta source+2
+
+	lda #<text_ram
+	sta dest+1
+	lda #>text_ram
+	sta dest+2
+	clc	; copy text un-reversed
+	jsr copy_init
+
+; text data lines 5-8:
+	lda #<instructions_5_8
+	sta source+1
+	lda #>instructions_5_8
+	sta source+2
+
+	lda #<(text_ram + VIC_SCREEN_WIDTH * 4)
+	sta dest+1
+	lda #>(text_ram + VIC_SCREEN_WIDTH * 4)
+	sta dest+2
+	clc	; copy text un-reversed
+	jsr copy_init
+
+; text data lines 9-12:
+	lda #<instructions_9_12
+	sta source+1
+	lda #>instructions_9_12
+	sta source+2
+
+	lda #<(text_ram + VIC_SCREEN_WIDTH * 8)
+	sta dest+1
+	lda #>(text_ram + VIC_SCREEN_WIDTH * 8)
+	sta dest+2
+	clc	; copy text un-reversed
+	jsr copy_init
+
 ; copy 1st half of screen mask:
 ; text data:
 breakpoint:
@@ -953,3 +993,23 @@ putvar:
 
 varbuf:
 	area 7,$00
+
+instructions_1_4:
+{alpha:PokeAlt}
+;              ====+====+====+====+====+====+====+====+
+	ascii "Welcome to the concept preview of the   "
+	ascii "Image 128 BBS lightbar and screen mask. "
+	ascii "Use the following keys to manipulate the"
+	ascii "lightbar:                               "
+instructions_5_8:
+	ascii "                                        "
+	ascii "f1: not implemented f2: toggle fast/slow"
+	ascii "f3: highlight left  f4: previous page   "
+	ascii "f5: highlight right f6: next page       "
+
+instructions_9_12:
+	ascii "f7: toggle left {186}   f8: toggle right {186}  "
+	ascii "                                        "
+	ascii "This build is dated ",{usedef:__BuildDate}," ",{usedef:__BuildTime}
+	ascii "Build ID: ",{usedef:__BuildRID64},"   Stop exits."
+
