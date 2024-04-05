@@ -102,6 +102,7 @@ breakpoint:
 	sta dest+1
 	lda #>screen_mask_text_addr
 	sta dest+2
+	sec	; copy text reversed
 	jsr copy_init
 
 ; color data:
@@ -114,6 +115,7 @@ breakpoint:
 	sta dest+1
 	lda #>screen_mask_color_addr
 	sta dest+2
+	clc	; copy color un-reversed
 	jsr copy_init
 
 ; copy 2nd half of screen mask
@@ -127,6 +129,7 @@ breakpoint:
 	sta dest+1
 	lda #>(screen_mask_text_addr + VIC_SCREEN_WIDTH * 4)
 	sta dest+2
+	sec	; copy text reversed
 	jsr copy_init
 ; color data
 	lda #<screen_mask_color_5_8
@@ -138,13 +141,24 @@ breakpoint:
 	sta dest+1
 	lda #>(screen_mask_color_addr + VIC_SCREEN_WIDTH * 4)
 	sta dest+2
+	clc	; copy color data un-reversed
 	jsr copy_init
 
 	jmp main_loop
 
 copy_init:
 ; copy screen mask data/color to screen
-; this will also be used for copying lightbar help text into mask
+; this will also be used for moving lightbar help text
+
+; enter with .c=1 to invert copied text, .c=0 to not
+	bcc not_reversed
+	lda #%10000000
+	bne store_reverse
+not_reversed:
+	lda #%00000000
+store_reverse:
+	sta reverse+1
+
 	ldy #0
 
 copy_loop:
@@ -153,7 +167,9 @@ source:
 	lda $ffff,y
 ; eor bit 7 to reverse char
 ; FIXME: @ symbol
-	eor #%10000000
+	clc
+reverse:
+	adc #$ff
 dest:
 	sta $ffff,y
 	sta screen_mask_color_addr,y
