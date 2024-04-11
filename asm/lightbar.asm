@@ -2,6 +2,20 @@
 ; 1) options are scattered all over, some check mark slots are unused
 ; 2) some options are disabled by checking them; others are enabled by checking them.
 ;    this is inconsistent behavior
+
+; design goals:
+; 1) translation table between old and new lightbar reorganization. This would eliminate
+;    having to renumber all the &,52,x,x function calls if a reorganized lightbar does get
+;    adopted.
+
+;    A (loadable?) table should be kept which has either the old organization of the lightbar
+;    checkmarks (a 1:1 mapping to Image '64 3.x) or something like, e.g.:
+;    'byte 0=6' where (old) 0=Sys left, (new) 3=Cht right [same purpose, different position]
+
+; 2) Move lesser-used options out of page 0. I don't believe sysops are blocking 300 BPS
+;    callers, toggling prime time, or toggling screen blanking frequently enough to warrant
+;    using slots on what could be a very useful overview/quick access lightbar page 0.
+
 orig $1c01	; 7169
 
 ; basic sys line
@@ -51,7 +65,7 @@ CONTROL_KEY	= %00000100
 ALT_KEY		= %00001000
 
 
-lstx	= $d5	; c64: 197 / $c5. last key pressed
+lstx		= $d5	; c64: 197 / $c5. last key pressed
 
 ; keyboard scan codes:
 F1_KEY		= 4
@@ -187,7 +201,7 @@ breakpoint:
 	jmp main_loop
 
 copy_init:
-; copy screen mask data/color to screen
+; copy 4 lines of screen mask data/color to screen
 ; this will also be used for moving lightbar help text
 
 ; enter with .c=1 to invert copied text, .c=0 to not
@@ -200,7 +214,6 @@ store_reverse:
 	sta reverse+1
 
 	ldy #0
-
 copy_loop:
 source:
 ; copy 4 lines from source to dest
@@ -212,16 +225,14 @@ reverse:
 	adc #$ff
 dest:
 	sta $ffff,y
-	sta screen_mask_color_addr,y
-
 	iny
 	cpy #VIC_SCREEN_WIDTH * 4
 	bne copy_loop
 	rts
 
 main_loop:
-{def:use_lightbar}
-{ifdef:use_lightbar}
+{def:use_ray_lightbar}
+{ifdef:use_ray_lightbar}
 	jsr irq7	; display lightbar checkmarks
 	jsr irq4	; handle lightbar f-keys
 {endif}
@@ -229,12 +240,13 @@ main_loop:
 	bne main_loop
 basic:
 ; clear keyboard buffer of any pending keypresses
-; TODO: clear f-key presses in case of JiffyDOS pre-programmed f-keys
+; TODO: clear f-key presses
 	lda #$00
 	sta ndx
 
 	rts
 
+{ifndef:use_ray_lightbar}
 ; print 8 lightbar pages
 ; 1) reset lightbar_label_index (which position, 0-7, we're drawing in the lightbar page)
 ;    reset lightbar_char_index (which character in the lightbar line we're drawing)
@@ -360,47 +372,115 @@ lightbar_text_offset_lo:
 	byte <page0,<page1,<page2,<page3,<page4,<page5
 lightbar_text_offset_hi:
 	byte >page0,>page1,>page2,>page3,>page4,>page5
+{endif}
 
 {alpha:PokeAlt}
 bartbl:
 lightbar_text:
 page0:
 	ascii "SysAcsLocTsrChtNewPrtU/D"
+; Old:
+; x Sys  : Sysop available to chat
+;   Sys x: Background page enable
+; x Acs  : Edit user's access level
+;   Acs x: Block 300 baud callers
+; x Loc  : Local mode (console login)
+;   Loc x: Pseudo-local ('ZZ') mode
+; x Tsr  : Edit user's time left
+;   Tsr x: Toggle prime time
+; x Cht  : Enter/exit chat mode
+;   Cht x: Disable modem input
+; x New  : Disallow new users
+;   New x: Enable screen blanking
+; x Prt  : Print spooling
+;   Prt x: Print log entries
+; x U/D  : Disable U/D section
+;   U/D x: 300 baud U/D lockout
+
+; New:
 ; alphabetical within page (mostly), each page a broad category:
 ; common BBS options:
-;	ascii "AcsChtLocResSysTsr"
-; x Sys  : Sysop available to chat
+;	ascii "AcsChtLocPagRsvSysTsrNet"
+; x Acs  : Edit user's access level
+;   Acs x: Console keyboard lockout [WISH]
 ; x Cht  : Enter/exit chat mode
-;   Cht x: Background chat page enable
+;   Cht x: Sysop available for chatting
+; x Loc  : Local mode (console login)
+;   Loc x: Pseudo-local ('ZZ') mode
+; x Pag  : Background chat page enable
+;   Pag x: Excessive chat page logoff active
+; x Rsv  : Reserve BBS (need reservation password)
+;   Rsv x: Network reservation active
+; x Sys  : undefined
+;   Sys x: Chat logging enable [WISH]
+; x Tsr  : Edit user's time still remaining
+;   Tsr x: undefined
+; x Net  : NetMail transfers enabled
+;   Net x: NetMail trigger active
 
-; x U/D  : 300 Baud U/D Lockout
-;   U/D x: Disable U/D Section
+; [CHANGE] maybe "Res x" and "Net x" are redundant?
+
 page1:
 ; console options:
 	ascii "AscAnsExpUnvTrcBelNetMac"
+; OLD:
+; x Asc   ;
+;   Asc x ;
+; x Ans   ;
+;   Ans x ;
+; x Exp   ;
+;   Exp x ;
+; x Unv   ;
+;   Unv x ;
+; x Trc   ;
+;   Trc x ;
+; x Bel   ;
+;   Bel x ;
+; x Net   ;
+;   Net x ;
+; x Mac   ;
+;   Mac x ;
+
+; NEW:
 ;	ascii "AscAnsBelDbgIdlMorTrc"
-; x Dbg  : check to display more info in modules during debugging process
+; x Dbg  : Display debug info in modules enabled
+;   Dbg x: Use Image '64 3.x lightbar configuration
 ;   Idl  : was "Alt"
-; x Idl  : use color scheme 1/2 for last ten callers
+; x Idl  : use color scheme 1 for last ten callers
+;   Idl x: use "e.idlekeys" feature (extra functions) [?]
 ; x Trc  : Trace BASIC line numbers
+;   Trc x: Trace ML program counter
+
 page2:
+	ascii "ChkMorFrdSubResMntMnuXpr"
+; OLD:
+; x Chk  : Enable MailCheck at Logon
+;   Chk x: Excessive Chat logoff
+; x Res  : System reserved
+;   Res x: Network reserved
+
+; NEW:
 ; caller options:
-	ascii "ChkMorFrdSubResMdmMnuXpr"
-;	ascii "AscAnsMacMnuXpr"
-;   Asc  : ASCII translation; LF after CR
-;   Ans  : ANSI color enable; ANSI graphics enable
-; x Mac  : enable main prompt "macros"
-;   Mac x: Enable mci in editor
-; Mnu: Graphic menu options
-; x Mor  : More Prompt Enabled
-;   Mor x: More Prompt Ignored FIXME
-; x Xpr  : Xpress logon options
+;	ascii "AscAnsMacMCIMnuMorXpr"
+; x Asc  : ASCII translation enabled
+;   Asc x: Send linefeed after carriage return
+; x Ans  : ANSI color enabled
+;   Ans x: ANSI graphics enabled
+; x Mac  : Main prompt "macros" enabled
+; x MCI  : MCI commands enabled
+;   MCI x: MCI commands in text editor enabled
+; x Mnu  : Graphic Menus Available
+;   Mnu x: Graphic Menus Enabled
+; x Mor  : More Prompt enabled
+;   Mor x: More Prompt available
+; x Xpr  : Xpress logon option available
 page3:
 ; sysop-set user-facing BBS options:
-	ascii "ChkFrdMacMnuNewSecSubUnv"
-; x Chk  : Mail check at logon
-;   Chk x: Excessive chat request logoff
-; x Frd  : don't display color [keep as homage to Fred Dart]
+	ascii "Em3Sc2ScpAltTrbDCDDSR$3e"
+;	ascii "ChkFrdMacMnuNewSecSubUnv"
+; x Chk  : Mail check at logon enabled
+;   Chk x:
+; x Frd  : Full-color read enabled [keep as homage to Fred Dart]
 ;   Frd x: undefined: FIXME: forwarding something?
 ; x Mac  : display main menu macros FIXME
 ; x Mnu  : Graphic Menus Available
@@ -413,41 +493,49 @@ page3:
 ; x Unv  : Unvalidated files earn credit
 ;   Unv x: auto-logoff after file transfer done
 ; unassigned:
-; disallow double calls
+; allow back-to-back calls
 page4:
 ; hardware options:
-	ascii "1.xSecMHzAltDbgDCDDSR$3e"
-;	ascii "CPUmHzScnPrtRTCCMDLtK"
-; x CPU  : SuperCPU present
-;   CPU x: SuperCPU at 20 mHz
+	ascii "$40$42$44$46$48$4a$4c$4e"
+;	ascii "TboREURAMScnPrtRTCCMDLtK"
+; x Tbo  : SuperCPU present
+;   Tbo x: SuperCPU at 20 mHz
+; x REU  : RAM expansion unit enabled
+; x RAM  :
 ; x Scn  : Screen blanking enabled
 ;   Scn  : 40 columns?
 ;   Scn x: 80 columns? maybe 40/80 key instead
 ; x Prt  : Print all text to printer
 ;   Prt x: Print log entries to printer
 ; x RTC  : RTC present
-;   RTC x:
-; x CMD  : CMD HD present
+;   RTC x: Sync RTC with BBS clock periodically
+; x CMD  : CMD HD present; use subdirectories
 ;   CMD x: Sync BBS clock with RTC
 ; x LtK  : Lt. Kernal HD present
 ;   LtK x: Multiplexer present
 
 page5:
 ; modem options
-	ascii "$40$42$44$46$48$4a$4c$4e"
-;	ascii "MdmMntDCDDSR"
-;   Trc x: Poll CMD real-time clock
-; x Mdm  : Enable modem input
-; x Mnt  : Zero tr% at "Hit Backspace"
-;   Mnt  : Modem Answer Disabled
+	ascii "$50$52$54$56$58$5a$5c$5e"
+;	ascii "DCDDSRI/ORng300         "
+; x DCD  : Hang up on inverted DSR signal
+;[ ]DCD  : Hang up on no DCD signal
+;   DCD x: Data carrier detect present
+; x DSR  : Hang up on no Data Set Ready (DSR) signal
+;[ ]DSR  : Hang up on no DCD signal
+;   DSR x: Display Rx/Tx windows enabled
+; x I/O  : Enable modem input
+;   I/O x: Enable modem output
+; x Rng  : Modem answer on ring enabled
 
+; x Lgn  : Zero time at "Hit Backspace"
+;   Lgn x:
+; x 300  : 300 BPS caller logon enabled
+;   300 x: 300 BPS caller U/Ds enabled
 page6:
 ; undefined
-	ascii "$50$52$54$56$58$5a$5c$5e"
-page7:
-; undefined
 	ascii "$60$62$64$66$68$6a$6c$6e"
-page8:
+page7:
 ; alarm triggers
 	ascii "At1At2At3At4At5At6At7At8"
 
@@ -459,7 +547,7 @@ help_text:
 	ascii "Background page sound enable{0}"
 ; Acs:
 	ascii "Edit user's access level{0}"
-	ascii "Block 300 BPS callers{0}"
+	ascii "Allow 300 BPS callers{0}"
 ; Loc:
 	ascii "Local mode (no modem output){0}"
 	ascii "ZZ (pseudo-local) mode{0}"
@@ -469,10 +557,10 @@ help_text:
 ; Cht:
 	ascii "Enter or exit chat mode{0}"
 ; CHANGE: move elsewhere
-	ascii "Disable modem input{0}"
+	ascii "Enable modem input{0}"
 ; New:
-	ascii "Disallow new users{0}"
-	ascii "Enable Screen Blanking{0}"
+	ascii "Allow NEW users{0}"
+	ascii "Enable screen blanking{0}"
 ; Prt:
 	ascii "{0}"
 	ascii "{0}"
@@ -492,62 +580,62 @@ help_text:
 	ascii "{0}"
 	ascii "{0}"
 ; Trc:
-	ascii "{0}"
-	ascii "{0}"
+	ascii "Trace BASIC line number enabled{0}"
+	ascii "Trace ML program counter enabled{0}"
 ; Bel:
-	ascii "{0}"
-	ascii "{0}"
+	ascii "Console bell enabled{0}"
+	ascii "Console beep enabled{0}"
 ; Net:
-	ascii "{0}"
-	ascii "{0}"
+	ascii "Network file transfers enabled{0}"
+	ascii "Network file transfer triggered{0}"
 ; Mac:
-	ascii "Enable main prompt Macros{0}"
-	ascii "MCI enabled in text editor{0}"
+	ascii "Main prompt {quote}macros{quote} enabled{0}"
+	ascii "MCI in text editor enabled{0}"
 ; Chk:
 	ascii "{0}"
 	ascii "{0}"
 ; Mor:
-	ascii "{0}"
-	ascii "{0}"
+	ascii "'More' prompt enabled{0}"
+	ascii "'More' prompt active{0}"
 ; Frd:
-	ascii "{0}"
+	ascii "Monochrome color output enabled{0}"
 ; right: forwarding something
-	ascii "{0}"
+	ascii "Undefined{0}"
 ; Sub:
-	ascii "{0}"
-	ascii "{0}"
+	ascii "Message bases enabled{0}"
+	ascii "File transfers enabled{0}"
 ; Res:
-	ascii "{0}"
+	ascii "BBS reserved{0}"
 	ascii "{0}"
 ; Mdm:
 	ascii "{0}"
 	ascii "{0}"
 ; Mnu:
-	ascii "{0}"
-	ascii "{0}"
+	ascii "Graphic menus available{0}"
+	ascii "Graphic menus enabled{0}"
 ; Xpr:
-	ascii "{0}"
-	ascii "{0}"
+	ascii "Express logon option available{0}"
+	ascii "Auto-logoff after U/D available{0}"
 {alpha:alt}
 
 chktbl:
 ; each 1 bit represents a check mark in the lightbar
 ; 16 bits per page
+; page 0:
+	byte %01010101,%10101010
 ; page 1:
-	byte %01010101,%10101010
+	byte %10101010,%01010101
 ; page 2:
-	byte %10101010,%01010101
+	byte %01010101,%10101010
 ; page 3:
-	byte %01010101,%10101010
-; page 4:
 	byte %10101010,%01010101
-; page 5:
+; page 4:
 	byte %01010101,%10101010
-; page 6:
+; page 5:
 	byte %00110011,%11001100
-; page 7:
+; page 6:
 	byte %00001111,%11110000
-; page 8:
+; page 7:
 	byte %11001100,%00110011
 
 bits:
@@ -577,8 +665,9 @@ screen_mask_text_5_8:
 	ascii "Area Lightbar/Mask Mock-Up User 1/2     "
 ; 200
 ;                                      |<- msg area ->|
+; TODO: Alt+another key could show a second status line in 40 col. mode, combined into 1 line in 80 col. mode
 	ascii "C=00004 N=001 I=000 A=9 Screen Mask Test"
-; 240
+;	ascii "PT: 05:00 PM - 09:30 PM (00:30 min)"
 ; 240: $a0 = 128 + 32 for reverse spaces
 	ascii "R{$a0:10} M=18064  L=03006 {$a0:10}T"
 ; 280
@@ -624,6 +713,7 @@ screen_mask_color_5_8:
 	area 16,VIC_YELLOW
 ; rows 7-8
 	area 40,VIC_WHITE
+	area 40,VIC_WHITE
 
 irq4:
 ; handle lightbar f-keys
@@ -640,6 +730,8 @@ irq4:
 	cmp oldkey
 	beq irq4c
 	sta oldkey
+	cmp #HELP_KEY
+	beq helpkey
 	cmp #F7_KEY	; 3
 	bcc irq4c
 	cmp #7
@@ -661,6 +753,7 @@ irq4:
 	jsr irq4b
 	sta irq4a+2
 irq4a:
+; self modifying code:
 	jmp $ffff
 irq4b:
 ; target of self-modifying code
@@ -669,6 +762,18 @@ irq4c:
 	rts
 irq4d:
 	jmp fkey
+
+helpkey:
+	lda helpmode
+	eor #$01	; toggle value
+	sta helpmode
+	sta 1024
+	rts
+
+helpmode:
+; $00: not in lightbar help mode
+; $01: in lightbar help mode
+	byte $00
 
 tmpkey:
 	byte 0
@@ -755,7 +860,9 @@ t2init:
 t3init:
 fkey:
 setmode1:
+	jmp main_loop
 scrnoff:
+	jmp main_loop
 scrnon:
 	jmp main_loop
 
@@ -1013,3 +1120,8 @@ instructions_9_12:
 	ascii "This build is dated ",{usedef:__BuildDate}," ",{usedef:__BuildTime}
 	ascii "Build ID: ",{usedef:__BuildRID64},"   Stop exits."
 
+mask_text_buf:
+	area (4 * VIC_SCREEN_WIDTH),$00
+
+mask_color_buf:
+	area (4 * VIC_SCREEN_WIDTH),$00
