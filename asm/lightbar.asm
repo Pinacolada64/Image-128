@@ -95,6 +95,13 @@ screen_mask_color_addr	= color_ram + (VIC_SCREEN_WIDTH * 17)
 ; variables referenced by code:
 var_a_integer	= $ff
 
+; cia time-of-day clock registers:
+tod_tenths	= $dc08	; tenths of a second
+tod_secs	= $dc09	; seconds
+tod_min		= $dc0a	; minutes
+tod_hrs		= $dc0b	; hours
+ciacrb		= $dc0f	; cia control register b
+
 setup:
 	lda #'{clear}'
 	jsr chrout
@@ -103,6 +110,12 @@ setup:
 	lda #VIC_BLACK
 	sta $d020
 	sta $d021
+
+; set tod clock:
+; .x: hour, .y=minute
+	ldx #11
+	ldy #59
+	jsr settim
 
 ; copy opening instructions:
 ; text data lines 1-4:
@@ -235,6 +248,7 @@ main_loop:
 {ifdef:use_ray_lightbar}
 	jsr irq7	; display lightbar checkmarks
 	jsr irq4	; handle lightbar f-keys
+	jsr clock	; display clock
 {endif}
 	jsr check_stop_key
 	bne main_loop
@@ -671,7 +685,7 @@ screen_mask_text_5_8:
 ; 240: $a0 = 128 + 32 for reverse spaces
 	ascii "R{$a0:10} M=18064  L=03006 {$a0:10}T"
 ; 280
-	ascii checkmark,"Wed Mar 27, 2024 11:18 AM{space:8}--:59 "
+	ascii checkmark,"Wed Mar 27, 2024 11:18:00 AM{space:5}--:59 "
 ; 320
 {alpha:alt}
 
@@ -1066,7 +1080,111 @@ chkflag5:
 	and chktbl,x
 	jmp chkflag8
 
+; display time
+clock:
+	ldy #$00 ; index
+
+	lda tod_hrs	; tens digit
+	pha
+	and #$10
+	jsr bcd_to_ascii_tens_digit+2
+	pla
+	jsr bcd_to_ascii_ones_digit
+
+	lda #$ba	; reversed ':'
+	jsr clock_display
+
+	lda tod_min	; tens digit
+	pha
+	jsr bcd_to_ascii_tens_digit
+	pla
+	jsr bcd_to_ascii_ones_digit
+
+	lda #$ba	; reversed ':'
+	jsr clock_display
+
+	lda tod_secs	; tens digit
+	pha
+	jsr bcd_to_ascii_tens_digit
+	pla
+	jsr bcd_to_ascii_ones_digit
+
+	lda tod_tenths	; read to keep clock running
+	rts
+
+bcd_to_ascii_tens_digit:
+	and #$f0
+	lsr
+	lsr
+	lsr
+	lsr
+	jmp clock_display
+
+bcd_to_ascii_ones_digit:
+	and #$0f
+
+clock_display:
+	ora #$b0	; %1011 0000
+	sta $0400+(40*24)+18,y
+	iny
+	rts
+
+settim:
+; enter with:
+; .x: hour    (01-12, 81-92=PM)
+; .y: minute  (00-59)
+	lda #$01
+	byte $2c
+setalm:
+	lda #$81
+	sta ciacrb
+	cmp #$81
+	beq settim2
+	lda #1
+	sta timeflag
+	cpx #12
+	bne settim1
+	ldx #92
+	bne settim2
+settim1:
+	cpx #92
+	bne settim2
+	ldx #12
+settim2:
+	txa
+	jsr settim3
+	sta tod_hrs
+	tya
+	jsr settim3
+	sta tod_min
+	lda #0
+	sta tod_secs
+	sta tod_tenths
+	lda #$01
+	sta ciacrb
+	rts
+settim3:
+	ldx #0
+settim4:
+	cmp #10
+	bcc settim5
+	sbc #10
+	inx
+	bne settim4
+settim5:
+	sta $ff
+	txa
+	asl
+	asl
+	asl
+	asl
+	ora $ff
+	rts
+
 ; variables & memory locations referenced by code:
+timeflag:
+	byte $ff
+
 tmpbar:
 	byte 0
 bar:
