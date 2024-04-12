@@ -456,15 +456,15 @@ page1:
 ;   Mac x ;
 
 ; NEW:
-;	ascii "AscAnsBelDbgIdlMorTrc"
+;	ascii "AscAnsBarBelDbgIdlMorTrc"
+; x Bar  : Use Image '64 3.x lightbar configuration
 ; x Dbg  : Display debug info in modules enabled
-;   Dbg x: Use Image '64 3.x lightbar configuration
+;   Dbg x: Change border colors on error condition
 ;   Idl  : was "Alt"
 ; x Idl  : use color scheme 1 for last ten callers
 ;   Idl x: use "e.idlekeys" feature (extra functions) [?]
 ; x Trc  : Trace BASIC line numbers
 ;   Trc x: Trace ML program counter
-
 page2:
 	ascii "ChkMorFrdSubResMntMnuXpr"
 ; OLD:
