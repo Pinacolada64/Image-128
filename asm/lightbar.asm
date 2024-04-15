@@ -51,8 +51,9 @@ VIC_LIGHT_GREEN	= 13
 VIC_LIGHT_BLUE	= 14
 VIC_LIGHT_GRAY	= 15
 
-; screen code printables:
-checkmark	= 122
+; screen code values:
+checkmark	= 186	; $7a / %01111010
+checkmark_rvs	= 250	; $fa / %11111010
 
 ; TODO: Add VDC colors
 
@@ -231,16 +232,62 @@ copy_loop:
 source:
 ; copy 4 lines from source to dest
 	lda $ffff,y
-; eor bit 7 to reverse char
-; FIXME: @ symbol
-	clc
+	jsr ascii_to_screencode
 reverse:
-	adc #$ff
+	eor #$ff
 dest:
 	sta $ffff,y
 	iny
 	cpy #VIC_SCREEN_WIDTH * 4
 	bne copy_loop
+	rts
+
+ascii_to_screencode:
+	; by Mace on CSDB
+	; convert ASCII/PetSCII to screen code
+	; enter with .a: value
+
+	cmp #$20	; if A<32 then...
+	bcc ddRev
+
+	cmp #$60	; if A<96 then...
+	bcc dd1
+
+	cmp #$80	; if A<128 then...
+	bcc dd2
+
+	cmp #$a0	; if A<160 then...
+	bcc dd3
+
+	cmp #$c0	; if A<192 then...
+	bcc dd4
+
+	cmp #$ff	; if A<255 then...
+	bcc ddRev
+
+	lda #$7e	; A=255, then A=126
+	bne ddEnd
+
+dd2:
+	and #$5f	; if A=96..127 then strip bits 5 and 7
+	bne ddEnd
+
+dd3:
+	ora #$40	; if A=128..159, then set bit 6
+	bne ddEnd
+
+dd4:
+	eor #$c0	; if A=160..191 then flip bits 6 and 7
+	bne ddEnd
+
+dd1:
+	and #$3f	; if A=32..95 then strip bits 6 and 7
+	bpl ddEnd
+
+ddRev:
+	eor #$80	; flip bit 7 (reverse on when off and vice versa)
+ddEnd:
+	; screen code is now in accumulator
 	rts
 
 main_loop:
@@ -664,7 +711,7 @@ bits:
 	byte %10000000
 
 ; required to get upper/lowercase screen codes:
-{alpha:PokeAlt}
+{'alpha:PokeAlt}
 screen_mask_text_1_4:
 ; 0
 	ascii "User Pinacolada            ID # DE1     "
@@ -683,6 +730,7 @@ screen_mask_text_5_8:
 	ascii "C=00004 N=001 I=000 A=9 Screen Mask Test"
 ;	ascii "PT: 05:00 PM - 09:30 PM (00:30 min)"
 ; 240: $a0 = 128 + 32 for reverse spaces
+; TODO: un-reverse these spaces
 	ascii "R{$a0:10} M=18064  L=03006 {$a0:10}T"
 ; 280
 	ascii checkmark,"Wed Mar 27, 2024 11:18:00 AM{space:5}--:59 "
@@ -946,7 +994,7 @@ irq7d:
 	pha
 	lda #' '
 	bcc irq7e
-	lda #$7a ; "checkmark"
+	lda #$7a	; using '#checkmark' breaks output
 irq7e:
 	jsr irq7f
 	pla
@@ -1220,7 +1268,7 @@ varbuf:
 	area 7,$00
 
 instructions_1_4:
-{alpha:PokeAlt}
+{'alpha:PokeAlt}
 ;              ====+====+====+====+====+====+====+====+
 	ascii "Welcome to the concept preview of the   "
 	ascii "Image 128 BBS lightbar and screen mask. "
