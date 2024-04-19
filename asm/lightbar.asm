@@ -173,7 +173,7 @@ breakpoint:
 	sec	; copy text reversed
 	jsr copy_init
 
-; color data:
+; color data (with theme colors applied):
 	lda #<screen_mask_color_1_4
 	sta source+1
 	lda #>screen_mask_color_1_4
@@ -184,7 +184,7 @@ breakpoint:
 	lda #>screen_mask_color_addr
 	sta dest+2
 	clc	; copy color un-reversed
-	jsr copy_init
+	jsr theme_apply
 
 ; copy 2nd half of screen mask
 ; text data:
@@ -210,7 +210,7 @@ breakpoint:
 	lda #>(screen_mask_color_addr + VIC_SCREEN_WIDTH * 4)
 	sta dest+2
 	clc	; copy color data un-reversed
-	jsr copy_init
+	jsr theme_apply
 
 	jmp main_loop
 
@@ -240,6 +240,70 @@ dest:
 	iny
 	cpy #VIC_SCREEN_WIDTH * 4
 	bne copy_loop
+	rts
+
+theme_apply:
+; copy locations from initial copy operation
+	lda source+1
+	sta mod_theme_source+1
+	lda source+2
+	sta mod_theme_source+2
+	lda dest+1
+	sta mod_theme_dest+1
+	lda dest+2
+	sta mod_theme_dest+2
+
+breakpoint:
+; get theme #:
+	lda theme_current
+	cmp theme_count
+	bpl theme_done
+	asl
+	tay
+	lda theme_color_table,y
+	sta mod_theme_address+1
+	iny
+	lda theme_color_table,y
+	sta mod_theme_address+2
+
+; replace color indices with theme colors:
+; .x: index into screen_mask_color_1_4
+; .y: index into theme_color_table
+; .a: color RAM value
+
+; set flag to not change lightbar colors in mid-redraw if IRQ fires:
+	inc scnlock
+	ldy #2
+	lda theme_color_table,y
+	sta mod_lightbar_background+1
+	iny
+	lda theme_color_table,y
+	sta mod_lightbar_highlight+1
+; resume updating lightbar:
+	dec scnlock
+; TODO: flashing chat page colors
+
+	ldx #00
+theme_loop:
+; read theme colors, apply to screen mask
+; we're not storing text data, that's already been done in 'copy_init'
+
+; where to copy theme color data from:
+mod_theme_source:
+; get color index:
+	lda $ffff,x
+	tay
+; now .y is index into theme_color_table
+; get colors from theme table:
+theme_table_addr:
+; get color index from screen mask color table:
+	lda $ffff,y
+mod_theme_dest:
+	sta $ffff,x
+	inx
+	cpx VIC_SCREEN_WIDTH * 4
+	bne theme_loop
+theme_done:
 	rts
 
 ascii_to_screencode:
@@ -737,45 +801,72 @@ screen_mask_text_5_8:
 ; 320
 {alpha:alt}
 
-theme_table:
-; format: mask_dark, mask_light, lightbar_highlight, theme_name{0}
-	byte VIC_DARK_GRAY,VIC_MED_GRAY,VIC_WHITE
-	ascii "Standard Grays/White{0}"
+theme_current:
+	byte 0
+theme_count:
+; since each entry takes 2 bytes, halve the value
+; FIXME
+	byte <(>@ - theme_color_table) / 2
+theme_color_table:
+	word theme_color_grays, theme_color_blues, theme_color_user_defined
+@:
+theme_color_grays:
+; format: mask_dark, mask_light, lightbar_background, lightbar_highlight:
+	byte VIC_MED_GRAY,VIC_LIGHT_GRAY,VIC_MED_GRAY,VIC_WHITE
+; 6 flashing chat page colors (irqhn.asm: pagecol):
+	byte VIC_WHITE,VIC_LIGHT_GRAY,VIC_MED_GRAY,VIC_DARK_GRAY,VIC_MED_GRAY,VIC_LIGHT_GRAY
+theme_color_blues:
+	byte VIC_BLUE,VIC_LIGHT_BLUE,VIC_CYAN,VIC_WHITE
+; 6 flashing chat page colors
+	byte VIC_WHITE,VIC_CYAN,VIC_LIGHT_GREEN,VIC_LIGHT_BLUE,VIC_LIGHT_GREEN,VIC_CYAN
+theme_color_user_defined:
+	area VIC_BLACK,10
+theme_string_table:
+	word theme_string_grays, theme_string_blues, theme_string_user_defined
+theme_string_grays:
+	ascii "Gray & White{0}"
+theme_string_blues:
+	ascii "The Blues   {0}"
+theme_string_user_defined:
+	ascii "User-Defined{0}"
 
 screen_mask_color_1_4:
 ; area <size>[, <fill>]
+
+; fill parameter is offset into theme_color_table:
+; 0=mask_dark, 1=mask_light,
+; 2=lightbar_background, 3=lightbar_highlight
+
 ; row 1:
-	area 04,VIC_LIGHT_GRAY
-	area 23,VIC_MED_GRAY
-	area 04,VIC_LIGHT_GRAY
-	area 09,VIC_MED_GRAY
+	area 04,01
+	area 23,00
+	area 04,01
+	area 09,00
 ; row 2:
-	area 04,VIC_LIGHT_GRAY
-	area 23,VIC_MED_GRAY
-	area 04,VIC_LIGHT_GRAY
-	area 09,VIC_MED_GRAY
+	area 04,01
+	area 23,00
+	area 04,01
+	area 09,00
 ; row 3:
-	area 04,VIC_LIGHT_GRAY
-	area 23,VIC_MED_GRAY
-	area 04,VIC_LIGHT_GRAY
-	area 09,VIC_MED_GRAY
+	area 04,01
+	area 23,00
+	area 04,01
+	area 09,00
 ; row 4:
-	area 04,VIC_LIGHT_GRAY
-	area 23,VIC_MED_GRAY
-	area 04,VIC_LIGHT_GRAY
-	area 09,VIC_MED_GRAY
+	area 04,01
+	area 23,00
+	area 04,01
+	area 09,00
 screen_mask_color_5_8:
 ; row 5:
-	area 04,VIC_LIGHT_GRAY
-	area 23,VIC_MED_GRAY
-	area 04,VIC_LIGHT_GRAY
-	area 09,VIC_MED_GRAY
-; row 6:
-	area 24,VIC_WHITE
-	area 16,VIC_YELLOW
-; rows 7-8
-	area 40,VIC_WHITE
-	area 40,VIC_WHITE
+	area 04,01
+	area 23,00
+	area 04,01
+	area 09,00
+; row 6-8:
+	area 40,03
+	area 40,03
+	area 40,03
 
 irq4:
 ; handle lightbar f-keys
@@ -1018,11 +1109,14 @@ irq7g:
 
 irq7h:
 	pha
-; set the highlight color for this lightbar position
-	lda #15
+; set the background color for this lightbar position
+mod_lightbar_background:
+	lda #VIC_LIGHT_GRAY	; 15
 	cpx tmpbar
 	bne irq7i
-	lda #1
+; otherwise, set highlight color:
+mod_lightbar_highlight:
+	lda #VIC_WHITE		; 1
 irq7i:
 	sta irq7g+1
 	pla
