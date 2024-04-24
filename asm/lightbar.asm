@@ -108,6 +108,8 @@ setup:
 	jsr chrout
 	lda #'{lowercase}'
 	jsr chrout
+	lda #VIC_LIGHT_GREEN
+	sta 646
 	lda #VIC_BLACK
 	sta $d020
 	sta $d021
@@ -253,7 +255,12 @@ theme_apply:
 	lda dest+2
 	sta mod_theme_dest+2
 
-breakpoint:
+!breakpoint:
+; save zp values on stack to restore at quit
+	lda $fd
+	pha
+	lda $fe
+	pha
 ; get theme #:
 	lda theme_current
 	cmp theme_count
@@ -261,10 +268,11 @@ breakpoint:
 	asl
 	tay
 	lda theme_color_table,y
-	sta mod_theme_address+1
+; store in hi/lo order since words are stored that way:
+	sta $fd
 	iny
 	lda theme_color_table,y
-	sta mod_theme_address+2
+	sta $fe
 
 ; replace color indices with theme colors:
 ; .x: index into screen_mask_color_1_4
@@ -274,10 +282,11 @@ breakpoint:
 ; set flag to not change lightbar colors in mid-redraw if IRQ fires:
 	inc scnlock
 	ldy #2
-	lda theme_color_table,y
+
+	lda ($fd),y
 	sta mod_lightbar_background+1
 	iny
-	lda theme_color_table,y
+	lda ($fd),y
 	sta mod_lightbar_highlight+1
 ; resume updating lightbar:
 	dec scnlock
@@ -295,7 +304,7 @@ mod_theme_source:
 	tay
 ; now .y is index into theme_color_table
 ; get colors from theme table:
-theme_table_addr:
+!theme_color_addr:
 ; get color index from screen mask color table:
 	lda $ffff,y
 mod_theme_dest:
@@ -303,7 +312,11 @@ mod_theme_dest:
 	inx
 	cpx VIC_SCREEN_WIDTH * 4
 	bne theme_loop
-theme_done:
+!theme_done:
+	pla
+	sta $fe
+	pla
+	sta $fd
 	rts
 
 ascii_to_screencode:
@@ -807,8 +820,8 @@ theme_count:
 ; since each entry takes 2 bytes, halve the value
 ; FIXME
 	byte <(>@ - theme_color_table) / 2
-theme_color_table:
-	word theme_color_grays, theme_color_blues, theme_color_user_defined
+!theme_color_table:
+	word theme_color_grays, theme_color_blues, theme_color_monochrome, theme_color_user_defined
 @:
 theme_color_grays:
 ; format: mask_dark, mask_light, lightbar_background, lightbar_highlight:
@@ -819,15 +832,21 @@ theme_color_blues:
 	byte VIC_BLUE,VIC_LIGHT_BLUE,VIC_CYAN,VIC_WHITE
 ; 6 flashing chat page colors
 	byte VIC_WHITE,VIC_CYAN,VIC_LIGHT_GREEN,VIC_LIGHT_BLUE,VIC_LIGHT_GREEN,VIC_CYAN
-theme_color_user_defined:
+!theme_color_monochrome:
+	byte VIC_GREEN,VIC_LIGHT_GREEN,VIC_GREEN,VIC_LIGHT_GREEN
+; 6 chat page colors:
+	byte VIC_WHITE,VIC_LIGHT_GREEN,VIC_GREEN,VIC_GREEN,VIC_LIGHT_GREEN,VIC_WHITE
+!theme_color_user_defined:
 	area VIC_BLACK,10
-theme_string_table:
-	word theme_string_grays, theme_string_blues, theme_string_user_defined
-theme_string_grays:
+!theme_string_table:
+	word theme_string_grays, theme_string_blues, theme_string_monochrome, theme_string_user_defined
+!theme_string_grays:
 	ascii "Gray & White{0}"
 theme_string_blues:
 	ascii "The Blues   {0}"
-theme_string_user_defined:
+!theme_string_monochrome:
+	ascii "Monochrome  {0}"
+!theme_string_user_defined:
 	ascii "User-Defined{0}"
 
 screen_mask_color_1_4:
