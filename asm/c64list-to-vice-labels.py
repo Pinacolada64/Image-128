@@ -19,10 +19,10 @@ if len(sys.argv) < 2:
 """)
     raise SystemExit
 
-try:
-    c64list_labels_filename = sys.argv[1]
-    vice_labels_filename = sys.argv[2]
+c64list_labels_filename = sys.argv[1]
+vice_labels_filename = sys.argv[2]
 
+try:
     with open(c64list_labels_filename, "r") as symbol_file:
         symbol_data = symbol_file.read()
     print(symbol_data)
@@ -41,3 +41,5 @@ try:
 
 except FileNotFoundError:
     print(f"{c64list_labels_filename} not found")
+    raise SystemExit
+
