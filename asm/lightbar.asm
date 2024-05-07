@@ -54,6 +54,7 @@ VIC_LIGHT_GRAY	= 15
 ; screen code values:
 checkmark	= 186	; $7a / %01111010
 checkmark_rvs	= 250	; $fa / %11111010
+colon		= 58
 
 ; TODO: Add VDC colors
 
@@ -101,7 +102,7 @@ tod_tenths	= $dc08	; tenths of a second
 tod_secs	= $dc09	; seconds
 tod_min		= $dc0a	; minutes
 tod_hrs		= $dc0b	; hours
-ciacrb		= $dc0f	; cia control register b
+cia_crb		= $dc0f	; cia #1 control register b
 
 setup:
 	lda #'{clear}'
@@ -234,7 +235,7 @@ copy_loop:
 source:
 ; copy 4 lines from source to dest
 	lda $ffff,y
-	jsr ascii_to_screencode
+	jsr petscii_to_screencode
 reverse:
 	eor #$ff
 dest:
@@ -1270,7 +1271,21 @@ clock:
 	pla
 	jsr bcd_to_ascii_ones_digit
 
-	lda tod_tenths	; read to keep clock running
+	lda #' '
+	jsr clock_display
+
+	; get am/pm flag:
+	bit tod_hrs	; $dc0b
+	bne time_pm	; bit 7: 1=pm
+	lda #'A'
+	byte $2c
+time_pm:
+	lda #'P'
+	jsr clock_display
+	lda #'M'
+	jsr clock_display
+
+	lda tod_tenths	; read to un-latch clock
 	rts
 
 bcd_to_ascii_tens_digit:
@@ -1285,7 +1300,13 @@ bcd_to_ascii_ones_digit:
 	and #$0f
 
 clock_display:
-	ora #$b0	; %1011 0000
+	jsr petscii_to_screencode
+	cmp #'9'
+	bcc rvs_nums
+	ora #$b0
+	byte $2c
+rvs_nums:
+	and #$80
 	sta $0400+(40*24)+18,y
 	iny
 	rts
@@ -1298,7 +1319,7 @@ settim:
 	byte $2c
 setalm:
 	lda #$81
-	sta ciacrb
+	sta cia_crb
 	cmp #$81
 	beq settim2
 	lda #1
@@ -1322,7 +1343,7 @@ settim2:
 	sta tod_secs
 	sta tod_tenths
 	lda #$01
-	sta ciacrb
+	sta cia_crb
 	rts
 settim3:
 	ldx #0
@@ -1333,6 +1354,7 @@ settim4:
 	inx
 	bne settim4
 settim5:
+; .a to bcd
 	sta $ff
 	txa
 	asl
