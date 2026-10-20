@@ -7,8 +7,7 @@ hi = 51
 size = 128
 
 ; setup gc parameters
-; avoid duplicate label (gc = $c000, the load address of the module)
-gc:
+; entry point: gc in equates.asm (= protostart, where this assembles)
 	lda #$c7 ; reverse uppercase G
 	sta tdisp+31
 

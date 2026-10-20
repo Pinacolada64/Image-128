@@ -4,34 +4,110 @@
 {include:"equates.asm"}
 
 ;;;
-;;; rs232: swap to $0c00
+;;; modules: each starts at its *_load_address from equates.asm, the one
+;;; place module addresses are set (intro.asm and the swapper use them
+;;; too). orig only moves forward, so a module that outgrows its slot
+;;; stops the build instead of running into the next one. Where each one
+;;; runs (*_exec_address) and waits swapped out (*_swap_address) is in
+;;; equates.asm as well.
+;;;
+
+;;;
+;;; wedge: $6c00, runs at wedge_exec_address
+;;;
+
+	orig wedge_load_address
+	embed "wedge.bin"
+	align $100,$00
+wedge_pages = (* - wedge_load_address) / 256
+
+;;;
+;;; text editor: $7000
+;;;
+
+	orig editor_load_address
+	embed "editor.bin"
+	align $100,$00
+editor_pages = (* - editor_load_address) / 256
+
+;;;
+;;; garbage collection: $8000
+;;;
+
+	orig gc_load_address
+	embed "gc.bin"
+	align $100,$00
+gc_pages = (* - gc_load_address) / 256
+
+;;;
+;;; extended command set: $8400
+;;;
+
+	orig ecs_load_address
+	embed "ecs.bin"
+	align $100,$00
+ecs_pages = (* - ecs_load_address) / 256
+
+;;;
+;;; structures: $8e00
+;;;
+
+	orig struct_load_address
+	embed "struct.bin"
+	align $100,$00
+struct_pages = (* - struct_load_address) / 256
+
+;;;
+;;; swap1: $9400
+;;;
+
+	orig swap1_load_address
+	embed "swap1.bin"
+	align $100,$00
+swap1_pages = (* - swap1_load_address) / 256
+
+;;;
+;;; swap2: $9800
+;;;
+
+	orig swap2_load_address
+	embed "swap2.bin"
+	align $100,$00
+swap2_pages = (* - swap2_load_address) / 256
+
+;;;
+;;; swap3: $9c00
+;;;
+
+	orig swap3_load_address
+	embed "swap3.bin"
+	align $100,$00
+swap3_pages = (* - swap3_load_address) / 256
+
+;;;
+;;; FIXME: these have no place in equates.asm's memory map yet, so they
+;;; follow swap3 for now (where the C64's ml.s puts jmptbl and the
+;;; resident code). Give each a *_load_address (and where it runs) in
+;;; equates.asm and an orig here, like the modules above.
+;;;
+
+;;;
+;;; rs232: runs at rs232_exec_address
 ;;;
 
 rs232_load_address = *
-{include:rs232.bin}
-align $100,$00
+	embed "rs232.bin"
+	align $100,$00
 rs232_pages = (* - rs232_load_address) / 256 ; should be 2
 
 ;;;
-;;; buffer page: swap to $0e00
+;;; buffer page
 ;;;
 
 buffer_page_start = *
 {include:buffer-page.asm}
-align $100,$00
+	align $100,$00
 buffer_pages = (* - buffer_page_start) / 256
-
-;;;
-;;; wedge: swap to $2f00
-;;;
-
-wedge_load_address = *
-wedge_swap_address = $2f00
-
-{include:"wedge.bin"}
-
-align $0100,$00
-wedge_pages = (* - wedge_load_address) / 256
 
 ;;;
 ;;; & jump table: swap $1a00
@@ -41,100 +117,22 @@ wedge_pages = (* - wedge_load_address) / 256
 jmptb_load_address = *
 jmptb_swap_address = $1a00
 {include:"jmptb.asm"}
-; pad to the start of the next module
-	align $100,0
+	align $100,$00
 jmptb_pages = (* - jmptb_load_address) / 256
 
 ;;;
-;;; intro "protocol": swap to $1c00
-;;; this should come after all the .bin files are included
-;;; since all the module sizes and load addresses have been
-;;; defined. the *_page_size label is used by the swapper to
-;;; move blocks of code to their *_load_address location.
+;;; intro "protocol": runs at protostart
 ;;;
 
 intro_load_address = *
 intro_swap_address = protostart
-
-{include:"intro.bin"}
-align $100,$00
+	embed "intro.bin"
+	align $100,$00
 intro_pages = (* - intro_load_address) / 256
 
 ;;;
-;;; text editor: $7000
+;;; resident code
 ;;;
-
-editor_load_address = *
-embed "editor.bin"
-align $100,$00
-editor_pages = (* - editor_load_address) / 256
-
-;;;
-;;; garbage collection: $8000
-;;;
-
-gc_load_address = *
-embed "gc.bin"
-; pad to the start of the next module:
-align $100,$00
-gc_pages = (* - gc_load_address) / 256
-
-;;;
-;;; extended command set: $8400
-;;;
-
-ecs_load_address = *
-ecs_swap_address = $e400
-embed "ecs.bin"
-; pad to the start of the next module
-align $100,$00
-ecs_pages = (* - ecs_load_address) / 256
-
-;;;
-;;; structures
-;;;
-
-struct_load_address = *
-struct_swap_address = $ee00
-embed "struct.bin"
-; pad to the start of the next module
-	area $100,$0
-struct_pages = (* - struct_load_address) / 256
-
-;;;
-;;; swap1: $9400
-;;;
-
-swap1_load_address = *
-swap1_swap_address = $f800
-embed "swap1.bin"
-; pad to the start of the next module
-	area $0f00, $00
-swap1_pages = (* - swap1_load_address) / 256
-
-;;;
-;;; swap2: $9800
-;;;
-
-swap2_load_address = *
-swap2_swap_address = $f800
-embed "swap2.bin"
-; pad to the start of the next module:
-align $100,$00
-swap2_pages = (* - swap2_load_address) / 256
-
-;;;
-;;; swap3: $9c00
-;;;
-
-swap3_load_address = *
-swap3_swap_address = $fc00
-embed "swap3.bin"
-; pad to the start of the next module:
-align $100,$00
-; pad to the start of the next module
-	align $100,$00
-swap3_pages = >(* - swap3_load_address) / 256
 
 {include:"strio.asm"}
 
