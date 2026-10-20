@@ -267,7 +267,9 @@ ecsdone:
 
 arbit:
 	sty lu_load+1
-	lda $ffd2
+; c64: "lda $ffd2 / cmp #$20" found a Lt. Kernal (it patches CHROUT's
+; jump table entry to a jsr). No Lt. Kernal support on the 128 yet.
+	lda #0
 	cmp #$20
 	bne arbit1
 	dex

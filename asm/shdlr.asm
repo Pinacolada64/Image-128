@@ -254,14 +254,34 @@ cleanup:
 
 fixlink:
 	ldx sline
+; make row .x the start of a logical line (unlink it from the row above).
+; c64: lda 217,x / ora #128 / sta 217,x (the line link table). The 128's
+; screen editor keeps a bitmap at $035e-$0361 instead: a set bit links the
+; row to the one above; byte row/8, bit $80 >> (row & 7) (the editor's
+; $cb9f, table at $ce6c). This used to "jsr $cb74", the editor's routine
+; that only tests the bit -- and with the ROMs out, Image's own code.
 fixlinks:
-; c128 line link table is a bitmap from $035e-$361 (4 bytes, 24 bits)
-;	lda 217,x
-;	ora #128
-;	sta 217,x
-; clear line link bitmap, row in .x:
-	jsr $cb74
+	txa
+	pha
+	lsr
+	lsr
+	lsr
+	sta fixlinks_byte
+	txa
+	and #7
+	tax
+	lda fixlinks_bits,x
+	eor #$ff
+	ldx fixlinks_byte
+	and ldtb2,x
+	sta ldtb2,x
+	pla
+	tax
 	rts
+fixlinks_byte:
+	byte 0
+fixlinks_bits:
+	byte $80,$40,$20,$10,$08,$04,$02,$01
 
 botline:
 	byte 22
@@ -276,7 +296,7 @@ poscrsr:
 	pla
 	tay
 	clc
-	jmp $fff0
+	jmp plot	; c64: jmp $fff0
 
 ;* output routine to fix 1200 and
 ;* do the transmit window
@@ -343,11 +363,18 @@ crsroff:
 	sta crsrflg
 	lda crsrmode
 	beq crsroff1
-	lda undchr
-	ldx undcol
 	ldy #0
 	sty crsrmode
-	jsr $ea13	; FIXME: set cursor blink timing & color memory address
+	bit mode	; 80 columns: the VDC's cursor is hardware, nothing
+	bmi crsroff1	; to put back (and pnt is a VDC address)
+; put back the character and color under the cursor (c64: jsr $ea13)
+	lda #2
+	sta blnct
+	ldy pntr
+	lda undchr
+	sta (pnt),y
+	lda undcol
+	sta (colptr),y
 crsroff1:
 	rts
 

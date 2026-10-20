@@ -180,4 +180,9 @@
 	byte cfg_rom
 	word k_setbnk
 	rts
+	orig romtab+7*35
+	jsr farcall	; kbdget
+	byte cfg_rom
+	word k_kbdget
+	rts
 	orig romtab+7*romtab_entries

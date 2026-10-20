@@ -257,13 +257,14 @@
 	mode	= $d7	; [128 OS] bit 7 set: editor is on the 80-column (VDC) screen
 	vdcscrn	= $0a2e	; [128 OS] high byte of VDC screen RAM ($00)
 	vdcattr	= $0a2f	; [128 OS] high byte of VDC attribute RAM ($08)
-	undcol	= 647	; $0287
+	undcol	= gdcol	; c64: 647 ($0287); on the 128 $0287 is in BASIC's input buffer
 
 ;
 ; keyboard stuff:
 ;
 	lstx	= $d5	; c64: 197 / $c5. last key pressed
 	ndx	= $d0	; c64: 198 / $c6. number of characters in keyboard buffer
+	ldtb2	= $035e	; [128 OS] screen line link bitmap, 4 bytes (c64: ldtb1, 217)
 	initstat= $0a04	; [128 OS] bit 0: the KERNAL's IRQ calls BASIC 7's (sprites,
 			; SOUND, PLAY); bits 6-7: screen editor
 	shflag	= $d3	; c64: $028d/653. Shift, C=, Ctrl, Alt keys: 1=pressed
@@ -683,6 +684,8 @@
 	k_getin		= $ffe4
 	k_plot		= $fff0
 	k_setbnk	= $ff68	; .a: bank for load/save data, .x: bank for the filename
+	k_kbdget	= $c006	; c64: $f142 (GETIN's keyboard half): the screen editor's
+				; next key, from a function key string or the buffer
 
 ; these don't return to their caller, so they're reached with
 ; farjmp_<name> in glue.asm (switch to cfg_rom, jmp) instead of a stub
@@ -744,6 +747,7 @@
 	getin	= k_getin
 	plot	= k_plot
 	setbnk	= k_setbnk
+	kbdget	= k_kbdget
 	newstt	= k_newstt
 	gone1	= k_gone1
 	gone2	= k_gone2
@@ -792,7 +796,8 @@
 	getin	= romtab + 7*32
 	plot	= romtab + 7*33
 	setbnk	= romtab + 7*34
-	romtab_entries = 35
+	kbdget	= romtab + 7*35
+	romtab_entries = 36
 {endif}
 
 

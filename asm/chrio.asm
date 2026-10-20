@@ -462,7 +462,7 @@ getkbd2:
 	bne getkbd3
 	rts
 getkbd3:
-	jsr $f142	; FIXME
+	jsr kbdget	; c64: jsr $f142
 	cmp #$85
 	bcc getkbd1
 	cmp #$8d
