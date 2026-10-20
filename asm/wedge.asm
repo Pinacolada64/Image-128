@@ -57,6 +57,12 @@ tload:
 ; bank 1, apart from the text in bank 0, so nothing moves: load, set the
 ; end of the program ($1210), relink.
 openroom:
+; BASIC can arrive here with $ff00 = $01 (its fetch routines load preset C):
+; ROMs in but no I/O, so the KERNAL's serial code would read ROM at $dd00
+; and find no drive ("device not present"). BASIC's own I/O statements
+; switch to bank 15 ($00) first; so does this.
+	lda #cfg_rom
+	sta mmucr
 	ldy #0
 openroo1:
 	cpy fnlen	; $b7

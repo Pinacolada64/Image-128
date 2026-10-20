@@ -46,11 +46,20 @@ if ! grep -q "^0 Errors" <<<"$log"; then
 	exit 1
 fi
 
+# modules: BASIC 2 tokens (BASIC 7 runs them), C64List 4.04 as the C64's
+log=$(WINEDEBUG=-all wine "$C64LIST" "i_su.config.lbl" "-prg:build\\i_su.config.prg" -ovr 2>&1) || true
+if ! grep -q "^0 Errors" <<<"$log"; then
+	grep -E "^Error|Errors;" <<<"$log" | sed 's/.*\\//' >&2
+	echo "build.sh: i_su.config.lbl failed" >&2
+	exit 1
+fi
+
 cd "$build"
 rm -f image128.d64 image128.d71
 c1541 -format "image bbs 128,ib" d71 image128.d71 \
 	-write "boot 128.prg" "boot 128" \
 	-write ml.buf ml.buf -write ml.low ml.low -write ml.mod ml.mod \
 	-write ml.res1 ml.res1 -write ml.res2 ml.res2 \
-	-write "im 128.prg" "im 128" >/dev/null
+	-write "im 128.prg" "im 128" \
+	-write i_su.config.prg "i/su.config" >/dev/null
 c1541 image128.d71 -list

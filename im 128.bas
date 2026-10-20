@@ -476,7 +476,8 @@
 3228 gosub 3404:&"{f6}{pound}{back arrow}39 {f6}{pound}{back arrow}39 {f6}{pound}{back arrow}39 {f6}{pound}{back arrow}39 {f6}"
 ' 3240 f$="i/setup 128":close 15:open 1,dv%,1,f$:s=ds:close15:ifsthen:&"{f6}Cannot find {quotation}{pound}$f{quotation}. Halting.{pound}w5":goto 4048
 ' ds=63: file exists
-3240 f$="i/setup 128":close 15:rename (f$) to (f$):if ds<>63 then:&"{f6}Cannot find {quotation}{pound}$f{quotation}. Halting.{pound}w5":goto 4048
+' the setup module (Image BBS 3.0's, ported): i/su.config
+3240 f$="i/su.config":close 15:rename (f$) to (f$):if ds<>63 then:&"{f6}Cannot find {quotation}{pound}$f{quotation}. Halting.{pound}w5":goto 4048
 3242 new 4000:load f$,dv%:gosub 4000:return
 
 ' gosub from 3158
@@ -526,7 +527,9 @@
 ' pad z2$ out with spaces
 3404 z1$=z2$:c=$8f:z2$=left$(z3$+s$,34)
 ' display both z2$ and z3$, don't scroll
-3405 &,69,3,3,z1$,c:&,69,3,4,z2$,c:return
+' then the cursor to row 6, column 0 (as Image BBS 3.0): what's printed
+' after a message starts under the frame
+3405 &,69,3,3,z1$,c:&,69,3,4,z2$,c:&,70,0,6:return
 
 ' FIX: remove z=z+1 stuff. this does not delay 1/2 second on a SuperCPU system. use timer instead:
 ' 'i=not i' does not work
@@ -535,16 +538,15 @@
 3406 gosub 3414:i=1:&"1) Option 1{f6}2) Option 2{f6}3) Option 3{f6}{back arrow}) Abort{f6:2}Option: "
 
 ' NOTE: Immutable line number
-' flash frame contents:
-' t=ti, e=30 ('elapsed time': 1/2 second delay [30 jiffies], instead of continuously interpreting floating point)
-3408 t=ti:e=t+30
-' keys waiting: {sym:ndx} (c64: peek(198))
-3410 on peek({sym:ndx}) goto 3420:if ti<e then 3410
-' jiffy delay has run out. toggle color index 'i' for new interior text color 'c':
-' $87=rvs yellow, $8f=rvs gray3
-3411 i=1-i:c=$87:if i then c=$8f
-' draw interior text, reset jiffy delay
-3412 gosub 3405:goto 3408
+' flash z1$ and z2$ until a key, then return it in an$ (the caller acts on it),
+' as Image BBS 3.0 does: c toggles between gray ($8f) and yellow ($87) each
+' half second; sgn() so two keys waiting still jump; "ti>i-31" ends the wait
+' if the jiffy clock wraps at midnight
+3408 c=$8f:gosub 3405
+3409 i=ti+30
+3410 on sgn(peek({sym:ndx})) goto 3412:if ti<i and ti>i-31 then 3410
+3411 c=278-c:gosub 3405:goto 3409
+3412 get an$:c=$8f:z1$="":z2$="":goto 3405
 ' &,69,<column>,<row>,<text>,<color>
 
 ' color index
@@ -564,10 +566,9 @@
 ' TODO: clear line links?
 ' 3414 for i=6 to 23:&,70,.,i:&"{pound}{back arrow}38":next:&,70,.,6:return
 
-3414 for i=7 to 24:&,69,0,i,s$+"   ":next:&,70,0,6:return
+' rows 6-23, as Image BBS 3.0 (24 is the status line)
+3414 for i=6 to 23:&,70,0,i:&"{pound}{back arrow}38":next:&,70,0,6:return
 
-' key hit
-3420 &"Fixme!":goto 4000
 
 ' computer types:
 3500 data"Commodore 64","Commodore 128","Amiga","Apple/Comp."
