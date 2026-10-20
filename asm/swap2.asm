@@ -23,13 +23,13 @@ orig protostart
 @usevar:
 	lda #29
 	jmp usetbl1
-@chatchk:
+chatchk:
 	lda #43
 	jmp usetbl1
 prtvar:
 	lda #45
 	jmp usetbl1
-@prtvar0:
+prtvar0:
 	lda #46
 	jmp usetbl1
 getkbd:

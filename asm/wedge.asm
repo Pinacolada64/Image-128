@@ -1,3 +1,4 @@
+{include:"equates.asm"}
 orig wedge_exec_address
 ; jump table
 

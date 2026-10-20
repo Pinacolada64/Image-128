@@ -1,5 +1,6 @@
 devnum = 186
 {include:equates.asm}
+orig protostart
 {undef:use_ltk}	; Lt. Kernal emulation is not ready for VICE 128
 
 ; intro is a proto

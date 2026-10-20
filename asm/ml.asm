@@ -38,12 +38,12 @@ wedge_pages = (* - wedge_load_address) / 256
 ;;; just addresses, no need for a .bin file
 ;;;
 
-wedge_load_address = *
-wedge_swap_address = $1a00
+jmptb_load_address = *
+jmptb_swap_address = $1a00
 {include:"jmptb.asm"}
 ; pad to the start of the next module
 	align $100,0
-wedge_pages = (* - wedge_load_address) / 256
+jmptb_pages = (* - jmptb_load_address) / 256
 
 ;;;
 ;;; intro "protocol": swap to $1c00

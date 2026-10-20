@@ -23,7 +23,7 @@ orig protostart
 @outastr:
 	lda #0
 	byte $2c
-@dskin:
+dskin:
 	lda #2
 	byte $2c
 @usevar:

@@ -1,4 +1,5 @@
 {include:equates.asm}
+orig protostart
 ; .pseudopc protostart {
 ; .namespace gcml {
 
