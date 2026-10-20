@@ -211,6 +211,10 @@
 	colptr	= $e2	; c64: ($f3). Pointer to the address of the current screen color RAM location
 	rvs	= $f3	; c64: $c7. Flag: Print Reverse Characters? 0=No
 	color	= $f1	; c64: $0286/646. Current foreground text color
+			; (in 80 columns, a VDC attribute byte)
+	mode	= $d7	; [128 OS] bit 7 set: editor is on the 80-column (VDC) screen
+	vdcscrn	= $0a2e	; [128 OS] high byte of VDC screen RAM ($00)
+	vdcattr	= $0a2f	; [128 OS] high byte of VDC attribute RAM ($08)
 	undcol	= 647	; $0287
 
 ;

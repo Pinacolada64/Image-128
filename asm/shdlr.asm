@@ -383,6 +383,8 @@ dispstr6:
 	beq dispstr7
 	lda dispstr4+1
 	beq dispstr7
+	bit mode	; editor on the 80-column screen?
+	bmi dispvdc	; yes: draw on the VDC instead
 	jsr calcscn0
 	sty dispstr2+1
 	sta dispstr2+2
@@ -419,6 +421,61 @@ dispstr7:
 	dec scnlock
 	rts
 
+; &,69 in 80 columns: X = row, column in dispstr0+1. The screen mask
+; is VIC-only so far, so scnmode doesn't apply: every row is drawn
+; straight to the VDC screen. Characters go out through R31 one after
+; another (control codes skipped, as above), then one block fill sets
+; the attributes of the ones drawn.
+dispvdc:
+	lda dispstr1+1	; string address
+	sta dispvdc1+1
+	lda dispstr1+2
+	sta dispvdc1+2
+	lda vdcrowlo,x	; vdc_dst = row * 80 + column
+	clc
+	adc dispstr0+1
+	sta vdc_dst
+	lda vdcrowhi,x
+	adc #0
+	sta vdc_dst+1
+	adc vdcscrn	; carry clear: + screen base
+	ldy vdc_dst
+	jsr vdc_set_update
+	ldy #0
+	sty vdc_count
+	sty vdc_count+1
+dispvdc1:
+	lda $0100,y
+	jsr chkspcl
+	pha
+	and #$7f
+	cmp #32
+	pla
+	bcc dispvdc2
+	jsr convchr
+	ora dispstr8+1	; reverse
+	jsr vdc_put
+	inc vdc_count
+dispvdc2:
+	iny
+	cpy dispstr4+1
+	bcc dispvdc1
+	lda vdc_count
+	beq dispvdc3	; nothing printable
+	lda vdc_dst+1
+	clc
+	adc vdcattr	; attribute address of the first character
+	sta vdc_dst+1
+	lda dispstr5+1
+	and #$0f
+	tax
+	lda color	; keep the editor's charset (ALT) bit
+	and #VDC_ATTR_ALT
+	ora vdccolor,x
+	jsr vdc_fill
+dispvdc3:
+	jmp dispstr7
+
 calcscn0:
 	lda scnmode
 	beq calcscn2
@@ -431,11 +488,12 @@ calcscn1:
 	tay
 	lda hibytes,x
 	rts
+; the 128 editor's 40-column screen has no line link table: row x is
+; always at $0400 + x * 40
 calcscn2:
-	lda $ecf0,x	; FIXME: Low Byte Table of Screen Line Addresses
+	lda vicrowlo,x
 	tay
-	lda $d9,x	; FIXME: screen line link table
-	and #$03
+	lda vicrowhi,x
 	ora #$04
 	rts
 
@@ -452,12 +510,19 @@ calccol1:
 	lda hibytec,x
 	rts
 calccol2:
-	lda $ecf0,x	; FIXME: Low Byte Table of Screen Line Addresses
+	lda vicrowlo,x
 	tay
-	lda $d9,x	; FIXME: Screen line link table
-	and #$03
+	lda vicrowhi,x
 	ora #$d8
 	rts
+
+; row * 40, rows 0-24
+vicrowlo:
+	byte $00,$28,$50,$78,$a0,$c8,$f0,$18,$40,$68,$90,$b8,$e0
+	byte $08,$30,$58,$80,$a8,$d0,$f8,$20,$48,$70,$98,$c0
+vicrowhi:
+	byte $00,$00,$00,$00,$00,$00,$00,$01,$01,$01,$01,$01,$01
+	byte $02,$02,$02,$02,$02,$02,$02,$03,$03,$03,$03,$03
 
 he9f0:
 	tya

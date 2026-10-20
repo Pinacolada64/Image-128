@@ -1,8 +1,8 @@
 ' example of how to include the file, just remove ' in braces to use:
 {'include:quoters.lbl}
 
-' make runs of spaces easier to read, e.g. {space:25}:
-{quoter:32=space}
+' runs of spaces: C64List 4.06 has {space:25} built in, and won't
+' redefine it with {quoter:32=space}
 
 ' Image-encoded f-keys:
 {quoter:133=comma}	' chr$(133) f1 = ,

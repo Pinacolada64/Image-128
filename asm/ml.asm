@@ -154,6 +154,8 @@ swap3_pages = >(* - swap3_load_address) / 256
 
 {include:"shdlr.asm"}
 
+{include:"vdc.asm"}
+
 {include:"modem.asm"}
 
 {include:"calls.asm"}

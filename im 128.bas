@@ -1,10 +1,17 @@
 ' comments begin with '
+' build with C64List 4.06: 4.04 ignores {tokenizer}, so BASIC 7.0
+' keywords (color, do, graphic...) would come out as plain letters:
+'   c64list.exe "im 128.bas" -prg -ovr
+' no {:labels} in this file: one would make C64List renumber every line
+' from 0, and modules need 3000, 4000 and 60000 where they are
 {include:"asm\equates.asm"}
+' BASIC 7.0 tokens, from C64List 4.06:
+{include:Basic70.bas}
+{alpha:alt}
 ' for quote mode character replacements:
 {include:quoters.lbl}
 
 {loadaddr:$1c01}
-{assign:60000=60000}
 
 ' 0 on peek(829) goto 3000,4000:goto 300
 0 on peek({sym:linflg}) goto 3000,4000:goto 300
@@ -280,7 +287,9 @@
 ' poke 22,25:for i=2 to peek(152):close peek(603):next:poke 2031,.
 ' TODO: dclose u(<var>)?
 2000 poke 22,25:for i=2 to peek(152):close peek(603):next:poke {sym:mci},.
-2002 x=peek(780):y=peek(781)+peek(782)*256:&"{f6}[Error#{pound}!x, Line#{pound}!y]{f6}":el=y
+' e1 (error line) was el: EL is BASIC 7.0's own error-line variable,
+' and dim el or el=y is a ?syntax error
+2002 x=peek(780):y=peek(781)+peek(782)*256:&"{f6}[Error#{pound}!x, Line#{pound}!y]{f6}":e1=y
 ' 2004 &,11:&,28,1:poke 53248,.
 2004 &,11:&,28,1:poke {sym:local},.
 2006 dr$=mid$(str$(dr%(5)),2)+":":dv%=dv%(5):load dr$+"im",dv%,2
@@ -291,15 +300,26 @@
 ' color 0,1 => poke 53280,0 [vic border]
 ' color 4,1 -> poke 53281,0 [vic background]
 ' 3000 poke 828,peek(186):clr:print"{clear}{switchdisable}{white}{lowercase}":poke 53280,.:poke 53281,.
-3000 poke {sym:bootdev},{sym:fa}:clr:print"{clear}{switchdisable}{white}{lowercase}":color 0,1:color 4,1
-' TODO: poke 52/56 RAM, 248,250 RS232 buffers
-3002 open 131,2,134,chr$(6):poke 248,203:poke 250,204:poke 56,160:poke 52,160
+' boot device: peek, not the address of fa
+' 40/80 key: $d505 (54533) bit 7 clear = key down = 80-column (VDC)
+' sysop screen; up = 40-column (VIC). graphic 5/0 moves the editor to
+' that screen, whichever it was on before im loaded
+' color 6: 80-column background
+' {$0b}: 128 mode's "disable shift+C=" ({switchdisable} is the C64's 8)
+3000 poke {sym:bootdev},peek({sym:fa}):clr:if peek(54533) and 128 then graphic 0:else graphic 5
+3001 print"{clear}{$0b}{white}{lowercase}":color 0,1:color 4,1:color 6,1
+' the 128 KERNAL keeps the RS232 buffers at $0c00/$0d00 and doesn't
+' move the top of BASIC on open, so the C64's pokes are gone: on the 128,
+' 248 is the editor's scroll-disable flag and 52/56 are BASIC's
+' end-of-arrays and string pointers (high bytes)
+' 3002 open 131,2,134,chr$(6):poke 248,203:poke 250,204:poke 56,160:poke 52,160
+3002 open 131,2,134,chr$(6)
 3004 dima$,a%,ac%,am,ag$,ak$,am$,an$,ao%
 3006 dimb$,b%,bd,bd$,bn$,bu
 3008 dimc$,c%,c1$,c2$,c3$,ca,cc,cc$,cd%,ch$,cm$,cn,co$,co%,cr,ct,ct%
 3010 dimd$,d%,d1$,d1%,d2$,d2%,d3%,d3$,d4$,d5$,d6$,da%,db%,dc,dc%,dd$,df%,dr,dr$,dv%
 ' 3012 dimdf%
-3014 dime$,e%,el,em,ef$,ep$,ec,ec%
+3014 dime$,e%,e1,em,ef$,ep$,ec,ec%
 3016 dimf$,f%,f1,f2,f3,f4,ff$,fl,fl$,f1$,f2$,f3$,f4$,f5$,f6$,f7$,f8$
 3018 dimg$,g%
 3020 dimh$,h%,hx$
@@ -315,7 +335,7 @@
 3036 dimp$,p%,p1%,p2%,p3%,pf,ph$,pl,pm,po$,pp$,pr,pr$,ps,pu$,pw$,p1$,p2$
 3038 dimq$,q%,qb,qe,qt$
 3040 dimr$,r%,rc,rn$,rp,rq
-3042 dims$,s%,sa%,sh,sg
+3042 dims$,s%,sa%,sh,sg,sw
 3044 dimt$,t%,t1,tc%,tf,tk$,tr%,tt,tt$,tz$
 3046 dimu$,u%,uc,uh,ul,ur,uf$,uu$
 3048 dimv$,v%
@@ -323,7 +343,8 @@
 3052 dimx$,x%
 3054 dimy$,y%
 3056 dimz$,z%,zz
-3058 ac%=16:x=rnd(-ti):hx$="0123456789ABCDEF"+""
+' sw: sysop screen width, 40 or 80
+3058 ac%=16:sw=rwindow(2):x=rnd(-ti):hx$="0123456789ABCDEF"+""
 3060 c3$="{f6}Returning To The Editor"+"{f6:2}"
 3062 ak$=" {192:38}"+"{f6}"
 3064 r$=chr$(13):nl$=chr$(.):qt$=chr$(34)
@@ -505,7 +526,7 @@
 ' 'i=not i' does not work
 
 ' i=color index (0=gray, 1=yellow)
-3406 gosub {:sub.clear_lines}:i=1:&"1) Option 1{f6}2) Option 2{f6}3) Option 3{f6}{back arrow}) Abort{f6:2}Option: "
+3406 gosub 3414:i=1:&"1) Option 1{f6}2) Option 2{f6}3) Option 3{f6}{back arrow}) Abort{f6:2}Option: "
 
 ' NOTE: Immutable line number
 ' flash frame contents:
@@ -531,7 +552,6 @@
 ' 40 get an$:print"key:"an$:lm=val(an$):if lm<1 and lm>3 then 20
 
 ' NOTE: Immutable line number
-{:sub.clear_lines}
 ' clear screen lines 7-24 (0-based)
 ' reposition cursor on row 7, col 0
 ' TODO: clear line links?
@@ -555,22 +575,22 @@
 
 ' error trap stuff
 4000 &,38:cm$=cm$+"":p$=p$+"":pr$=pr$+"":p1$=p1$+"":p2$=p2$+""
-' FIXME: 64789
+' 65418: RESTOR through the KERNAL jump table ($ff8a), as on the C64
 ' FIXME: mostly copy of 4048
-4002 if x<128 then 4006:else a$="FATAL ERROR!!":gosub 51:sys 64789:print"{clear}{switchdisable}{white}{lowercase}{down:2}"a$:end
+4002 if x<128 then 4006:else a$="FATAL ERROR!!":gosub 51:sys 65418:print"{clear}{$0b}{white}{lowercase}{down:2}"a$:end
 4004 &,38:&,61,.,8:print"&,37:goto 300:":end
 4006 restore 4072
 ' 4008 read a$:if a$<>"errors" then 4008
 ' 4008 do until a$="errors":read a$:loop
 4010 &,40:d$="GURU":if x>. and x<42 then for k=1 to x:read d$:next
 4012 a%=x:&"{f6}{lt. red} SYSTEM ERROR #{pound}%a {white}({pound}$d ERROR){f6}":r$=chr$(13)
-4014 a$="im":if el=>3000 then a$=pr$:if el=>4000 then a$=p1$:if el=>60000 then a$=p2$
-4016 a=el:&"{lt. blue} In Line:{gray3}{pound}!a {lt. blue}Of {gray3}{pound}$a{f6}"
+4014 a$="im":if e1=>3000 then a$=pr$:if e1=>4000 then a$=p1$:if e1=>60000 then a$=p2$
+4016 a=e1:&"{lt. blue} In Line:{gray3}{pound}!a {lt. blue}Of {gray3}{pound}$a{f6}"
 4018 &"{f6}{lt. red}Recording Error, Please Wait...":d$=str$(x)+" ("+d$+" ERROR)"
 4020 dr=3:a$="e.errlog,s,a":gosub 4:if e%=. then 4024
 4022 a$="e.errlog,s,w":gosub 4
 4024 print#2,na$r$id;r$d1$r$ac%;r$ph$r$rn$r$co$(co%)r$
-4026 print#2,"Error :"d$r$"Line  :"el;r$"Area  : "cm$r$"Prompt: "p$
+4026 print#2,"Error :"d$r$"Line  :"e1;r$"Area  : "cm$r$"Prompt: "p$
 4028 print#2,"Program: "pr$r$"Module: "p1$r$"Sub Module: "p2$
 4030 print#2,"ML File: "ml$r$"Protocol: "d4$r$
 4032 for i=1 to 10:a$=chr$(58-i):if hs$(i)<>"" then print#2," {uparrow}"a$": "hs$(i)
@@ -584,8 +604,8 @@
 ' 4044 if ac%<>16 then:&,52,4,3:if a% or if (peek(2033) and 1)=. then 4050
 4044 if ac%<>16 then:&,52,4,3:if a% or if (peek({sym:carrst}) and 1)=. then 4050
 4046 f1=2:goto 302
-' FIXME: 64789
-4048 a$="FATAL ERROR!!":gosub 51:sys 64789:print"{clear}{switchdisable}{white}{lowercase}{down:2}"a$:end
+' 65418: RESTOR through the KERNAL jump table ($ff8a), as on the C64
+4048 a$="FATAL ERROR!!":gosub 51:sys 65418:print"{clear}{$0b}{white}{lowercase}{down:2}"a$:end
 ' check for local mode, immediate logon mode, or sysop id:
 4050 &,52,4,3:if a% or i% or id=1 then 4068
 ' get sysop name:
