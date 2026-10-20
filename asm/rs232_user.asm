@@ -248,7 +248,7 @@ fulbuf:
 	jsr strtup
 	jmp point
 rsout_entry:
-	sta $9e
+	sta ptr1	; c64: $9e
 	sty $97
 point:
 	ldy rodbe
@@ -276,7 +276,7 @@ outdisp:
 	iny
 	cpy #9
 	bcc outdisp
-	lda $9e
+	lda ptr1	; c64: $9e
 	sta sdisp+38
 strtup:
 	lda enabl
@@ -306,7 +306,7 @@ change:
 ret3:
 	clc
 	ldy $97
-	lda $9e
+	lda ptr1	; c64: $9e
 	rts
 
 nchkin:
@@ -319,7 +319,7 @@ nchkin:
 	bne back
 	sta $99
 inable:
-	sta $9e
+	sta ptr1	; c64: $9e
 	sty $97
 	jsr getenabl
 	bne ret1
@@ -343,13 +343,13 @@ ngetin:
 	bne notget
 	pla
 rsget_entry:
-	sta $9e
+	sta ptr1	; c64: $9e
 	sty $97
 	ldy ridbs
 	cpy ridbe
 	beq ret2
 	lda ribuf,y
-	sta $9e
+	sta ptr1	; c64: $9e
 	iny
 	bpl rsget1
 	ldy #0
@@ -371,13 +371,13 @@ inpdisp:
 	iny
 	cpy #9
 	bcc inpdisp
-	lda $9e
+	lda ptr1	; c64: $9e
 	sta sdisp+10
 ret1:
 	clc
 ret2:
 	ldy $97
-	lda $9e
+	lda ptr1	; c64: $9e
 	rts
 notget:
 	pla

@@ -371,7 +371,7 @@ rsout_entry:
 
 ; stash for later
 
-	sta $9e
+	sta ptr1	; c64: $9e
 	sty $97
 
 ; update on-screen buffers
@@ -390,7 +390,7 @@ outdisp:
 	iny
 	cpy #9
 	bcc outdisp
-	lda $9e
+	lda ptr1	; c64: $9e
 	sta sdisp+38
 
 rsout_skip_screen:
@@ -408,7 +408,7 @@ rsout_blocking:
 	and #m6551_stat_tdr_empty
 	beq rsout_blocking
 
-	lda $9e
+	lda ptr1	; c64: $9e
 	sta m6551_port
 
 	lda shcomm
@@ -473,7 +473,7 @@ rsget_entry:
 
 ; stash for later
 
-	sta $9e
+	sta ptr1	; c64: $9e
 	sty $97
 
 ; if buffer is empty, then we're done
@@ -483,7 +483,7 @@ rsget_entry:
 	beq rsget_no_char
 
 	lda ribuf,y
-	sta $9e
+	sta ptr1	; c64: $9e
 	iny
 	bpl rsget_no_wrap
 	ldy #0
@@ -506,7 +506,7 @@ inpdisp:
 	iny
 	cpy #9
 	bcc inpdisp
-	lda $9e
+	lda ptr1	; c64: $9e
 	sta sdisp+10
 
 rsget_skip_screen:
@@ -534,7 +534,7 @@ rsget_no_char:
 rsget_done:
 
 	ldy $97
-	lda $9e
+	lda ptr1	; c64: $9e
 	rts
 
 notget:

@@ -302,21 +302,21 @@ poscrsr:
 ;* do the transmit window
 
 out0:
-	sta $9e
+	sta ptr1	; c64: $9e
 	txa
 	pha
 	tya
 	pha
 	jmp out3
 outm:
-	sta $9e
+	sta ptr1	; c64: $9e
 	txa
 	pha
 	tya
 	pha
 	jmp out1
 out:
-	sta $9e
+	sta ptr1	; c64: $9e
 	txa
 	pha
 	tya
@@ -331,21 +331,21 @@ out:
 	jsr setmode
 	inc scnlock
 	jsr crsroff
-	lda $9e
+	lda ptr1	; c64: $9e
 	jsr prtscn	; c64: $e716
 	dec scnlock
 	jmp out4
 out1:
 
 out3:
-	lda $9e
+	lda ptr1	; c64: $9e
 	jsr rsout
 out4:
 	pla
 	tay
 	pla
 	tax
-	lda $9e
+	lda ptr1	; c64: $9e
 	clc
 	rts
 out5:
@@ -353,7 +353,7 @@ out5:
 	tay
 	pla
 	tax
-	lda $9e
+	lda ptr1	; c64: $9e
 	jsr rsdisab
 	jsr oldout
 	jmp rsinabl

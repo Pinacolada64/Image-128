@@ -200,7 +200,9 @@
 ;
 	dfltn	= $99	; same. Default Input Device (Set to 0 for Keyboard)
 	dflto	= $9a	; same. default output device
-	ptr1	= $9e	; same. temp storage
+	ptr1	= free_fd	; c64: $9e, temp storage. On the 128 $9e is where LOAD
+			; keeps the secondary address: Image's CHROUT hook storing
+			; there made a LOAD that printed load at the file's address
 
 ;	jiffy	= $a2	; FIXME: collision at 2593
 	sal	= $ac	; pointer: tape buffer / screen scrolling
@@ -213,6 +215,7 @@
 	sa	= $b9	; current file 2nd address
 	fa	= $ba	; same: 186. current device address
 	fnadr	= $bb	; same. vector: address of current filename string
+	fnbank	= $c7	; [128 OS] bank the filename is in (setbnk's .x)
 	fsblk	= $be	; same. cassette block read count
 	mych	= $bf	; same. serial word buffer
 	stal	= $c1	; same. I/O start address (lo)
@@ -686,6 +689,7 @@
 	k_getin		= $ffe4
 	k_plot		= $fff0
 	k_setbnk	= $ff68	; .a: bank for load/save data, .x: bank for the filename
+	k_indfet	= $ff74	; FETCH: .a = lda (zero page .a),y in bank .x; keeps .y
 	k_kbdget	= $c006	; c64: $f142 (GETIN's keyboard half): the screen editor's
 				; next key, from a function key string or the buffer
 
@@ -753,6 +757,7 @@
 	setbnk	= k_setbnk
 	kbdget	= k_kbdget
 	gotol	= k_gotol
+	indfet	= k_indfet
 	newstt	= k_newstt
 	gone1	= k_gone1
 	gone2	= k_gone2

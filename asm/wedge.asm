@@ -44,20 +44,29 @@ tload:
 	jsr openroom
 	jmp gone2
 
-; FIXME (128): openroom loads a module into the middle of the program the
-; C64 way, moving the variables (oprm/clrm) out of the way first. On the
-; 128 the variables are in bank 1, apart from the program text in bank 0:
-; nothing needs moving, and these loops can't reach bank 1 from cfg_rom
-; anyway. Not needed to boot; needed for im's module loads.
+; load a module into the running program: LOAD "name",dev[,sa] from a
+; program comes here (tload). The module's first line says where it goes:
+; it's loaded over the program from the first line at or after that one,
+; so "new 3000:load ..." puts a module at line 3000 on. The secondary
+; address goes to loadflag, which im's line 0 uses to pick where to carry
+; on when a load replaces the line that's running (it restarts at line 0).
+;
+; c64: program text and variables were one block, so openroom first moved
+; the variables up out of the way (oprm) and closroom moved them back down
+; after the new end of the program (clrm). On the 128 the variables are in
+; bank 1, apart from the text in bank 0, so nothing moves: load, set the
+; end of the program ($1210), relink.
 openroom:
 	ldy #0
 openroo1:
 	cpy fnlen	; $b7
 	beq openroo2
-	lda (fnadr),y	; ($bb),y
+	lda #fnadr	; c64: lda ($bb),y. The name can be a string in
+	ldx fnbank	; bank 1: fetch it from the bank BASIC's setbnk
+	jsr indfet	; gave the KERNAL
 	sta fbuf,y
 	iny
-	cpy #20
+	cpy #18		; fbuf is 20 bytes: room for loadfile's ",p"
 	bcc openroo1
 openroo2:
 	sty filename_len
@@ -66,31 +75,29 @@ openroo2:
 	lda sa		; $b9
 	and #31
 	sta loadflag
-	jsr forcegc	; collect, in cfg_ml
-	ldx strend	; $31
-	ldy strend+1	; c64: $32
-	stx sal		; c64: $ac
-	sty sal+1	; c64: $ad
-	ldx fretop	; c64: $33
-	ldy fretop+1	; c64: $34
-	stx eal		; c64: $ae
-	sty eal+1	; c64: $af
-	stx strend	; c64: $31
-	sty strend+1	; c64: $32
-	ldx #$2f
-	jsr oprm
-	ldx #$2d
-	jsr oprm
 
+; the module's first line number: bytes 5 and 6 of the file (after the
+; load address and the first line's link)
+; Read on a data channel, ",p" for the program file: a half-read LOAD
+; channel (secondary address 0, as the c64 code used) leaves a 1571 in
+; burst mode hanging on the LOAD that follows.
 loadfile:
-	lda #127
-	ldx fdev
-	ldy #0
-	jsr setlfs
+	jsr setfile
+	ldy filename_len
+	lda #comma
+	sta fbuf,y
+	lda #'p'
+	sta fbuf+1,y
+	iny
+	iny
+	tya
 	ldx #<fbuf
 	ldy #>fbuf
-	lda filename_len
 	jsr setnam
+	lda #127
+	ldx fdev
+	ldy #2
+	jsr setlfs
 	jsr openf
 	ldx #127
 	jsr chkin
@@ -105,7 +112,45 @@ loadfile:
 	jsr clrchn
 	lda #127
 	jsr closef
-	jsr scan0
+	jsr scan0	; eal: the first line at or after it
+
+; load it there, in bank 0
+	jsr setfile
+	lda #0
+	ldx eal		; c64: $ae
+	ldy eal+1	; c64: $af
+	jsr loadf
+	bcc loadfil1
+	jsr chopfile	; keep what's left of the program before it
+loaderr:
+	ldx #29		; ?load error
+	jmp error
+loadfil1:
+	cpy #>textop	; past the top of BASIC text?
+	bcc loadfil2
+	jsr chopfile
+	ldx #16		; ?out of memory
+	jmp error
+loadfil2:
+	stx $1210	; end of BASIC text
+	sty $1211
+	jsr linkprg
+; if the module replaced the line that's running, carry on from the start
+; of the program (im's line 0) -- the c64 code did the same
+	lda l1x+1
+	cmp curlin	; c64: $39/57
+	lda l2x+1
+	sbc curlin+1	; c64: $3a/58
+	bcs loadfil3
+	lda #<(prgstart-1)
+	sta txtptr	; c64: $7a
+	lda #>(prgstart-1)
+	sta txtptr+1	; c64: $7b
+loadfil3:
+	rts
+
+; setlfs/setnam/setbnk for the module file
+setfile:
 	lda #127
 	ldx fdev
 	ldy #0
@@ -114,96 +159,40 @@ loadfile:
 	ldy #>fbuf
 	lda filename_len
 	jsr setnam
-	lda #0
-	ldx eal		; c64: $ae
-	ldy eal+1	; c64: $af
-	jsr loadf
-	bcc loadfil1
-	jsr chopfile
-loaderr:
-	ldx #29
-	jmp error
-loadfil1:
-	jsr linkprg
+	lda #0		; load into bank 0, the filename's in bank 0
+	tax
+	jmp setbnk
 
-	lda l1x+1
-	cmp curlin	; c64: $39/57
-	lda l2x+1
-	sbc curlin+1	; c64: $3a/58
-	bcs chopfile
-	lda #<(prgstart-1)
-	sta txtptr	; c64: $7a
-	lda #>(prgstart-1)
-	sta txtptr+1	; c64: $7b
-
+; end the program before line l1x/l2x (chopfile: where a failed load
+; started; chopfil1: line .x/.y, for "new <line>")
 chopfile:
-	ldx #<65535
-	ldy #>65535
+	ldx l1x+1
+	ldy l2x+1
 chopfil1:
 	stx l1x+1
 	sty l2x+1
 	jsr scan0
-	ldy #0
-	tya
+	ldy #0		; two zero bytes: the end of the program (stores go
+	tya		; to bank 0's RAM under the ROMs)
 	sta (eal),y	; same: ($ae),y
 	iny
 	sta (eal),y	; same: ($ae),y
 	clc
 	lda #2
 	adc eal		; c64: $ae
-	sta eal		; c64: $ae
-	lda #0
+	sta $1210	; end of BASIC text (c64: closroom moved the
+	lda #0		; variables down to here)
 	adc eal+1	; c64: $af
-	sta eal+1	; c64: $af
-
-closroom:
-	ldx txttab	; c64: $2d
-	ldy txttab+1	; c64: $2e
-	stx sal		; c64: $ac
-	sty sal+1	; c64: $ad
-	ldx eal		; c64: $ae
-	ldy eal+1	; c64: $af
-	stx txttab	; c64: $2d
-	sty txttab+1	; c64: $2e
-	ldx #$2f
-	jsr clrm
-	ldx #$31
-
-clrm:
-	sei
-	ldy #0
-	lda 0,x
-	sta cmp0	; c64: $b0
-	lda 1,x
-	sta cmp0+1	; c64: $b1
-clrm1:
-	lda (sal),y	; same: ($ac),y
-	sta (eal),y	; same: ($ae),y
-	lda sal		; same: $ac
-	cmp 0,x
-	bne clrm0
-	lda sal+1	; c64: $ad
-	cmp 1,x
-	beq clrm4
-clrm0:
-	inc sal		; c64: $ac
-	bne clrm2
-	inc sal+1	; c64: $ad
-clrm2:
-	inc eal		; c64: $ae
-	bne clrm3
-	inc eal+1	; c64: $af
-clrm3:
-	jmp clrm1
-clrm4:
-	lda eal		; c64: $ae
-	sta 0,x
-	lda eal+1	; c64: $af
-	sta 1,x
-	cli
+	sta $1211
 	rts
 
+; eal: the first program line numbered l1x/l2x or more, or the end of the
+; program. Reads the text in bank 0, so with the ROMs switched out.
 scan0:
+	lda mmucr
+	pha
+	lda #cfg_bank0
+	sta mmucr
 	ldx txttab	; c64: $2b
 	ldy txttab+1	; c64: $2c
 	stx sal		; c64: $ac
@@ -233,42 +222,8 @@ scan2:
 	tay
 	bne scan1
 scan3:
-	rts
-
-oprm:
-	sei
-	ldy #0
-	lda 0,x
-	sta cmp0	; $b0
-	lda 1,x
-	sta cmp0+1	; $b1
-oprm1:
-	lda sal		; c64: $ac
-	cmp 0,x
-	bne oprm0
-	lda sal+1	; c64: $ad
-	cmp 1,x
-	beq oprm4
-oprm0:
-	lda sal		; c64: $ac
-	bne oprm2
-	dec sal+1	; c64: $ad
-oprm2:
-	dec sal		; c64: $ac
-	lda eal		; c64: $ae
-	bne oprm3
-	dec eal+1	; c64: $af
-oprm3:
-	dec eal		; same: $ae
-	lda (sal),y	; same: ($ac),y
-	sta (eal),y	; same: ($ae),y
-	jmp oprm1
-oprm4:
-	lda eal		; same: $ae
-	sta 0,x
-	lda eal+1	; same: $af
-	sta 1,x
-	cli
+	pla
+	sta mmucr
 	rts
 
 tnew:
