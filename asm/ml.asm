@@ -223,13 +223,16 @@ swapsiz = *+1
 	ldy #0
 	sty fac2	; c64: $69
 	sty fac2+2	; c64: $6b
+; two pointers: fac2/fac2+1 (c64: $69/$6a) and fac2+2/fac2+3 (c64: $6b/$6c).
+; This used (fac2+1) for the second, which overlaps the first and swapped
+; each page with page zero.
 swapr1:
 	lda (fac2),y	; c64: ($69)
 	tax
-	lda (fac2+1),y	; c64: ($6b)
+	lda (fac2+2),y	; c64: ($6b)
 	sta (fac2),y	; c64: ($69)
 	txa
-	sta (fac2+1),y	; c64: ($6b)
+	sta (fac2+2),y	; c64: ($6b)
 	iny
 	bne swapr1
 	inc fac2+1	; c64: $6a
