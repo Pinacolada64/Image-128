@@ -31,7 +31,8 @@ https://rvbelzen.tripod.com/128intpt/index.html
 
 On Linux, `asm/build.sh` builds everything (the modules, the ML cut into
 the parts the boot loads, `boot 128` and `im 128`) and writes
-`build/image128.d64`; `RUN "BOOT 128"` starts it. The memory map is at the
+`build/image128.d71`, a 1571 disk (the 128 loads it in burst mode); in x128
+use a 1571 as drive 8 (`-drive8type 1571`), then `RUN "BOOT 128"`. The memory map is at the
 top of `asm/memory 128.txt`.
 
 `im 128.bas` needs C64List 4.06: 4.04 ignores the `{tokenizer}` directives in

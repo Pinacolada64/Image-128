@@ -1,7 +1,8 @@
 #!/bin/bash
 # build.sh -- Linux build of Image BBS 128 (make.bat's job, plus the boot
 # disk): the module .bin files, the ML (cut into the parts boot.asm loads),
-# boot 128, and im 128, written to build/image128.d64.
+# boot 128, and im 128, written to build/image128.d71: a 1571 disk, so the
+# 128 KERNAL loads it in burst mode.
 #
 #   asm/build.sh            (from anywhere)
 #
@@ -46,10 +47,10 @@ if ! grep -q "^0 Errors" <<<"$log"; then
 fi
 
 cd "$build"
-rm -f image128.d64
-c1541 -format "image bbs 128,ib" d64 image128.d64 \
+rm -f image128.d64 image128.d71
+c1541 -format "image bbs 128,ib" d71 image128.d71 \
 	-write "boot 128.prg" "boot 128" \
 	-write ml.buf ml.buf -write ml.low ml.low -write ml.mod ml.mod \
 	-write ml.res1 ml.res1 -write ml.res2 ml.res2 \
 	-write "im 128.prg" "im 128" >/dev/null
-c1541 image128.d64 -list
+c1541 image128.d71 -list
