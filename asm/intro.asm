@@ -253,9 +253,7 @@ setup1:
 	sta inchat
 	jsr iosetup
 	jsr setptrs
-; FIXME: Image's raster IRQ isn't ported yet (ml.asm's newirq); the
-; KERNAL's own keeps running
-;	jsr setirq
+	jsr setirq
 	jsr trapoff
 	jsr setscrn
 	ldx #3
@@ -278,26 +276,42 @@ iosetup:
 
 ;* setup irq vector
 
+; Image's IRQ work runs ahead of the KERNAL's handler, which keeps the
+; VIC's raster interrupt (glue.asm's irq_far). c64: this took the raster
+; interrupt over (ml.asm's newirq says why that's not done here yet).
 setirq:
 	lda #$1f
-	sta d1icr
+	sta d1icr	; CIA #1 interrupts off (the 128 uses none)
 	lda #$ff
 	sta timblo
 	sta timbhi
 	lda #$11
-	sta ciacrb
-	lda #<raster
-	sta 788
-	lda #>raster
-	sta 789
-	lda #$81
-	sta $d01a
-	lda #$00
-	sta $d012
-	lda #$1b
-	sta $d011
+	sta ciacrb	; timer B free-running, for Image's own timing
 	lda #0
 	sta irqcount
+	sei
+; BASIC 7's own IRQ ($a84d, for SPRITE/MOVSPR, SOUND and PLAY) copies its
+; sprite table into $d000-$d010 every frame, over Image's BBS flags there
+; (local, case, carrier, mupcase...). Image does its own sound, so turn
+; it off: the KERNAL's IRQ only calls it with initstat bit 0 set.
+	lda initstat
+	and #$fe
+	sta initstat
+	lda 788		; CINV
+	ldx 789
+	cmp #<irq_far	; setup runs again when im restarts: don't
+	bne setirq1	; chain irq_far to itself
+	cpx #>irq_far
+	beq setirq2
+setirq1:
+	sta oldirq_vec
+	stx oldirq_vec+1
+	lda #<irq_far
+	sta 788
+	lda #>irq_far
+	sta 789
+setirq2:
+	cli
 	rts
 
 ;* initial setup of screen

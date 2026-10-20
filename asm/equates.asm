@@ -264,6 +264,8 @@
 ;
 	lstx	= $d5	; c64: 197 / $c5. last key pressed
 	ndx	= $d0	; c64: 198 / $c6. number of characters in keyboard buffer
+	initstat= $0a04	; [128 OS] bit 0: the KERNAL's IRQ calls BASIC 7's (sprites,
+			; SOUND, PLAY); bits 6-7: screen editor
 	shflag	= $d3	; c64: $028d/653. Shift, C=, Ctrl, Alt keys: 1=pressed
 	SHIFT_KEY	= %00000001
 	COMMODORE_KEY	= %00000010
@@ -702,6 +704,8 @@
 				; linget) doesn't map: the 128's GOTO differs past it
 	k_syscll	= $5885	; c64: $e130. FIXME: re-evaluates its argument
 	k_exitint	= $ff33	; c64: $ea81. exit IRQ: restore $ff00, .y, .x, .a, rti
+	k_irq		= $fa65	; c64: $ea31. the KERNAL's IRQ handler (CINV's default):
+				; screen editor, clock, keyboard; exits via $ff33
 	k_primm		= $9281	; 128 only: print the null-terminated string after the jsr
 
 {ifdef:direct_rom}

@@ -874,32 +874,12 @@ fkey3:
 fkey4:
 	rts
 
+; c64: Image replaced the KERNAL's IRQ, so irq9 did its jobs: update the
+; jiffy clock ($ffea), blink the cursor (the screen editor's $ea24/$ea1c)
+; and scan the keyboard ($ea87). On the 128 the KERNAL's handler still
+; runs after newirq (glue.asm's irq_far) and does all three.
 irq9:
-; cursor stuff
-	jsr $ffea
-	lda crsrmode	; c64: $cc
-	bne irq9f
-	dec blnct	; c64: $cd
-	bne irq9f
-	lda #$14
-	sta blnct	; c64: $cd
-	ldy pntr	; c64: $d3
-	lsr crsrmode	; c64: $cf
-	ldx gdcol	; c64: $0287
-	lda (pnt),y	; c64: ($d1),y
-	bcs irq9e
-	inc crsrmode	; c64: $cf
-	sta undchr	; c64: $ce
-	jsr $ea24
-	lda (colptr),y	; c64: ($f3),y
-	sta gdcol	; c64: $287
-	ldx color	; c64: $0286
-	lda undchr	; c64: $ce
-irq9e:
-	eor #$80
-	jsr $ea1c
-irq9f:
-	jmp $ea87
+	rts
 
 irq10:
 	lda sndtim1

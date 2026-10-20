@@ -533,7 +533,8 @@
 ' flash frame contents:
 ' t=ti, e=30 ('elapsed time': 1/2 second delay [30 jiffies], instead of continuously interpreting floating point)
 3408 t=ti:e=t+30
-3410 on peek(198) goto 3420:if ti<e then 3410
+' keys waiting: {sym:ndx} (c64: peek(198))
+3410 on peek({sym:ndx}) goto 3420:if ti<e then 3410
 ' jiffy delay has run out. toggle color index 'i' for new interior text color 'c':
 ' $87=rvs yellow, $8f=rvs gray3
 3411 i=1-i:c=$87:if i then c=$8f

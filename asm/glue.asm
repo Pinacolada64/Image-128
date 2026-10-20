@@ -109,6 +109,29 @@ newout_far:
 	word newout
 	rts
 
+; the IRQ vector (CINV, $0314), set by setirq. The KERNAL's entry ($ff17)
+; has already pushed .a .x .y and $ff00 and switched to cfg_rom. Image's
+; IRQ work (ml.asm's newirq) runs once a frame, on the VIC raster
+; interrupt -- in text mode the screen editor's only one, at line $ff --
+; and then the KERNAL's own handler ($fa65) runs as usual: the screen
+; editor, the jiffy clock, the keyboard, BASIC's sprites and sound. It
+; exits through $ff33, which puts back the interrupted $ff00.
+; c64: Image replaced the KERNAL's IRQ and did those itself (irq9).
+irq_far:
+	lda $d019
+	and #$01		; raster? (the editor acknowledges it)
+	beq irq_far1
+	lda #cfg_ml
+	sta mmucr
+	jsr newirq
+	lda #cfg_rom
+	sta mmucr
+irq_far1:
+	jmp (oldirq_vec)
+
+oldirq_vec:
+	word k_irq		; setirq saves the vector here
+
 ; BASIC line trace, from the wedge's statement hook
 trace_far:
 	jsr farcall

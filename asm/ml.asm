@@ -511,41 +511,19 @@ oldout_vec:
 	word $ffff
 	rts
 
-; raster interrupt routine
+; Image's IRQ work, once a frame: reached through irq_far (glue.asm) in
+; cfg_ml on the VIC raster interrupt, before the KERNAL's own handler.
+;
+; c64: "raster" took over the VIC's raster interrupt and split the screen
+; at lines 106 and 234, switching $d018 so the screen mask (the bottom
+; rows) could use the uppercase/graphics set while the rest followed the
+; user's case (mupcase); its second half ran this. FIXME (128): the
+; screen editor rewrites $d018 from its shadow ($0a2c) every frame, so
+; that split needs doing the editor's way; until then the screen mask
+; uses the same character set as the rest of the screen.
 
-raster:
-	lda #$00
-	bne rast1
-	lda scnmode
-	bne rast0
-	lda #23
-	sta $d018
-rast0:
-	lda #106
-	sta $d012
-	lda #1
-	sta $d019
-	inc raster+1
-	jmp k_exitint+4	; c64: $febc. pull .y .x .a, rti (FIXME: and $ff00)
-
-rast1:
-	nop
-	lda mupcase
-	and #1
-	asl
-	eor #23
-	sta $d018
-	lda #234
-	sta $d012
-	lda #1
-	sta $d019
-	dec raster+1
-	inc jiffy
-
-; FIXME: not installed yet (intro.asm skips setirq). On the 128 the
-; handler has to come in through glue.asm, like newout, and leave
-; through k_exitint ($ff33, which restores $ff00).
 newirq:
+	inc jiffy	; c64: rast1, once a frame
 irqt:
 	lda #$00
 	beq newirq0
@@ -556,7 +534,7 @@ newirq0:
 	lda irqcount
 	sta irqt+1
 newirq1:
-	jmp k_exitint	; c64: $ea81
+	rts
 
 ; far call to the error handler
 
