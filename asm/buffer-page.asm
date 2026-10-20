@@ -25,7 +25,7 @@ datemon:
 datedate:
 	byte $09
 dateyear:
-	byte $90
+	byte $16		; 2016 (with the $20 below: century); was $90
 	byte $20,$00
 
 ; storage for conversion routines

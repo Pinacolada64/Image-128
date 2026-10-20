@@ -68,8 +68,8 @@ opbcc	= $90	; 144
 opbeq	= $f0	; 240
 opbcs	= $b0	; 176
 
-makerm	= $b475
-getnxt	= $e206
+makerm	= makerm1	; c64: $b475 (equates.asm's romtab stub)
+;getnxt	= $e206		; c64 only; unused
 
 defbase	= $c600
 
@@ -78,10 +78,10 @@ defbase	= $c600
 @entry2:
 	sty count
 	stx func
-	lda r6510
-	pha
-	lda #r6510_normal
-	sta r6510
+; c64: saved $01 and switched BASIC in around the call. On the 128 this
+; runs in cfg_ml and reaches ROM through romtab's stubs; writing the C64's
+; $37 to $01 here set bit 2, which shows the VIC RAM in place of the
+; character ROM -- garbage on the screen until something put it back.
 	txa
 	sec
 	sbc #4
@@ -93,8 +93,6 @@ defbase	= $c600
 	sta strucjmp+2
 strucjmp:
 	jsr strucrts
-	pla
-	sta r6510
 strucrts:
 	rts
 

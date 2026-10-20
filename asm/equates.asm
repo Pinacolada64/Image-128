@@ -130,6 +130,8 @@
 			; glue.asm all stay visible, and the C64 code's
 			; "lda (pointer),y" on variables and strings just works
 	cfg_bank0= $3f	; bank 0 all RAM, no I/O: to read BASIC program text
+	cfg_charrom= $01 ; bank 0 with the ROMs, and the character ROM at $d000
+			; in place of I/O (editor.asm's big letters read it)
 	rcr_shared= $0f	; $d506: 16K shared at the bottom and the top (bits 0-3;
 			; bits 6-7, the VIC's bank, are kept). BASIC's variables
 			; then have to start at $4000 in bank 1 (intro.asm moves
