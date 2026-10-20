@@ -43,7 +43,7 @@ sc3:
 	jmp sccrsr
 sc4:
 	ldx scnpos
-	cpx #39
+	cpx rmargin	; c64: cpx #39. the last column, 39 or 79
 	bne sc5
 	ldx sline
 	cpx botline
@@ -54,8 +54,8 @@ sc8:
 	jsr prtscn	; c64: $e716
 	lda #0
 	sta scnpos
-	lda #39
-	sta lnmx	; c64: $d5/213. max screen line length
+; c64: lda #39 / sta $d5, the line length a linked line had stretched.
+; The 128's $ee is the screen's last column, which the editor sets.
 	jsr fixlink
 	jmp sccrsr
 sc5:
@@ -125,7 +125,7 @@ sccrsr1:
 	jmp hea24
 scrt:
 	ldx scnpos
-	cpx #39
+	cpx rmargin	; c64: cpx #39
 	bne scrt1
 scdn:
 	ldx sline
@@ -159,6 +159,8 @@ scbell1:
 
 scroll:
 	inc scnlock
+	bit mode	; 80 columns?
+	bmi scrollv	; yes: the VDC scrolls
 	lda sal		; c64: $ac
 	pha
 	lda sal+1	; same: $ad
@@ -207,12 +209,41 @@ scroll2:
 	sta sal+1	; same: $ad
 	pla
 	sta sal		; same: $ac
+scroll3:
 	dec sline
 	jsr sccrsr
 	dec scnlock
 	rts
 
+; scroll in 80 columns: rows 1-23 up a row, as above, but the VDC copies
+; them itself (one block copy for the characters, one for the
+; attributes), then row 23 is cleared. The screen mask is VIC-only, so
+; all 24 rows are on the VDC screen.
+scrollv:
+	lda vdcscrn
+	jsr scrollv1
+	lda vdcattr
+	jsr scrollv1
+	ldx #23
+	jsr vdcline
+	jmp scroll3
+; .a: high byte of the screen or attribute base
+scrollv1:
+	sta vdc_dst+1
+	sta vdc_src+1
+	lda #0
+	sta vdc_dst
+	lda #VDC_COLS	; from row 1
+	sta vdc_src
+	lda vdcrowlo+23	; 23 rows
+	sta vdc_count
+	lda vdcrowhi+23
+	sta vdc_count+1
+	jmp vdc_copy
+
 scline:
+	bit mode	; 80 columns?
+	bmi vdcline
 	jsr he9f0
 	jsr hea24
 scline0:
@@ -225,6 +256,35 @@ scline1:
 	dey
 	bpl scline1
 	rts
+
+; clear row .x of the VDC screen: spaces, and attributes in the current
+; color (the editor keeps a VDC attribute in color in 80 columns).
+; Keeps .x (scclear counts rows in it).
+vdcline:
+	stx vdcline_row
+	lda vdcscrn
+	ldy #' '
+	jsr vdcline1
+	lda vdcattr
+	ldy color
+	jsr vdcline1
+	ldx vdcline_row
+	rts
+; .a: high byte of the screen or attribute base, .y: the fill byte
+vdcline1:
+	ldx vdcline_row
+	ora vdcrowhi,x
+	sta vdc_dst+1
+	lda vdcrowlo,x
+	sta vdc_dst
+	lda #VDC_COLS
+	sta vdc_count
+	lda #0
+	sta vdc_count+1
+	tya
+	jmp vdc_fill
+vdcline_row:
+	byte 0
 
 chrtbl:
 	word scupc,scupc
@@ -245,8 +305,7 @@ chrs:
 chrs_end:
 
 cleanup:
-	lda #39
-	sta lnmx	; c64: $d5/213
+	; c64: lda #39 / sta $d5 (see sc8)
 	lda #0
 	sta qtsw	; c64: 212
 	lda #0
@@ -551,12 +610,26 @@ vicrowhi:
 	byte $00,$00,$00,$00,$00,$00,$00,$01,$01,$01,$01,$01,$01
 	byte $02,$02,$02,$02,$02,$02,$02,$03,$03,$03,$03,$03
 
+; point pnt and colptr at row .x, as the editor's own $c15e does: in 80
+; columns, at the row in VDC screen and attribute memory, which is what
+; the editor expects there (the screen mask is VIC-only)
 he9f0:
 	tya
 	pha
+	bit mode	; 80 columns?
+	bmi he9f0v
 	jsr calcscn
 	sty pnt		; c64: $d1
 	sta pnt+1	; c64: $d2
+	pla
+	tay
+	rts
+he9f0v:
+	lda vdcrowlo,x
+	sta pnt
+	lda vdcrowhi,x
+	ora vdcscrn
+	sta pnt+1
 	pla
 	tay
 	rts
@@ -564,9 +637,20 @@ he9f0:
 hea24:
 	tya
 	pha
+	bit mode	; 80 columns?
+	bmi hea24v
 	jsr calccol
 	sty colptr	; c64: $f3
 	sta colptr+1	; c64: $f4
+	pla
+	tay
+	rts
+hea24v:
+	lda vdcrowlo,x
+	sta colptr
+	lda vdcrowhi,x
+	ora vdcattr
+	sta colptr+1
 	pla
 	tay
 	rts
@@ -584,10 +668,18 @@ setmode1:
 	ldx #23
 setmode2:
 	sta scnmode
+	bit mode	; 80 columns: no mask, so the console has rows
+	bpl setmode3	; 0-23 either way
+	ldx #23
+setmode3:
 	stx botline
 	jsr crsroff
 
 swapscn:
+	bit mode	; 80 columns: the mask is VIC-only, and pnt points
+	bpl swapscn0	; into the VDC, not at memory to swap
+	rts
+swapscn0:
 	lda curptr	; c64: $d1
 	pha
 	lda curptr+1	; c64: $d2

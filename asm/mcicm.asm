@@ -593,7 +593,8 @@ ctab:
 	cmp scnpos
 	bcc ctab0
 	beq ctab0
-	cmp #40
+	cmp rmargin	; past the last column (39 or 79)? c64: cmp #40
+	beq ctab1
 	bcs ctab0
 ctab1:
 	lda #' '

@@ -254,7 +254,10 @@
 	sline	= $eb	; c64: $d6. current screen row (0-24)
 	scnpos	= $ec	; c64: $d3. current screen column (0-39)
 	scnclm	= scnpos; screen column
-	lnmx	= $ee	; c64: $d5. maximum screen line length
+	lnmx	= $ee	; c64: $d5. maximum screen line length. [128 OS] the
+			; last column of the screen, 39 or 79, set by the editor
+	rmargin	= $e7	; [128 OS] the editor window's right edge, where its
+			; print wraps (39 or 79 for the whole screen)
 	colptr	= $e2	; c64: ($f3). Pointer to the address of the current screen color RAM location
 	rvs	= $f3	; c64: $c7. Flag: Print Reverse Characters? 0=No
 	color	= $f1	; c64: $0286/646. Current foreground text color

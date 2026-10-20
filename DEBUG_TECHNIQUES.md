@@ -112,6 +112,24 @@ with py65 (from TADA's virtualenv) before trusting a ROM address in
 at `$c000` are the stable entry points (Compute's 128 Programmer's Guide,
 pp. 323-325).
 
+## Test the ML's output with a stand-in "im 128"
+
+To exercise Image's output (scrolling, wrapping) without `im`, write a
+short BASIC program that prints with `&`, save it over `im 128` on a
+scratch copy of the disk, and boot that: the ML loads and RUNs it. Clear
+the output-mode flags `im` would have set first, or `&` output goes
+through password mode (every character printed as the mask) or the word
+wrap buffer:
+
+```
+5 poke 2794,0:poke 6266,0:poke 6269,0:poke 6350,0:poke 6367,0:poke 6368,0
+6 &chr$(147)
+10 for i=1 to 30:&"line"+str$(i)+" of the scroll test"+chr$(13):next
+```
+
+(`passmode`, `wrapflg`, `wrapind`, `mci`, `mright`, `mleft` in
+`equates.asm`.) Tokenize it with `petcat -w2 -l 1c01`.
+
 ## Remote monitor port
 
 Run test copies of x128 with `-remotemonitoraddress 127.0.0.1:6537` (any

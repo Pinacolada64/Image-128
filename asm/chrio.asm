@@ -143,11 +143,12 @@ outchr6:
 	lda wrapind
 	adc scnpos
 	adc mright
-	cmp #41
+	sbc rmargin	; carry clear: - (last column + 1); c64: cmp #41
+	beq outchr6a	; the word fits on this line
 	bcc outchr6a
 	jsr outscn
-	clc
 outchr6a:
+	clc
 	lda wrapind
 	adc ptrclm
 	adc mright
