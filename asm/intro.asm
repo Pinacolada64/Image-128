@@ -1,82 +1,90 @@
+; intro.asm -- runs at protostart, included in ml.asm. The boot loader
+; (boot.asm) jumps to intro in cfg_rom once every part of the ML is in
+; place; "sys 7171" in im (c64: sys 49155) calls setup.
+
 devnum = 186
-{include:equates.asm}
-orig protostart
 {undef:use_ltk}	; Lt. Kernal emulation is not ready for VICE 128
 
 ; intro is a proto
 	jmp intro
-	jmp setup
+	jmp setup_far
 	byte $ff ;intro
 
 ;* intro program
 
 intro:
 
-; fake rs232 driver filled with "RTS" instructions
-; (avoids crashing when rs232 enable/disable is called from swapper)
+; share the bottom and top 16K of RAM between the banks (see cfg_ml in
+; equates.asm), keeping the VIC's bank bits
 
-	lda #$60
-	ldy #0
-rs232_loop:
-	sta rs232,y
-	dey
-	bne rs232_loop
+	sei
+	lda mmurcr
+	and #$c0
+	ora #rcr_shared
+	sta mmurcr
+	cli
 
-; move editor code to its "swapped out" location
-; also moves other modules after the editor
-; TODO split this out to swap each module individually
+; BASIC's memory for im: program text in bank 0 from prgstart up to
+; textop, variables and strings in bank 1 from varstart up to vartop
+; (the swapped-out modules are above it). Still in cfg_rom: stores to
+; $4000 and up go to bank 0's RAM under the ROMs.
 
-	lda #>editor_load_address
-	ldy #>editor_swap_address
-	ldx #48
-	jsr swapper
-
-;move wedge to its execution location
-
-	lda #>wedge_load_address
-	ldy #>wedge_exec_address
-	ldx #>wedge_module_size
-	jsr swapper
-
-;load "im 128" basic program
-
-	ldx #<prgstart
-	ldy #>prgstart
-	stx txttab	; c64: $2b
-	sty txttab+1	; c64: $2c
-	ldx #<(prgstart+2)
-	ldy #>(prgstart+2)
-	stx vartab	; c64: $2d
-	sty vartab+1	; c64: $2e
-	stx arytab	; c64: $2f
-	sty arytab+1	; c64: $30
-	stx strend	; c64: $31
-	sty strend+1	; c64: $32
+	lda #<prgstart
+	ldx #>prgstart
+	sta txttab	; c64: $2b
+	stx txttab+1	; c64: $2c
 	lda #0
 	sta prgstart-1
 	sta prgstart
 	sta prgstart+1
+	lda #<(prgstart-1)
+	sta $0a05	; bottom of BASIC text (c64: $0281)
+	stx $0a06
+	lda #<textop
+	ldx #>textop
+	sta $1212	; top of BASIC text
+	stx $1213
+	lda #<varstart
+	ldx #>varstart
+	sta vartab	; c64: $2d
+	stx vartab+1
+	lda #<vartop
+	ldx #>vartop
+	sta $39		; top of string space (c64: $37)
+	stx $3a
+	sta $0a07	; top of variables (c64: $0283)
+	stx $0a08
+
+;load "im 128" basic program into bank 0
+
+	lda #0
+	tax
+	jsr k_setbnk	; data and filename in bank 0
 	lda #1
 	ldx devnum
 	ldy #0
-	jsr setlfs	; $ffba
+	jsr k_setlfs	; $ffba
 	lda im_filename
 	ldx #<(im_filename+1)
 	ldy #>(im_filename+1)
-	jsr setnam	; $ffbd
-	jsr loadprg
+	jsr k_setnam	; $ffbd
+	lda #0
+	ldx #<prgstart
+	ldy #>prgstart
+	jsr k_loadf
+	stx $1210	; end of BASIC text
+	sty $1211
+	jsr k_linkprg
 	lda #1
-	sta loadflag
+	sta loadflag	; im: "on peek(linflg) goto 3000,4000"
+
 ;restore screen
-	lda #11
-	sta $d011
-	lda #$17
-	sta $d018
+
 	lda #clear_screen
-	jsr prtscn	; c64: $e716
-	lda #27
-	sta $d011
+	jsr k_prtscn	; c64: $e716
+
 ;fake lightbar table
+
 	lda #0
 	ldy #0
 chktbl_loop:
@@ -91,15 +99,27 @@ bartbl_loop:
 	iny
 	cpy #192
 	bne bartbl_loop
+
+; the wedge: &, $hex and the rest in BASIC (wedge.asm's install)
+
+	jsr wedge_exec_address
+
 ; run program
-	lda #0
-	jsr run		; c64: $A871. RUN:    Perform RUN. c128: $5a9b
-	jmp newstt	; c64: $A7AE. NEWSTT: Set Up Next Statement for Execution
+
+	jmp farjmp_run	; c64: lda #0 / jsr $a871 (RUN) / jmp $a7ae (NEWSTT)
 
 ;* filenames
+
 im_filename:
-	byte setup-im_filename
+	byte setup_far-im_filename-1
 	ascii "im 128"
+
+; im's "sys 7171" (protostart+3): setup in cfg_ml
+setup_far:
+	jsr farcall
+	byte cfg_ml
+	word setup
+	rts
 
 ;* setup routines *
 
@@ -110,7 +130,7 @@ setup:
 zero_cassbuff:
 	sta cassbuff,y
 	iny
-	cpy #1024-cassbuff
+	cpy #mleft-cassbuff+1	; c64: 1024-cassbuff (828-1023)
 	bne zero_cassbuff
 	ldy #0
 copy_date:
@@ -233,28 +253,26 @@ setup1:
 	sta inchat
 	jsr iosetup
 	jsr setptrs
-	jsr setirq
+; FIXME: Image's raster IRQ isn't ported yet (ml.asm's newirq); the
+; KERNAL's own keeps running
+;	jsr setirq
 	jsr trapoff
-	lda #$36
-	sta $01
 	jsr setscrn
 	ldx #3
 	jsr comq	; set mci color default?
 	jsr startmsg
-	lda #r6510_normal ; $37
-	sta r6510	; $01
 	rts
 
 ;* setup i/o windows
 
 iosetup:
 	lda ICHROUT	; $0326
-	sta oldout+1
+	sta oldout_vec
 	lda ICHROUT+1	; $0327
-	sta oldout+2
-	lda #<newout
+	sta oldout_vec+1
+	lda #<newout_far
 	sta ICHROUT	; $0326
-	lda #>newout
+	lda #>newout_far
 	sta ICHROUT+1	; $0327
 	rts
 
@@ -291,7 +309,7 @@ setscrn:
 	sta $d021
 	lda #'{lowercase}'	; $0e
 	jsr chrout
-	lda #'{switchdisable}'	; $08
+	lda #$0b	; 128: disable shift+C= (the C64 code sent $08)
 	jsr chrout
 	lda #'{white}'	; $05
 	jsr chrout
@@ -300,7 +318,6 @@ setscrn:
 
 ;* find BASIC variable
 getvarp:
-	jsr bank_vars_in
 	txa
 	asl
 	tay

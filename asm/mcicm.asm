@@ -11,19 +11,19 @@ domci:
 	bne domci0
 	inc $96
 	ldy $96
-	lda ($71),y
+	lda (fbufpt),y	; c64: ($71),y
 	cmp #'{pound}'
 	beq domci0
 	and #63
 	sta mcom
 	inc $96
 	iny
-	lda ($71),y
+	lda (fbufpt),y	; c64: ($71),y
 	sta mchr
 	and #$0f
 	sta mnum
 	iny
-	lda ($71),y
+	lda (fbufpt),y	; c64: ($71),y
 	sta mchr2
 	and #$0f
 	sta mnum2
@@ -37,7 +37,7 @@ domci:
 	adc mnum2
 	sta mval
 	iny
-	lda ($71),y
+	lda (fbufpt),y	; c64: ($71),y
 	sta mchr3
 ;* actual mci routines *
 	lda mcom
@@ -98,7 +98,7 @@ mcivar:
 	lda mcivars,y
 	jmp usevar0
 
-@colors:
+colors:
 	byte cursor_cyan ; (default color)
 	byte cursor_white
 	byte cursor_red
@@ -127,7 +127,7 @@ coma:
 coma1:
 	inc $96
 	ldy $96
-	lda ($71),y
+	lda (fbufpt),y	; c64: ($71),y
 	cmp #'{pound}'
 	beq coma3
 coma2:
@@ -147,7 +147,7 @@ coma5:
 	ldy $96
 	cpy #80
 	beq coma6
-	lda ($71),y
+	lda (fbufpt),y	; c64: ($71),y
 	cmp #'{pound}'
 	bne coma5
 coma6:
@@ -176,7 +176,7 @@ comqc = *+1
 	beq comc2
 comc1:
 	tay
-	lda <@colors,y
+	lda colors,y
 	sta $fe
 	jmp output
 comc2:
@@ -240,9 +240,9 @@ comi:
 	jsr putvar
 	lda $96
 	pha
-	lda $71
+	lda fbufpt	; c64: $71
 	pha
-	lda $72
+	lda fbufpt+1	; c64: $72
 	pha
 	lda len1
 	pha
@@ -250,9 +250,9 @@ comi:
 	pla
 	sta len1
 	pla
-	sta $72
+	sta fbufpt+1	; c64: $72
 	pla
-	sta $71
+	sta fbufpt	; c64: $71
 	pla
 	sta $96
 	rts
@@ -472,9 +472,9 @@ comy2:
 cvar:
 	lda $96
 	pha
-	lda $71
+	lda fbufpt	; c64: $71
 	pha
-	lda $72
+	lda fbufpt+1	; c64: $72
 	pha
 	lda mchr
 	and #$7f
@@ -500,9 +500,9 @@ cvar2:
 	bne cvar1
 cvar3:
 	pla
-	sta $72
+	sta fbufpt+1	; c64: $72
 	pla
-	sta $71
+	sta fbufpt	; c64: $71
 	pla
 	sta $96
 	rts
@@ -632,7 +632,7 @@ notc1:
 dodate:
 	inc $96
 	ldy $96
-	lda ($71),y
+	lda (fbufpt),y	; c64: ($71),y
 	sta datebuf,x
 	inx
 	cpx #11

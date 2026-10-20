@@ -356,7 +356,8 @@
 3070 dim tt$(254),dv%(36),dr%(36),co$(9),hs$(10),bf(6),st(38),im$(5),pf$(10)
 3073 restore 3500:for i=1 to 9:read a$:co$(i)=a$+"":next
 ' dv%=peek(828):z%=dv%:dr$="0"+":":bd$=dr$:sr=2:pr=-1:f3=1:sys 49155:&,53
-3074 dv%=peek({sym:bootdev}):z%=dv%:dr$="0"+":":bd$=dr$:sr=2:pr=-1:f3=1:sys 49155:&,53
+' sys protostart+3: intro's "jmp setup" (c64: sys 49155, $c003)
+3074 dv%=peek({sym:bootdev}):z%=dv%:dr$="0"+":":bd$=dr$:sr=2:pr=-1:f3=1:sys {sym:protostart}+3:&,53
 ' NOTE: __BuildDate and __BuildTime are themselves quoted strings, hence the weirdness here:
 3075 &,69,1,1,"im 128 revision: "+{usedef:__BuildDate}+" "+{usedef:__BuildTime},3
 ' a$="NTSC":if peek(678) then a$="PAL"

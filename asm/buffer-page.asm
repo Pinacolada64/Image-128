@@ -1,13 +1,18 @@
-d1str:
-	area $20, 11
-spchars:
+; the buffer page, at bufpage ($0e00). The fixed buffers' addresses are
+; in equates.asm (the wedge and the modules use them too); each orig
+; here puts the next one there, and stops the build if the one before
+; ran into it.
+
+	orig d1str
+	area 11, $20
+	orig spchars
 	ascii comma,colon,34,"*?=",13,"^"
-fbuf:
-	area $20, 20
-buf2:
-	area $20, 80
-buffer:
-	area $20, 80
+	orig fbuf
+	area 20, $20
+	orig buf2
+	area 80, $20
+	orig buffer
+	area 80, $20
 
 ; date in 6 byte bcd format
 

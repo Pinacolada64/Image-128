@@ -1,3 +1,53 @@
+Image BBS 128 memory map (2026-10-19; equates.asm is the source of truth)
+=========================================================================
+
+From Compute's 128 Programmer's Guide (ch. 6 "free" memory, ch. 7 MMU,
+app. D map). The MMU shares the bottom 16K and the top 16K between banks
+($d506 = $0f, set by intro), and Image's ML runs with $ff00 = $7e
+(cfg_ml): bank 1 RAM at $4000-$bfff, bank 0 RAM at $c000-$ffff, I/O.
+BASIC and the KERNAL run with $ff00 = $00 (cfg_rom). glue.asm's farcall
+crosses between them; romtab.asm has a stub for each ROM routine the ML
+calls.
+
+bank 0 (and every bank: shared)
+$0000-$03ff	system (always shared)
+$0400-$07ff	40-column screen
+$0b00-$0bff	boot loader (boot.asm), while booting
+$0c00-$0dff	KERNAL RS-232 buffers
+$0e00-$0fff	buffer page (buffer-page.asm): d1str, spchars, fbuf, buf2, buffer
+$1000-$12ff	KERNAL function keys, BASIC working storage
+$1300-$18ff	Image tables, cassbuff ($1800) variables
+$1900-$1911	wedge jump table (-> glue.asm)
+$1912-$1926	RS-232 jump table (rts until &,16 loads a driver)
+$1927-$194d	interface jump table (c64: $cd00)
+$1a00-$1a8f	& jump table (jmptb.asm)
+$1c00-$2bff	protostart: intro at boot, then swapped-in modules
+$2c00-$2eff	RS-232 driver
+$2f00-$32ff	wedge
+$3300-$35ff	screen mask save area
+$3600-$3fff	glue.asm: farcall, the entries into the ML and the wedge
+
+bank 0
+$4000-$bfff	BASIC program text (im at $4001; top $c000 in $1212)
+
+bank 1
+$4000-$8fff	BASIC variables and strings (vartab $4000, top $9000)
+$9000-$bfff	swapped-out modules: editor $9000, gc $a000, ecs $a400,
+		struct $ae00, swap1 $b400, swap2 $b800, swap3 $bc00
+
+bank 0 (and every bank: shared)
+$c000-$cfff	romtab.asm, then resident ML (strio ... varbl)
+$d000-$dfff	I/O
+$e000-$feff	resident ML (irqhn ... calls, ex-c64 $cb00-$cdff code)
+$ff00-$ffff	MMU registers, KERNAL interrupt code in RAM
+
+The boot (tools/split-ml.py, boot.asm) loads ml.buf, ml.low, ml.mod (into
+bank 1), ml.res1 and ml.res2 where they run, then jumps to intro.
+
+
+Earlier notes
+=============
+
 During boot (contents of the ML file)
 Has to load above the start of BASIC to relocate code?
 

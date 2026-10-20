@@ -1,6 +1,6 @@
 outscn:
 
-@outscn0:
+outscn0:
 	lda #0
 	sta idlejif
 	tax

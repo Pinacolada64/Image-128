@@ -63,6 +63,23 @@
 	chr_lt_blue	= $9a
 	chr_gray3	= $9b
 
+; the C64 source's names for the same codes (mcicm.asm's color table)
+	cursor_white	= chr_white
+	cursor_red	= chr_red
+	cursor_cyan	= chr_cyan
+	cursor_purple	= chr_purple
+	cursor_green	= chr_green
+	cursor_blue	= chr_blue
+	cursor_yellow	= chr_yellow
+	cursor_orange	= chr_orange
+	cursor_brown	= chr_brown
+	cursor_lt_red	= chr_lt_red
+	cursor_gray1	= chr_gray1
+	cursor_gray2	= chr_gray2
+	cursor_lt_green	= chr_lt_green
+	cursor_lt_blue	= chr_lt_blue
+	cursor_gray3	= chr_gray3
+
 ; same: memory address same between c64/c128
 ; [1.2]: labels/memory address is the same as 1.2
 ; [?]  : not certain of purpose of routine
@@ -92,6 +109,31 @@
 
 	; allow access to the RAM "underneath" the BASIC ROM ($36)
 	r6510_basic_ram = (r6510_cassette_motor | r6510_cassette_switch | r6510_charen | r6510_hiram)
+
+; MMU. On the 128, $01 doesn't switch ROMs (the C64 code's r6510 writes
+; above): the MMU's configuration register at $ff00 does, and it's visible
+; in every configuration (Compute's 128 Programmer's Guide, chapter 7).
+;
+;  bits 7-6 RAM bank, 5-4 $c000-$ffff (00 KERNAL ROM, 11 RAM), 3-2
+;  $8000-$bfff (00 BASIC ROM, 11 RAM), 1 $4000-$7fff (0 ROM, 1 RAM),
+;  0 $d000-$dfff (0 I/O)
+
+	mmucr	= $ff00	; configuration register
+	mmurcr	= $d506	; RAM configuration register: shared ("common") RAM
+	cfg_rom	= $00	; bank 15: BASIC, KERNAL and editor ROMs, I/O; what BASIC
+			; runs in
+	cfg_ml	= $7e	; Image's ML: bank 1 RAM at $4000-$bfff (BASIC's variables
+			; and strings, and the swapped-out modules), RAM at
+			; $c000-$ffff, I/O. With rcr_shared, $0000-$3fff and
+			; $c000-$ffff are bank 0's RAM whatever bank is selected,
+			; so the ML at $c000, the screen, Image's tables and
+			; glue.asm all stay visible, and the C64 code's
+			; "lda (pointer),y" on variables and strings just works
+	cfg_bank0= $3f	; bank 0 all RAM, no I/O: to read BASIC program text
+	rcr_shared= $0f	; $d506: 16K shared at the bottom and the top (bits 0-3;
+			; bits 6-7, the VIC's bank, are kept). BASIC's variables
+			; then have to start at $4000 in bank 1 (intro.asm moves
+			; them), clear of the shared bottom 16K
 
 	bank	= $02	; 128: token 'search' looks for, or bank #
 	ssreg	= $05	; c64: 783/$030f. save .s register
@@ -249,8 +291,6 @@
 
 
 	sat	= $0376	; c64: $026d. secondary address table
-	chrget	= $0380	; c64: $0073
-	chrgot	= $0386 ; c64: $0079
 
 ; Byte Indices to the Beginning and End of Receive and Transmit Buffers
 
@@ -463,38 +503,46 @@
 ; RS-232 jump table: 21 bytes
 ;
 	rs232	= wedgemem + $12; 6418 / $1912
-	rsinabl = rs232 + $15	; 6421 / $1915
-	rsdisab = rs232 + $18	; 6424 / $1918
-	rsget	= rs232 + $1b	; 6427 / $191b
-	rsout	= rs232 + $1e	; 6430 / $191e
-	rsbaud	= rs232 + $21	; 6433 / $1921
-	rschar	= rs232 + $24	; 6436 / $1924
+	rsinabl = rs232 + $03	; 6421 / $1915
+	rsdisab = rs232 + $06	; 6424 / $1918
+	rsget	= rs232 + $09	; 6427 / $191b
+	rsout	= rs232 + $0c	; 6430 / $191e
+	rsbaud	= rs232 + $0f	; 6433 / $1921
+	rschar	= rs232 + $12	; 6436 / $1924
 ;
-; interface page jump table (39 bytes)
+; interface page jump table (39 bytes; c64: $cd00, the same offsets)
 ;
-	outastr	= rs232 + $27	; 6439 / $1927: output a$
+	iface	= rs232 + 21	; 6439 / $1927
+	outastr	= iface + 0	; 6439 / $1927: output a$
 	outastrp= outastr	; c64: $cd00. the "jmp outastr" entry itself: swap3's
 				; copyrite reads its target from outastrp+1/+2
-	usetbl1	= rs232 + $2a	; 6442 / $192a: '&' addresses table at $a000
-	swapper	= rs232 + $2d	; 6445 / $192d: swap pages of memory
-	swapagn	= rs232 + $30	; 6448 / $1930: re-swap same pages set up by 'swapper'
-	trace	= rs232 + $33	; 6451 / $1933: BASIC line number trace
-	chkspcl	= rs232 + $36	; 6454 / $1936: check for special chars in a$ [?]
-	convchr	= rs232 + $39	; 6457 / $1939: convert special characters in a$ [?]
-	fnvar	= rs232 + $3c	; 6460 / $193c: find variable
-	fnvar1	= rs232 + $3f	; 6463 / $193f: ?
-	evalstr	= rs232 + $42	; 6466 / $1942: evaluate string
-	evalbyt	= rs232 + $45	; 6469 / $1945: evaluate byte
-	evalint	= rs232 + $48	; 6472 / $1948: evaluate integer
-	evalfil	= rs232 + $4b	; 6475 / $194b: evaluate filename?
+	usetbl1	= iface + 3	; 6442 / $192a: '&' addresses table at $a000
+	swapper	= iface + 6	; 6445 / $192d: swap pages of memory
+	swapagn	= iface + 9	; 6448 / $1930: re-swap same pages set up by 'swapper'
+	trace	= iface + 12	; 6451 / $1933: BASIC line number trace
+	chkspcl	= iface + 15	; 6454 / $1936: check for special chars in a$ [?]
+	convchr	= iface + 18	; 6457 / $1939: convert special characters in a$ [?]
+	fnvar	= iface + 21	; 6460 / $193c: find variable
+	fnvar1	= iface + 24	; 6463 / $193f: ?
+	evalstr	= iface + 27	; 6466 / $1942: evaluate string
+	evalbyt	= iface + 30	; 6469 / $1945: evaluate byte
+	evalint	= iface + 33	; 6472 / $1948: evaluate integer
+	evalfil	= iface + 36	; 6475 / $194b: evaluate filename?
 
 ; buffers:
 
-	buf2	= rs232	+ $4e	; 6478 / $194e-$199e: 80 / $50 bytes. c64: $ce27
-	buffer	= buf2	+ $50	; 6558 / $199e-$19ee: 80 / $50 bytes. c64: $ce77
+; the buffer page (c64: $ce00): $0e00-$0fff, the sprite definition area
+; (no sprites here). buffer-page.asm lays its data out at these addresses.
+
+	bufpage	= $0e00
+	d1str	= bufpage + $00	; 11 bytes
+	spchars	= bufpage + $0b	; 8 bytes: what the encoded f-keys print as
+	fbuf	= bufpage + $13	; 20 bytes: filename buffer. c64: $ce13
+	buf2	= bufpage + $27	; 80 bytes. c64: $ce27
+	buffer	= bufpage + $77	; 80 bytes. c64: $ce77
 ;	longdate= buffer+ ?	; starts at $cec7? im 3170 $ce77 + $50 = $cf17
 
-; $19dc-$1bff: $0223 / 547 bytes free
+; $194e-$19ff: free (buf2 and buffer are in the buffer page at $0e00)
 
 ; TODO: $1a00-$1bff: $1ff / 511 bytes. room for IRQ/& jump tables?
 
@@ -581,73 +629,210 @@
 	addrbyt	= $8803	; calls addrbyt (16-bit), chkcom (,), getbyt (8-bit).
 			; returns .x: 8-bit value, < $16, > $17: 16-bit value.
 
-; FIXME BASIC ROM routines:
+; ROM routines. k_* is each one's real address: BASIC 7.0 and KERNAL
+; entries checked against kernal-318020-05, basiclo-318018-04 and
+; basichi-318019-04 (VICE's images) next to the C64 routine they replace,
+; on 2026-10-19; [af..] marks an address taken from BASIC 7.0's jump
+; table at $af00 (Compute's 128 Programmer's Guide, pp. 323-324).
+;
+; Image's ML runs with cfg_ml in $ff00 (BASIC and KERNAL ROMs out; see
+; "MMU" above), so it can't jsr a ROM routine directly: the plain names
+; below (chrout, chkcom...) are stubs in romtab.asm that switch to cfg_rom,
+; call k_*, and put the caller's $ff00 back. Code that runs under BASIC's
+; own configuration (the wedge) defines direct_rom before including this
+; file, which makes the plain names the k_* addresses themselves.
+;
+; To add one: give it a k_ address here, add it to both lists below with
+; the next entry number (and bump romtab_entries), and add its stub to the
+; end of romtab.asm.
 
-	newstt	= $4af6	; c64: $a7ae. Execute the next BASIC statement
-	ready	= $4d37	; c64: $a474. jump to basic "ready." prompt [verified]
-	error	= $4d7c	; c64: $a437. print specified error in .x
+	k_chrget	= $0380	; c64: $0073. RAM routine; ends in bank 15
+	k_chrgot	= $0386	; c64: $0079
+	k_chkcom	= $795c	; c64: $aefd. check for a comma or ?syntax error
+	k_frmnum	= $77d7	; c64: $ad8a. evaluate numeric expression into FAC1
+	k_frmevl	= $77ef	; c64: $ad9e. evaluate any expression [af96]
+	k_frestr	= $877e	; c64: $b6a3. discard temp string: .a len, $24/$25 addr
+	k_getbytc	= $87f4	; c64: $b79e (not $b79b: no chrget first). byte in .x
+	k_getadr	= $8815	; c64: $b7f7. FAC1 to 16-bit linnum ($16/$17) [af0c]
+	k_fout		= $8e42	; c64: $bddd. FAC1 to ASCII at $0100 [af06]
+	k_jfout		= $8e32	; c64: $bdcd. print 16-bit .a (hi) .x (lo)
+	k_ptrget	= $7aaf	; c64: $b08b. find/create variable named in text
+	k_ptrget1	= $7b0b	; c64: $b0e7. find/create variable named in varnam
+	k_makerm1	= $8688	; c64: $b475. allocate a string of length .a
+	k_linkprg	= $4f4f	; c64: $a533. relink BASIC lines [af87]
+	k_getfile	= $91ae	; c64: $e1d4. parse "name",dev,sa and setnam/setlfs
+	k_prtscn	= $c72d	; c64: $e716. print .a on the screen [verified]
+	k_givayf	= $793c	; c64: $b391. signed integer .a (hi) .y (lo) to FAC1 [af03]
+	k_linget	= $50a0	; c64: $a96b. line number from text into linnum [af9f]
+	k_parchk	= $7950	; c64: $aef1. "(" expression ")"
+	k_setmsg	= $ff90
+	k_readst	= $ffb7
+	k_setlfs	= $ffba
+	k_setnam	= $ffbd
+	k_openf		= $ffc0
+	k_closef	= $ffc3
+	k_chkin		= $ffc6	; .x: lfn; set current input file
+	k_chkout	= $ffc9
+	k_clrchn	= $ffcc
+	k_chrin		= $ffcf
+	k_chrout	= $ffd2
+	k_loadf		= $ffd5
+	k_savef		= $ffd8
+	k_getin		= $ffe4
+	k_plot		= $fff0
+	k_setbnk	= $ff68	; .a: bank for load/save data, .x: bank for the filename
 
-	jfout	= $8e32	; c64: $bdcd. print 16-bit digit, > .a, < .x
-	fout	= $8e42	; c64: $bddd. floating point num to ascii digits.
-	primm	= $9281	; 128: print immediate: print null-terminated string after call
-	linkprg	= $af87 ; c64: $a533
-	gone1	= $4aa2 ; c64: $a7e7. for extra keywords
-	gone2	= $4ba9	; c64: $a7ea. jmp newstt. FIXME
-			; 128: 2nd byte in 2-byte tokens
-	gosub	= $59cf	; c64: $a883. handle the 'gosub' statement
-	goto	= $59db	; c64: $a8a0. handle the 'goto' statement
-	run	= $5a9b ; c64: $a871. handle the 'run' statement
-	linget	= $50a0	; c64: $a96b. Creates integer value from a character string
-	frmnum	= $77d7	; c64: $ad8a. get arbitrary numeric expression. returns in fac1.
-	getadr	= $880f	; c64: $b7f7. call chkcom, frmnum, adrfor.
-	adrfor	= $8815 ; c128 only? get 16-bit number in fac1, return < .y & $16, > .a & $17
-	frmevl	= $779f	; c64: $ad9e. evaluate string/math expressions
-	eval1	= $ae8d	; c64: $ae8d. c128: near eval, $78d7 FIXME
-	parchk	= $7950	; C64: $aef1. parentheses check: '(', ')'
-	chkcom	= $795c	; c64: $aefd. check if next character is comma, return "?syntax  error" if not
-	synerr	= $4c83	; c64: $af08. emit "?syntax  error" [verified]
+; these don't return to their caller, so they're reached with
+; farjmp_<name> in glue.asm (switch to cfg_rom, jmp) instead of a stub
 
-	ptrget	= $7aaf ; c64: $b08b. read variable name from BASIC text.
-			; Search for a Variable and Set It Up If It Is Not Found
-			; Returns address < in .a & $49 (varpnt), > in .y & $4a (varpnt+1)
-	ptrget1	= $7b0b	; c64: $b0e7. search for variable name in ($47) [varnam],
-			; returns address in (varpnt)
-	ilqerr	= $7d28	; c64: $b248. issue "?illegal quantity  error"
-	givayf	= $8c70	; c64: $b391. integer to fac1
-	retbyt	= $b3a2	; FIXME c64: sta #$00, tax, stx valtyp [$0f] (numeric), sta var+1 [$64, fac1+1],
-			; sty var+2 [$65, fac1+2], ldx #$90, lda $62 (sign?), eor #$ff (invert?), ...?
-	makerm1	= $b475	; c64: midway through str$(). C128: FIXME
-	frestr	= $877e	; c64: $b6a3: discard a temporary string
-	getbytc	= $87f4	; c64: $b79b. convert ascii program text value 0-255 to value in .x
-	retval	= $bc49	; FIXME
+	k_newstt	= $4af6	; c64: $a7ae. next statement [af90]
+	k_gone1		= $4af3	; c64: $a7e7. execute the statement chrget just read,
+				; then newstt (the default IGONE, $4aa2, from past
+				; its sprite-collision code and chrget at $4af0)
+	k_gone2		= k_newstt ; c64: $a7ea (jmp newstt)
+	k_eval1		= $78e1	; c64: $ae8d. default IEVAL ($78da) past its chrget
+	k_error		= $4d3c	; c64: $a437. jmp (IERROR), .x = error number
+	k_ready		= $4d37	; c64: $a474. "ready." prompt [verified]
+	k_run		= $5a9b	; c64: $a871. RUN [af7b]
+	k_retval	= $8c75	; c64: $bc49. float the integer in FAC1 with exponent .x
+				; (FLOATC [af0f]; enter with sec for positive)
+	k_ilqerr	= $7d28	; c64: $b248. ?illegal quantity error
+	k_synerr	= $4c83	; c64: $af08. ?syntax error [verified]
+	k_goto		= $59db	; c64: $a8a0. FIXME: Image's "jsr goto+3" (after
+				; linget) doesn't map: the 128's GOTO differs past it
+	k_syscll	= $5885	; c64: $e130. FIXME: re-evaluates its argument
+	k_exitint	= $ff33	; c64: $ea81. exit IRQ: restore $ff00, .y, .x, .a, rti
+	k_primm		= $9281	; 128 only: print the null-terminated string after the jsr
+
+{ifdef:direct_rom}
+	chrget	= k_chrget
+	chrgot	= k_chrgot
+	chkcom	= k_chkcom
+	frmnum	= k_frmnum
+	frmevl	= k_frmevl
+	frestr	= k_frestr
+	getbytc	= k_getbytc
+	getadr	= k_getadr
+	fout	= k_fout
+	jfout	= k_jfout
+	ptrget	= k_ptrget
+	ptrget1	= k_ptrget1
+	makerm1	= k_makerm1
+	linkprg	= k_linkprg
+	getfile	= k_getfile
+	prtscn	= k_prtscn
+	givayf	= k_givayf
+	linget	= k_linget
+	parchk	= k_parchk
+	setmsg	= k_setmsg
+	readst	= k_readst
+	setlfs	= k_setlfs
+	setnam	= k_setnam
+	openf	= k_openf
+	closef	= k_closef
+	chkin	= k_chkin
+	chkout	= k_chkout
+	clrchn	= k_clrchn
+	chrin	= k_chrin
+	chrout	= k_chrout
+	loadf	= k_loadf
+	savef	= k_savef
+	getin	= k_getin
+	plot	= k_plot
+	setbnk	= k_setbnk
+	newstt	= k_newstt
+	gone1	= k_gone1
+	gone2	= k_gone2
+	eval1	= k_eval1
+	error	= k_error
+	ready	= k_ready
+	run	= k_run
+	retval	= k_retval
+	ilqerr	= k_ilqerr
+	synerr	= k_synerr
+	goto	= k_goto
+{else}
+; stubs in romtab.asm, 7 bytes each (jsr farcall / byte cfg_rom / word k_* / rts)
+	chrget	= romtab + 7*0
+	chrgot	= romtab + 7*1
+	chkcom	= romtab + 7*2
+	frmnum	= romtab + 7*3
+	frmevl	= romtab + 7*4
+	frestr	= romtab + 7*5
+	getbytc	= romtab + 7*6
+	getadr	= romtab + 7*7
+	fout	= romtab + 7*8
+	jfout	= romtab + 7*9
+	ptrget	= romtab + 7*10
+	ptrget1	= romtab + 7*11
+	makerm1	= romtab + 7*12
+	linkprg	= romtab + 7*13
+	getfile	= romtab + 7*14
+	prtscn	= romtab + 7*15
+	givayf	= romtab + 7*16
+	linget	= romtab + 7*17
+	parchk	= romtab + 7*18
+	setmsg	= romtab + 7*19
+	readst	= romtab + 7*20
+	setlfs	= romtab + 7*21
+	setnam	= romtab + 7*22
+	openf	= romtab + 7*23
+	closef	= romtab + 7*24
+	chkin	= romtab + 7*25
+	chkout	= romtab + 7*26
+	clrchn	= romtab + 7*27
+	chrin	= romtab + 7*28
+	chrout	= romtab + 7*29
+	loadf	= romtab + 7*30
+	savef	= romtab + 7*31
+	getin	= romtab + 7*32
+	plot	= romtab + 7*33
+	setbnk	= romtab + 7*34
+	romtab_entries = 35
+{endif}
+
+
+
 
 ;
-; address of modules in the ml file (where they initially load)
+; where the boot loads each part of the ML. ml.asm assembles everything at
+; these addresses and tools/split-ml.py cuts the result into files: the
+; modules into bank 1 (above vartop, where they wait swapped out), the
+; rest into bank 0. Nothing is moved at startup but the module in use.
 ;
-	wedge_load_address	= $6c00
-	editor_load_address	= $7000
-	gc_load_address		= $8000
-	ecs_load_address	= $8400
-	struct_load_address	= $8e00
-	swap1_load_address	= $9400
-	swap2_load_address	= $9800
-	swap3_load_address	= $9c00
+	glue			= $3600	; $3600-$3fff: glue.asm, visible in every
+					; configuration (shared bottom 16K)
+	romtab			= $c000	; romtab.asm, then the resident ML:
+	resident_lo_end		= $d000	;   $c000-$cfff
+	resident_hi		= $e000	;   and $e000-$feff ($ff00-: MMU, and the
+	resident_hi_end		= $ff00	;   KERNAL's interrupt code in RAM)
+
+	wedge_load_address	= $2f00	; bank 0: loads where it runs
+	editor_load_address	= $9000	; bank 1, $9000-$bfff: 48 pages
+	gc_load_address		= $a000
+	ecs_load_address	= $a400
+	struct_load_address	= $ae00
+	swap1_load_address	= $b400
+	swap2_load_address	= $b800
+	swap3_load_address	= $bc00
 
 ; address of modules when they are executing
 ; swap modules use protostart if not listed here
-	rs232_exec_address	= $0c00
+	rs232_exec_address	= $2c00	; $2c00-$2eff (the KERNAL's RS-232
+					; buffers stay at $0c00-$0dff)
 	wedge_exec_address	= $2f00
 	editor_exec_address	= protostart
 
-; address of modules when they are "swapped out," waiting to be used
+; address of modules when they are "swapped out," waiting to be used:
+; where they load (bank 1, seen at these addresses in cfg_ml)
 
-	editor_swap_address	= $d000
-	gc_swap_address		= $e000
-	ecs_swap_address	= $e400
-	struct_swap_address	= $ee00
-	swap1_swap_address	= $f400
-	swap2_swap_address	= $f800
-	swap3_swap_address	= $fc00
+	editor_swap_address	= editor_load_address
+	gc_swap_address		= gc_load_address
+	ecs_swap_address	= ecs_load_address
+	struct_swap_address	= struct_load_address
+	swap1_swap_address	= swap1_load_address
+	swap2_swap_address	= swap2_load_address
+	swap3_swap_address	= swap3_load_address
 
 ; (gc and ecs run at protostart; ml.asm works out gc_pages and ecs_pages
 ; from the size of gc.bin and ecs.bin)
@@ -655,7 +840,7 @@
 ; the wedge's names for gc (c64: gc = $c000, gchide = $e000, gclen = 4)
 	gc	= protostart	; where gc runs
 	gchide	= gc_swap_address ; where gc waits, swapped out
-	gclen	= 4		; pages: gc_load_address $8000-$83ff
+	gclen	= 4		; pages: gc_load_address (bank 1) to ecs_load_address
 
 ; CIA #1 (same addresses on the 128)
 	timblo	= $dc06	; timer B low byte
@@ -672,6 +857,7 @@
 	tsr	= $d003 ; 53251: time remaining on call - needed by inline.s [?]
 	llen	= $d004 ; 53252: max input line length for &,1 or £Ix
 	flag	= $d005 ; 53253
+	someflag= flag	; the C64 source's other name for it (strio.asm, irqhn.asm)
 	chat	= $d006 ; 53254: [1.2] Flag for returning from & for an abort
 	inchat	= $d007 ; 53255
 	chatpage= $d008 ; 53256: [1.2] 1=flashing chat page on
@@ -699,28 +885,9 @@
 
 	romcolors= $0a80; c64: $e8da. table of chr$() values to print colors
 
-; Kernal routines:
 
-	syscll	= $5885	; c64: $e130. handle sys statement
-	getfile	= $91ae	; C64: $e1d4/57812 (print last filename in BASIC)
-	prtscn	= $c72d	; c64: $e716. output char in .a to screen regardless of output device [verified]
 
-	exitint	= $ff37	; c64: $ea81. exit interrupt; pull registers off stack, RTI
 
-	setmsg	= $ff90
-	readst	= $ffb7
-	setlfs	= $ffba
-	setnam	= $ffbd
-	openf	= $ffc0
-	closef	= $ffc3
-	chkin	= $ffc6	; same. .x: lfn#; set current input file
-	chkout	= $ffc9
-	clrchn	= $ffcc
-	chrin	= $ffcf
-	chrout	= $ffd2
-	loadf	= $ffd5
-	savef	= $ffd8
-	getin	= $ffe4
 
 ;
 ; Extended BASIC tokens:
@@ -736,13 +903,12 @@
 ;
 ; module addresses:
 ;
-	death	= $1800 ; 1.3 is $0800
-	prgstart= $1801	; im
-	bmpstart= $2001
-	mmpstart= $3001
-	lmpstart= $4001
-	prgend	= $5000
-	imstart	= $5001
+	prgstart= $4001	; im: BASIC text in bank 0 starts here (txttab), $4000 = 0
+	textop	= $c000	; top of BASIC text in bank 0 ($1212), below the ML
+	varstart= $4000	; bank 1: BASIC's variables start (vartab); BASIC sets
+			; $0400 at power-up, which rcr_shared would put in bank 0
+	vartop	= $9000	; bank 1: top of variables and strings ($39, $0a07);
+			; the swapped-out modules are above it
 ;
 ; module line #s/sizes:
 ;

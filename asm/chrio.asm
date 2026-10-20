@@ -2,9 +2,9 @@
 
 ; * output character in .a
 ; * preserve registers
-@xchrout:
+xchrout:
 	sta $fe
-@xchrout1:
+xchrout1:
 	tya
 	pha
 	txa
@@ -20,7 +20,7 @@ xchrout2:
 
 ; * output character, and
 ; * get response character
-@output:
+output:
 	jsr outchr
 	jsr getchr
 	ldx #$a0
@@ -286,13 +286,13 @@ outptr4:
 	rts
 
 ; * output carriage return
-@prcr:
+prcr:
 	lda #$0d
-	jmp <@xchrout
+	jmp xchrout
 ; * output delete character
-@prdel:
+prdel:
 	lda #$14
-	jmp <@xchrout
+	jmp xchrout
 
 ; * character input routines *
 
@@ -322,7 +322,7 @@ xgetchr0:
 	jsr getchr
 	jsr carchk
 	bne xgetchr1
-	jsr <@chatchk
+	jsr chatchk
 	bne xgetchr1
 	lda $fe
 	beq xgetchr0
@@ -349,7 +349,7 @@ inchr:
 ; * get character
 ; * with case setting
 getchr:
-	jsr >@getkbd
+	jsr getkbd
 	bne getchr1
 	jsr carchk4
 	bne getchr7
@@ -447,7 +447,7 @@ getchr14:
 	sta $fe
 	rts
 
-@getkbd:
+getkbd:
 	jsr crsron
 getkbd0:
 	ldx fkeybuf
@@ -504,7 +504,7 @@ getmdm6:
 ;    A = 1, if not local and carrier dropped (writes 0 to time remaining)
 ;    A = 2, if not local and time expired
 
-@carchk:
+carchk:
 	lda local
 	bne carchk_is_local_or_has_carrier
 
@@ -562,7 +562,7 @@ carchk5:
 	rts
 
 ;  TODO probably doesn't need to be in jmptbl any more
-@chatchk:
+chatchk:
 	lda flag_cht_addr
 	and #flag_cht_l_mask
 	rts

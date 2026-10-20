@@ -173,50 +173,50 @@ ctrlchk0:
 	rts
 
 ;  carry clear if control char
-@ctrlchk:
+ctrlchk:
 	pha
 	lda editor
 	and #1
-	beq >@ctrlch0
+	beq ctrlch0
 	pla
-@ctrlchk1:
-	jsr >@colorchk
-	bcc >@ctrlch2
+ctrlchk1:
+	jsr colorchk
+	bcc ctrlch2
 	jsr ctrlchk2
-	bcc >@ctrlch2
+	bcc ctrlch2
 	pha
-@ctrlch0:
+ctrlch0:
 	pla
 	cmp #32
-	bcc >@ctrlch1
+	bcc ctrlch1
 	cmp #128
-	bcc >@ctrlch2
+	bcc ctrlch2
 	cmp #160
-	bcs >@ctrlch2
+	bcs ctrlch2
 	cmp #133
-	bcc >@ctrlch1
+	bcc ctrlch1
 	cmp #141
-	bcs >@ctrlch1
-@ctrlch2:
+	bcs ctrlch1
+ctrlch2:
 	sec
 	rts
-@ctrlch1:
+ctrlch1:
 	clc
 	rts
 
 ;  carry clear if color chr
-@colorchk:
+colorchk:
 	sty cytmp
 	ldy #15
-@colrch0:
+colrch0:
 	cmp colors,y
-	beq >@colrch1
+	beq colrch1
 	dey
-	bne <@colrch0
+	bne colrch0
 	ldy cytmp
 	sec
 	rts
-@colrch1:
+colrch1:
 	ldy cytmp
 	clc
 	rts

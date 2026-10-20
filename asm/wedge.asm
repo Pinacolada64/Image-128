@@ -1,3 +1,8 @@
+; wedge.asm -- Image's BASIC hooks: & and the $hex constant, LOAD and
+; NEW for modules, and error trapping. Runs at wedge_exec_address in
+; BASIC's own configuration (cfg_rom), so it calls BASIC and the KERNAL
+; directly: direct_rom gives it their real addresses.
+{def:direct_rom}
 {include:"equates.asm"}
 orig wedge_exec_address
 ; jump table
@@ -39,6 +44,11 @@ tload:
 	jsr openroom
 	jmp gone2
 
+; FIXME (128): openroom loads a module into the middle of the program the
+; C64 way, moving the variables (oprm/clrm) out of the way first. On the
+; 128 the variables are in bank 1, apart from the program text in bank 0:
+; nothing needs moving, and these loops can't reach bank 1 from cfg_rom
+; anyway. Not needed to boot; needed for im's module loads.
 openroom:
 	ldy #0
 openroo1:
@@ -56,7 +66,7 @@ openroo2:
 	lda sa		; $b9
 	and #31
 	sta loadflag
-	jsr collect
+	jsr forcegc	; collect, in cfg_ml
 	ldx strend	; $31
 	ldy strend+1	; c64: $32
 	stx sal		; c64: $ac
@@ -261,48 +271,6 @@ oprm4:
 	cli
 	rts
 
-pokefix:
-	lda $15
-	cmp #$40
-	bcc pokefix1
-	cmp #$43
-	bcc pokefix0
-	cmp #$46
-	bcc pokefix1
-	cmp #$4a
-	bcs pokefix1
-	sec
-	sbc #$03
-pokefix0:
-	sec
-	sbc #$30
-	sta $15
-pokefix1:
-	rts
-
-tpoke:
-	jsr chrget
-	jsr getbytc	; was getnum (label only used once here)
-	jsr pokefix
-	ldy #0
-	txa
-	sta ($14),y
-	jmp gone2
-
-tsys:
-	jsr chrget
-	jsr frmnum
-	jsr getadr
-	lda linnum	; c64: $15
-	cmp #$ff
-	beq tsys1
-	cmp #$c0
-	beq tsys1
-	jmp ilqerr
-tsys1:
-	jsr syscll
-	jmp gone2
-
 tnew:
 	jsr chrget
 	jsr linget
@@ -328,7 +296,7 @@ thex2:
 	ldx #4
 thex3:
 	asl var+2	; c64: $63
-	rol var		; c64: $62
+	rol var+1	; c64: $62
 	bcs thex4
 	dex
 	bne thex3
@@ -342,24 +310,6 @@ thex5:
 	sec
 	jmp retval
 
-tpeek:
-	jsr chrget
-	jsr parchk
-	lda $14
-	pha
-	lda $15
-	pha
-	jsr getadr
-	jsr pokefix
-	ldy #0
-	lda ($14),y
-	tay
-	pla
-	sta $15
-	pla
-	sta $14
-	jmp retbyt
-
 tampr:
 	jsr chrget
 	jsr getaxy
@@ -372,7 +322,7 @@ wgone:
 	lda fretop+1	; c64: $34/52
 	sbc strend+1	; c64: $32/50
 	bne wgone1
-	jsr collect
+	jsr forcegc	; collect, in cfg_ml (glue.asm's wedge_far)
 	lda fretop	; c64: $33/51
 	cmp strend	; c64: $31/49
 	lda fretop+1	; c64: $34/52
@@ -381,22 +331,16 @@ wgone:
 ; less than 256 bytes free, force
 ; out of memory error for safety
 	ldx #1
-	jsr arrayrs0
+	jsr arrayres	; arrayrs0, in cfg_ml
 	ldx #16
 	jmp error ;outofm
 wgone1:
-	lda #r6510_basic_ram
-	sta r6510
-	jsr trace
-	lda #r6510_normal
-	sta r6510
+	jsr trace	; trace_far: the ML's trace0, in cfg_ml
 	jsr chrget
 	cmp #'&'
 	beq ampr0
-	cmp #poketok
-	beq poke0
-	cmp #systok
-	beq sys0
+; c64: POKE and SYS came here too (pokefix's C64 address remapping and
+; a SYS filter); the 128 uses BASIC 7.0's own, which honor BANK
 	cmp #loadtok
 	beq load0
 	cmp #newtok
@@ -410,25 +354,17 @@ weval:
 	stx valtyp	; $d
 	cmp #'$'
 	beq hex0
-	cmp #peektok
-	beq peek0
 	jsr chrgot
 	jmp eval1
 
 ampr0:
 	jmp tampr
-poke0:
-	jmp tpoke
-sys0:
-	jmp tsys
 load0:
 	jmp tload
 new0:
 	jmp tnew
 hex0:
 	jmp thex
-peek0:
-	jmp tpeek
 
 getaxy:
 	jsr getparm
@@ -447,6 +383,7 @@ getparm:
 	ldx #0
 	cmp #comma
 	bne getparm1
+	jsr chrget	; c64: getbytc ($b79b) did this itself
 	jsr getbytc
 getparm1:
 	rts
@@ -463,7 +400,7 @@ wtrap:
 	sta IERROR+1	; $301
 	ldx #$fa
 	txs
-	lda #25
+	lda #$1b	; c64: 25 ($19); the 128's temp string stack starts at $1b
 	sta temppt	; c64: $16/22
 	lda #<trapline
 	sta linnum	; c64: $14
@@ -473,8 +410,8 @@ wtrap:
 	jmp newstt	; c64: $a7ae
 
 install:
-	lda #<$e38b
-	ldx #>$e38b
+	lda #<$4d3f	; the 128's default IERROR (c64: $e38b)
+	ldx #>$4d3f
 	jmp install1
 install0:
 	lda #<wtrap0

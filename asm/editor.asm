@@ -1988,9 +1988,4 @@ conver1a:
 	and #127
 	rts
 
-spchars:
-	ascii ",:"
-	byte 34
-	ascii "*?="
-	byte 13
-	ascii "^"
+; spchars: the buffer page's (equates.asm), the same 8 bytes

@@ -84,13 +84,11 @@ ecsgoto:
 	sta $14
 	lda varbuf
 	sta $15
-	lda r6510
-	pha
-	lda #r6510_normal
-	sta r6510
-	jsr goto+3	; c64: $a8a3
-	pla
-	sta r6510
+; FIXME (128): the C64 code switched BASIC in and called goto+3 ($a8a3,
+; GOTO past its linget) with the line number in $14/$15. The 128's GOTO
+; ($59db) works differently past linget, and its linnum is $16/$17: this
+; needs its own way to find the line (ml.asm's mlgoto too). Until then an
+; ECS command that jumps to a line does nothing.
 	rts
 
 ecschk:

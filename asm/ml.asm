@@ -4,6 +4,98 @@
 {include:"equates.asm"}
 
 ;;;
+;;; Everything is assembled where it runs (or, for the modules, where it
+;;; waits swapped out), in address order: orig only moves forward, so a
+;;; part that outgrows its space stops the build. tools/split-ml.py cuts
+;;; the result into the files the boot loads. Addresses: equates.asm.
+;;;
+
+;;;
+;;; buffer page: $0e00
+;;;
+
+	orig bufpage
+{include:buffer-page.asm}
+
+;;;
+;;; wedge jump table ($1900), RS-232 jump table ($1912) and interface jump
+;;; table ($1927). The RS-232 entries are rts until a driver is loaded
+;;; (&,16); the wedge's entries go through glue.asm into cfg_rom.
+;;;
+
+	orig wedgemem
+	jmp wedge_far+0		; trapoff
+	jmp wedge_far+7		; trapon
+	jmp wedge_far+14	; loadprg
+	jmp wedge_far+21	; arraysav
+	jmp wedge_far+28	; arrayres
+	jmp wedge_far+35	; forcegc
+
+	orig rs232
+	area 21, $60		; rts
+
+	orig outastr
+hcd00:
+	jmp outastr_ml
+hcd03:
+	jmp usetbl_far	; the wedge calls this in cfg_rom
+hcd06:
+	jmp swapper0
+hcd09:
+	jmp swapagn0
+hcd0c:
+	jmp trace_far	; the wedge calls this in cfg_rom
+hcd0f:
+	jmp chkspcl0
+hcd12:
+	jmp convchr0
+hcd15:
+	jmp fnvar0
+hcd18:
+	jmp fnvar2
+hcd1b:
+	jmp evalstr0
+hcd1e:
+	jmp evalbyt0
+hcd21:
+	jmp evalint0
+hcd24:
+	jmp evalfil0
+
+
+;;;
+;;; & jump table: $1a00
+;;;
+
+	orig jmptbl
+{include:"jmptb.asm"}
+
+;;;
+;;; intro "protocol": runs at protostart, once, at boot (and setup again
+;;; from im's "sys 7171")
+;;;
+
+	orig protostart
+{include:"intro.asm"}
+
+;;;
+;;; wedge: $2f00
+;;;
+
+	orig wedge_exec_address
+	embed "wedge.bin"
+	align $100,$00
+wedge_pages = (* - wedge_exec_address) / 256
+
+;;;
+;;; glue: $3600-$3fff
+;;;
+
+	orig glue
+{include:"glue.asm"}
+	addrcheck $4000
+
+;;;
 ;;; modules: each starts at its *_load_address from equates.asm, the one
 ;;; place module addresses are set (intro.asm and the swapper use them
 ;;; too). orig only moves forward, so a module that outgrows its slot
@@ -11,15 +103,6 @@
 ;;; runs (*_exec_address) and waits swapped out (*_swap_address) is in
 ;;; equates.asm as well.
 ;;;
-
-;;;
-;;; wedge: $6c00, runs at wedge_exec_address
-;;;
-
-	orig wedge_load_address
-	embed "wedge.bin"
-	align $100,$00
-wedge_pages = (* - wedge_load_address) / 256
 
 ;;;
 ;;; text editor: $7000
@@ -85,54 +168,11 @@ swap2_pages = (* - swap2_load_address) / 256
 swap3_pages = (* - swap3_load_address) / 256
 
 ;;;
-;;; FIXME: these have no place in equates.asm's memory map yet, so they
-;;; follow swap3 for now (where the C64's ml.s puts jmptbl and the
-;;; resident code). Give each a *_load_address (and where it runs) in
-;;; equates.asm and an orig here, like the modules above.
+;;; resident ML: $c000-$cfff, then $e000-$feff
 ;;;
 
-;;;
-;;; rs232: runs at rs232_exec_address
-;;;
-
-rs232_load_address = *
-	embed "rs232.bin"
-	align $100,$00
-rs232_pages = (* - rs232_load_address) / 256 ; should be 2
-
-;;;
-;;; buffer page
-;;;
-
-buffer_page_start = *
-{include:buffer-page.asm}
-	align $100,$00
-buffer_pages = (* - buffer_page_start) / 256
-
-;;;
-;;; & jump table: swap $1a00
-;;; just addresses, no need for a .bin file
-;;;
-
-jmptb_load_address = *
-jmptb_swap_address = $1a00
-{include:"jmptb.asm"}
-	align $100,$00
-jmptb_pages = (* - jmptb_load_address) / 256
-
-;;;
-;;; intro "protocol": runs at protostart
-;;;
-
-intro_load_address = *
-intro_swap_address = protostart
-	embed "intro.bin"
-	align $100,$00
-intro_pages = (* - intro_load_address) / 256
-
-;;;
-;;; resident code
-;;;
+	orig romtab
+{include:"romtab.asm"}
 
 {include:"strio.asm"}
 
@@ -142,11 +182,15 @@ intro_pages = (* - intro_load_address) / 256
 
 {include:"dskio.asm"}
 
-{include:"irqhn.asm"}
-
 {include:"setup.asm"}
 
 {include:"varbl.asm"}
+
+	addrcheck resident_lo_end
+
+	orig resident_hi
+
+{include:"irqhn.asm"}
 
 {include:"miscl.asm"}
 
@@ -158,10 +202,6 @@ intro_pages = (* - intro_load_address) / 256
 
 {include:"calls.asm"}
 
-align $100,$00
-
-addrcheck $ca00
-
 swapper0:
 	sta swappg1	; source page
 	sty swappg2	; destination page
@@ -171,10 +211,6 @@ swapagn0:
 	sta tdisp+31
 	jsr rsdisab
 	sei
-	lda r6510
-	pha
-	lda #r6510_all_ram
-	sta r6510
 swappg1 = *+1
 	lda #$00
 	sta fac2+1	; c64: $6a
@@ -200,8 +236,6 @@ swapr1:
 	inc fac2+3	; c64: $6c
 	dec fac2+4	; c64: $6d
 	bne swapr1
-	pla
-	sta r6510
 	cli
 	jsr rsinabl
 	lda #$a0	; reverse space
@@ -215,7 +249,7 @@ getversn:
 	sta var+1
 	lda #>version
 	sta var+2
-	ldx #a_string ;a$
+	ldx #var_a_string ;a$
 	jsr putvar
 
 	ldy #4
@@ -236,53 +270,23 @@ scrnset:
 ; find a BASIC variable
 
 findvar1:
-; TODO: jsr bank_in_vars
-	lda r6510
-	pha
-	lda #r6510_normal
-	sta r6510
-	jsr ptrget1
-	jmp >@exitint
+	jmp ptrget1
 
 ; relink BASIC program lines
 
 relink:
-	lda r6510
-	pha
-	lda #r6510_normal
-	sta r6510
-	jsr linkprg
-	jmp >@exitint
+	jmp linkprg
 
+; print the number in .a (c64: lda #0 / jsr $bdcd)
 fpout:
-; FIXME: output floating point value in .a
-;	lda r6510
-;	pha
-;	lda #r6510_normal
-;	sta r6510
 	tax
 	lda #$00
-;	jsr bank_in_vars
-	jsr jfout	; c128: $8e32. print 16-bit digit, > .a, < .x
-;	jsr fout	;  c64: $bddd. convert contents of fac1 to string, pointed to by > .a < .y
-;	jsr bank_in_prg
-	jmp >@exitint
+	jmp jfout	; c128: $8e32. print 16-bit digit, > .a, < .x
 
 ; make a dynamic string
 
 makeroom:
-	tax
-	lda r6510
-	pha
-	lda #r6510_normal
-	sta r6510
-	txa
-	jsr makerm1
-@exitint:
-; local label; the global label is $ff37
-	pla
-	sta r6510
-	rts
+	jmp makerm1
 
 mlgosub:
 	lda txtptr+1	; c64: $7b
@@ -296,22 +300,16 @@ mlgosub:
 	lda #$8d	; 'gosub' token
 	pha
 mlresume:
-	lda #r6510_normal
-	sta r6510
 mljump:
 	jsr mlgoto
-	jmp newstt	; c64: $a7ae
+	jmp farjmp_newstt	; c64: $a7ae
 
+; FIXME: the C64 code set linnum and called goto+3 (GOTO past its
+; linget); the 128's GOTO ($59db) does more after linget, so this needs
+; its own way to find the line. Until then it only sets linnum.
 mlgoto:
-	lda r6510
-	pha
-	lda #r6510_normal
-	sta r6510
 	stx linnum	; c64: $14
 	sty linnum+1	; c64: $15
-	jsr goto+3	; c64: $a8a3, 3 bytes past GOTO
-	pla
-	sta r6510
 	rts
 
 ;* output a$
@@ -320,7 +318,7 @@ outspace:
 	beq outspac2
 outspac1:
 ; .x: number of spaces to output
-	lda #" "
+	lda #$20	; " "
 	jsr xchrout
 	dex
 	bne outspac1
@@ -343,7 +341,7 @@ outastr0:
 	jsr chrget
 	beq outastr2
 outastr1:
-	cmp #";"
+	cmp #$3b	; semicolon
 	beq outastr0
 	cmp #comma	; ","
 	beq outcomma
@@ -351,23 +349,19 @@ outastr1:
 	stx var+1
 	sty var+2
 	sta var
-	jsr >@outstr
+	jsr outstr
 	jsr chrgot
 	bne outastr1
 outastr2:
 	rts
-@outastr:
+outastr_ml:
 	jsr chrgot
 	bne outastr1
 	ldx #1
 	jmp prtvar
 
 getstr:
-	lda r6510
-	pha
-	lda #r6510_normal
-	sta r6510
-	jsr frmeval	; c64: $ad9e
+	jsr frmevl	; c64: $ad9e
 	bit valtyp	; c64: $0d, $80=numeric
 	bpl getval
 	jsr frestr	; c64: $b6a3: frestr
@@ -386,24 +380,16 @@ getval1:
 	inx
 	bne getval1
 getstr1:
-	pla
-	sta r6510
 	txa
 	ldx index_24	; c64: $22
 	ldy index_24+1	; c64: $23
 	rts
 
 fnvar0:
-	lda r6510
-	pha
-	lda #r6510_normal
-	sta r6510
 	jsr chkcom
 	jsr ptrget	; c64: $b08b
 	ldx varpnt	; c64: $47
 	ldy varpnt+1	; c64: $48
-	pla
-	sta r6510
 	rts
 fnvar2:
 	jsr fnvar
@@ -412,56 +398,30 @@ fnvar2:
 	rts
 
 evalstr0:
-	lda r6510
-	sta rom0
-	lda #r6510_normal
-	sta r6510
 	jsr chkcom	; c64: $aefd
-	jsr frmeval	; c64: $ad9e
+	jsr frmevl	; c64: $ad9e
 	jsr frestr	; c64: $b6a3
-	pha
-	lda rom0
-	sta r6510
-	pla
 	ldx index_24	; c64: $22
 	ldy index_24+1	; c64: $23
 	rts
 
 evalbyt0:
-	lda r6510
-	sta rom0
-	lda #r6510_normal
-	sta r6510
 	jsr chkcom
 	jsr chrgot	; c64: $0079
-	jsr getbytc+3	; c64: $b79e. FIXME: getbytc+3
-	lda rom0
-	sta r6510
+	jsr getbytc	; c64: $b79e (getbytc+3): the 128's has no chrget
 	rts
 
 evalint0:
-	lda r6510
-	sta rom0
-	lda #r6510_normal
-	sta r6510
 	jsr chkcom
 	jsr frmnum
 	jsr getadr
 	ldx linnum	; c64: $14
 	ldy linnum+1	; c64: $15
-	lda rom0
-	sta r6510
 	rts
 
 evalfil0:
-	lda r6510
-	sta rom0
-	lda #r6510_normal
-	sta r6510
 	jsr chkcom
 	jsr getfile
-	lda rom0
-	sta r6510
 	rts
 
 convchr0:
@@ -475,37 +435,6 @@ convchr1:
 	and #127
 	rts
 
-	align $100,$00
-
-; interface page jmp table: $1b00
-
-hcd00:
-	jmp outastr
-hcd03:
-	jmp usetbl0
-hcd06:
-	jmp swapper0
-hcd09:
-	jmp swapagn0
-hcd0c:
-	jmp trace0
-hcd0f:
-	jmp chkspcl0
-hcd12:
-	jmp convchr0
-hcd15:
-	jmp fnvar0
-hcd18:
-	jmp fnvar2
-hcd1b:
-	jmp evalstr0
-hcd1e:
-	jmp evalbyt0
-hcd21:
-	jmp evalint0
-hcd24:
-	jmp evalfil0
-
 chkspcl0:
 	cmp #$85
 	bcc chkspcl1
@@ -515,7 +444,7 @@ chkspcl0:
 	sec
 	sbc #$85
 	tax
-	lda >@spchars,x
+	lda spchars,x
 	ldx cxsav
 chkspcl1:
 	cmp #0
@@ -530,16 +459,6 @@ usetbl0:
 	asl
 	tax
 
-; preserve ROM selection state
-
-	lda r6510
-	pha
-
-; make sure we can access RAM under the BASIC ROM
-
-	lda #r6510_basic_ram
-	sta r6510
-
 ; get the address from the jump table with interrupts disabled
 ; to avoid race conditions where interrupt code changes addresses in the
 ; jump table
@@ -553,49 +472,44 @@ usetbl0:
 	tax
 	plp
 
-; if the target is under the kernel, call using "caller" swap code to visible memory
-; (calls.asm)
+; if the target is in a swapped-out module (bank 1, gc_swap_address up to
+; the ML at romtab), call it through caller (calls.asm), which swaps it in;
+; anything else is visible as it is
 
 	lda #<caller
 	sta jump+1
 	lda #>caller
 	sta jump+2
-	cpx #>kernal_rom_start
-	bcs >@jump
-	sty >@jump+1
-	stx >@jump+2
+	cpx #>gc_swap_address
+	bcc usetbl2
+	cpx #>romtab
+	bcc jump
+usetbl2:
+	sty jump+1
+	stx jump+2
 	ldx sxreg	; c64: 781
 	ldy syreg	; c64: 782
 
 ; jump to the target (self modifying code sets the address)
 
-@jump:
+jump:
 	jsr $ffff
-	sta sareg	; c64: 780
-	pla
-	sta r6510
-	lda sareg	; c64: 780
-@nothing:
-; no reference in this file
+nothing:
 	rts
 
 ; new system chrout routine
 
+; (reached through newout_far in glue.asm, in cfg_ml)
 newout:
-	sta ptr1	; same: $9e
-	lda r6510
-	pha
-	lda #r6510_basic_ram
-	sta r6510
-	lda ptr1	; same: $9e
-	jsr out
-	sta ptr1	; same: $9e
-	pla
-	sta r6510
-	lda ptr1	; same: $9e
-	rts
+	jmp out
+
+; the KERNAL's own CHROUT handler, which iosetup saves in oldout_vec
 oldout:
-	jmp $ffff
+	jsr farcall
+	byte cfg_rom
+oldout_vec:
+	word $ffff
+	rts
 
 ; raster interrupt routine
 
@@ -612,7 +526,7 @@ rast0:
 	lda #1
 	sta $d019
 	inc raster+1
-	jmp $ff37	; c64: $febc. pull registers from stack, RTI
+	jmp k_exitint+4	; c64: $febc. pull .y .x .a, rti (FIXME: and $ff00)
 
 rast1:
 	nop
@@ -628,11 +542,10 @@ rast1:
 	dec raster+1
 	inc jiffy
 
+; FIXME: not installed yet (intro.asm skips setirq). On the 128 the
+; handler has to come in through glue.asm, like newout, and leave
+; through k_exitint ($ff33, which restores $ff00).
 newirq:
-	lda r6510
-	pha
-	lda #$36
-	sta r6510
 irqt:
 	lda #$00
 	beq newirq0
@@ -643,15 +556,11 @@ newirq0:
 	lda irqcount
 	sta irqt+1
 newirq1:
-	pla
-	sta r6510
-	jmp >@exitint	; c64: $ea81
+	jmp k_exitint	; c64: $ea81
 
 ; far call to the error handler
 
 farerr:
-	lda #$37
-	sta r6510
-	jmp error
+	jmp farjmp_error
 
-	align $0100,$00	; pad to $ce00
+	addrcheck resident_hi_end

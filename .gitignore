@@ -1,0 +1,6 @@
+# build outputs (asm/build.sh)
+build/
+asm/*.bin
+asm/ml.prg
+asm/ml.sym
+asm/boot.prg
