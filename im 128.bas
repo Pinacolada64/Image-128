@@ -286,13 +286,18 @@
 ' FIXME: close all open files
 ' poke 22,25:for i=2 to peek(152):close peek(603):next:poke 2031,.
 ' TODO: dclose u(<var>)?
-2000 poke 22,25:for i=2 to peek(152):close peek(603):next:poke {sym:mci},.
+' close files but the first two opened: 152 open files (same on the 128);
+' 868 = the 128's file table+2 (c64: 603); the wedge's error trap resets
+' the temp string stack itself (c64: poke 22,25; 22 is linnum here)
+2000 for i=2 to peek(152):close peek(868):next:poke {sym:mci},.
 ' e1 (error line) was el: EL is BASIC 7.0's own error-line variable,
 ' and dim el or el=y is a ?syntax error
-2002 x=peek(780):y=peek(781)+peek(782)*256:&"{f6}[Error#{pound}!x, Line#{pound}!y]{f6}":e1=y
+' error number and line from the wedge's trap (c64: 780-782)
+2002 x=peek({sym:sareg}):y=peek({sym:sxreg})+peek({sym:syreg})*256:&"{f6}[Error#{pound}!x, Line#{pound}!y]{f6}":e1=y
 ' 2004 &,11:&,28,1:poke 53248,.
 2004 &,11:&,28,1:poke {sym:local},.
-2006 dr$=mid$(str$(dr%(5)),2)+":":dv%=dv%(5):load dr$+"im",dv%,2
+' reload this program: "im 128" on the 128 disk
+2006 dr$=mid$(str$(dr%(5)),2)+":":dv%=dv%(5):load dr$+"im 128",dv%,2
 2008 gosub 304:goto 4000
 
 ' *** init ***

@@ -400,13 +400,20 @@ wtrap:
 	sta IERROR+1	; $301
 	ldx #$fa
 	txs
+; BASIC 7 keeps GOSUB, FOR and DO frames in its own stack at $0800-$09ff,
+; not on the CPU's (which the txs above empties): empty it too, as CLR
+; does ($521a)
+	lda #$ff
+	sta $7d
+	lda #$09
+	sta $7e
 	lda #$1b	; c64: 25 ($19); the 128's temp string stack starts at $1b
 	sta temppt	; c64: $16/22
 	lda #<trapline
 	sta linnum	; c64: $14
 	lda #>trapline
 	sta linnum+1	; c64: $15
-	jsr goto+3	; c64: $a8a3
+	jsr gotol	; c64: jsr $a8a3 (goto+3)
 	jmp newstt	; c64: $a7ae
 
 install:

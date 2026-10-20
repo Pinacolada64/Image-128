@@ -185,4 +185,9 @@
 	byte cfg_rom
 	word k_kbdget
 	rts
+	orig romtab+7*36
+	jsr farcall	; gotol
+	byte cfg_rom
+	word k_gotol
+	rts
 	orig romtab+7*romtab_entries

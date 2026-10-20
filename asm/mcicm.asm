@@ -480,10 +480,12 @@ cvar:
 	and #$7f
 	ldx #0
 	jsr usevar0
-	lda $62
-	sta $66
+; unpack the variable into FAC1: the sign from the top bit of the first
+; mantissa byte, which is really always 1 (c64: $62 and $66)
+	lda var+1
+	sta var+5
 	ora #$80
-	sta $62
+	sta var+1
 	jsr fpout
 	lda #0
 	sta cvar1+1

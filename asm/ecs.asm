@@ -81,15 +81,11 @@ ecsgoto:
 	ldx #var_a_integer
 	jsr usevar
 	lda varbuf+1
-	sta $14
+	sta linnum	; c64: $14
 	lda varbuf
-	sta $15
-; FIXME (128): the C64 code switched BASIC in and called goto+3 ($a8a3,
-; GOTO past its linget) with the line number in $14/$15. The 128's GOTO
-; ($59db) works differently past linget, and its linnum is $16/$17: this
-; needs its own way to find the line (ml.asm's mlgoto too). Until then an
-; ECS command that jumps to a line does nothing.
-	rts
+	sta linnum+1	; c64: $15
+	jmp gotol	; c64: jsr $a8a3 (goto+3), in BASIC's configuration
+
 
 ecschk:
 	ldx #var_an_string

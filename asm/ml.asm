@@ -280,11 +280,9 @@ findvar1:
 relink:
 	jmp linkprg
 
-; print the number in .a (c64: lda #0 / jsr $bdcd)
+; FAC1 to text at $0100 (c64: jsr $bddd, FOUT): mcicm.asm's cvar prints it
 fpout:
-	tax
-	lda #$00
-	jmp jfout	; c128: $8e32. print 16-bit digit, > .a, < .x
+	jmp fout
 
 ; make a dynamic string
 
@@ -307,13 +305,11 @@ mljump:
 	jsr mlgoto
 	jmp farjmp_newstt	; c64: $a7ae
 
-; FIXME: the C64 code set linnum and called goto+3 (GOTO past its
-; linget); the 128's GOTO ($59db) does more after linget, so this needs
-; its own way to find the line. Until then it only sets linnum.
+; set txtptr to line .x (lo) .y (hi): GOTO past its linget
 mlgoto:
 	stx linnum	; c64: $14
 	sty linnum+1	; c64: $15
-	rts
+	jmp gotol	; c64: jsr $a8a3 (goto+3)
 
 ;* output a$
 outspace:

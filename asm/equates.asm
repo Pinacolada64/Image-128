@@ -705,8 +705,10 @@
 				; (FLOATC [af0f]; enter with sec for positive)
 	k_ilqerr	= $7d28	; c64: $b248. ?illegal quantity error
 	k_synerr	= $4c83	; c64: $af08. ?syntax error [verified]
-	k_goto		= $59db	; c64: $a8a0. FIXME: Image's "jsr goto+3" (after
-				; linget) doesn't map: the 128's GOTO differs past it
+	k_goto		= $59db	; c64: $a8a0. GOTO
+	k_gotol		= $59e2	; c64: $a8a3 (goto+3): go to the line in linnum,
+				; setting txtptr -- GOTO past its linget and its
+				; "was there a number" check ($59de); returns
 	k_syscll	= $5885	; c64: $e130. FIXME: re-evaluates its argument
 	k_exitint	= $ff33	; c64: $ea81. exit IRQ: restore $ff00, .y, .x, .a, rti
 	k_irq		= $fa65	; c64: $ea31. the KERNAL's IRQ handler (CINV's default):
@@ -750,6 +752,7 @@
 	plot	= k_plot
 	setbnk	= k_setbnk
 	kbdget	= k_kbdget
+	gotol	= k_gotol
 	newstt	= k_newstt
 	gone1	= k_gone1
 	gone2	= k_gone2
@@ -799,7 +802,8 @@
 	plot	= romtab + 7*33
 	setbnk	= romtab + 7*34
 	kbdget	= romtab + 7*35
-	romtab_entries = 36
+	gotol	= romtab + 7*36
+	romtab_entries = 37
 {endif}
 
 
