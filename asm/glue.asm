@@ -20,6 +20,12 @@
 ; Reentrant: the caller's $ff00 and where to come back to are on the
 ; stack, and the few shared bytes below are used only with interrupts
 ; masked (an IRQ handler can farcall in the middle of someone else's).
+;
+; It reads the inline bytes through gate_ptr ($fb/$fc), which C64 code
+; takes for free zero page (the ++ overlays use it as a pointer), so it
+; puts the caller's two bytes back before going on to the target: neither
+; the target nor the caller sees farcall's use of them, nor that of an
+; IRQ's farcall in between.
 
 gate_ptr = free_fb		; zero page pointer to the inline bytes
 
@@ -31,6 +37,10 @@ farcall:
 	sty gate_y
 	pla
 	sta gate_p
+	lda gate_ptr		; the caller's $fb/$fc, put back below
+	sta gate_fb
+	lda gate_ptr+1
+	sta gate_fc
 	pla			; our return address: the byte before
 	sta gate_ptr		; the inline bytes
 	pla
@@ -61,6 +71,10 @@ farcall:
 	pha
 	lda gate_cfg
 	sta mmucr
+	lda gate_fb
+	sta gate_ptr
+	lda gate_fc
+	sta gate_ptr+1
 	lda gate_p
 	pha
 	lda gate_a
@@ -89,6 +103,8 @@ gate_y:   byte 0
 gate_p:   byte 0
 gate_cfg: byte 0
 gate_t:   word 0
+gate_fb:  byte 0
+gate_fc:  byte 0
 
 ; ********************************
 ; *  into the ML from BASIC's side

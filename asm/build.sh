@@ -40,6 +40,21 @@ c64list rs232_user.asm -bin:rs232_user.bin -ovr
 c64list rs232_swift.asm -bin:rs232_swift.bin -ovr
 c64list rs232.asm -prg:rs232.prg -ovr
 cp rs232.prg "$build/ml.rs232.prg"
+
+# the "++" overlays: im loads them at protostart (&,7,dv%,2), each on the
+# disk as "++ <name>"; extra disk names for the same file after a ":"
+overlays="index:4"
+ovlwrites=()
+for o in $overlays; do
+	name=${o%%:*}
+	c64list "$name.asm" "-prg:$name.prg" -ovr
+	cp "$name.prg" "$build/++ $name.prg"
+	ovlwrites+=(-write "$build/++ $name.prg" "++ $name")
+	extra=${o#"$name"}
+	for alias in ${extra//:/ }; do
+		ovlwrites+=(-write "$build/++ $name.prg" "++ $alias")
+	done
+done
 c64list boot.asm -prg:boot.prg -ovr
 python3 "$repo/tools/split-ml.py" ml.prg ml.sym "$build"
 cp boot.prg "$build/boot 128.prg"
@@ -53,10 +68,13 @@ if ! grep -q "^0 Errors" <<<"$log"; then
 fi
 
 # modules: BASIC 2 tokens (BASIC 7 runs them), C64List 4.04 as the C64's
-log=$(WINEDEBUG=-all wine "$C64LIST" "i_su.config.lbl" "-prg:build\\i_su.config.prg" -ovr 2>&1) || true
+# (ISU_CONFIG: another copy to build instead, in the repo's top directory,
+# e.g. the last committed one while i_su.config.lbl is being edited)
+isu=${ISU_CONFIG:-i_su.config.lbl}
+log=$(WINEDEBUG=-all wine "$C64LIST" "$isu" "-prg:build\\i_su.config.prg" -ovr 2>&1) || true
 if ! grep -q "^0 Errors" <<<"$log"; then
 	grep -E "^Error|Errors;" <<<"$log" | sed 's/.*\\//' >&2
-	echo "build.sh: i_su.config.lbl failed" >&2
+	echo "build.sh: $isu failed" >&2
 	exit 1
 fi
 
@@ -67,7 +85,11 @@ cd "$repo/modules"
 for f in sub.*.lbl; do
 	m=${f%.lbl}
 	crunch=; grep -q '{crunch:on}' "$f" && crunch=-crunch
-	log=$(WINEDEBUG=-all wine "$C64LIST" "$f" "-prg:..\\build\\$m.prg" $crunch -ovr 2>&1) || true
+	# a module that includes Basic70.bas (BASIC 7.0 keywords: dec, do...)
+	# needs C64List 4.06, which tokenizes them; 4.06 won't take the
+	# preface's numeric {assign}s, so such a module can't {uses:} it
+	list=$C64LIST; grep -qi 'Basic70\.bas' "$f" && list=$C64LIST_406
+	log=$(WINEDEBUG=-all wine "$list" "$f" "-prg:..\\build\\$m.prg" $crunch -ovr 2>&1) || true
 	if ! grep -q "^0 Errors" <<<"$log" || grep -q "Can't locate target line" <<<"$log"; then
 		grep -E "^Error|Errors;|Can't locate" <<<"$log" | sed 's/.*\\//' >&2
 		echo "build.sh: modules/$f failed" >&2
@@ -87,5 +109,10 @@ c1541 -format "image bbs 128,ib" d71 image128.d71 \
 	-write i_su.config.prg "i/su.config" \
 	-write "$repo/disk/e.lightbar.prg" e.lightbar \
 	-write "$repo/disk/e.lightdefs.seq" "e.lightdefs,s" \
-	"${modwrites[@]}" >/dev/null
+	-write "$repo/disk/e.ecs.main.prg" e.ecs.main \
+	-write "$repo/disk/e.printmodes.prg" e.printmodes \
+	-write "$repo/disk/e.alarms.prg" e.alarms \
+	-write "$repo/disk/nm.times.prg" nm.times \
+	-write "$repo/disk/e.fkeys.seq" "e.fkeys,s" \
+	"${modwrites[@]}" "${ovlwrites[@]}" >/dev/null
 c1541 image128.d71 -list

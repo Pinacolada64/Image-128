@@ -1,8 +1,6 @@
 # build outputs (asm/build.sh)
 build/
 asm/*.bin
-asm/ml.prg
+asm/*.prg
 asm/ml.sym
-asm/boot.prg
-asm/rs232.prg
 __pycache__/

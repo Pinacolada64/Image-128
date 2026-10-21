@@ -361,7 +361,9 @@
 ' 650 [c64], 2594/$0a22 [c128]: key repeat
 ' FIXME: 836 is in datebuf, may be no longer needed (y2k fix?)
 ' 3066 open 4,4,7:poke 836,1:poke 650,128
-3066 open 4,4,7:poke 836,1:poke {sym:keyrept},128
+' 10/20/2026: 836 (c64 cassbuff+8, in datebuf) is the 128's datebuf+5;
+' 836 itself is in the 128's KERNAL RAM
+3066 open 4,4,7:poke {sym:datebuf}+5,1:poke {sym:keyrept},128
 3068 poke 56328,.:poke 56579,peek(56579)or 38:poke 56577,peek(56577) or 36
 3070 dim tt$(254),dv%(36),dr%(36),co$(9),hs$(10),bf(6),st(38),im$(5),pf$(10)
 3073 restore 3500:for i=1 to 9:read a$:co$(i)=a$+"":next
@@ -421,7 +423,9 @@
 ' printer device #
 3142 x=41:gosub 1:&,2,2:a=val(a$):if a then close 4:open 4,4,a
 ' password mask character(s)
-3144 x=42:gosub 1:&,2,2:a=val(a$):if a then poke 17136,a
+' 10/20/2026: the password mask character is mask ($0ae2); 17136 ($42f0) is
+' in im's program text (the C64 3.0's mask is $12f2; 17136 was 1.2's)
+3144 x=42:gosub 1:&,2,2:a=val(a$):if a then poke {sym:mask},a
 ' system time zone string
 3146 x=45:gosub 1:&,2,2:tz$=a$
 ' BBS name
@@ -435,7 +439,10 @@
 ' clock types:
 3155 if y%>4 then gosub 3348:gosub 3170:goto 3158
 3156 on y% gosub 3348,3358,3366:gosub 3170
-3158 poke 970,.:poke 971,23:mp$=" ...More? (Y/n) "+"":im=5:gosub 447:gosub 3250
+' 10/20/2026: ptrlinm and usrlin (c64 970, 971): on the 128, 970 ($03ca)
+' is in the routines BASIC 7 keeps in RAM, and poking it stopped the
+' boot with ?SYNTAX ERROR
+3158 poke {sym:ptrlinm},.:poke {sym:usrlin},23:mp$=" ...More? (Y/n) "+"":im=5:gosub 447:gosub 3250
 
 3160 gosub 30:for x=1 to 38:gosub 1:&,2,2:st(x)=val(a$):next:close 2
 3162 an$=am$:lt$=am$:tk$=left$(am$,1):gosub 3300
@@ -444,10 +451,11 @@
 3168 f1=3:&,27,1:goto 302
 
 ' $cec7 (longdate):
-3170 a=val(left$(z$,1)):gosub 3184:poke 52935,a
-3172 a=val(mid$(z$,2,2)):gosub 3184:poke 52938,a
-3174 a=val(mid$(z$,4,2)):gosub 3184:poke 52936,a
-3176 a=val(mid$(z$,6,2)):gosub 3184:poke 52937,a
+' 10/20/2026: the clock's date is at bootdate_at ($0ec7; c64 $cec7, 52935)
+3170 a=val(left$(z$,1)):gosub 3184:poke {sym:bootdate_at},a
+3172 a=val(mid$(z$,2,2)):gosub 3184:poke {sym:bootdate_at}+3,a
+3174 a=val(mid$(z$,4,2)):gosub 3184:poke {sym:bootdate_at}+1,a
+3176 a=val(mid$(z$,6,2)):gosub 3184:poke {sym:bootdate_at}+2,a
 3178 b=val(mid$(z$,8,2))
 3180 c=val(mid$(z$,10,2))
 3182 &,62,b,c:b=b+80*((b=92)-(b=12))+12*((b=93)or(b=13)):&,58,b,.:return
@@ -505,12 +513,15 @@
 3350 z$=left$(a$,2):a=-(z$="su")-2*(z$="mo")-3*(z$="tu")-4*(z$="we")-5*(z$="th")
 3352 a=a-6*(z$="fr")-7*(z$="sa"):z$=mid$(str$(a),2,1)+mid$(a$,12,2)+mid$(a$,6,2)
 3354 a=-80*(mid$(a$,24,1)="p")+val(mid$(a$,15,2))
-3356 z$=z$+mid$(a$,9,2)+right$("0"+mid$(str$(a),2),2)+mid$(a$,18,2):poke1010,1:return
+' 10/20/2026: timeset (c64 1010)
+3356 z$=z$+mid$(a$,9,2)+right$("0"+mid$(str$(a),2),2)+mid$(a$,18,2):poke {sym:timeset},1:return
 
 ' ltk clock set:
 3358 gosub 3364:sys 49155:goto 3362
-3360 gosub 33:x=35:gosub 1:&,2,2:d1$=a$:close 2:poke 1010,1:return
-3362 z$="":for a=49159 to a+10:z$=z$+chr$(peek(a)):next:poke 1010,1:return
+' 10/20/2026: timeset (c64 1010)
+3360 gosub 33:x=35:gosub 1:&,2,2:d1$=a$:close 2:poke {sym:timeset},1:return
+' 10/20/2026: timeset (c64 1010)
+3362 z$="":for a=49159 to a+10:z$=z$+chr$(peek(a)):next:poke {sym:timeset},1:return
 3364 z$="Setting Clock by Lt.Kernal...":gosub 3404:dr=5:gosub 4:a$=dr$+"swr.ml":&,7,dv%,2:return
 3366 gosub 3364:sys 49152:sys 49155:goto 3362
 
