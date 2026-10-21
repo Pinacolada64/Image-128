@@ -169,7 +169,9 @@ movdly:
 copymsg:
 ; "----+----+----+----+----+----+----+----+"
 ; "       Image BBS 128 v1.0"
-	ascii "{f6}{pound}{backarrow}07Image BBS 128 v"
+	ascii "{f6}{pound}"
+	byte $5f	; back arrow (MCI tab): C64List knows no "backarrow" token, and
+	ascii "07Image BBS 128 v"	; dropped the text after it
 	ascii {usedef:version_number}
 	ascii "{f6}"
 copymsg_end:

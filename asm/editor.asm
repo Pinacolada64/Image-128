@@ -890,9 +890,15 @@ scale:
 	jmp prmsg0
 scalemsg:
 	ascii "{f6}"
-	ascii "{pound}{backarrow}101"
-	ascii "{pound}{backarrow}202"
-	ascii "{pound}{backarrow}303"
+	ascii "{pound}"
+	byte $5f	; back arrow (C64List has no "backarrow" token)
+	ascii "101"
+	ascii "{pound}"
+	byte $5f	; back arrow (C64List has no "backarrow" token)
+	ascii "202"
+	ascii "{pound}"
+	byte $5f	; back arrow (C64List has no "backarrow" token)
+	ascii "303"
 	ascii "{f6}"
 	ascii "0123456789012345678901234567890123456789"
 	ascii "{f6}"
