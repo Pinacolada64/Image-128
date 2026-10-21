@@ -434,6 +434,11 @@
 3150 x=48:gosub 1:&,2,2:c1$="{clear}{f6}{$07}"+a$+"{f6:2}":x=49:gosub 1:&,2,2:c2$="{f6:2}"+a$+"{f6:2}"
 3152 x=51:gosub 1:&,2,2:cc$=a$
 ' new user credits
+' 10/20/2026: start the clock from the date im was built (z$, d1$: weekday
+' 1-7, YYMMDDHHMM; build.sh sets imdate). A clock chip or drive (3155-3156)
+' replaces z$; with the clock set by hand (y%=0), 3170-3182 set the date and
+' time from this, not from an empty z$ (which gave "??? 0, 2010")
+3153 z$={usedef:imdate}:d1$=z$
 3154 x=58:gosub 1:&,2,2:nc=val(a$)
 
 ' clock types:

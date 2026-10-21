@@ -60,7 +60,15 @@ python3 "$repo/tools/split-ml.py" ml.prg ml.sym "$build"
 cp boot.prg "$build/boot 128.prg"
 
 cd "$repo"
-log=$(WINEDEBUG=-all wine "$C64LIST_406" "im 128.bas" "-prg:build\\im 128.prg" -ovr 2>&1) || true
+# imdate: the build's date and time as im's clock strings have it (z$,
+# d1$): the weekday (1 = Sunday), YYMMDD, the hour 1-12 plus 80 after
+# noon (im line 3354: noon is 92, midnight 12), the minute. im line 3153
+# starts the clock with it when no clock chip or drive answers.
+h=$(date +%-H)
+h12=$(( h % 12 == 0 ? 12 : h % 12 ))
+[ "$h" -ge 12 ] && h12=$(( h12 + 80 ))
+imdate="$(( $(date +%w) + 1 ))$(date +%y%m%d)$(printf %02d $h12)$(date +%M)"
+log=$(WINEDEBUG=-all wine "$C64LIST_406" "im 128.bas" "-prg:build\\im 128.prg" "-def:imdate=\"$imdate\"" -ovr 2>&1) || true
 if ! grep -q "^0 Errors" <<<"$log"; then
 	grep -E "^Error|Errors;" <<<"$log" | sed 's/.*\\//' >&2
 	echo "build.sh: im 128.bas failed" >&2
