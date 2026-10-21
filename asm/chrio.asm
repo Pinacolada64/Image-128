@@ -350,6 +350,7 @@ inchr:
 ; * get character
 ; * with case setting
 getchr:
+	jsr vdcstat	; 80 columns: the status lines to the VDC
 	jsr getkbd
 	bne getchr1
 	jsr carchk4

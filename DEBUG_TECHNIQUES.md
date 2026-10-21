@@ -116,19 +116,33 @@ pp. 323-325).
 
 To exercise Image's output (scrolling, wrapping) without `im`, write a
 short BASIC program that prints with `&`, save it over `im 128` on a
-scratch copy of the disk, and boot that: the ML loads and RUNs it. Clear
-the output-mode flags `im` would have set first, or `&` output goes
-through password mode (every character printed as the mask) or the word
-wrap buffer:
+scratch copy of the disk, and boot that: the ML loads and RUNs it. First
+`sys 7171`, intro's `setup`, as `im` does on line 3074: without it the
+screen mask's row tables, the cassbuff variables and the rest are never
+set (the mask toggle, `&,18`, then swaps rows through garbage pointers
+and runs into a BRK). Then the flags `setup` doesn't set: `passmode`
+(2794), or `&` output may go through password mode (every character
+printed as the mask), and `scnmode` (2787: 1 = mask off):
 
 ```
-5 poke 2794,0:poke 6266,0:poke 6269,0:poke 6350,0:poke 6367,0:poke 6368,0
+5 sys 7171:poke 2794,0:poke 2787,1
 6 &chr$(147)
 10 for i=1 to 30:&"line"+str$(i)+" of the scroll test"+chr$(13):next
+15 &,18,1
 ```
 
-(`passmode`, `wrapflg`, `wrapind`, `mci`, `mright`, `mleft` in
-`equates.asm`.) Tokenize it with `petcat -w2 -l 1c01`.
+Tokenize it with `petcat -w2 -l 1c01`. To pause it until the monitor
+says go (to set checkpoints after the boot, or take a screenshot), loop
+on a byte the monitor pokes: `20 if peek(2816)=0 then 20` (`$0b00`, the
+boot loader's cassette buffer, is free once Image is running).
+
+## Getting a log out of VICE
+
+VICE writes the monitor log (`logname`, `log on`) when it exits through
+the monitor's `quit`; killing x128 leaves the file empty. Set
+checkpoints after autostart has finished: connecting to the monitor in
+the first seconds of the boot can stop the autostart from running the
+program.
 
 ## Remote monitor port
 

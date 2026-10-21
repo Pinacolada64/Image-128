@@ -217,9 +217,11 @@ scroll3:
 
 ; scroll in 80 columns: rows 1-23 up a row, as above, but the VDC copies
 ; them itself (one block copy for the characters, one for the
-; attributes), then row 23 is cleared. The screen mask is VIC-only, so
-; all 24 rows are on the VDC screen.
+; attributes), then row 23 is cleared. With the screen mask on, rows
+; 16-23 are in vdcsave, so a row at a time (scrollm).
 scrollv:
+	lda scnmode
+	beq scrollm
 	lda vdcscrn
 	jsr scrollv1
 	lda vdcattr
@@ -241,6 +243,23 @@ scrollv1:
 	sta vdc_count+1
 	jmp vdc_copy
 
+scrollm:
+	ldx #0
+scrollm1:
+	stx vdcm_row
+	jsr vdcrow	; destination: row .x
+	jsr vdcmcopy
+	inx
+	jsr vdcrow	; source: row .x+1
+	jsr vdcmswap
+	jsr vdcmcpy1
+	ldx vdcm_row
+	inx
+	cpx #23
+	bcc scrollm1
+	jsr vdcline	; row 23
+	jmp scroll3
+
 scline:
 	bit mode	; 80 columns?
 	bmi vdcline
@@ -257,31 +276,34 @@ scline1:
 	bpl scline1
 	rts
 
-; clear row .x of the VDC screen: spaces, and attributes in the current
-; color (the editor keeps a VDC attribute in color in 80 columns).
-; Keeps .x (scclear counts rows in it).
+; clear console row .x on the VDC (in vdcsave if the mask hides it):
+; spaces, and attributes in the current color (the editor keeps a VDC
+; attribute in color in 80 columns). Keeps .x (scclear counts rows in
+; it). vdclinea: clear the row at vdcr_scr/vdcr_atr.
 vdcline:
 	stx vdcline_row
-	lda vdcscrn
-	ldy #' '
+	jsr vdcrow
+vdclinea:
+	lda vdcr_scr
+	sta vdc_dst
+	lda vdcr_scr+1
+	sta vdc_dst+1
+	lda #' '
 	jsr vdcline1
-	lda vdcattr
-	ldy color
+	lda vdcr_atr
+	sta vdc_dst
+	lda vdcr_atr+1
+	sta vdc_dst+1
+	lda color
 	jsr vdcline1
 	ldx vdcline_row
 	rts
-; .a: high byte of the screen or attribute base, .y: the fill byte
+; fill a row at vdc_dst with .a
 vdcline1:
-	ldx vdcline_row
-	ora vdcrowhi,x
-	sta vdc_dst+1
-	lda vdcrowlo,x
-	sta vdc_dst
-	lda #VDC_COLS
-	sta vdc_count
-	lda #0
-	sta vdc_count+1
-	tya
+	ldy #VDC_COLS
+	sty vdc_count
+	ldy #0
+	sty vdc_count+1
 	jmp vdc_fill
 vdcline_row:
 	byte 0
@@ -470,7 +492,10 @@ dispstr6:
 	lda dispstr4+1
 	beq dispstr7
 	bit mode	; editor on the 80-column screen?
-	bmi dispvdc	; yes: draw on the VDC instead
+	bpl dispstr10
+	cpx #16		; and a console row? Draw it on the VDC instead.
+	bcc dispvdc	; Rows 16 and up are the status area, drawn on
+dispstr10:		; the VIC screen as in 40 columns (vdcstat)
 	jsr calcscn0
 	sty dispstr2+1
 	sta dispstr2+2
@@ -668,18 +693,13 @@ setmode1:
 	ldx #23
 setmode2:
 	sta scnmode
-	bit mode	; 80 columns: no mask, so the console has rows
-	bpl setmode3	; 0-23 either way
-	ldx #23
-setmode3:
 	stx botline
 	jsr crsroff
 
+; swap the VIC screen's rows 16-23 with tempscn, as the C64 does (in 80
+; columns the VIC rows hold only the status area, which vdcstat copies
+; to the VDC; vdcmask does the console's side there)
 swapscn:
-	bit mode	; 80 columns: the mask is VIC-only, and pnt points
-	bpl swapscn0	; into the VDC, not at memory to swap
-	rts
-swapscn0:
 	lda curptr	; c64: $d1
 	pha
 	lda curptr+1	; c64: $d2
@@ -700,8 +720,12 @@ swapscn0:
 	pha
 	ldx #0
 swapscn1:
-	jsr he9f0
-	jsr hea24
+	jsr calcscn	; c64: jsr $e9f0 / jsr $ea24 (he9f0/hea24, which
+	sty curptr	; point at the VDC in 80 columns)
+	sta curptr+1
+	jsr calccol
+	sty colptr
+	sta colptr+1
 	jsr calcscn0
 	cmp curptr+1	; c64: $d2
 	beq swapscn3
@@ -748,7 +772,282 @@ swapscn3:
 	sta curptr+1	; c64:  $d2
 	pla
 	sta curptr	; c64: $d1
+	bit mode	; 80 columns?
+	bmi vdcmask
 	rts
+
+; ********************************
+; *  status lines on the VDC
+; ********************************
+
+; In 80 columns the console is on the VDC, but the status area -- row
+; 24, and rows 16-23 too while the screen mask is on (scnmode = 0) --
+; is still drawn on the VIC screen, by the IRQ and by &,69 for rows 16
+; and up. vdcstat copies those VIC rows to the same rows of the VDC.
+; It can't run in the IRQ: the editor's VDC writes (select a register,
+; then write it) aren't safe from an interrupt that selects another, so
+; it runs from the main line, in getchr (the ML's wait for a key) and in
+; trace0 (every BASIC statement), at most once every 8 jiffies. A row is
+; redrawn only when the Fletcher checksum of its characters and colors
+; changes.
+;
+; While the mask is on, the console's own rows 16-23 are kept in spare
+; VDC RAM (vdcsave), as the C64 keeps them in tempscn: vdcrow finds
+; them there, so scrolling and clearing carry on underneath.
+
+vdcsave	= $1000		; VDC RAM: 8 rows of characters at $1000, their
+vdcsavea = $1800	; attributes at $1800 (free: the editor uses
+			; $0000-$0fcf and the charset at $2000)
+
+; setmode turned the mask on or off (scnmode is the new setting): move
+; the console's rows 16-23 into vdcsave and blank them for the status
+; area, or bring them back
+vdcmask:
+	lda #16
+	sta vdcm_row
+vdcmask1:
+	ldx vdcm_row
+	jsr vdcrowd	; on the VDC screen
+	lda scnmode
+	bne vdcmask2
+	jsr vdcmcopy	; mask on: screen -> vdcsave
+	jsr vdcrowv
+	jsr vdcmcpy1
+	ldx vdcm_row
+	jsr vdcrowd	; and blank the screen row
+	jsr vdclinea
+	jmp vdcmask3
+vdcmask2:
+	jsr vdcmcopy	; mask off: vdcsave -> screen
+	jsr vdcrowv
+	jsr vdcmswap
+	jsr vdcmcpy1
+vdcmask3:
+	inc vdcm_row
+	lda vdcm_row
+	cmp #24
+	bcc vdcmask1
+	lda #1		; draw every status row, at the next vdcstat
+	sta vdcst_force
+	lda #$ff	; (no jiffy count matches: "and #$f8")
+	sta vdcst_jif
+	rts
+; copy one row (characters and attributes) from vdcr_scr/vdcr_atr, saved
+; in vdcm_*, to the addresses vdcrowv just put in vdcr_*
+vdcmcopy:
+	lda vdcr_scr
+	sta vdcm_scr
+	lda vdcr_scr+1
+	sta vdcm_scr+1
+	lda vdcr_atr
+	sta vdcm_atr
+	lda vdcr_atr+1
+	sta vdcm_atr+1
+	rts
+vdcmswap:
+	ldx #3
+vdcmswp1:
+	lda vdcr_scr,x
+	ldy vdcm_scr,x
+	sta vdcm_scr,x
+	tya
+	sta vdcr_scr,x
+	dex
+	bpl vdcmswp1
+	rts
+vdcmcpy1:
+	lda vdcm_scr
+	sta vdc_src
+	lda vdcm_scr+1
+	sta vdc_src+1
+	lda vdcr_scr
+	sta vdc_dst
+	lda vdcr_scr+1
+	sta vdc_dst+1
+	jsr vdccopy80
+	lda vdcm_atr
+	sta vdc_src
+	lda vdcm_atr+1
+	sta vdc_src+1
+	lda vdcr_atr
+	sta vdc_dst
+	lda vdcr_atr+1
+	sta vdc_dst+1
+vdccopy80:
+	lda #VDC_COLS
+	sta vdc_count
+	lda #0
+	sta vdc_count+1
+	jmp vdc_copy
+
+; vdcrow: the VDC addresses of console row .x, in vdcr_scr (characters)
+; and vdcr_atr (attributes): rows 16-23 are in vdcsave while the mask is
+; on. vdcrowd: the row on the VDC screen; vdcrowv: the row in vdcsave
+; (.x 16-23). Keep .x.
+vdcrow:
+	lda scnmode
+	bne vdcrowd	; mask off: every row on the screen
+	cpx #16
+	bcc vdcrowd
+	cpx #24
+	bcc vdcrowv
+vdcrowd:
+	lda vdcrowlo,x
+	sta vdcr_scr
+	sta vdcr_atr
+	lda vdcrowhi,x
+	ora vdcscrn
+	sta vdcr_scr+1
+	lda vdcrowhi,x
+	ora vdcattr
+	sta vdcr_atr+1
+	rts
+vdcrowv:
+	lda vdcrowlo-16,x	; (row - 16) * 80
+	sta vdcr_scr
+	sta vdcr_atr
+	lda vdcrowhi-16,x
+	ora #>vdcsave
+	sta vdcr_scr+1
+	lda vdcrowhi-16,x
+	ora #>vdcsavea
+	sta vdcr_atr+1
+	rts
+
+; copy the VIC status rows to the VDC (see above). Keeps .x and .y.
+vdcstat:
+	bit mode
+	bpl vdcst9
+	lda jiffy
+	and #$f8
+	cmp vdcst_jif
+	beq vdcst9
+	sta vdcst_jif
+	txa
+	pha
+	tya
+	pha
+	ldx #24
+vdcst1:
+	jsr vdcsrow
+	dex
+	lda scnmode
+	bne vdcst2	; mask off: row 24 only
+	cpx #16
+	bcs vdcst1
+vdcst2:
+	lda #0
+	sta vdcst_force
+	pla
+	tay
+	pla
+	tax
+vdcst9:
+	rts
+
+; VIC row .x to VDC row .x, if it changed. Keeps .x.
+vdcsrow:
+	stx vdcs_row
+	jsr calcscn2	; the VIC screen row itself
+	sty vdcs_c1+1
+	sta vdcs_c1+2
+	sty vdcs_d1+1
+	sta vdcs_d1+2
+	jsr calccol2
+	sty vdcs_c2+1
+	sta vdcs_c2+2
+	sty vdcs_d2+1
+	sta vdcs_d2+2
+	lda #0		; Fletcher: a += byte, b += a
+	sta vdcs_a
+	sta vdcs_b
+	ldy #39
+vdcs1:
+vdcs_c1:
+	lda $ffff,y
+	jsr vdcsum
+vdcs_c2:
+	lda $ffff,y
+	and #$0f
+	jsr vdcsum
+	dey
+	bpl vdcs1
+	ldx vdcs_row
+	lda vdcst_force
+	bne vdcs2
+	lda vdcs_a
+	cmp vdcst_a-16,x
+	bne vdcs2
+	lda vdcs_b
+	cmp vdcst_b-16,x
+	beq vdcs9	; unchanged
+vdcs2:
+	lda vdcs_a
+	sta vdcst_a-16,x
+	lda vdcs_b
+	sta vdcst_b-16,x
+	jsr vdcrowd	; draw it: 40 characters, then spaces to the end
+	lda vdcr_scr+1	; of the 80-column row
+	ldy vdcr_scr
+	jsr vdc_set_update
+	ldy #0
+vdcs3:
+vdcs_d1:
+	lda $ffff,y
+	jsr vdc_put
+	iny
+	cpy #40
+	bcc vdcs3
+vdcs4:
+	lda #' '
+	jsr vdc_put
+	iny
+	cpy #VDC_COLS
+	bcc vdcs4
+	lda vdcr_atr+1	; and the 40 colors, as attributes
+	ldy vdcr_atr
+	jsr vdc_set_update
+	lda color	; the editor's charset (ALT) bit, as dispvdc
+	and #VDC_ATTR_ALT
+	sta vdcs_alt
+	ldy #0
+vdcs5:
+vdcs_d2:
+	lda $ffff,y
+	and #$0f
+	tax
+	lda vdccolor,x
+	ora vdcs_alt
+	jsr vdc_put
+	iny
+	cpy #40
+	bcc vdcs5
+vdcs9:
+	ldx vdcs_row
+	rts
+vdcsum:
+	clc
+	adc vdcs_a
+	sta vdcs_a
+	clc
+	adc vdcs_b
+	sta vdcs_b
+	rts
+
+vdcr_scr:	word 0
+vdcr_atr:	word 0
+vdcm_scr:	word 0
+vdcm_atr:	word 0
+vdcm_row:	byte 0
+vdcs_row:	byte 0
+vdcs_a:		byte 0
+vdcs_b:		byte 0
+vdcs_alt:	byte 0
+vdcst_jif:	byte $ff
+vdcst_force:	byte 1
+vdcst_a:	byte 0,0,0,0,0,0,0,0,0	; rows 16-24
+vdcst_b:	byte 0,0,0,0,0,0,0,0,0
+
 ;****************************
 ;* decimal to ascii routine *
 ;****************************
@@ -792,7 +1091,7 @@ trace0:
 	jsr trace2
 trace1:
 	dec scnlock
-	rts
+	jmp vdcstat	; 80 columns: the status lines to the VDC
 
 trace2:
 	sec
