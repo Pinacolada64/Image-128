@@ -136,6 +136,21 @@ says go (to set checkpoints after the boot, or take a screenshot), loop
 on a byte the monitor pokes: `20 if peek(2816)=0 then 20` (`$0b00`, the
 boot loader's cassette buffer, is free once Image is running).
 
+## C64List assembles an out-of-range branch without a word
+
+C64List 4.04 doesn't report a branch whose target is more than 128 bytes
+away: it assembles it with a wrong offset (`$ff` in the case found) and
+the build says "0 Errors". Code moved further from a branch's target
+then silently goes somewhere else. When a routine stops being reached
+for no clear reason, check the assembled branch: find its bytes in the
+built part (`build/ml.res2` etc., which start with the load address) or
+in a `-lst:` disassembly, and compare the target with `ml.sym`. Use
+`bxx skip / jmp target` for anything that might be far.
+
+Found 2026-10-20: swapscn's `bmi vdcmask` stopped reaching vdcmask once
+vdcrinit and vdcrcopy went in between, and the mask toggle silently
+skipped the VDC side.
+
 ## Getting a log out of VICE
 
 VICE writes the monitor log (`logname`, `log on`) when it exits through

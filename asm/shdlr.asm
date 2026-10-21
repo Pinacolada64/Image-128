@@ -495,7 +495,10 @@ dispstr6:
 	bpl dispstr10
 	cpx #16		; and a console row? Draw it on the VDC instead.
 	bcc dispvdc	; Rows 16 and up are the status area, drawn on
-dispstr10:		; the VIC screen as in 40 columns (vdcstat)
+	lda dispstr0+1	; the VIC screen as in 40 columns (vdcstat) --
+	cmp #40		; but from column 40 on, past the VIC's row, in
+	bcs dispvdcr	; the VDC's right half
+dispstr10:
 	jsr calcscn0
 	sty dispstr2+1
 	sta dispstr2+2
@@ -532,24 +535,50 @@ dispstr7:
 	dec scnlock
 	rts
 
-; &,69 in 80 columns: X = row, column in dispstr0+1. The screen mask
-; is VIC-only so far, so scnmode doesn't apply: every row is drawn
-; straight to the VDC screen. Characters go out through R31 one after
-; another (control codes skipped, as above), then one block fill sets
-; the attributes of the ones drawn.
+; &,69 in 80 columns, on a console row (0-15): X = row, column in
+; dispstr0+1, drawn straight on the VDC screen. Characters go out
+; through R31 one after another (control codes skipped, as above), then
+; one block fill sets the attributes of the ones drawn.
 dispvdc:
+	lda vdcscrn
+	jsr dispvdc0
+	jmp dispstr7
+
+; the status area's right half (rows 16-24, columns 40-79), which the
+; VIC screen hasn't got: it's kept in vdcright, and drawn on the screen
+; too while it shows (row 24 always, rows 16-23 while the mask is on).
+; vdcmask puts it back on the screen when the mask goes on.
+dispvdcr:
+	jsr vdcrinit
+	ldx dispstr6+1	; the row
+	lda #vdcright_base
+	jsr dispvdc0
+	ldx dispstr6+1	; the row
+	cpx #24
+	beq dispvdcr1
+	lda scnmode
+	bne dispvdcr2	; mask off: rows 16-23 are the console's
+dispvdcr1:
+	lda vdcscrn
+	jsr dispvdc0
+dispvdcr2:
+	jmp dispstr7
+
+; draw the string on row .x at .a (high byte) + row * 80 + column;
+; its attributes go at the same offset from .a + vdcattr - vdcscrn
+dispvdc0:
+	sta dispvdc_base
 	lda dispstr1+1	; string address
 	sta dispvdc1+1
 	lda dispstr1+2
 	sta dispvdc1+2
-	lda vdcrowlo,x	; vdc_dst = row * 80 + column
+	lda vdcrowlo,x	; vdc_dst = base + row * 80 + column
 	clc
 	adc dispstr0+1
 	sta vdc_dst
 	lda vdcrowhi,x
-	adc #0
+	adc dispvdc_base
 	sta vdc_dst+1
-	adc vdcscrn	; carry clear: + screen base
 	ldy vdc_dst
 	jsr vdc_set_update
 	ldy #0
@@ -573,9 +602,11 @@ dispvdc2:
 	bcc dispvdc1
 	lda vdc_count
 	beq dispvdc3	; nothing printable
-	lda vdc_dst+1
+	lda vdc_dst+1	; attribute address of the first character
+	sec
+	sbc vdcscrn
 	clc
-	adc vdcattr	; attribute address of the first character
+	adc vdcattr
 	sta vdc_dst+1
 	lda dispstr5+1
 	and #$0f
@@ -585,7 +616,10 @@ dispvdc2:
 	ora vdccolor,x
 	jsr vdc_fill
 dispvdc3:
-	jmp dispstr7
+	ldx dispstr6+1	; the row, again
+	rts
+dispvdc_base:
+	byte 0
 
 calcscn0:
 	lda scnmode
@@ -773,7 +807,9 @@ swapscn3:
 	pla
 	sta curptr	; c64: $d1
 	bit mode	; 80 columns?
-	bmi vdcmask
+	bpl swapscn4
+	jmp vdcmask	; (out of a branch's reach)
+swapscn4:
 	rts
 
 ; ********************************
@@ -798,6 +834,75 @@ swapscn3:
 vdcsave	= $1000		; VDC RAM: 8 rows of characters at $1000, their
 vdcsavea = $1800	; attributes at $1800 (free: the editor uses
 			; $0000-$0fcf and the charset at $2000)
+; vdcright: the status area's right half, rows 16-24 as 80-byte rows
+; (columns 40-79 used) at $1400, attributes at $1c00. vdcright_base is
+; the high byte to add to row * 80 for it: $0f00 + 16 * 80 = $1400.
+vdcright_base = $0f
+
+; vdcright starts out as whatever is in VDC RAM: blank it the first time
+vdcrinit:
+	lda vdcr_ok
+	bne vdcrini1
+	inc vdcr_ok
+	lda #<$1400
+	sta vdc_dst
+	lda #>$1400
+	sta vdc_dst+1
+	jsr vdcrini2
+	lda #' '
+	jsr vdc_fill
+	lda #>$1c00
+	sta vdc_dst+1
+	jsr vdcrini2
+	lda color
+	jmp vdc_fill
+vdcrini1:
+	rts
+vdcrini2:
+	lda #<(9*VDC_COLS)
+	sta vdc_count
+	lda #>(9*VDC_COLS)
+	sta vdc_count+1
+	lda #0
+	sta vdc_dst
+	rts
+
+; copy row .x's right half from vdcright to the screen (characters and
+; attributes, 40 each)
+vdcrcopy:
+	jsr vdcrinit
+	ldx vdcm_row
+	lda vdcrowlo,x
+	clc
+	adc #40
+	sta vdc_src
+	sta vdc_dst
+	lda vdcrowhi,x
+	adc #0
+	pha
+	adc #vdcright_base
+	sta vdc_src+1
+	pla
+	pha
+	adc vdcscrn
+	sta vdc_dst+1
+	jsr vdcrcpy1
+	pla
+	clc
+	adc vdcattr
+	sta vdc_dst+1
+	lda vdc_src+1
+	sec
+	sbc vdcscrn
+	clc
+	adc vdcattr
+	sta vdc_src+1
+vdcrcpy1:
+	lda #40
+	sta vdc_count
+	lda #0
+	sta vdc_count+1
+	jmp vdc_copy
 
 ; setmode turned the mask on or off (scnmode is the new setting): move
 ; the console's rows 16-23 into vdcsave and blank them for the status
@@ -816,6 +921,7 @@ vdcmask1:
 	ldx vdcm_row
 	jsr vdcrowd	; and blank the screen row
 	jsr vdclinea
+	jsr vdcrcopy	; then the status area's right half, from vdcright
 	jmp vdcmask3
 vdcmask2:
 	jsr vdcmcopy	; mask off: vdcsave -> screen
@@ -986,8 +1092,8 @@ vdcs2:
 	sta vdcst_a-16,x
 	lda vdcs_b
 	sta vdcst_b-16,x
-	jsr vdcrowd	; draw it: 40 characters, then spaces to the end
-	lda vdcr_scr+1	; of the 80-column row
+	jsr vdcrowd	; draw it: the 40 characters (the right half is
+	lda vdcr_scr+1	; &,69's, dispvdcr)
 	ldy vdcr_scr
 	jsr vdc_set_update
 	ldy #0
@@ -998,12 +1104,6 @@ vdcs_d1:
 	iny
 	cpy #40
 	bcc vdcs3
-vdcs4:
-	lda #' '
-	jsr vdc_put
-	iny
-	cpy #VDC_COLS
-	bcc vdcs4
 	lda vdcr_atr+1	; and the 40 colors, as attributes
 	ldy vdcr_atr
 	jsr vdc_set_update
@@ -1045,6 +1145,7 @@ vdcs_b:		byte 0
 vdcs_alt:	byte 0
 vdcst_jif:	byte $ff
 vdcst_force:	byte 1
+vdcr_ok:	byte 0
 vdcst_a:	byte 0,0,0,0,0,0,0,0,0	; rows 16-24
 vdcst_b:	byte 0,0,0,0,0,0,0,0,0
 
