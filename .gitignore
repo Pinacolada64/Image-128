@@ -5,3 +5,4 @@ asm/ml.prg
 asm/ml.sym
 asm/boot.prg
 asm/rs232.prg
+__pycache__/
