@@ -151,6 +151,16 @@ Found 2026-10-20: swapscn's `bmi vdcmask` stopped reaching vdcmask once
 vdcrinit and vdcrcopy went in between, and the mask toggle silently
 skipped the VDC side.
 
+## RS-232 in VICE
+
+The ACIA (`-acia1 ...`) and the user port modem (`-userportdevice 2`)
+both connect to `-rsdev1 host:port` as a TCP client, raw bytes both
+ways. A listener for them has to accept more than one connection: VICE
+connected once at start-up and again when the driver dropped and
+raised DTR, and the first connection closed. Test at normal speed: in
+warp mode the SwiftLink lost the odd incoming byte that it didn't at
+1x. `tests/standin/README.md` has the command lines.
+
 ## Getting a log out of VICE
 
 VICE writes the monitor log (`logname`, `log on`) when it exits through

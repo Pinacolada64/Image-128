@@ -7,12 +7,8 @@ orig rs232_exec_address ; "rs232_swift.bin"
 ; ridbe = $29b
 ; ridbs = $29c
 
-rstkey = $fe56
-norest = $fe72
-nmiexit = $febc
-findfn = $f30f
-devnum = $f31f
-nofile = $f701
+; c64: rstkey, nmiexit, findfn, devnum and nofile were C64 KERNAL
+; addresses; see nmi64 and equates.asm (nmiexit, k_findfn, k_devnum, k_nofile)
 
 io1=$de00
 io2=$df00
@@ -248,12 +244,10 @@ setcarr1:
 
 ; interrupt routine
 
+; 128: the KERNAL's NMI entry ($ff05) has saved .a .x .y and $ff00
+; already and switched to cfg_rom; nmiexit puts them back (c64: this
+; pushed .a .x .y itself and returned with rti)
 nmi64:
-	pha
-	txa
-	pha
-	tya
-	pha
 	cld
 
 ; disable further interrupts
@@ -277,18 +271,12 @@ nmi64:
 
 	lda shcomm
 	sta m6551_command
+	jmp nmiexit
 
-	pla
-	tay
-	pla
-	tax
-	pla
-	rti
-
-; the interrupt wasn't from the ACIA, so it must have come from the "restore" key
+; the interrupt wasn't from the ACIA: the KERNAL's own NMI handler
+; (RESTORE, CIA #2), which ends at nmiexit too (c64: jmp $fe56)
 notacia:
-	ldy #0
-	jmp rstkey
+	jmp oldnmi
 
 ; check for character
 ; expected to only use A and Y
@@ -302,11 +290,11 @@ rxint:
 
 	lda m6551_port
 	ldy ridbe
-	sta ribuf,y
+	sta rsibuf,y
 	iny
 	tya
 	and #127
-	cmp #ridbs
+	cmp ridbs	; caught up with the start: full (c64: cmp #ridbs)
 	beq rxint_buffer_overrun
 	sta ridbe
 	jmp rxint_no_receive
@@ -422,13 +410,13 @@ xtmp:
 	byte 0
 
 nosuch:
-	jmp nofile
+	jmp k_nofile
 
 nchkin:
 	stx xtmp
-	jsr findfn
+	jsr k_findfn
 	bne nosuch
-	jsr devnum
+	jsr k_devnum
 	ldx xtmp
 	lda $ba
 	cmp #2
@@ -444,9 +432,9 @@ nchkin1:
 
 nchkout:
 	stx xtmp
-	jsr findfn
+	jsr k_findfn
 	bne nosuch
-	jsr devnum
+	jsr k_devnum
 	ldx xtmp
 	lda $ba
 	cmp #2
@@ -462,10 +450,16 @@ nchkout1:
 
 ngetin:
 	pha
-	lda $9a
-	cmp #2
+	lda dfltn	; input from device 2? (c64: lda $9a, the output device;
+	cmp #2		; there the KERNAL's GETIN read the shared buffer itself)
 	bne notget
 	pla
+	jsr rsget_entry	; 128: BASIC 7's GET# takes carry set from GETIN as an
+	bcc ngetin1	; error (?BREAK ERROR, from whatever was in .a); rsget's
+	lda #0		; carry set means only "nothing waiting", which GET#
+	clc		; should see as "" (the ML's getmdm still wants the carry,
+ngetin1:		; to tell a received 0 from none)
+	rts
 
 ; ** rs232 getin
 
@@ -482,7 +476,7 @@ rsget_entry:
 	cpy ridbe
 	beq rsget_no_char
 
-	lda ribuf,y
+	lda rsibuf,y
 	sta ptr1	; c64: $9e
 	iny
 	bpl rsget_no_wrap
@@ -613,3 +607,6 @@ nsave:
 	jmp inable
 
 last:
+
+; the driver runs at $2c00-$2eff: rs232.asm copies three pages there
+	addrcheck rs232_exec_address+$300

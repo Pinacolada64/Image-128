@@ -34,6 +34,12 @@ for module in wedge editor gc ecs struct swap1 swap2 swap3; do
 	c64list "$module.asm" "-bin:$module.bin" -ovr
 done
 c64list ml.asm -prg:ml.prg -sym:ml.sym -ovr
+# ml.rs232: the loader (rs232.asm) with both drivers embedded; im loads
+# it at protostart and runs it with &,16 (0 user port, 1 SwiftLink)
+c64list rs232_user.asm -bin:rs232_user.bin -ovr
+c64list rs232_swift.asm -bin:rs232_swift.bin -ovr
+c64list rs232.asm -prg:rs232.prg -ovr
+cp rs232.prg "$build/ml.rs232.prg"
 c64list boot.asm -prg:boot.prg -ovr
 python3 "$repo/tools/split-ml.py" ml.prg ml.sym "$build"
 cp boot.prg "$build/boot 128.prg"
@@ -60,6 +66,7 @@ c1541 -format "image bbs 128,ib" d71 image128.d71 \
 	-write "boot 128.prg" "boot 128" \
 	-write ml.buf ml.buf -write ml.low ml.low -write ml.mod ml.mod \
 	-write ml.res1 ml.res1 -write ml.res2 ml.res2 \
+	-write ml.rs232.prg ml.rs232 \
 	-write "im 128.prg" "im 128" \
 	-write i_su.config.prg "i/su.config" \
 	-write "$repo/disk/e.lightbar.prg" e.lightbar \

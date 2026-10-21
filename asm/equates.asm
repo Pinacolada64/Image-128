@@ -305,6 +305,9 @@
 	ICHROUT	= $0326	; Indirect vector into BASIC CHROUT
 
 
+	ldtnd	= $98	; same. number of open files (the tables below)
+	lat	= $0362	; c64: $0259. logical file number table
+	fat	= $036c	; c64: $0263. device number table
 	sat	= $0376	; c64: $026d. secondary address table
 
 ; Byte Indices to the Beginning and End of Receive and Transmit Buffers
@@ -313,6 +316,31 @@
 	ridbs	= $0a19 ; c64: 668. RS-232: Index to Start of Receive Buffer
 	rodbs	= $0a1a ; c64: 669. RS-232: Index to Start of Transmit Buffer
 	rodbe	= $0a1b ; c64: 670. RS-232: Index to End of Transmit Buffer
+
+; the rest of the KERNAL's RS-232 variables the drivers use (rs232_*.asm;
+; the 128 keeps the C64's zero page ones, $a7-$ab and $b4-$b6, where
+; they were). Checked against kernal-318020-05.bin.
+	palnts	= $0a03	; c64: $02a6. 0 = NTSC, 1 = PAL
+	enabl	= $0a0f	; c64: $02a1. CIA #2 NMIs the RS-232 code has enabled
+	baudof	= $0a16	; c64: $0299. time to send a bit (2 bytes)
+
+; Image's RS-232 buffers: 128-byte rings indexed by the four above (c64:
+; ribuf $0b00 and robuf $0b80). The drivers replace the KERNAL's RS-232
+; code, so they use its buffers.
+	rsibuf	= $0c00	; input
+	rsobuf	= $0d00	; output
+
+; the KERNAL's NMI entry ($ff05) saves .a .x .y and $ff00, switches to
+; cfg_rom and jumps through NMINV ($0318); a handler ends with jmp here,
+; which puts them back and returns (c64: $febc, which pulled .y .x .a)
+	nmiexit	= $ff33
+
+; the 128 KERNAL's own copies of the C64 routines the RS-232 drivers call
+; by address (kernal-318020-05.bin, found by their code). The drivers'
+; KERNAL hooks (CHKIN and the rest) run with the ROMs in.
+	k_findfn = $f202	; c64: $f30f. find logical file .x: Z set, .x its table index
+	k_devnum = $f212	; c64: $f31f. la, sa and fa from table entry .x
+	k_nofile = $f682	; c64: $f701. return "file not open"
 
 ; 2670-2687 / $0A6E-$0A7F: Unused [128 OS] (17 bytes)
 

@@ -2,15 +2,9 @@
 
 orig rs232_exec_address ; "rs232_user.bin"
 
-enabl	= $2a1	; CIA #2 NMI flag
-baudof	= $299	; time required to send a bit
-
-rstkey = $fe56
-norest = $fe72
-nmiexit = $ff37	; c64: $febc
-findfn = $f30f
-devnum = $f31f
-nofile = $f701
+; c64: enabl ($02a1), baudof ($0299), rstkey, nmiexit, findfn, devnum
+; and nofile were the C64 KERNAL's; see equates.asm (enabl, baudof,
+; nmiexit, k_findfn, k_devnum, k_nofile) and nmi64
 
 first:
 
@@ -88,25 +82,22 @@ setup2:
 	cpy #2
 	bcc setup2
 	jmp setup1
+; 2400 baud's bit time for the CIA's clock. c64: it also started CIA #1's
+; timer A with the TOD clock's 50/60 Hz bit (stx $dc0e: $01 or $81), for
+; Image's own IRQ; on the 128 the KERNAL sets CIA #1 up
 setup3:
-	ldx #$01
 	ldy #<426
-	lda $2a6
+	lda palnts	; c64: $02a6
 	beq setup4
-	ldx #$81
 	ldy #<416
 setup4:
-	stx $dc0e
 	sty baudofs+6
 	rts
 
+; 128: the KERNAL's NMI entry ($ff05) has saved .a .x .y and $ff00
+; already and switched to cfg_rom; nmiexit puts them back (c64: this
+; pushed .a .x .y itself)
 nmi64:
-	pha
-	txa
-	pha
-	tya
-	pha
-nmi128:
 	cld
 	lda $dd01
 	and #%00010000
@@ -156,9 +147,10 @@ fullhi:
 	sta $a8
 	bne chktxd
 
+; not CIA #2's: the KERNAL's own NMI handler (RESTORE), which ends at
+; nmiexit too (c64: jmp $fe56)
 notcia:
-	ldy #$00
-	jmp rstkey
+	jmp oldnmi
 
 nmion:
 	lda enabl
@@ -173,7 +165,7 @@ nmion:
 	bne txd
 	ldy ridbe
 	lda $aa
-	sta ribuf,y
+	sta rsibuf,y
 	iny
 	bpl nowrp
 	ldy #0
@@ -218,7 +210,7 @@ txoff:
 	bne switch
 
 sendchr:
-	lda robuf,y
+	lda rsobuf,y
 	sta $b6
 	iny
 	bpl send1
@@ -252,7 +244,7 @@ rsout_entry:
 	sty $97
 point:
 	ldy rodbe
-	sta robuf,y
+	sta rsobuf,y
 	iny
 	bpl rsout1
 	ldy #0
@@ -304,16 +296,13 @@ change:
 	sta $dd0d
 	plp
 ret3:
-	clc
-	ldy $97
-	lda ptr1	; c64: $9e
-	rts
+	jmp ret1	; (c64: a copy of ret1, which the 128's ngetin needed the room of)
 
 nchkin:
 	stx xtmp
-	jsr findfn
+	jsr k_findfn
 	bne nosuch
-	jsr devnum
+	jsr k_devnum
 	lda $ba
 	cmp #2
 	bne back
@@ -327,7 +316,7 @@ inable:
 	lda #$90
 	jmp change
 nosuch:
-	jmp nofile
+	jmp k_nofile
 back:
 	ldx xtmp
 	jsr disab
@@ -338,17 +327,23 @@ xtmp:
 
 ngetin:
 	pha
-	lda $9a
-	cmp #2
+	lda dfltn	; input from device 2? (c64: lda $9a, the output device;
+	cmp #2		; there the KERNAL's GETIN read the shared buffer itself)
 	bne notget
 	pla
+	jsr rsget_entry	; 128: BASIC 7's GET# takes carry set from GETIN as an
+	bcc ngetin1	; error (?BREAK ERROR, from whatever was in .a); rsget's
+	lda #0		; carry set means only "nothing waiting", which GET#
+	clc		; should see as "" (the ML's getmdm still wants the carry,
+ngetin1:		; to tell a received 0 from none)
+	rts
 rsget_entry:
 	sta ptr1	; c64: $9e
 	sty $97
 	ldy ridbs
 	cpy ridbe
 	beq ret2
-	lda ribuf,y
+	lda rsibuf,y
 	sta ptr1	; c64: $9e
 	iny
 	bpl rsget1
@@ -473,3 +468,6 @@ nchrin:
 	jmp inabl
 
 last:
+
+; the driver runs at $2c00-$2eff: rs232.asm copies three pages there
+	addrcheck rs232_exec_address+$300

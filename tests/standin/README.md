@@ -21,6 +21,8 @@ They're petcat source (BASIC 7.0), not C64List: `chr$(92)` for `£`, no
 | `status-right.bas` | `&,69` on the 80-column status area's right half, with the mask off and on |
 | `lightbar.bas` | the lightbar's labels and default checkmarks, loaded as `im` loads them; the f-keys move the highlight |
 | `fkey-macros.bas` | Ctrl/C= + f1/f3/f5/f7 typing `f1$`-`f8$` into an input line |
+| `swiftlink.bas` | the SwiftLink driver (`ml.rs232`, `&,16,1`): sends a line, then shows and echoes back what arrives on device 2 |
+| `userport.bas` | the same with the user port driver (`&,16,0`) at 1200 baud |
 
 ## What a stand-in has to set up
 
@@ -45,3 +47,20 @@ from the start of BASIC's variables.
 monitor pokes (`$0b00`, the boot loader's cassette buffer, free once
 Image runs): `> 0b00 01`, then `02`, and so on. See
 `DEBUG_TECHNIQUES.md` for driving x128 from the remote monitor.
+
+## The RS-232 tests
+
+`swiftlink.bas` and `userport.bas` need x128's RS-232 connected to
+something at the other end: VICE connects to a TCP port as a client,
+so run a listener there first (`nc -l 25232`, or a script), then:
+
+```
+x128 -80col -drive8type 1571 -acia1 -acia1base 0xde00 -acia1irq 1 -acia1mode 1 \
+    -myaciadev 0 -rsdev1 127.0.0.1:25232 -autostart "build/standin-swiftlink.d71:boot 128"
+x128 -80col -drive8type 1571 -userportdevice 2 -rsuserdev 0 -rsuserbaud 1200 \
+    -rsdev1 127.0.0.1:25232 -autostart "build/standin-userport.d71:boot 128"
+```
+
+The listener should accept more than one connection: VICE reconnects
+when the driver drops and raises DTR at setup. Run at normal speed:
+in warp mode the SwiftLink lost the odd incoming byte.
