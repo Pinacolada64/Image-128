@@ -41,8 +41,11 @@ drive 8:
 top of `asm/memory 128.txt`.
 
 `PORTING_NOTES.md` has what differs between the C64 and the 128 and
-how the port deals with it; `DEBUG_TECHNIQUES.md`, how problems were
-tracked down; `tests/standin/README.md`, the test programs.
+how the port deals with it; `PROGRAMMING.md`, writing BASIC for Image
+128 (errors and TRAP, BASIC 7.0's stack, `&` output);
+`BASIC_VARIABLES.md`, the variables the ML uses; `DEBUG_TECHNIQUES.md`,
+how problems were tracked down; `tests/standin/README.md`, the test
+programs.
 
 `im 128.bas` needs C64List 4.06: 4.04 ignores the `{tokenizer}` directives in
 `Basic70.bas` (copied from C64List 4.06), so BASIC 7.0 keywords would come out
