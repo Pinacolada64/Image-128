@@ -43,9 +43,10 @@ from the start of BASIC's variables.
 
 ## Stepping through
 
-`mask.bas` and `status-right.bas` wait at each step for a byte the
-monitor pokes (`$0b00`, the boot loader's cassette buffer, free once
-Image runs): `> 0b00 01`, then `02`, and so on. See
+`status-right.bas` waits at each step for a byte the monitor pokes
+(`$0b00`, the boot loader's cassette buffer, free once Image runs):
+`> 0b00 01`, then `02`, and so on. `mask.bas` waits once, at "Press any
+key", for a key or for `> 0b00 01`; f1 toggles the mask meanwhile. See
 `DEBUG_TECHNIQUES.md` for driving x128 from the remote monitor.
 
 ## The RS-232 tests
