@@ -658,9 +658,8 @@ dispvdc2:
 	lda dispstr5+1
 	and #$0f
 	tax
-	lda color	; keep the editor's charset (ALT) bit
-	and #VDC_ATTR_ALT
-	ora vdccolor,x
+	lda #VDC_ATTR_ALT	; the mask's rows: the lowercase set, as
+	ora vdccolor,x		; irq_far's split gives them on the VIC
 	jsr vdc_fill
 dispvdc3:
 	ldx dispstr6+1	; the row, again
@@ -1168,8 +1167,13 @@ vdcs_d1:
 	lda vdcr_atr+1	; and the 40 colors, as attributes
 	ldy vdcr_atr
 	jsr vdc_set_update
-	lda color	; the editor's charset (ALT) bit, as dispvdc
-	and #VDC_ATTR_ALT
+; the lowercase set (ALT), always: the status rows are the mask's, which
+; keep it (irq_far's split, on the VIC). This took the editor's bit from
+; color, which in 80 columns is a VDC attribute; but BASIC pokes a VIC color
+; number there (the idle loop: poke color,df%), which clears ALT, and the
+; rows drawn after that (23-24, which change all the time) came out in the
+; uppercase/graphics set.
+	lda #VDC_ATTR_ALT
 	sta vdcs_alt
 	ldy #0
 vdcs5:
