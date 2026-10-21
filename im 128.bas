@@ -650,7 +650,10 @@
 4042 p2$="":is=.:p1$="":pr$="":ml$="":pr=-1:pf=.
 ' peek(2033) is carrst (modem carrier status)
 ' 4044 if ac%<>16 then:&,52,4,3:if a% or if (peek(2033) and 1)=. then 4050
-4044 if ac%<>16 then:&,52,4,3:if a% or if (peek({sym:carrst}) and 1)=. then 4050
+' 10/21/2026: "if a% or if (...)" was a ?syntax error, here in the error handler
+' itself: every error ended in it (trapped again by the &,37 on 4040, until
+' break in 5). As the c64: local (a%), or the carrier lost latch clear
+4044 if ac%<>16 then:&,52,4,3:on a% goto 4050:if (peek({sym:carrst}) and 1)=. then 4050
 4046 f1=2:goto 302
 ' 65418: RESTOR through the KERNAL jump table ($ff8a), as on the C64
 4048 a$="FATAL ERROR!!":gosub 51:sys 65418:print"{clear}{$0b}{white}{lowercase}{down:2}"a$:end
