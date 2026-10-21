@@ -54,10 +54,16 @@ class X128:
         return out.decode('latin-1')
 
     def mem(self, bank, addr, n):
-        out = self.cmd(f'bank {bank}', f'm {addr:04x} {addr+n-1:04x}'); b = []
-        for line in out.splitlines():
-            m = re.search(r'>C:([0-9a-f]{4})\s+((?:[0-9a-f]{2}\s+)+)', line)
-            if m: b += [int(x, 16) for x in m.group(2).split()]
+        out = self.cmd(f'bank {bank}', f'm {addr:04x} {addr+n-1:04x}')
+        lines = [(int(m.group(1), 16), m.group(2).split()) for m in
+                 re.finditer(r'>C:([0-9a-f]{4})\s+(.*)', out)]
+        # each line is its address, its bytes, then the bytes as text; that
+        # text can look like more bytes ("80 columns"), so take only as
+        # many as the next line's address says the line holds
+        b = []
+        for i, (a, words) in enumerate(lines):
+            count = lines[i + 1][0] - a if i + 1 < len(lines) else n - len(b)
+            b += [int(x, 16) for x in words[:count]]
         return bytes(b[:n])
 
     def screen(self, rows=25):
