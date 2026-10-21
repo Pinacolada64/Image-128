@@ -10,6 +10,7 @@ lodstruc:
 	txa
 	pha
 	jsr evalfil
+	jsr strucbnk
 	pla
 	tax
 	pla
@@ -23,18 +24,36 @@ savstruc:
 	pha
 	txa
 	pha
-	jsr evalint
+	jsr evalint	; the number of bytes, in .x .y (and linnum)
+	stx strucsz
+	sty strucsz+1
 	jsr evalfil
-	pla
-	sta $69
-	adc $14
+	jsr strucbnk
+	pla		; the end: the start + the bytes (c64: + linnum,
+	sta $69		; $14, after evalfil, carry as it fell; the 128's
+	clc		; linnum is $16, and its filename parser may use it)
+	adc strucsz
 	tax
 	pla
 	sta $6a
-	adc $15
+	adc strucsz+1
 	tay
 	lda #$69
 	jmp savef
+
+strucsz:
+	word 0
+
+; the array is in BASIC's variables, bank 1, and so is the filename (a
+; BASIC string): SETBNK both to 1 for LOAD and SAVE. getfile (BASIC's own
+; filename parser) leaves the data bank at 0, where LOAD puts a program,
+; and in bank 0, at the array's address, is the BASIC program text: a
+; struct load wrote its file over im or a module, and a save wrote out
+; that text (e.last, the lightbar's, ...). c64: one bank.
+strucbnk:
+	lda #1
+	ldx #1
+	jmp setbnk
 
 struct:
 	sty stcount
