@@ -89,7 +89,8 @@
 77 a$="i/"+a$:p1$=a$+"":p2$="":new 4000:goto 79
 ' 78 a$="sub."+a$:p2$=a$+"":delete 60000-
 78 a$="sub."+a$:p2$=a$+"":new 60000
-79 cm$=a$:gosub 9:gosub 2:load dr$+a$,dv%:return
+' 10/20/2026: lz=. after a load that worked (see 2003)
+79 cm$=a$:gosub 9:gosub 2:load dr$+a$,dv%:lz=.:return
 80 a$=z$:z$=mid$(p1$,3):gosub 72:a$=z$:dr=5:if lc<>1 then 77:else return
 82 for i=1 to 4:&,11,i:next
 83 &,11,.:return
@@ -299,11 +300,20 @@
 ' and dim el or el=y is a ?syntax error
 ' error number and line from the wedge's trap (c64: 780-782)
 2002 x=peek({sym:sareg}):y=peek({sym:sxreg})+peek({sym:syreg})*256:&"{f6}[Error#{pound}!x, Line#{pound}!y]{f6}":e1=y
+' 10/20/2026: lz counts the module loads (line 79) that fail one after another.
+' The error handler (4000) carries on by loading a module itself (4046: goto
+' 302, i.lo), so when that one is missing too, every pass fails the same way
+' and it loops for ever, until ?out of memory. The second failure in a row
+' stops there instead, saying which module.
+2003 if x<>29 or y<>79 then lz=.:else lz=lz+1:if lz>1 then 2009
 ' 2004 &,11:&,28,1:poke 53248,.
 2004 &,11:&,28,1:poke {sym:local},.
 ' reload this program: "im 128" on the 128 disk
 2006 dr$=mid$(str$(dr%(5)),2)+":":dv%=dv%(5):load dr$+"im 128",dv%,2
 2008 gosub 304:goto 4000
+' (by then & output may not reach the screen: as 4048, put the KERNAL's
+' own output back with RESTOR and PRINT)
+2009 sys 65418:print:print"{lt. red}Can't load {white}"cm$"{lt. red}: is it on the disk?":print"Halted.":end
 
 ' *** init ***
 
@@ -337,7 +347,9 @@
 ' drop jn$ (haven't seen it used except in pre-TurboREL subs for join string)
 3024 dimj$,j% ',jn$
 3026 dimk$,k%,kk,kp%
-3028 diml$,l%,l1,l1$,l2,l2$,l3,l3$,lc,ld$,le,lf,lk%,ll$,ll%,lm$,lp,lt$,lt%
+' 10/20/2026: lz (2003), DIMmed here with the rest: a variable first made
+' after the boot is lost when Image puts the array pointers back
+3028 diml$,l%,l1,l1$,l2,l2$,l3,l3$,lc,ld$,le,lf,lk%,ll$,ll%,lm$,lp,lt$,lt%,lz
 3030 dimm$,m%,mc,mf,ml$,mp$,mt$,mw,mp%,mn%
 3032 dimn$,n%,na$,nc,nf,nl,nl$,nm,nm$
 3034 dimo$,o%
