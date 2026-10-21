@@ -265,6 +265,7 @@
 	mode	= $d7	; [128 OS] bit 7 set: editor is on the 80-column (VDC) screen
 	vdcscrn	= $0a2e	; [128 OS] high byte of VDC screen RAM ($00)
 	vdcattr	= $0a2f	; [128 OS] high byte of VDC attribute RAM ($08)
+	vdccmode= $0a2b	; [128 OS] VDC cursor mode (R10) the editor shows its cursor with
 	undcol	= gdcol	; c64: 647 ($0287); on the 128 $0287 is in BASIC's input buffer
 
 ;

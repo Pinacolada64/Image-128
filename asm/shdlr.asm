@@ -442,6 +442,7 @@ out5:
 crsroff:
 	lda #1
 	sta crsrflg
+	jsr vdccoff	; 80 columns: the VDC's cursor off
 	lda crsrmode
 	beq crsroff1
 	ldy #0
@@ -467,11 +468,57 @@ crsron:
 crsron0:
 	lda #0
 	sta crsrflg
+	bit mode	; 80 columns: the VDC's own cursor (the IRQ's
+	bmi vdccon	; blink is the 40-column one)
 	rts
 crsron1:
 	lda #1
 	sta crsrflg
 	rts
+
+; the VDC's hardware cursor, as the editor's $cd6f/$cd9f set it for its
+; own input: R14/R15 at the cursor (pnt + pntr), R10 the editor's cursor
+; mode ($0a2b, blinking) to show it or $20 to hide it. getkbd turns it
+; on while Image waits for a key, and outscn's crsroff turns it off
+; before printing. scnlock keeps the IRQ's f1 (setmode) from writing
+; the VDC in the middle of these.
+vdccon:
+	inc scnlock
+	lda pnt
+	clc
+	adc pntr
+	tay
+	lda pnt+1
+	adc #0
+	ldx #VDC_R_CURSOR_HI
+	jsr vdc_write_reg
+	inx		; R15
+	tya
+	jsr vdc_write_reg
+	lda vdccur_on
+	bne vdccon1	; already showing
+	ldx #VDC_R_CURSOR_MODE
+	lda vdccmode
+	jsr vdc_write_reg
+	inc vdccur_on
+vdccon1:
+	dec scnlock
+	rts
+
+vdccoff:
+	lda vdccur_on
+	beq vdccoff1
+	bit mode
+	bpl vdccoff1
+	lda #0
+	sta vdccur_on
+	ldx #VDC_R_CURSOR_MODE
+	lda #VDC_CURSOR_OFF
+	jsr vdc_write_reg
+vdccoff1:
+	rts
+vdccur_on:
+	byte 0
 
 dispstr:
 	stx dispstr0+1

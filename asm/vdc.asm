@@ -72,6 +72,7 @@ VDC_ADDR_REG      = $d600   ; write: register select; read bit 7: ready
 VDC_DATA_REG      = $d601
 
 VDC_R_CURSOR_MODE = $0a     ; bits 6-5: 00 solid, 01 off, 10/11 blink
+VDC_R_CURSOR_HI   = $0e     ; R14/R15: cursor address
 VDC_R_UPDATE_HI   = $12     ; R18/R19: update (read/write) address
 VDC_R_UPDATE_LO   = $13
 VDC_R_BLOCK_CTRL  = $18     ; R24 bit 7: 1 = block COPY, 0 = block WRITE
