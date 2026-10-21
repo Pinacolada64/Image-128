@@ -6,19 +6,50 @@
 
 ' Image BBS 128 (10/20/2026): C64 addresses in peek/poke are the 128's,
 ' as {sym:...} names from asm/equates.asm (included below).
-{uses:..\3_0-preface.lbl}
-{alpha:alt}
+
+' Image BBS 128 (10/21/2026): BASIC 7.0 keeps FOR, GOSUB and DO frames on its
+' own stack, $0800-$09ff, not on the CPU's: the c64 version read the CPU's
+' stack pointer (poke $c000 with tsx/rts, sys, peek 781), which on the 128
+' always found nothing, and wrote over the "++" overlay at protostart. Now it
+' walks BASIC 7.0's stack. (125)/(126) points at the newest frame's token, the
+' frames reach up to $09fe (2558), and it's empty at $09ff. Read from x128:
+'   FOR   $81  18 bytes: variable's address (bank 1), STEP (5), sign, TO (5),
+'                        line, text pointer
+'   GOSUB $8d   5 bytes: line, text pointer
+'   DO    $eb   5 bytes: line, text pointer
+' BEGIN/BEND puts nothing there (an IF's block is skipped through the program
+' text), so an unclosed one can't leave garbage. Garbage is a frame its RETURN,
+' NEXT or LOOP never took off: a GOTO out of a subroutine or loop.
+' The newest two GOSUBs are the call that ran this (im 75: gosub 60000, under
+' the gosub 74 or 450 that asked for it): not garbage.
+' Clearing: im's error trap empties the stack (the wedge's wtrap, as CLR
+' does), so a forced ?syntax error (63022) clears it; the error handler logs
+' it with the line, and starts im again.
+' BASIC 7.0 keywords (bank, dec): C64List 4.06 and Basic70.bas, which can't
+' take the preface's numeric assigns: gosub {$39}4 is im's yes/no prompt
+' (94: [No] default, a=1 for Yes).
 {include:"..\asm\equates.asm"}
+{include:..\Basic70.bas}
+{alpha:alt}
+{include:..\quoters.lbl}
 {crunch:on}
 
-60000 rem:stack checker
-63000 &"{clear}{f6:2}STACK Investigator 3.0:{f6:2}":poke$c000,$ba:poke$c001,$60:pr=-1:sys$c000
-63002 x=peek({sym:sxreg})+256:if x>=502 then:&"Stack Has No Garbage.{f6:2}":goto 63016
-63004 a=502-x:&"Stack Has {pound}!a Bytes of Garbage:{f6:2}"
-63006 for a=x+5 to 511:b=peek(a):x=peek(a+1)+peek(a+2)*256
-63008 if b=141 then:&"GOSUB on Line {pound}!x{f6}":a=a+4:goto 63014
-63010 on-(b<>129) goto 63014:&"FOR "+chr$(peek(x-2))+chr$(peek(x-1))
-63012 n=peek(a+14)+peek(a+15)*256:&" On Line {pound}!n{f6}":a=a+17
-63014 next:return
-63016 &"{f6:2} Press A Key: {pound}g1":return
-63018 rem:"sub.stack (c)nissa 200224 lh"
+60000 rem stack checker
+' x: the frame's address, b: its token, n: its size, a: its line, i: frames
+' that aren't this call's, y: their bytes
+' ("then:&": the wedge only sees & at the start of a statement)
+63000 &"{clear}{f6:2}Stack Investigator 128 1.1{colon}{f6:2}":pr=-1:x=peek(125)+peek(126)*256:i=.:y=.
+63002 if x>2558 then 63018
+63004 b=peek(x):n=.:if b=141 then a$="GOSUB":n=5
+63006 if b=235 then a$="DO":n=5
+63008 if b=129 then a=peek(x+1)+peek(x+2)*256:bank 1:a$="FOR "+chr$(peek(a-2) and 127):b$=chr$(peek(a-1) and 127):bank 15:n=18:if b$>chr$(0) then a$=a$+b$
+63010 if n=. then:&"Unknown Frame ({pound}!b) at {pound}!x{colon} Stopped Looking.{f6}":goto 63018
+63012 a=peek(x+n-4)+peek(x+n-3)*256:if b=141 and x<peek(125)+peek(126)*256+10 then:&"(This Check, Called From Line {pound}!a){f6}":goto 63016
+63014 i=i+1:y=y+n:&a$+" on Line {pound}!a{f6}"
+63016 x=x+n:goto 63002
+63018 if i=. then:&"{f6}No Garbage on the Stack.{f6}":goto 63024
+63020 &"{f6}{pound}!i Open Frame(s){comma} {pound}!y Bytes.{f6}An Error Clears Them{comma} and Is Logged.{f6}Clear the Stack{question} ":gosub {$39}4:if a=. then 63024
+' the error itself: im's trap (2000) logs it and starts im again
+63022 &"{f6}Forcing a Syntax Error...{f6}":)
+63024 &"{f6:2} Press A Key{colon} {pound}g1":return
+63026 rem "sub.stack (c)nissa 2020-02-24 lh, 2026-10-21 rs"
