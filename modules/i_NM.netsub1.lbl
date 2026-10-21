@@ -1,0 +1,39 @@
+' imported from the 2023-12-31 master release's i/NM.netsub1 with C64List 4.04
+' (-txt -keycase -varcase -alpha:alt); tools/detok.sh wouldn't write it (it
+' doesn't rebuild byte for byte): see the notes below for what changed.
+
+' Image BBS 128 (10/21/2026): jumps to lines in other modules, or to lines
+' that don't exist (as in the original), are written {$3d}ddd so that
+' C64List leaves the number as it is (it wrote [n] otherwise): 3488, 3641
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+
+4000 &"{f6:2} {gray3}{rvrs on} Image NetSubs V2.0  10/11/94  8:40PM"
+4002 &"{f6:2}{green}Processing NetSubs...":close3:tt=.:pr=-1:pn=.:rn=.:tz=.
+4004 dr=2:a$="nm.list,s,r":gosub4:ife%=.then4008
+4006 close2:&"{f6:2}        {lt. red}{rvrs on} No Incoming Messages...{f6}":goto4040
+4008 dr=2:a$="nm.list,s,r":gosub4
+4010 &,2,2:b$=a$:a=-(st=.)
+4012 ifmid$(b$,11,8)="nm.P."+nn$thentt=tt+1:tt$(tt)=mid$(b$,11)+",s,r":goto4020
+4014 close3:open3,dv%,3,dr$+"nm.templist,s,a":gosub5
+4016 ife%thenclose3:open3,dv%,3,dr$+"nm.templist,s,w"
+4018 print#3,b$:close3
+4020 onagoto4010:close2:a$="nm.list":gosub19
+4022 print#15,"r"+dr$+"nm.list="+dr$+"nm.templist":close15:iftt=.then4006
+4024 &"{f6:2}{lt. green}Reading NetSub Configuration..."
+4026 a$="netlist":gosub28:ife%thenreturn
+4028 a%=.:dr=2:gosub3:fori=1to60:a$=dr$+"nm.netsub"+str$(i):&,16,2,dv%
+4030 gosub5:ife%theni=60:goto4036
+4032 an$="":a$="":&,16:a%=a%+1:bn=len(an$):dt$(i)=an$+a$
+4034 print#15,"s"dr$"nm.P.temp"+str$(i)
+4036 next:n=a%:close15:&"{f6:2}{yellow}{pound}#0{pound}%a NetSubs Defined...":ona%+1goto4040:gosub4050
+4038 onxgoto4040:a$="netsub2":gosub{$33}641:goto{$33}488
+4040 a$="netsub4":gosub{$33}641:goto{$33}488
+4042 x=1:&"{f6} {orange}{rvrs on} Error - Incoming Messages Not Sorted! ":return
+4044 dr=2:gosub3:b$="nm.P.track"+str$(i)+str$(x):a$=dr$+b$:&,16,2,dv%
+4046 gosub5:ife%thenreturn
+4048 &,16,7:a$=b$:dr=2:gosub19:a$=dr$+b$:&,16,3,dv%:x=x+1:goto4044
+4050 rem check lines 4038 4040
+4052 &"{f6:2}{white}Message Tracking System Initialized...":x=.:return
+4054 copr. 1994 new image 10/14/94
+4056 rem:"i/ÎÍ.netsub1 (c)nissa 190225 lh"

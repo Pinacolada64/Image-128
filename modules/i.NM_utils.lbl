@@ -1,0 +1,283 @@
+' imported from i.NM_utils.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{crunch:on}
+
+3000 rem "+.NM/utils" 07-01-90
+3002 &,18,0:v=1.2:vn$="900610":cm$="IMAGE NetMail":gosub 9:r$=chr$(13):goto 3124
+3004 close 2:open 2,dv%,2,dr$+"nm.nodes":goto 5
+3006 gosub 3004:input# 2,n:return
+3008 close 2:open 2,dv%,2,dr$+"nm.nodes,l,"+chr$(100):return
+3010 dr=2:a$="nm.nodes":goto 4
+3012 gosub 3010:input# 2,n:return
+3014 f$="nm.list":gosub 3016:print# 2,tt$:close 2:return
+3016 dr=2:a$=f$+",s,w":gosub 4:if e%then a$=f$+",s,a":gosub 4:return
+3018 return
+3020 f$="nm.sylog":gosub 3016:print# 2,na$r$d1$r$tt$:close 2:return
+3022 if xthen x=x+1:gosub 1:input# 2,z$:return
+3024 z$="{f2:3}":return
+3026 gosub 3012
+3028 for i=1 to n:a%=i:x=i+1:gosub 1:input# 2,a$,b$,b$:&"{pound}#2{pound}%a:/{pound}$a/{pound}{back arrow}10{pound}$b{f6}"
+3030 i=i+rc*n:next:close 2:return
+3032 gosub 3012:if a<1 or a>nthen 32
+3034 x=a+1:gosub 1:input# 2,a$,b$,c$,d$,o%,a%,b%,c%,d%
+3036 x=a%:gosub 3022:f$=z$:x=b%:gosub 3022:g$=z$:x=c%:gosub 3022:h$=z$:x=d%:gosub 3022:i$=z$
+3038 close 2:return
+3040 t$=w$:&,1,32:if an$="" then an$=t$
+3042 if an$<>t$then tz=1
+3044 return
+3046 &"{pound}g1":b=-(an$="Y"):if an$<>"N" and an$<>"Y" then b=a
+3048 if bthen:&"Yes.{f6}"
+3050 if b=.then:&"No.{f6}"
+3052 if a<>bthen tz=1
+3054 a=b:return
+3056 &"Destination Node (?=List):{pound}i1":if an$="{f2}" then gosub 3026:goto 3056
+3058 a$=an$:a%=val(a$):if a%<1 or a%>nthen:&,16,2
+3060 if a%=0 then a=0:a$="":return
+3062 gosub 3010
+3064 a=a%:goto 3034
+3066 &"{lt. blue}Node {blue}({cyan}?{blue}={lt. blue}List{blue},{cyan}A{blue}={lt. blue}Add{blue}):{white}{pound}i1":if an$="{f2}" then gosub 3026:goto 3066
+3068 goto 3058
+3070 pr=-1:a$="path":gosub 28:if e%then:&:return
+3072 gosub 3086:if e%=0 then return
+3074 gosub 3010:if e%then:&:goto 3084
+3076 close 3:open 3,dv%,3,dr$+"nm.nodelist,p,w":print# 3,chr$(0) chr$(194);
+3078 input# 2,n:print# 3,chr$(n);:if n=0 then 3084
+3080 for i=1 to n:x=i+1:gosub 1:input# 2,a$,b$,b$,b$,b$,a,b,c,d
+3082 print# 3,left$(a$+"---",3) chr$(0) chr$(a) chr$(b) chr$(c) chr$(d);:next
+3084 close 3:close 2
+3086 dr=2:gosub 3:a$=dr$+"nm.nodelist":&,16:goto 5
+3088 rem ifn%<>1then98
+3090 &"{clear}{f6:2}Creating {f5}nm.ark reps{f5}...{f6}":gosub 3108
+3092 dr=2:a$="nm.reports":gosub 4:i=1:if e%then close 2:goto 3104
+3094 &,2,2:tt$(i)=a$:if st=.then i=i+1:ct=i:goto 3094
+3096 close 2
+3098 i=2:z1$=mid$(tt$(i),4,2)
+3100 dr=2:a$="nm.ark rep "+z1$+",s,a":gosub 4:if e%then close 2:gosub 3118
+3102 for i=1 to ct:print# 2,tt$(i):next:close 2
+3104 dr=2:gosub 3:print# 15,"s" dr$"nm.reports"
+3106 close 2:&"Done!":return
+3108 z$=left$(d1$,1):z=val(z$)-1:if z=.then z=7
+3110 z$=str$(z):z$=mid$(z$,2,1)
+3112 z1$=mid$(d1$,4,2):rem month
+3114 z2$=mid$(d1$,6,2):rem day
+3116 return
+3118 dr=2:a$="nm.ark rep "+z1$:gosub 18:return
+3120 &"Sorry, only Node #1 can use this program":return
+3122 close 2:&:&"{f6}Press a key:{pound}g1{f6}"
+3124 gosub 3476:rem ifn%<>1then98
+3126 a$=nn$:&"{clear}{f6}{blue}{pound}vj {white}{rvrs on}   NetMail Administration Utilities{pound}{back arrow}39{rvrs off}{f6}{blue}{pound}vj{f6:2}"
+3128 &"{cyan} A. {lt. blue}Edit Nodes{f6}"
+3130 &"{cyan} B. {lt. blue}Send Node Update{f6}"
+3132 &"{cyan} C. {lt. blue}Write NetNews{f6}"
+3134 &"{cyan} D. {lt. blue}Make {f5}nm.create{f5}{f6}"
+3136 &"{cyan} E. {lt. blue}Send {f5}Sysop's Mail{f5}{f6}"
+3138 &"{cyan} F. {lt. blue}Send {f5}Map 40 Update{f5}{f6}"
+3140 &"{cyan} G. {lt. blue}Send {f5}Map 80 Update{f5}{f6}"
+3142 &"{cyan} H. {lt. blue}Test Path Module{f6}"
+3144 &"{cyan} I. {lt. blue}Check NODE Connects{f6}"
+3146 &"{cyan} J. {lt. blue}Read {f5}nm.dead{f5} File{f6}"
+3148 &"{cyan} K. {lt. blue}Read {f5}nm.reports{f5} File{f6}"
+3150 &"{cyan} L. {lt. blue}Read Monthly {f5}nm.ark rep{f5} Files{f6}"
+3152 &"{cyan} M. {lt. blue}Archive {f5}nm.reports{f5} File{f6}"
+3154 &"{f6}{cyan} 0. {lt. blue}Quit{f6:2}":tz=0
+3156 &"{lt. blue}-->{white}{pound}g1":b=.:if an$>="A" and an$<="Z" then b=asc(an$) and 31
+3158 if b=>1 and b<=13 then on bgosub 3162,3240,3268,3286,3318,3362,3392,3304,3338,3378,3408,3442,3088:goto 3126
+3160 &,18,1:goto 300
+3162 gosub 3012:close 2:rem ifn%<>1thenreturn
+3164 &"{clear}{down:2}  {white}Network NodeList Editor{f6:2}":q=25:gosub 3534
+3166 &"{lt. blue}Node {blue}({cyan}?{blue}={lt. blue}List{blue},{cyan}A{blue}={lt. blue}Add{blue}):{white}{pound}i1":if an$="{f2}" then gosub 3026:goto 3166
+3168 if an$="A" then 3230
+3170 if an$="" then dr=2:gosub 3:print# 15,"s" dr$"nm.nodelist":goto 3070
+3172 gosub 3058:if a=0 then 3164
+3174 z%=a:tz=0:n$=a$:o%=o%and 1
+3176 &"{clear}{down:2}  {white}Network NodeList Editor{f6:2}     {lt. blue}Node  {blue}:{white}{pound}%z{f6}"
+3178 &"{blue} ({cyan}1{blue}) {lt. blue}ID    {blue}:{white}{pound}$n{f6}"
+3180 &"{blue} ({cyan}2{blue}) {lt. blue}Phone {blue}:{white}{pound}$b{f6}"
+3182 &"{blue} ({cyan}3{blue}) {lt. blue}BBS   {blue}:{white}{pound}$c{f6}"
+3184 &"{blue} ({cyan}4{blue}) {lt. blue}SysOp {blue}:{white}{pound}$d{f6}"
+3186 &"{blue} ({cyan}5{blue}) {lt. blue}Active{blue}:{white}{pound}%o{f6}"
+3188 &"{blue} ({cyan}6{blue}) {lt. blue}Cnxn1 {blue}:{white}{pound}#3{pound}%a ({pound}$f){f6}"
+3190 &"{blue} ({cyan}7{blue}) {lt. blue}Cnxn2 {blue}:{white}{pound}#3{pound}%b ({pound}$g){f6}"
+3192 &"{blue} ({cyan}8{blue}) {lt. blue}Cnxn3 {blue}:{white}{pound}#3{pound}%c ({pound}$h){f6}"
+3194 &"{blue} ({cyan}9{blue}) {lt. blue}Cnxn4 {blue}:{white}{pound}#3{pound}%d ({pound}$i){f6}"
+3196 &"{lt. blue} -->{white} {pound}g1":a=val(an$):if a=0 then 3218
+3198 lp=1:&an$:on agosub 3200,3202,3204,3206,3208,3210,3212,3214,3216:goto 3176
+3200 pl=1:p$="Node Identifier":w$=n$:gosub 3040:n$=an$:return
+3202 pl=1:p$="Node Phone #":w$=b$:gosub 3040:b$=an$:return
+3204 pl=0:p$="BBS Name":w$=c$:gosub 3040:c$=an$:return
+3206 pl=1:p$="BBS Sysop":w$=d$:gosub 3040:d$=an$:return
+3208 &"Active?":a=1-o%:gosub 3046:o%=1-a:return
+3210 x%=1:a=a%:gosub 3234:a%=a:f$=a$:return
+3212 x%=2:a=b%:gosub 3234:b%=a:g$=a$:return
+3214 x%=3:a=c%:gosub 3234:c%=a:h$=a$:return
+3216 x%=4:a=d%:gosub 3234:d%=a:i$=a$:return
+3218 p$="":if tz=.then 3164
+3220 &"{f6}{lt. blue}Save Changes{blue}?{white} ":a=.:gosub 3046:if a=.then 3164
+3222 tt$=n$+r$+b$+r$+c$+r$+d$+r$+str$(o%)+r$
+3224 tt$=tt$+str$(a%)+r$+str$(b%)+r$+str$(c%)+r$+str$(d%)
+3226 gosub 3010:if z%>nthen n=z%:print# 2,z%
+3228 x=z%+1:gosub 1:print# 2,tt$:close 2:goto 3164
+3230 z%=n+1:n$="XXX":b$="0000000000":c$="Empty":d$="None":a%=0:b%=0:c%=0:d%=0
+3232 f$="???":g$="???":h$="???":i$="???":goto 3176
+3234 pl=1:p$="Connection #{pound}%x":w$=str$(a):gosub 3040:gosub 3010:a=val(an$)
+3236 if a=0 then a$="???":close 2:return
+3238 x=a+1:gosub 1:&,2,2:close 2:return
+3240 if n%<>1 then return
+3242 &"{clear}{down:2}{right:2}Send NodeList Update{f6:2} Are You Sure? ":gosub 94:if a=.then 3126
+3244 &"{f6}Send FULL Update? ":gosub 94:f=a:tt$="/A/":if fthen tt$="/R/"
+3246 o$="nm.U.nodes":dr=2:gosub 3:if fthen print# 15,"s" dr$o$
+3248 close 3:open 3,dv%,3,dr$+o$+",s,w":gosub 5
+3250 if e%=63 and f=0 then close 3:open 3,dv%,3,dr$+o$+",s,a":gosub 5
+3252 on-(e%<>0) goto 3266:gosub 3008
+3254 for a=nto 1 step-1:x=a+1:gosub 1:input# 2,a$,b$,c$,d$,o%,a%,b%,c%,d%
+3256 if (o%and 2)=2 or f=1 then print# 3,a;r$a$r$b$r$c$r$d$r$o%and 1;r$a%r$b%r$c%r$d%
+3258 if fthen gosub 1:print# 2,a$r$b$r$c$r$d$r$o%and 1;r$a%r$b%r$c%r$d%
+3260 next:close 2:close 3
+3262 tt$="ALL/"+nn$+tt$+o$:gosub 3014
+3264 &"Done!{f6}":return
+3266 close 3:&"{f6:2}Error Creating File {f5}nm.U.nodes{f5}.{f6}":return
+3268 if n%<>1 then return
+3270 &"{clear}{f6:3}  Write NetNews:{f6:2}":im=1:gosub 440:if kk=.then 3284
+3272 &"{f6}Filing NetNews...":f$="nm.U.news":tt$="ALL/"+nn$+"/R/"+f$
+3274 dr=2:a$=f$+",s,w":gosub 4:if e%then close 2:a$=f$+",s,a":gosub 4
+3276 print# 2,"Net-" mid$(d1$,2) r$" {pound}o{$c0}{pound}o{$c0}" r$"  From " na$" @ " nn$r$
+3278 for i=1 to kk-1:print# 2,tt$(i):next:print# 2,"{^}":close 2
+3280 gosub 3014
+3282 &"Done!{f6}":return
+3284 &"{f6}Aborted!{f6:2}":return
+3286 &"{f6:2} Making {f5}nm.create{f5}..."
+3288 dr=2:gosub 3:print# 15,"s" dr$"nm.create"
+3290 close 3:open 3,dv%,3,dr$+"nm.create,s,w":gosub 5:if e%then 3302
+3292 gosub 3006
+3294 for a=nto 1 step-1:x=a+1:gosub 1:input# 2,a$,b$,c$,d$,o%,a%,b%,c%,d%
+3296 print# 3,a;r$a$r$b$r$c$r$d$r$o%and 1;r$a%r$b%r$c%r$d%
+3298 next:close 2:close 3
+3300 &"Done!{pound}w1{f6}":return
+3302 close 3:&"{f6:2}Error Creating File {f5}nm.create{f5}.{f6}":return
+3304 if n%<>1 then return
+3306 pr=-1:a$="path":gosub 28:gosub 5:if e%then:&:goto 3316
+3308 dr=2:gosub 3:a$=dr$+"nm.nodelist":&,16:&"{pound}%a Nodes.{f6:2}"
+3310 &"From:{pound}i1":a$=an$:a%=val(a$):if an$="" then 3316
+3312 &"To  :{pound}i1":b$=an$:b%=val(b$):if an$="" then 3316
+3314 &,16,1:&"Path:{pound}v7{f6:2}":goto 3310
+3316 return
+3318 if n%<>1 then return
+3320 &"{clear}{f6:3}  Write Sysop Mail:{f6:2}":im=1:gosub 440:if kk=.then 3336
+3322 &"{f6}Filing Sysop Mail...":f$="nm.U.message":tt$="ALL/"+nn$+"/R/"+f$
+3324 dr=2:a$=f$+",s,w":gosub 4:if e%then close 2:a$=f$+",s,a":gosub 4
+3326 m$="SysOp Message From X-Tec"
+3328 print# 2,"{white}NET SYSOP{shft space}MAIL" r$" 0" r$d1$r$"[" m$"]" r$r$
+3330 for i=1 to kk-1:print# 2,tt$(i):next:print# 2,"{^}":close 2
+3332 gosub 3014
+3334 &"Done!{f6}":return
+3336 &"{f6}Aborted!{f6:2}":return
+3338 if n%<>1 then return
+3340 &,28:&"{f6:2}NODE{shft space}Connects List.{f6:2}":gosub 3344:return
+3342 a$=a$(a%):&"{cyan}{pound}$b{lt. green}{pound}#2{pound}%a{cyan}/{white}{pound}$a{lt. red}":return
+3344 dr=2:a$="nm.nodes":gosub 4:on-(e%<>0) goto 3358:input# 2,n:dim a$(n),z%(n,4)
+3346 for i=1 to n:x=i+1:gosub 1:a%=i:&"{f6}{up}{pound}%a"
+3348 input# 2,a$(i),b$,b$,b$,b$,z%(i,1),z%(i,2),z%(i,3),z%(i,4):next:close 2
+3350 &"{f6:2}":for i=1 to n:b$=""
+3352 a%=i:gosub 3342:b$=": ":for j=1 to 4:a%=z%(i,j):on-(a%=0) goto 3356:if j>1 then b$=", "
+3354 gosub 3342:f=0:for k=1 to 4:f=f-(z%(a%,k)=i):next:if f<>1 then:&"*"
+3356 next:&"{pound}q0{f6}":next
+3358 close 2:return
+3360 rem
+3362 if n%<>1 then return
+3364 &"{clear}{f6:3}  Create New Map 40:{f6:2}":im=1:gosub 440:if kk=.then 3376
+3366 &"{f6}Filing Map Update...":f$="nm.U.map":tt$="ALL/"+nn$+"/R/"+f$
+3368 dr=2:a$=f$+",s,w":gosub 4:if e%then close 2:a$=f$+",s,r":gosub 4
+3370 for i=1 to kk-1:print# 2,tt$(i):next:close 2
+3372 gosub 3014
+3374 &"Done!{f6}":return
+3376 &"{f6}Aborted!{f6:2}":return
+3378 if n%<>1 then return
+3380 &"{f6:2}Read {f5}nm.dead{f5} File.{f6:2}"
+3382 dr=2:a$="nm.dead":gosub 14:if e%then:&"{f6}No File Found.{f6:2}":return
+3384 &"{f6:2} Delete {f5}nm.dead{f5} File? ":gosub 94:if tr%<1 then return
+3386 on-(a<>1) goto 3390
+3388 print# 15,"s" dr$"nm.dead"
+3390 close 15:return
+3392 if n%<>1 then return
+3394 &"{clear}{f6:3}  Create New Map 80:{f6:2}":im=1:gosub 440:if kk=.then 3376
+3396 &"{f6}Filing Map Update...":f$="nm.U.map 80":tt$="ALL/"+nn$+"/R/"+f$
+3398 dr=2:a$=f$+",s,w":gosub 4:if e%then close 2:a$=f$+",s,r":gosub 4
+3400 for i=1 to kk-1:print# 2,tt$(i):next:close 2
+3402 gosub 3014
+3404 &"Done!{f6}":return
+3406 &"{f6}Aborted!{f6:2}":return
+3408 if n%<>1 then return
+3410 dr=2:a$="nm.reports,s,r":gosub 4:on e%goto 3440
+3412 x=x+1
+3414 &,2,2:s=st:if sthen 3440
+3416 if a$="{^}" then 3412
+3418 input# 2,ad$,bh$,hr$,hb$
+3420 &"{clear}{f6:2}{blue}{pound}vj {cyan}{rvrs on} "+a$+"  "+bh$+"{pound}{back arrow}39{rvrs off}{f6}"
+3422 &" {rvrs on} "+hr$+"  "+hb$+"{pound}{back arrow}39{rvrs off}{f6}{blue}{pound}vj{f6}"
+3424 da$=left$(ad$,11):ve$=right$(ad$,11)
+3426 &" {lt. blue}Date    :{white}{$04}"+da$
+3428 if ve$=da$then 3432
+3430 &"{f6} {lt. blue}Version :{white}{$04}"+ve$
+3432 &"{f6:2}{blue}{pound}vj {rvrs on}{cyan} {pound}{back arrow}07Press Return To Continue{pound}{back arrow}39{rvrs off}"
+3434 &"{f6} {rvrs on}{pound}{back arrow}10 Or 'A' To Abort.{pound}{back arrow}39{rvrs off}{f6}{blue}{pound}vj"
+3436 &"{pound}{back arrow}19{pound}g1{f6:2}":if an$="A" then close 2:return
+3438 goto 3412
+3440 close 2:return
+3442 if n%<>1 then return
+3444 &"{f6}Which Month? {pound}i1":dr=2:a$="nm.ark rep "+an$+",s,r":gosub 4:on e%goto 3474
+3446 x=x+1
+3448 &,2,2:s=st:if sthen 3474
+3450 if a$="{^}" then 3446
+3452 input# 2,ad$,bh$,hr$,hb$
+3454 &"{clear}{f6:2}{blue}{pound}vj {cyan}{rvrs on} "+a$+"  "+bh$+"{pound}{back arrow}39{rvrs off}{f6}"
+3456 &" {rvrs on} "+hr$+"  "+hb$+"{pound}{back arrow}39{rvrs off}{f6}{blue}{pound}vj{f6}"
+3458 da$=left$(ad$,11):ve$=right$(ad$,11)
+3460 &" {lt. blue}Date    :{white}{$04}"+da$
+3462 if ve$=da$then 3466
+3464 &"{f6} {lt. blue}Version :{white}{$04}"+ve$
+3466 &"{f6:2}{blue}{pound}vj {rvrs on}{cyan} {pound}{back arrow}07Press Return To Continue{pound}{back arrow}39{rvrs off}"
+3468 &"{f6} {rvrs on}{pound}{back arrow}10 Or 'A' To Abort.{pound}{back arrow}39{rvrs off}{f6}{blue}{pound}vj"
+3470 &"{pound}{back arrow}19{pound}g1{f6:2}":if an$="A" then close 2:return
+3472 goto 3446
+3474 close 2:return
+3476 dr=2:a$="nm.nodes":gosub 4:if e%=0 then:&,2,2:n=val(a$):goto 3512
+3478 dr=2:a$="nm.create,s,r":gosub 4:if e%then 3504
+3480 &"{f6}Creating {f5}nm.nodes{f5} file..."
+3482 input# 2,a,a$,b$,c$,d$,o%,a%,b%,c%,d%:s=st:close 2
+3484 gosub 3008:n=0
+3486 x=a+1:gosub 1:print# 2,a$r$b$r$c$r$d$r$o%r$a%r$b%r$c%r$d%
+3488 if a>nthen n=a:x=1:gosub 1:print# 2,n
+3490 close 2:close 3:open 3,dv%,3,dr$+"nm.create,s,r"
+3492 gosub 3008:n=0
+3494 input# 3,a,a$,b$,c$,d$,o%,a%,b%,c%,d%:s=st
+3496 x=a+1:gosub 1:print# 2,a$r$b$r$c$r$d$r$o%r$a%r$b%r$c%r$d%
+3498 if a>nthen n=a:x=1:gosub 1:print# 2,n
+3500 if s=.then 3494
+3502 close 2:close 3:print# 15,"s" dr$"nm.nodelist":goto 3512
+3504 &"Do you wish to create a network? ":gosub 94:if a=0 then e%=1:return
+3506 n=1:n%=1:nn=1:gosub 3008:print# 2,1:x=2:gosub 1
+3508 print# 2,"XXX" r$"0000000000" r$"Unknown" r$"Unknown" r$;0;r$;0;r$;0;r$;0;r$;0
+3510 close 2:goto 3520
+3512 dr=2:a$="nm.config":gosub 4:if e%=0 then 3528
+3514 dr=2:a$="nm.nodes":gosub 4:&,2,2:n=val(a$):close 2
+3516 &"{f6}Enter the Node # you were assigned: {pound}i1":nn=val(an$)
+3518 if nn<1 or nn>nthen e%=1:return
+3520 close 2:dr=2:a$="nm.config,l,z":gosub 4
+3522 x=1:gosub 1:print# 2,nn;r$1020;r$"{f2}" r$vn$
+3524 x=2:gosub 1:print# 2,300;r$r$r$"atdt"
+3526 x=3:gosub 1:a$="":for i=0 to 9:a$=a$+"2306"+r$:next:print# 2,a$;
+3528 x=1:gosub 1:&,2,2:nn=val(a$):close 2
+3530 dr=2:a$="nm.nodes":gosub 4:x=nn+1:gosub 1:&,2,2:nn$=a$:close 2
+3532 n%=nn:goto 3070
+3534 poke 53252,q:return
+3536 rem "Modded By Bucko with Extra         Modules From New IMAGE Software"
+3538 rem "And The NAIS NetWork, The Grunt  "
+3597 rem "+.NM/utils (C) NISSA 01/26/92"
+3598 rem "copyright New IMAGE Software"
+3599 rem:"i.NM/utils (c)nissa 211016 lh"

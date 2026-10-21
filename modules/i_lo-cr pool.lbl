@@ -1,0 +1,31 @@
+' imported from i_lo-cr pool.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+
+4500 on-(cr<10orct%>1)goto4506
+4502 &"{f6}{green}Join The Credit Pool? ":gosub96:on-(a=1)goto4514:goto4506
+4504 a$="e.cr.pool"+str$(p)+",s,r":dr=3:gosub4:ife%thengosub4534
+4506 return
+4508 a$="e.cr.pool 1":dr=3:goto18
+4510 a$="e.cr.pool 2,s,a":gosub4:ife%then4538
+4512 return
+4514 a=.:b=.:c=.:d=.:n=.:l=.
+4516 &"{f6}{gray3}Instructions? ":gosub94:ifathena$="s.pool":dr=1:gosub13
+4518 &"{f6}{cyan}You Have {white}":&str$(cr):&" {cyan}Credits.":poke53252,3
+4520 &"{f6}{lt. green}({f5}Q{f5} Quits:100 Max){f6}How Many Credits? {pound}i1":ontr%+1goto999:ifan$="Q"thenreturn
+4522 a=int(val(an$)):ifa<10ora>crora>100then:&"{f6}Sorry, Not Acceptable":goto4520
+4524 p=1:gosub4504:&,2,2:n=val(a$):&,2,2:b=val(a$):close2
+4526 &"{f6:2}Present Pool Stands At":&str$(b)
+4528 a%=a/10:&"{f6}You Have {pound}%a Chances To Win"
+4530 c=a+b:&"{f6}New Value = ":&str$(c):&"{f6:2}Good Luck!!{f6}":cr=cr-a
+4532 gosub4508:print#2,n+a%:print#2,c:close2:gosub4510:fori=1toa%:print#2,na$:next:close2:return
+4534 dr=3:a$="e.cr.pool 1":gosub18:print#2,0:print#2,0:a$="e.cr.pool 1,s,r"
+4536 gosub4:return
+4538 dr=3:a$="e.cr.pool 2":gosub18:return
+4540 copr. 1990 fred dart 12-26-90
+4542 rem:"i/lo-cr pool (c)nissa 190514 lh"

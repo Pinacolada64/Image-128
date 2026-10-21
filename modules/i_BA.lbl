@@ -1,0 +1,50 @@
+' imported from i_BA.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+
+4000 rem " +.BA (C) NISSA 7/6/91 "
+4002 goto4004
+4004 a=11:gosub11:on-(a<>.)goto4006:return
+4006 b$=d6$:&"{clear}{f6:2}"
+4008 &"{f6} {blue}{rvrs on}{pound}{back arrow}39{rvrs off}"
+4010 &"{f6} {rvrs on}{blue} {gray3}{pound}{back arrow}37{blue}{rvrs on}  {rvrs off}"
+4012 &"{f6} {rvrs on}{blue} {gray3}{pound}{back arrow}14B.A.R. Stats{pound}{back arrow}37{rvrs off} {rvrs on}{blue} {rvrs off}"
+4014 &"{f6} {rvrs on}{blue} {gray3}{pound}{back arrow}04Restarted: {pound}$b{pound}{back arrow}37{rvrs off} {rvrs on}{blue} {rvrs off}"
+4016 &"{f6} {rvrs on}{blue} {gray3}{pound}{back arrow}37{rvrs off} {blue}{rvrs on} {rvrs off}"
+4018 &"{f6} {rvrs on}{blue}  {rvrs off}{pound}{back arrow}38{rvrs on}{blue} {rvrs off}"
+4020 &"{f6} {blue}{rvrs on}{pound}{back arrow}39{rvrs off}"
+4022 &"{f6} {rvrs on}{blue} {cyan}{pound}{back arrow}13This  Log   Cur.  {shft space}Sys.{pound}{back arrow}37{blue}  "
+4024 &"{f6} {rvrs on}{blue} {cyan}{pound}{back arrow}13Call  Tot.  Tot.   Tot.{pound}{back arrow}37{rvrs off} {rvrs on}{blue} ":restore
+4026 fori=1to6:readb$:a%=st(i):b%=st(i+11):c%=st(i+22):d$=mid$(str$(st(i+29)),2)
+4028 &"{f6} {rvrs on}{blue} {cyan}{pound}$b{rvrs off}{pound}#5{pound}# {white}{pound}%a {pound}%b {pound}%c  {pound}$d{pound}{back arrow}36{cyan}{rvrs on}{$a1}{rvrs off} {rvrs on}{blue} ":next
+4030 a%=st(7):b%=st(18):c$=mid$(str$(st(36)),2)
+4032 &"{f6} {rvrs on}{blue} {cyan}Downloads {rvrs off}{pound}#5{pound}# {white}{pound}%a {pound}%b   {yellow}N/A{white}  {pound}$c{pound}{back arrow}36{cyan}{rvrs on}{$a1}{rvrs off} {rvrs on}{blue} "
+4034 a%=st(8):b%=st(19):c%=st(29)
+4036 &"{f6} {rvrs on}{blue} {cyan}New Users {rvrs off}{pound}#5{pound}# {white}{pound}%a {pound}%b {pound}%c  {yellow}N/A{pound}{back arrow}36{cyan}{rvrs on}{$a1}{rvrs off} {rvrs on}{blue} "
+4038 a%=st(9):b%=st(20)
+4040 &"{f6} {rvrs on}{blue} {cyan}Calls/Log {rvrs off}{pound}#5{pound}# {white}{pound}%a {pound}%b {cyan}{rvrs on} % Log  Tot{pound}{back arrow}37{rvrs off} {rvrs on}{blue} "
+4042 a%=st(10):b%=st(21):gosub4056:c%=b:d%=e
+4044 &"{f6} {rvrs on}{blue} {cyan}Time Used {rvrs off}{pound}#5{pound}# {white}{pound}%a {pound}%b {rvrs on}{cyan}U:{rvrs off} {pound}#3{pound}# {white}{pound}%c% {pound}%d%{cyan}{pound}{back arrow}36{rvrs on}{$a1}{rvrs off} {rvrs on}{blue} "
+4046 a%=st(11):b%=st(22):c%=c:d%=f
+4048 &"{f6} {rvrs on}{blue} {cyan}Time Idle {rvrs off}{pound}#5{pound}# {white}{pound}%a {pound}%b {rvrs on}{cyan}I:{rvrs off} {pound}#3{pound}# {white}{pound}%c% {pound}%d%{cyan}{pound}{back arrow}36{rvrs on}{$a1}{rvrs off} {rvrs on}{blue} "
+4050 &"{f6} {rvrs on}{blue} {cyan}{pound}{back arrow}37{rvrs off} {rvrs on}{blue} "
+4052 &"{f6} {rvrs on}{blue}  {rvrs off}{pound}{back arrow}38{rvrs on}{blue} {rvrs off}"
+4054 &"{f6} {rvrs on}{pound}o {pound}o {cyan}{f6}{pound}{back arrow}13{rvrs on} PRESS A{shft space}KEY {pound}g1{f6}":return
+4056 x=37:gosub4058:e=b:f=c:x=21
+4058 b=st(x):c=st(x+1):a=b+c:ifa=.thenreturn
+4060 ifb=.thenc=100:return
+4062 ifc=.thenb=100:return
+4064 b=int(b/a*100+.5):c=100-b:return
+4066 data"Feedback  ","Sysop Mail","Users Mail","Posts     "
+4068 data"Responses ","Uploads   ","Downloads ","New Users "
+4070 data"Calls/Log ","Time Used ","Time Idle "
+4072 rem "Re-Written By Bucko Of              The Wrong # ][ BBS - NISSA ADMIN "
+4074 rem "  (914)/328-9078          "
+4076 copr.1988 new image
+4078 rem " +.BA (C) NISSA 7/6/91 "
+4080 rem:"i/BA (c)nissa 190214 lh"

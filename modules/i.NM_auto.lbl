@@ -1,0 +1,315 @@
+' imported from the 2023-12-31 master release's i.NM/auto with C64List 4.04
+' (-txt -keycase -varcase -alpha:alt); tools/detok.sh wouldn't write it (it
+' doesn't rebuild byte for byte): see the notes below for what changed.
+
+' Image BBS 128 (10/21/2026): jumps to lines in other modules, or to lines
+' that don't exist (as in the original), are written {$3d}ddd so that
+' C64List leaves the number as it is (it wrote [n] otherwise): 3090, 3392, 60075
+' Image BBS 128 (10/21/2026): C64 addresses in peek/poke/sys are the 128's,
+' as {sym:...} names from asm/equates.asm (included below).
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{include:"..\asm\equates.asm"}
+
+3000 gosub3688:lg=1:z1=.:z2=.:&,5:v=lp:nd$="32303140720":gosub3600:goto3004
+3002 onxgoto3060,{$33}090,3040,3034:return
+3004 gosub3154:gosub3040:onf1goto3172,3276:goto3166
+3008 a=-(peek({sym:shflag})=2ort<.):rc=-(peek({sym:shflag})=2)orrc:return
+3010 &,4:a$=chr$(peek({sym:sareg})):return
+3012 t=500
+3014 &,4:t=t-1:on-(t>.andpeek({sym:sareg})=.and(peek({sym:shflag})and2)=.)goto3014:return
+3016 dr=2:a$="nm."+a$:goto4
+3018 rc=-(peek({sym:shflag})=2ort<.or(peek({sym:carrst})and128)<>128)orrc:a=-(t<.)orrc:return
+3020 f$="nm.log "+mid$(ct$,2,4):goto3022
+3021 f$="nm.log "+left$(ct$,1)
+3022 dr=2:a$=f$+",s,w":gosub4:ife%thena$=f$+",s,a":gosub4
+3024 return
+3026 dr=2:a$="nm.nodes":goto4
+3028 dr=2:a$="nm.connect":goto4
+3030 f$="nm.list":gosub3022:print#2,b$:close2:return
+3032 f$="nm.errors":gosub3022:print#2,b$"{f3}"h$:close2:return
+3034 f$="nm.s.ALL":gosub3022:print#2,b$:close2:return
+3036 f$="nm.l."+dt$(m):gosub3022:print#2,b$:close2:return
+3038 dr=2:a$="nm.l."+dt$(m)+",s,r":goto4
+3040 dr=2:a$="nm.config":gosub4:nn=.:ife%then3056
+3042 x=1:gosub1:input#2,nn,af%,pn$,v$:ifv$<"900610"thene%=1:goto3056
+3044 x=3:gosub1:fori=.to9:&,2,2:bb$(i)=a$:next:x=2:gosub1:&,2,2:br%=val(a$)
+3046 &,2,2:m1$=a$:&,2,2:m2$=a$:&,2,2:m3$=a$:x=6:gosub1:&,2,2:s1$=a$:&,2,2
+3048 s2$=a$:&,2,2:s3$=a$:close2:gosub3028:ife%then3056
+3050 fori=1to4:x=i:gosub3070:next:close2:bb=4:close2
+3052 gosub3026:on-(e%<>.)goto3056:x=nn+1:gosub1:&,2,2:nn$=a$:&,2,2:ph$=a$
+3054 &,2,2:bb$=a$:&,2,2:sy$=a$:close2:dt$(0)=nn$:nn$(0)=pn$:ed$(0)=ph$:return
+3056 &"Error!"
+3058 close2:return
+3060 &"{f6}Loading Config...":gosub3040:on-(e%<>.)goto3058:gosub3028:ife%then3056
+3062 x=5:gosub1:&,2,2:a=val(a$):ifa>.thenbb=4+a:fori=5to4+a:x=i+1:gosub3070:next
+3064 close2:a$="path":gosub28:ife%then3056
+3066 dr=2:gosub3:a$=dr$+"nm.nodelist":&,16:gosub5:ife%then3056
+3068 gosub3026:on-(e%<>.)goto3056:goto3104
+3070 d=val(left$(d1$,1)):gosub1:&,2,2:dt$(i)=a$:&,2,2:nn$(i)=a$:&,2,2:b$=a$
+3072 &,2,2:ed$(i)=a$:&,2,2:c$=a$:&,2,2:a=val(a$):&,2,2:&,2,2:&,2,2
+3074 d$=mid$(a$,2,6):a$=mid$(c$,d,1):on-(a$="+")-2*(a$="0")goto3078,3086:b=val(a$)
+3076 ifd$=mid$(d1$,2,6)andb<=athen3086
+3078 f%(i)=1:a$=mid$(b$,d,1):on-(a$="+")-2*(a$="-")goto3088,3086:a$=bb$(val(a$))
+3080 a%=val(left$(a$,2)):b%=val(right$(a$,2)):a=val(mid$(d1$,8,2)):a=a+68*(a>80)
+3082 a=a+12*(a=12ora=24):ifb%<a%thenon1-(a>b%anda<a%)goto3088,3086
+3084 on1-(a>b%ora<a%)goto3088,3086
+3086 f%(i)=.
+3088 return
+3104 fori=1tobb:a%(i)=.:a$=dt$(i):ifa$<>""anda$<>"{^}"then:&,16,2:a%(i)=a%
+3106 next:fori=1tobb:x=a%(i)+1:a$="":on-(x>1)gosub3110:next:close2
+3108 a%=bb:&"{pound}%a Connections{f6}":return
+3110 gosub1:&,2,2:dt$(i)=a$:b$=left$(ed$(i),1):on-(b$="/")-2*(b$="+")goto3116,3118
+3112 &,2,2:ifleft$(a$,3)=left$(ed$(0),3)thena$=mid$(a$,4)
+3114 ed$(i)=ed$(i)+a$:return
+3116 ed$(i)=mid$(ed$(i),2):return
+3118 &,2,2:ed$(i)="+"+right$(a$,7)+mid$(ed$(i),2):return
+3120 form=1tobb:ifa%(m)=.ordt$(m)=""ordt$(m)="{^}"thenf%(m)=.:goto3130
+3122 gosub3038:close2:ife%thenf%(m)=.:goto3130
+3124 ifnn$(m)="{f2}"thena$=dt$(m):&"{f6}{pound}$a - No Password":f%(m)=.:goto3130
+3126 iff%(m)=.thena$=dt$(m):&"{f6}{pound}$a - No Call Allowed":goto3130
+3128 a$=dt$(m):&"{f6}{pound}$a - Files Waiting"
+3130 next:&"{f6:2}Done.{f6}":return
+3132 gosub3490:gosub3496
+3134 gosub3060:g$="nm.connect":goto3138
+3138 gosub3120:goto3152
+3140 poke53248,q:return
+3142 gosub3494
+3144 on-(m1$="")goto3150:print#131,m1$r$;:return
+3146 on-(m2$="")goto3150:print#131,m2$r$;:return
+3148 on-(m3$="")goto3150:print#131,m3$c$r$;:&,22,50:return
+3150 return
+3152 a$="net":goto28
+3154 q=1:gosub3140:&"{clear}{f6} IMAGE NetMail (C)2019 NISSA{f6} Update {$04}"+nd$+"{f6}"
+3156 &,52,17,.:&,52,29,.:ad$="":on-(ad$="")goto3162:ad=(ad$<=mid$(d1$,2,6))
+3158 ifadthen:&"New Features are ACTIVE{f6}"
+3160 ifad=.then:&"New Features become active ":&ad$:&"{f6}"
+3162 on-(f1<>1)goto3164
+3164 q$=chr$(34):r$=chr$(13):cm$="IMAGE NetMail":goto3640
+3166 &"{f6:2} ImageNet V3.0 (C)2019 NISSA{f6:2}":gosub3350:goto304
+3168 &"{clear}{f6:2}Node Not Configured!{f6:2}":nm=.:print#131,"{stop:3}"
+3170 gosub3440:q=.:gosub3140:f1=1:&,52,29,3:ona%goto3000
+3171 im=2:gosub443:f1=3:mm=.:nt=.:gosub3689:a$="lo":goto70
+3172 on-(nn=.)goto3168:gosub3350:gosub3490
+3174 q=1:gosub3140:an$=s1$:gosub290:s1$=an$
+3176 zf=.:gosub3180:ifnn=1thenzf=1:gosub3180
+3178 goto3170
+3180 n2=.:gosub3132
+3182 n1=.:n2=n2+1:on-(n2>3)goto3496:a=.:fori=1tobb:a=aorf%(i):next:ifa=.then3188
+3184 a%=n2:&"{pound}vj {rvrs on} Pass {pound}%a{pound}{back arrow}39{rvrs off}"
+3186 n1=n1+1:on-(n1>bb)goto3182:onf%(n1)gosub3190:goto3186
+3188 &"{pound}vj":return
+3190 a%=n1:b$=dt$(n1):c$=ed$(n1):&"{f6}{pound}vj#{pound}%a: {pound}$b {pound}$c{f6}"
+3192 ifpeek({sym:protostart}+3)<>255thenpoke{sym:protostart}+3,.
+3194 rc=.:s1=1:on-(left$(c$,1)="+")gosub3390:an$=c$:gosub290:c$=an$
+3196 ifleft$(c$,1)="*"thenc$=mid$(c$,2):ifpeek({sym:protostart}+3)<>255thenpoke{sym:protostart}+3,1
+3198 a=.:ons1gosub3486,{$33}392:onagoto3200,3202:goto3202
+3200 rf=.:gosub3204:fr=.:onz1gosub3290:gosub3490:gosub3496:onfrgosub3350:onrfgosub3132
+3202 goto3496
+3204 ct$=d1$:cm$="Connected:"+dt$(n1):gosub3640:&,22,30:gosub3500:t=650
+3207 print#131,"{$01}";
+3208 t=t-1:gosub3018:onagoto3260:&,4:b=peek({sym:sareg})and127
+3209 on-(b=3)goto3260:on-(b=2)goto3211
+3210 on-(t/30=int(t/30))goto3207:goto3208
+3211 gosub3472:gosub3500
+3212 &"Accepted!{f6}":gosub3672:gosub3670
+3214 dr=2:gosub3:print#15,"s"dr$"nm.password":a$="nm.password,s,w":gosub4
+3216 print#2,nn$(n1)r$nn$(0):close2
+3218 b$=dt$(n1)+"/"+dt$(0)+"/R/nm.password":gosub3660:&,16,2:ifpeek(512)then3260
+3220 dr=2:a$="nm.password,s,r":gosub4:gosub3660:&,16,.:close2
+3222 ifpeek(512)then3260
+3224 &"{clear}PW Xfer Complete.{f6}"
+3226 m=n1:gosub3038:kk=.:ife%thenclose2:goto3260
+3228 &,2,2:kk=kk+1:tt$(kk)=a$:on-(st=.)goto3228:a%=kk:&"{clear}sending {pound}%a file(s){f6}"
+3230 close2:print#15,"s"dr$"nm.l."dt$(n1):gosub3266:gosub3800:dc$=d1$:gosub{$36}0075
+3232 dr=2:gosub3:fori=1tokk:a$=left$(tt$(i),3)
+3234 ifa$<>"ALL"anda$<>"ZZZ"andtt$(i)<>""thenprint#15,"s"dr$mid$(tt$(i),11)
+3236 next:&"Files Scratched.{f6}":dr=2:gosub62
+3238 gosub3020:print#2,"From "dt$(0)" to "dt$(n1)r$dc$ct$r$kk"Files"
+3239 ifkkthenfori=1tokk:print#2,tt$(i):next
+3240 gosub3824:print#2,"{^}":close2
+3241 gosub3021:print#2,"From "dt$(0)" to "dt$(n1)r$dc$ct$r$kk"Files"
+3242 ifkkthenfori=1tokk:print#2,tt$(i):next
+3243 gosub3824:print#2,"{^}":close2:f%(n1)=.
+3244 a$=dc$:gosub3262:n=a:a$=ct$:gosub3262:n=n-a:ifn<.thenn=n+1440
+3246 dr=2:a$=g$:gosub4:x=m:ifn1>4thenx=x+1
+3248 gosub1:fori=1to9:&,2,2:tt$(i)=a$:next
+3250 a=val(tt$(6)):b=val(tt$(7)):ifmid$(tt$(9),2,6)<>mid$(ct$,2,6)thena=.
+3252 tt$(9)=ct$:tt$(7)=mid$(str$(b+n),2):tt$(6)=mid$(str$(a+1),2)
+3254 gosub1:a$="":fori=1to9:a$=a$+tt$(i)+r$:next
+3256 print#2,a$;:gosub1:close2
+3258 a1$="To "+dt$(n1):fr=kk:a2$=" Files Sent":onlggosub3452:return
+3260 goto{$36}0075
+3262 a=val(mid$(a$,8,2)):a=a+68*(a>12):ifa=12ora=24thena=a-12
+3264 a=a*60+val(mid$(a$,10,2)):return
+3266 fori=1tokk:gosub3268:next:return
+3268 b$=tt$(i):dr=2:a$=mid$(tt$(i),11)+",s,r":gosub3650
+3270 ife%thentt$(i)="":h$=str$(e%)+"{f1}"+e$:goto3032
+3272 gosub3660:&,16,2:ifpeek(512)=.then:&,16,.:ifpeek(512)=.thenreturn
+3274 m=n1:tt$(i)="":goto3036
+3276 ct$=lt$:on-(nn=.)goto3168:q=1:gosub3140:gosub3472
+3278 gosub3152:ife%then3284
+3280 gosub3490:gosub3292:onz2gosub3286:gosub3496:&,22,10:gosub3496
+3282 ifrfthenfr=kk:gosub3350:a1$="From "+dt$:a2$=" Files Received":onlggosub3452
+3284 goto3170
+3286 gosub3060:n1=1
+3288 on-(nn$(n1)=dt$)goto3214:n1=n1+1:on-(n1<bb)goto3288:return
+3290 print#131,"{$18:10}"
+3292 &,22,30:t=650:kk=.
+3294 t=t-1:gosub3018:onagoto3324:&,4:b=peek({sym:sareg})and127:on-(b<>1)goto3294
+3296 kk=.:print#131,"{$02:10}";:gosub3018:onagoto3324
+3299 gosub3670:gosub3660:b$="":&,16,3
+3300 onpeek(512)goto3324:ifmid$(b$,11)<>"nm.password"then3324
+3302 &"{f6:2}B$={f5}{pound}$b{f5}{f6}":dt$=mid$(b$,5,3):ifleft$(b$,3)<>nn$then3324
+3304 cm$="Connected:"+dt$:gosub3640
+3306 dr=2:gosub3:print#15,"s"dr$"nm.password":a$="nm.password,s,w":gosub4
+3308 gosub3660:&,16,1:close2:onpeek(512)goto3324
+3309 &"{clear}nm.password Transfer Complete{f6}"
+3310 dr=2:a$="nm.password,s,r":gosub4:&,2,2:c$=a$:&,2,2:d$=a$:close2
+3312 ifc$<>nn$(0)thenh$="Incorrect Password":&"{pound}$h{f6}":gosub3032:dc$=d1$:goto3324
+3314 gosub3326:gosub3700:&"{clear}Transfers Complete.{f6}":dc$=d1$:cn=cn+1:ca=ca+1
+3316 gosub3020:print#2,"From "dt$" to "dt$(0):print#2,dc$ct$:print#2,kk" Files"
+3317 ifkkthenfori=1tokk:print#2,tt$(i):next
+3318 gosub3726:print#2,"{^}":close2
+3319 gosub3021:print#2,"From "dt$" to "dt$(0):print#2,dc$ct$:print#2,kk" Files"
+3320 ifkkthenfori=1tokk:print#2,tt$(i):next
+3322 gosub3726:print#2,"{^}":close2
+3324 rf=-(kk<>.):fr=kk:return
+3326 kk=.:fori=.to1:gosub3328:next:return
+3328 gosub3660:&,16,3:i=peek(512):on-(b$="end!!!")goto3338:ifithenreturn
+3330 o$=mid$(b$,11):ifleft$(o$,3)="nm."andasc(mid$(o$,4,1)+nl$)>192then3334
+3332 b$=left$(b$,10)+"nm.X"+mid$(b$,15):o$=mid$(b$,11):iflen(o$)<5then3348
+3334 z$=mid$(b$,9,1):dr=2:a$=o$+",s,w":gosub3650:ife%=.then3344
+3336 close2:ife%=63thenon-(z$="A")-2*(z$="R")goto3340,3342
+3338 close2:i=1:h$=str$(e%)+"{f1}"+e$:goto3032
+3340 a$=o$+",s,a":gosub3650:onsgn(e%)goto3338:goto3344
+3342 close2:print#15,"s"dr$o$:goto3330
+3344 &,16,1:close2:i=peek(512):onigoto3346:kk=kk+1:tt$(kk)=b$:goto3030
+3346 e$="Aborted":goto3338
+3348 e$="Bad Name":goto3338
+3350 gosub3144:nm=.:nm$=mid$(d1$,8,2):cm$="Processing":gosub3640
+3352 b$=mid$(d1$,2,6):dr=2:a$="nm.config":gosub4:x=5:gosub1:&,2,2
+3354 ifleft$(d1$,1)<>"1"ora$=b$then3368
+3356 &"Sending Network Report{f6:2}"
+3358 x=5:gosub1:print#2,b$
+3360 x=4:gosub1:&,2,2:c$=a$:&,2,2:d$=a$:close2:a$="nm.nodes":gosub4
+3362 x=2:gosub1:&,2,2:close2:b$=a$+"/"+dt$(0):print#15,"s"dr$"nm.R."b$
+3364 dr=2:a$="nm.R."+b$+",s,w":gosub4:print#2,dt$(0)r$d1$"/v"nd$r$bn$r$c$r$d$
+3366 b$=b$+"/A/"+"nm.R."+b$:gosub3030
+3368 close2
+3370 &"Processing{f6:2}"
+3372 a$="mail":gosub3641:gosub3488
+3374 a$="netsub1":gosub3641:gosub3488
+3376 a$="update":gosub3641:gosub3488
+3378 a$="e.bbs":dr=3:gosub4:close2:close15
+3380 ife%=.thena$="bbs list":gosub3641:gosub3488
+3384 a$="sort":gosub3641:gosub3488
+3388 gosub3440:rf=1:goto3146
+3390 n$=mid$(c$,2,7):d$=s2$+":"+mid$(c$,9)+";"+s3$:c$=s1$:s1=2:return
+3394 an$=c$:gosub290:c$=an$:b$="Tymnet ("+b$+")":gosub3486:ifa<>1thenreturn
+3396 x=.
+3398 print#131,r$;:ifx=.then:&,22,50
+3400 a$="":c$="ier":gosub3418:onrcgoto3416:onagoto3398
+3402 a$="a":c$="in: ":gosub3418:onrcgoto3416:onagoto3402
+3404 a$=d$+r$:c$=">":gosub3418:onrcgoto3416:onagoto3404
+3406 a$="bps"+str$(qb)+r$:c$=">":gosub3418:onrcgoto3416:onagoto3406
+3408 a$="d "+n$+r$:c$=">":gosub3418:onrcgoto3416:ifathen:&,52,16,.:return
+3410 a$="r"+r$:c$=">":gosub3418:onrcgoto3416:ifathen:&,52,16,.:return
+3412 a$="r"+r$:c$=">":gosub3418:onrcgoto3416:ifathen:&,52,16,.:return
+3414 a$="logout"+r$:c$="in: ":gosub3418:onrcgoto3416:f%(n1)=.
+3416 &,52,16,.:gosub3496:a=.:&"{f6}":return
+3418 &,16,6,len(c$):a=-(b$<>c$):x=x*a+a:rc=rcor-(x>4):return
+3420 print#131,a$;:a$=b$:t=20:b$="":l=len(a$)
+3422 &,4:a=peek({sym:sareg})and127:a=a+32*(a>95):if(a<32ora>90)anda<>13then3426
+3424 &chr$(a):b$=right$(b$+chr$(a),l):t=20:goto3422
+3426 ifpeek({sym:carrst})and128thenrc=1:a=1:return
+3428 t=t-1:gosub3008:on-(a=.andt>.)goto3422:a=-(b$<>a$):x=x*a+a:ifx=5thenrc=1
+3430 return
+3440 dr=2:a$="nm.l.*,s,r":gosub4:ife%=.then3450
+3442 dr=2:a$="nm.s.ALL,s,r":gosub4:ife%then3450
+3444 &,2,2:s=-(st=.):ifleft$(a$,3)="nm."thenprint#15,"s"dr$a$
+3446 onsgoto3444:close2:print#15,"s"dr$"nm.s.ALL":&"Old Files Scratched.{f6}"
+3448 dr=2:gosub62
+3450 close2:return
+3452 d3$="NetMail "+a1$:a$=" {lt. green}"+d3$+r$+"{gray3}"+str$(qb)+" {green}Baud"+r$
+3454 a$=a$+" {cyan}Logon  {white}{$04}"+ct$+r$:iffrthena$=a$+"{white}"+str$(fr)+"{yellow}"+a2$+r$
+3456 a$=a$+" {cyan}Logoff {white}{$04}"+dc$:gosub50:a$=""
+3458 b$="":a=st(4):c$="Post":gosub3476:a=st(5):c$="Response":gosub3476:gosub3482
+3460 b$="":a=st(3):c$="Mail":gosub3478:a=st(2):c$="Sysop Mail":gosub3478:gosub3482
+3462 a$=a$+" {cyan}Finish {white}{$04}"+d1$+r$+" {pound}q0{yellow}{pound}o{$c0}{pound}o{$c0}":gosub50:an$=d1$
+3464 gosub33:x=17:gosub1:print#2,d3$:x=19:gosub1:print#2,an$:close2
+3466 &,15:d2$=an$+"M":goto3474
+3472 forx=1to10:st(x)=.:next
+3474 gosub30:forx=1to10:gosub17:next:close2:return
+3476 ifa>1thenc$=c$+"s"
+3478 on-(a=.)goto3484:ifb$<>""thenb$=b$+","
+3480 b$=b$+"{white}"+str$(a)+" {lt. green}"+c$:return
+3482 ifb$<>""thena$=a$+b$+r$
+3484 return
+3486 b=val(mt$):goto3498
+3488 p1$="":a$="NM."+a$:goto72
+3490 a$="modem":gosub3641:goto74
+3494 im=10:goto60000
+3496 im=3:goto60000
+3498 im=6:goto60000
+3500 im=9:goto60000
+3600 &,69,.,17," BiDirectional ",1
+3602 &,69,.,18," Image Net 3.0 ",1
+3604 &,69,.,19,"   (c)  2019   ",1
+3606 &,69,.,20,"     NISSA     ",1
+3608 &,69,.,21,"               ",1
+3610 &,69,15,17,"File",$8f
+3612 &,69,15,18,"Stat",$8f
+3614 &,69,15,19,"Area",$8f
+3616 &,69,15,20,"Mode",$8f
+3618 &,69,15,21,"    ",$8f
+3620 &,69,19,17,"                     ",1
+3622 &,69,19,18,"                     ",1
+3624 &,69,19,19,"                     ",1
+3626 &,69,19,20,"                     ",1
+3628 &,69,19,21,"                     ",1
+3630 return
+3640 &,69,19,19,"                     ",1:&,69,20,19,cm$,1:return
+3641 &,69,19,20,"                     ",1:&,69,20,20,a$,1:return
+3650 &,69,20,17,"{f5}"+a$+"{f5}",1:gosub4:&,69,19,18,str$(e%)+":"+e$,1:return
+3660 &"{clear}{down:15}{white} Good: 00000  Bad: 00000  Bytes: 000000{up}{f6}":return
+3662 &"{down:15}":return
+3670 &,69,19,20," Normal              ",1:return
+3672 f$="nm.connlog."+mid$(d1$,2,4):gosub3022:print#2,"{pound}o{$c0}{pound}o{$c0}{f6}Connected to "+dt$(n1)
+3674 an$=d1$:&,15:an$=an$+"M":print#2,an$:close2:return
+3688 &,52,$34,3:on-(a%=.)goto3690:poke53370,0:&,52,$35,0:goto3690
+3689 &,52,$34,3:on-(a%=.)goto3690:poke53371,0:&,52,$35,1
+3690 return
+3700 &,22,30:gosub3008:ifathenreturn
+3702 close2:g1=0:a$="nm.l."+dt$+",s,r":gosub4:ife%thenclose2:return
+3704 g1=g1+1:&,2,2:ed$(g1)=a$:ifst=0andg1<61then3704
+3706 close2:a%=g1:print#15,"s"dr$"nm.l."dt$:gosub3012
+3708 forx=1to20:&,4:next
+3710 forg2=1tog1:gosub3712:next:gosub3720:return
+3712 b$=ed$(g2):dr=2:a$=mid$(ed$(g2),11)+",s,r":gosub3650:ife%thened$(g2)="":goto3032
+3714 gosub3660:&,16,2:ifpeek(512)=0then:&,16,0:ifpeek(512)=0thenreturn
+3716 ed$(g2)=""
+3718 f$="nm.l."+dt$:gosub3022:print#2,b$:close2:return
+3720 dr=2:gosub3:forg2=1tog1
+3722 ifleft$(ed$(g2),3)<>"ALL"anded$(g2)<>""thenprint#15,"s"dr$mid$(ed$(g2),11)
+3724 next:&"Files Scratched.{f6}":cn=cn+1:return
+3726 print#2,"From "dt$(0)" to "dt$:print#2,g1" Files"
+3728 ifg1thenfori=1tog1:print#2,ed$(i):next
+3730 return
+3800 b$="end!!!":&,16,2:&,22,5:forx=1to10:&,4:next:a%=125
+3802 g4=125:forg3=0to1:gosub3804:next:return
+3804 gosub3660:&,16,3:i=peek(512):ifithenreturn
+3806 o$=mid$(b$,11)
+3808 z$=mid$(b$,9,1):dr=2:a$=o$+",s,w":gosub3650:ife%=0then3818
+3810 close2:ife%=63thenon-(z$="A")-2*(z$="R")goto3814,3816
+3812 close2:g3=1:goto3032
+3814 a$=o$+",s,a":gosub3650:onsgn(e%)goto3810:goto3818
+3816 close2:print#15,"s"dr$o$:goto3806
+3818 &,16,1:close2:i=peek(512):onigoto3820:g4=g4+1:g3=0:tt$(g4)=b$:goto3030
+3820 e$="Aborted":goto3810
+3822 e$="Bad Filename":goto3810
+3824 g5=g4-125:print#2,"From "dt$(m)" to "dt$(0)r$g5"Files"
+3826 ifg4>125thenfori=126tog4:print#2,tt$(i):next
+3828 &,52,29,1:return
+3830 copr. 1995 new image 3/14/95
+3832 rem:"i.ÎÍ/auto (c)nissa 230314 ad lh"

@@ -2,13 +2,13 @@
 
 Small BASIC programs that run in place of `im 128`, to try one part of
 the ML without the whole BBS. `tools/standin.sh` makes a test disk from
-one: it writes the program as `im 128` on a copy of `build/image128.d71`,
+one: it writes the program as `im 128` on a copy of `build/image128.d81`,
 so the boot loads the ML and RUNs it.
 
 ```
 asm/build.sh
 tools/standin.sh tests/standin/fkey-macros.bas
-x128 -80col -drive8type 1571 -autostart-warp -autostart "build/standin-fkey-macros.d71:boot 128"
+x128 -80col -drive8type 1581 -autostart-warp -autostart "build/standin-fkey-macros.d81:boot 128"
 ```
 
 They're petcat source (BASIC 7.0), not C64List: `chr$(92)` for `£`, no
@@ -55,10 +55,10 @@ something at the other end: VICE connects to a TCP port as a client,
 so run a listener there first (`nc -l 25232`, or a script), then:
 
 ```
-x128 -80col -drive8type 1571 -acia1 -acia1base 0xde00 -acia1irq 1 -acia1mode 1 \
-    -myaciadev 0 -rsdev1 127.0.0.1:25232 -autostart "build/standin-swiftlink.d71:boot 128"
-x128 -80col -drive8type 1571 -userportdevice 2 -rsuserdev 0 -rsuserbaud 1200 \
-    -rsdev1 127.0.0.1:25232 -autostart "build/standin-userport.d71:boot 128"
+x128 -80col -drive8type 1581 -acia1 -acia1base 0xde00 -acia1irq 1 -acia1mode 1 \
+    -myaciadev 0 -rsdev1 127.0.0.1:25232 -autostart "build/standin-swiftlink.d81:boot 128"
+x128 -80col -drive8type 1581 -userportdevice 2 -rsuserdev 0 -rsuserbaud 1200 \
+    -rsdev1 127.0.0.1:25232 -autostart "build/standin-userport.d81:boot 128"
 ```
 
 The listener should accept more than one connection: VICE reconnects

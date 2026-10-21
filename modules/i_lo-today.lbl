@@ -1,0 +1,18 @@
+' imported from i_lo-today.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{crunch:on}
+
+4500 rem i/on-today
+4502 rem:ifct%>1thenreturn
+4504 cm$="Today":gosub 9:if ac%=.then return
+4506 dr=1:a$="s.today/hist":gosub 13:close 2
+4508 &"{f6:2} {yellow}Smack A Key...{pound}g1{f6:2}":on tr%+1 goto 4510
+4510 return
+4512 rem spotlight bbs 413-599-1713
+4514 rem:"i/lo-today (c)nissa 190531 lh"

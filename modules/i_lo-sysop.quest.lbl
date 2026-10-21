@@ -1,0 +1,55 @@
+' imported from i_lo-sysop.quest.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+
+4500 dr=3:a$="e.sysop":gosub4:x=id:gosub1
+4502 &,2,2:on-(a$="n")goto4508:ifa$="{^}"then4552
+4504 ifac%<=3then4508
+4506 ifmid$(d1$,4,2)<>mid$(a$,4,2)then4510
+4508 close2:return
+4510 ed$(1)="Handle":ed$(2)="First":ed$(3)="Last":ed$(4)="Address"
+4512 ed$(5)="City":ed$(6)="State":ed$(7)="Zipcode":ed$(8)="IMAGE S#"
+4514 ed$(9)="Board Name":ed$(10)="Voice No.":ed$(11)="Board No."
+4516 ed$(12)="Node ID."
+4518 &"{f6:2}Getting Your Current Info..."
+4520 x=id:gosub1:fd=.
+4522 &,2,2:ifa$="{^}"then4552
+4524 gosub1:fori=.to12:&,2,2:ifasc(a$+nl$)=32thena$=mid$(a$,2)
+4526 tt$(i)=a$:next:fd=.
+4528 &"{f6:2}Please Verify The Following Information: "
+4530 &"{f6:2}No.{pound}{back arrow}03:Info:{pound}{back arrow}17Current Value"
+4532 fori=1to12:b%=i
+4534 &"{f6}{pound}%b{pound}{back arrow}03:":&ed$(i):&"{pound}{back arrow}17:":&tt$(i)
+4536 next:&"{f6:2}Is This Correct? ":gosub96:iffdthen4564
+4538 onagoto4566
+4540 fd=.:&"{f6:2}Which No. Is Wrong? {pound}i1":i=val(an$):ifan$=""thenreturn
+4542 &"{f6:2}Input New ":&ed$(i):ifi<4ori=8then4546
+4544 &"{f6}[> {pound}i0":ontr%+1goto999:goto4548
+4546 &"{f6}[> {pound}i1":ontr%+1goto999
+4548 tt$=an$:&"{f6:2}Is :":&tt$:&" Correct? ":gosub96:ifa=.then4528
+4550 tt$(i)=tt$:fd=1:goto4528
+4552 &"{f6:2}Please Provide The Following Information: ":poke53252,30
+4554 tt$(1)=na$:tt$(2)=ff$:tt$(3)=ll$:fori=4to12
+4556 ifi=8then:&ed$(i):&"{pound}{back arrow}13: {pound}i1":tt$(i)=an$:ontr%+1goto4560:goto4560
+4558 &ed$(i):&"{pound}{back arrow}13: {pound}i0":tt$(i)=an$:ontr%+1goto4560
+4560 next:ontr%+1goto999:fori=1to12:&"{f6}":&ed$(i):&"{pound}{back arrow}17:":&tt$(i):next
+4562 &"{f6:2}Is This Correct? :":gosub96:fd=1:ona+1goto4530
+4564 &"{f6:2}Writing Data..."
+4566 tt$(.)=d1$:w$="":fori=.to12:w$=w$+tt$(i)+r$:next
+4568 x=id:gosub1:print#2,w$:close2:iffd=.thenreturn
+4570 b$="fback":gosub37
+4572 print#2,na$r$id;r$d1$r$ac%;r$ph$r$rn$r$co$(co%)
+4574 print#2,ak$+r$+"Changed Sysop Data"+r$r$
+4576 print#2,"Handle: "+tt$(1)+r$+"First:  "+tt$(2)+r$+"Last:   "+tt$(3)+r$
+4578 print#2,"Address:{pound}{back arrow}17"+tt$(4)+r$+"City, State Zip: "+tt$(5)+", "+tt$(6)+" ";
+4580 print#2,tt$(7)+r$+"IMAGE S#:{pound}{back arrow}17"+tt$(8)+r$+"Board Name:{pound}{back arrow}17"+tt$(9)
+4582 print#2,"Voice No.:{pound}{back arrow}17"+tt$(10)+r$+"Board No.:{pound}{back arrow}17"+tt$(11)
+4584 print#2,"Node ID :{pound}{back arrow}17"+tt$(12)+r$:print#2,"{^}"
+4586 close2:gosub30:i=1:x=1:gosub16:x=12:gosub16:x=23:gosub16
+4588 x=30:gosub16:close2:return
+4590 copr. 1994 new image 9/6/94

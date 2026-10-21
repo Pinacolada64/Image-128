@@ -1,0 +1,219 @@
+' imported from the 2023-12-31 master release's i.t with C64List 4.04
+' (-txt -keycase -varcase -alpha:alt); tools/detok.sh wouldn't write it (it
+' doesn't rebuild byte for byte): see the notes below for what changed.
+
+' Image BBS 128 (10/21/2026): jumps to lines in other modules, or to lines
+' that don't exist (as in the original), are written {$3d}ddd so that
+' C64List leaves the number as it is (it wrote [n] otherwise): 60390
+' Image BBS 128 (10/21/2026): C64 addresses in peek/poke/sys are the 128's,
+' as {sym:...} names from asm/equates.asm (included below).
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{include:"..\asm\equates.asm"}
+
+3000 &,28,1:gosub306:dims%(24,100):im=.:gosub446:goto3100
+3002 l$="{$c0:35}":return
+3004 &,22,x*5:return
+3006 a=abs(int(val(an$))):return
+3008 &"There Are Unsaved Changes. {pound}$f?: ":gosub96:return
+3010 a=val(left$(mt$,1)):a=a+(a=1):&,41,a:qb=2^a*300:return
+3012 a%=mn%-bl%:b=bl:&"{f6}{pound}!f Files Transfered{f1} {pound}!b Bytes.{f6} Transfer Time: {pound}%a.{f6}":return
+3014 gosub3022:&,18,0:&"{clear}{pound}q0{pound}$bTerminal Mode. (C= + CTRL Exits){f6:2}":&,10:goto3120
+3016 &"{clear}{f6:2}{lt. blue}Transfer Complete!{f6}":&,25:return
+3018 tz=tzand-(e%<>.):return
+3022 &,52,16,3:b$=mid$("PASCII ",a%+1):&,52,18,3:ona%+1goto3024:b$="ANSI  "
+3024 &,52,19,3:c$=mid$("CI",a%+1,1)+"BM":return
+3032 print#131,"at":&,22,5:return
+3034 im=5:goto443
+3036 &,52,16,3:bl%=a%
+3038 return
+3040 &,52,16,bl%:return
+3042 gosub3002:&"{clear}{yellow} {$b0}{pound}$l{$c0}{$ae}{f6}"
+3044 &" {yellow}{$dd}{cyan}{rvrs on}{pound}{back arrow}"+right$(str$(int(120-len(b$)/2)),2)
+3046 &"{pound}$b{pound}{back arrow}38{yellow}{rvrs off}{$dd}{f6}{yellow} {$ad}{pound}$l{$c0}{$bd}{f6}":return
+3048 b=-(rc<>1)*int(rc/254+.999):return
+3100 poke53248,1:poke53251,101:&,52,16,0:&,52,16,3:nl=a%:tt$="t":a=.:im=5:gosub430
+3102 &"{clear}":an$="*Image Term 3.0*":&,9:&"{f6:2}"
+3104 &,52,2,4:d1%=8:d2%=.:poke53252,40:kk=mf:mf=1
+3106 im=1:gosub446:gosub3010:gosub3242
+3108 gosub3400:tz=.
+3120 poke53252,40:&,18,1
+3122 a$="s.menu t1":dr=1:gosub14
+3124 gosub3006:onagoto3014,3150,3200,3350,3300,3474,3476,3502,3554
+3126 on-(an$="0")goto3566:goto3122
+3150 a$="s.menu t2":dr=1:gosub14
+3152 gosub3006:onagoto3164,3166,3168,3182:goto3120
+3164 gosub349:&"(@=DOS Status){f6}":gosub540:goto3150
+3166 &"{lt. blue}":gosub349:gosub557:x=5:gosub3004:goto3150
+3168 &"{f6}{lt. blue}Filename: {pound}i0":on-(an$="")goto3150:f$=an$
+3170 &"{f6} (S)eq Or (P)rg?: {pound}g1{pound}v7{f6}":ifan$<>"S"andan$<>"P"thenan$="S"
+3172 t$=chr$(asc(an$)-128):gosub349:gosub350:on-(t$="s")goto3180:x%=pr:pr=-2
+3174 a$="read":gosub28:ife%ort$<>"p"then3178
+3176 a$=f$+","+t$+",r":gosub4:&"{lt. blue}":&,16,0,80:close2
+3178 a=x%:im=5:gosub430:goto3150
+3180 a$=f$:gosub13:goto3150
+3182 a%=d1%:&"{f6}{lt. blue}U/D Device# : {pound}%a{f6}New Device#?: {pound}i1{f6}":a=val(an$)
+3184 ifa>0anda<7thendr=a:gosub2:d1%=dv%:d2%=val(dr$):goto3192
+3186 ifa=>7anda<=16thend1%=a
+3188 a%=d2%:&"U/D Drive#  : {pound}%a{f6}New Drive#? : {pound}i1":a=val(an$)
+3190 ifan$<>""anda=>.thend2%=val(an$)
+3192 goto3150
+3200 a$="s.menu t3":dr=1:gosub14
+3202 gosub3006:onagoto3214,3224,3228,3230,3234,3238,3256:goto3120
+3214 &"{f6}{lt. blue}Available Modes:{f6:2} 1. PETASCII{f6} 2. ASCII{f6} 3. ANSI{f6:2}Which?: {pound}g1{pound}v7{f6}":gosub3006
+3216 ifa<1ora>3then3200
+3218 &,52,16,0:&,52,18,0:on-(a=3)goto3220:&,52,16,a-1:on-(a-1=1)goto3222:&,52,19,0:goto3222
+3220 &,52,16,1:&,52,18,1
+3222 goto3200
+3224 &"{f6}{lt. blue} (C)BM Or (I)BM Graphics?: {pound}g1{pound}v7{f6}":a=-(an$="I")
+3226 &,52,19,a:goto3200
+3228 im=4:gosub430:x=4:gosub3004:goto3200
+3230 a$=str$(qb):&"{f6}{lt. blue}System Baud Rate Set at{pound}$a{f6}":a$="s.menu t4":dr=1:gosub14
+3232 gosub3006:&,41,a:print#131,"at":gosub3278:goto3200
+3234 a=-(tt$="t"):b$=mid$("Tone Pulse",a*5+1,5):tt$="t":ifathentt$="p"
+3236 &"{f6}{lt. blue}Dial Mode: {pound}$b{f6}":x=5:gosub3004:goto3200
+3238 &,52,17,2:&,52,17,3:b$=mid$("ffn ",a%*2+1,2):&"{f6}Linefeeds: O{pound}$b{f6}"
+3240 x=5:gosub3004:goto3200
+3242 a$="e.termkeys":dr=3:gosub4:goto3246
+3244 a$="e.fkeys":dr=3:gosub4:goto3246
+3246 ife%thenfori=1to8:tt$(i)="":next:goto3252
+3248 fori=1to8:&,2,2:ifright$(a$,1)="{back arrow}"thena$=left$(a$,len(a$)-1)+r$
+3250 tt$(i)=a$:next:close2
+3252 f1$=tt$(1):f2$=tt$(2):f3$=tt$(3):f4$=tt$(4):f5$=tt$(5)
+3254 f6$=tt$(6):f7$=tt$(7):f8$=tt$(8):return
+3256 gosub3242:cf=.
+3258 &"{f6}Function Key Editor{f6}{pound}vj":fori=1to8:a$=left$(tt$(i),35):a%=i
+3260 &"{lt. blue}F{pound}#1{pound}%a{blue}) {white}{pound}$a{f6}":i=i+rc*n:next
+3262 &"{white}{pound}vjE{lt. blue}dit Which{blue}?{white} {pound}g1":a=val(an$):ifa<1ora>8then3270
+3264 &"{pound}v7{f6}":w$=tt$(a):p$="F"+chr$(48+a)+" ({f5}{back arrow}{f5} = RETURN)":poke53252,75:pl=0:&,1,32
+3266 ifan$<>""thentt$(a)=an$:cf=1
+3268 goto3258
+3270 &"Quit{f6}":ifcf=.then3200
+3272 &"{f6}Save Changes?: ":gosub94:ifa=.then3200
+3274 a$="e.termkeys":dr=3:gosub18:fori=1to8:print#2,tt$(i):next
+3276 close2:gosub3242:goto3200
+3278 &"{f6} Baud Now at ":&mid$("300 120024004800960019.238.4",(4*a)-3,4)
+3280 ifa>5then:&"k"
+3282 &"{f6}":return
+3300 &"{f6}Hanging Up...":im=3:gosub446:x=3:gosub3004:goto3120
+3302 gosub3010:print#131,"ate0v0":&,22,20:im=9:gosub446
+3304 r=1:gosub3036:gosub3408:ifa=.then3350
+3306 t=200:print#131,chr$(97);:&,22,5:&"a"
+3308 t=t-1:&,4:a=peek({sym:sareg})and127:ifa<>88anda<>120andt>0then3308
+3310 x=50:c%=.:b%=.
+3312 print#131,chr$(97);:&,22,5:&"a"
+3314 x=x-1:t=100
+3316 t=t-1:&,4:a=peek({sym:sareg}):a$=chr$(a):ifathenc%=b%:b%=a%:a%=a:&:t=t+1
+3318 a=-((c%=105orc%=73)and(b%=110orb%=78)anda%=58):ifa=.andt>0then3316
+3320 ifa=0andx>0then3312
+3322 t=.:print#131,us$":"mid$(str$(f%),2)";"ps$
+3324 &,4:a=peek({sym:sareg}):a$=chr$(a):ifathen:&:t=.:goto3324
+3326 t=t+1:ift<100then3324
+3328 t=.:&,22,10:print#131,"d "f$
+3330 &,4:a=peek({sym:sareg}):a$=chr$(a):ifathen:&:t=.:goto3330
+3332 t=t+1:ift<100then3330
+3334 gosub3040:goto3014
+3336 &"{f6}":a=val(mid$(an$,2,2)):ifa$=an$then:&"Edit Which? {pound}i1":a=val(an$)
+3338 ifa<1ora>20then3350
+3340 p$="BBS Name  ":pl=.:&,60,1,16,s%(1,a),w$:poke53252,16:&,1,32
+3342 ifan$<>""then:&,60,0,16,s%(1,a),an$:tz=1
+3344 p$="BBS Number":pl=.:&,60,1,14,s%(17,a),w$:poke53252,14:&,1,32
+3346 ifan$<>""then:&,60,0,14,s%(17,a),an$:tz=1
+3350 &"{clear}":&,18,0:a=.
+3352 fori=1to20:n%=i:&,60,1,16,s%(1,i),b$
+3354 &,60,1,14,s%(17,i),c$
+3356 &"{pound}#2{pound}# {pound}%n) {pound}$b{pound}{back arrow}24{pound}$c{f6}"
+3358 next:&"{pound}$l{f6}"
+3360 &"Enter: #, Dial, Edit, Load, Save? {pound}i1":a$=left$(an$,1)
+3362 on-(an$="D")-2*(an$="L")-3*(an$="S")-4*(a$="E")goto3386,3390,3392,3336
+3364 a=val(an$):ifa<1ora>20then3120
+3366 &,60,1,16,s%(1,a),b$:ifb$=""then3350
+3368 gosub3042
+3370 &,60,1,14,s%(17,a),an$
+3372 &,15,2:c$=an$
+3374 gosub3010:print#131,"ate0v0":im=9:gosub446
+3376 &"{f6}{lt. blue} Auto Redial?: ":gosub94:r=a
+3378 a%=.:d%=.:gosub3036
+3380 d%=d%+1:&"{f6}Attempt #{pound}%d: Press {f5}C={f5} to Abort":ifpeek({sym:shflag})=2then3350
+3382 b=val(mt$):gosub3600:ifathen:&,18,0:gosub3040:goto3014
+3384 on-(d%>9)goto3350:onrgoto3380:goto3350
+3386 b$="Dial Telnet":gosub3042:gosub3414:iffl=.then3350
+3388 b$="Unlisted Number":goto3372
+3390 gosub3400:goto3350
+3392 gosub3394:goto3350
+3394 &"Saving Phonebook":a$="e.phone":dr=3:gosub19
+3396 s%(0,0)=20:a$=dr$+a$:&,60,3,0,s%(0,0),5050,a$,dv%:gosub5:&:gosub3018:return
+3400 iftzthenf$="Load":gosub3008:ifa=.thenreturn
+3402 &"Loading Phonebook{f6}":dr=3:gosub3:a$=dr$+"e.phone":&,60,2,0,s%(0,0),a$,dv%
+3404 gosub5:gosub3018:ife%thens%(0,0)=0
+3406 &"{rvrs off}{f6}":return
+3408 im=6:gosub446:&,22,5:return
+3410 iftzthenf$="Save":gosub3008:ifathengosub3394
+3412 return
+3414 an$="":&"{white}Enter address[{f3}port #]: {pound}i0"
+3416 fl=abs(an$<>""):ifflthen:&,15,2
+3418 return
+3474 x=1:goto3478
+3476 x=2
+3478 poke53252,16:&"{f6}Filename?: {pound}i0":f$=an$
+3480 &"{f6}(P)rg or (S)eq?: {pound}g1{pound}v7{f6}":t$=chr$(asc(an$)and127)
+3482 iff$=""or(t$<>"p"andt$<>"s")then3014
+3484 a$=f$+","+t$:onxgoto3486,3492:goto3120
+3486 b$=a$:a$=b$+",r":dr=0:gosub4:ife%thenclose2:goto3500
+3488 a$=b$:poke{sym:filetyp},1:ifright$(a$,1)<>"p"thenpoke{sym:filetyp},2
+3490 an$=a$:x=1:gosub3034:gosub3654:&,16,0:close2:poke{sym:rodbe},peek({sym:rodbs}):goto3498
+3492 b$=a$:a$=b$+",w":dr=0:gosub4
+3494 a$=b$:ife%thenclose2:goto3500
+3496 an$=a$:x=2:gosub3034:gosub3654:&,16,1:close2:&,22,5:poke{sym:ridbs},peek({sym:ridbe})
+3498 gosub3016:a=rc:&"{f6}{pound}!a Bytes{f6}{pound}%a Good Blks{f6}{pound}%b Bad Blks{f6}"
+3500 x=3:gosub3004:gosub3656:goto3014
+3502 dr=0:gosub3
+3504 &"{f6}{lt. blue}Pattern: ":gosub289:b$="*"
+3506 fori=1tolen(an$):ifmid$(an$,i,1)="*"thenb$=""
+3508 next:an$=an$+b$:&"{f6}"
+3510 close1:open1,dv%,0,"$"+dr$+an$:s=.:bl=.:f%=1:c%=.:sh=.:rc=.
+3512 &"{f6:2} [Y]es [N]o [E]very [S]tart [A]bort{f6}{pound}vj{f6}":get#1,a$,a$:&,8,1,1:lp=1:&"{pound}$a{f6}"
+3514 &,8,1,1:s=st:ifmid$(a$,7,1)="b"thenb$=a$:&"{f6}{pound}$b{f6}":goto3528
+3516 b%=val(a$):f$=mid$(a$,8):t$=mid$(a$,26,1):g$=t$
+3518 fori=2to17:ifmid$(f$,i,1)=qt$thenf$=left$(f$,i-1)
+3520 next:&" {pound}#4{pound}# {pound}%b: {f5}{pound}$f,{pound}$g{f5}":onblgoto3526:&"{pound}{back arrow}32?: {pound}g1":a$=an$
+3522 x=-(a$="Y")-2*(a$="S")-3*(a$="A")-4*(a$="E"):&mid$("No   Yes  StartAbortEvery",x*5+1,5)
+3524 bl=-(a$="E"):onx+1goto3530,3526,3528,3528,3526
+3526 b$=f$+","+t$:tt$(f%)=b$:c%=c%+b%:f%=f%+1:goto3530
+3528 s=1:ifx=3thenf%=1
+3530 &"{f6}":ifrcorshthenbl=.
+3532 on-(s=.andf%<101)goto3514:close1:f%=f%-1:on-(f%<1)goto3120
+3534 bl%=mn%:bl=.:&"{f6:2}Ready To Send {pound}#0{pound}%f Files.{f6}"
+3536 &"{f6} Press {white}{rvrs on}RETURN{rvrs off}{lt. blue} To Begin: {pound}g1{f6}":f=1:bb%=0:gosub3540:gosub3016:gosub3012
+3538 x=4:gosub3004:goto3014
+3540 an$=tt$(f):&,15,2:a$=an$+",r":dr=0:gosub4:ife%then3546
+3542 x=1:gosub3034:gosub3654:&,16,2:&,22,10:&,16,0:gosub3048:ifb=.then3550
+3544 &,22,10:on-(f>=f%)goto3552:f=f+1:bl=bl+rc:goto3540
+3546 close2:on-(f=f%)goto3548:forx=ftof%-1:tt$(x)=tt$(x+1):next
+3548 f%=f%-1:f=f-1:goto3542
+3550 bb%=1:b=0:f=f-1
+3552 an$="":&,16,2:a%=f:return
+3554 &"{clear}{f6:3}Multi-Download: Waiting For Start...{f6}"
+3556 f=.:bl%=mn%:bl=.:gosub3558:gosub3016:gosub3012:x=4:gosub3004:goto3014
+3558 on-(f=>100)goto3564:an$="":gosub3654:&,16,3:on-(an$="")goto3564:f=f+1
+3559 tt$(f)=an$:x=2:gosub3034:a$=an$+",w":dr=0:gosub4:ife%thenclose2:f=f-1:goto3564
+3560 &,16,1:gosub3048:ifb=.thena$=left$(tt$(f),len(tt$(f))-2):f=f-1:goto19
+3562 tt$(f)=chr$(band255)+chr$(b/256)+tt$(f):bl=bl+rc:goto3558
+3564 print#131,"{$18:3}";:return
+3566 f1=.:iftzthenf$="Quit":gosub3008:ifa=.thengosub3394:goto3120
+3568 &"{f6}Hanging Up...":im=3:gosub446:x=3:gosub3004
+3570 gosub3244:on-(i%orid=1)goto3572:poke53248,0:ac%=16:mf=kk
+3571 &,40:z%=(peek({sym:fretop}+1)-peek({sym:strend}+1))*256+peek({sym:fretop})-peek({sym:strend})
+3572 f1=3:mm=.:a$="lo":goto70
+3600 &,52,16,1:x=b:gosub{$36}0390:&"{f6}{lt. blue}Dialing {pound}$b: {pound}$c{f6}":a$="dt"+c$
+3602 poke{sym:ridbe},.:poke{sym:ridbs},.:a$="at"+a$:print#131,a$
+3604 a$="":t=50
+3606 &,4:a=peek({sym:sareg})and127:t=t-1:&,22,1:ifathenb=1:a=1:return
+3608 on-(t>0)goto3606
+3610 &"{f6}Connection Failed":a=0:return
+3650 rem copr. 1991 new image
+3654 &,52,$34,3:on-(a%=.)goto3655:poke53370,0:&,52,$35,0
+3655 return
+3656 &,52,$34,3:on-(a%=.)goto3657:poke53371,0:&,52,$35,1
+3657 return
+3699 rem:"i.t (c)nissa 230310 lh"

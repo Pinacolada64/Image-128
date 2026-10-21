@@ -1,0 +1,29 @@
+' imported from i_lo-BA.graph.1.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{crunch:on}
+
+4500 rem bar graph
+4502 a=ll%/2-19:l$="":if a>0 then l$=left$("                        ",a-1)
+4504 h$="{$a2:30}"
+4506 i$="                              ":j$="{$bb}"
+4508 &"{f6:2}{pound}$l       {white}{rvrs on} Today's Board Activity {f6:2}":sh=.:rc=.
+4510 &"{pound}$l                 1 1 1 1 1 2 2 2 2 2 3{f6}"
+4512 &"{pound}$l         2 4 6 8 0 2 4 6 8 0 2 4 6 8 0{f6}"
+4514 &"{pound}$l       0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0{f6}"
+4516 &"{pound}$l       {lt. blue}{$b0}{pound}o{$b2:12}{$ae}{f6}":for i=1 to 9:d$=mid$("{cyan}{purple}{cyan}{purple}{cyan}{purple}{cyan}{purple}{cyan}",i,1)
+4518 c$=mid$("FbackSMailMail PostsRespsUpldsDnldsNew  Calls",i*5-4,5)
+4520 x=int(st(i+11)/5+.5):b=int(x/2+.5):if b>28 then b=28
+4522 a$="":c=b+1:if x>1 and (xand 1) then a$=j$:c=b+2
+4524 a$=left$(h$,b)+a$+mid$(i$,c)
+4526 &"{lt. blue}{pound}$l {pound}$c {$dd}{pound}$d{pound}$a{lt. blue}{$dd}{f6}":i=i-9*(sh<>.or rc<>.):next
+4528 &"{pound}$l       {lt. blue}{$ad}{pound}o{$b1:12}{$bd}{f6:2}"
+4530 b%=st(21):c%=st(22):a=b%+c%:if athen b%=int(b%/a*100+.5):c%=100-b%
+4532 &"{white}{pound}$l       Used Time:{pound}#3{pound}# {pound}%b%    Idle Time:{pound}#3{pound}# {pound}%c%{f6}{lt. blue}"
+4534 &"{f6}(Press any key){pound}g1":return
+4536 rem:"i/lo-BA.graph.1 (c)nissa 190412 lh"

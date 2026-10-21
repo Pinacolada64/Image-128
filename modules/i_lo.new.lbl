@@ -1,0 +1,175 @@
+' imported from i_lo.new.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+
+4000 poke53280,5:close2:dr=3:gosub61:ifa>20then4008
+4002 &"{f6:2}Sorry, There Is Not Enough Disk Space{f6}For You To Logon At This Time."
+4004 &"{f6}Please Try Again Later!{f6:2}":goto4088
+4006 return
+4008 ifl1=.thengosub33:x=31:gosub1:&,2,2:l1=val(a$):close2
+4010 tr%=10:&"{f6}":dr=5:a=1:gosub375
+4012 &,25,.,4:an$=dd$+" User Login":&,15,1:cm$=an$:gosub9
+4014 dr=1:gosub3:open5,dv%,5,dr$+"s.new user,s,r":&,12,5:close5:gosub12
+4016 jn$="":l=l1:ac%=.:id=.:cr=nc:f$=cc$:ld$="1"+"1812161201":p$=""
+4018 gosub31:&,2,2:ag$=a$:&,2,2:fl$=a$:close2
+4020 on-(dd$<>"RES")goto4034:e=1:&,25,.,2:b=.
+4022 b=b+1:ifb=5then4088
+4024 close2:&"{f6:2}Please Enter Your{f6}RES Account Number: {pound}i1":ontr%+1goto4088
+4026 id=int(abs(val(an$))):ifid<1orid>urthen4022
+4028 im=2:gosub445:ifna$<>"RES"then4022
+4030 &"{f6:2}Please Enter Your{f6}RES Password : ":&,6:iftr%<1orb>4then4088
+4032 ifan$<>pw$then:&"{f6}Incorrect Password.{f6}":goto4022
+4034 na$="":rn$="":ct%=.:tc%=.:ll%=40:lf=1:em=.:ul=.:co%=1:ff$="":ll$="":d5$=lt$
+4036 tr%=30:gosub4090:ontr%+1goto4088
+4038 ifpw$=""thenid=.:&"{f6}":ao%=ac%:im=14:gosub445:goto4064
+4040 im=1:gosub443:ifid<>.then4054
+4042 gosub35:&"{f6:2}Updating account info...":id=l1
+4044 l=l1+1:ifl1>urthene=.:goto4052
+4046 e=1:on-(l1=ur)goto4052:forx=ltour:ifx/3=int(x/3)then:&"."
+4048 gosub1:&,2,2:ifa$="{^}"thenl=x:x=ur:next:goto4052
+4050 next:l=x
+4052 close2
+4054 a%=id:&"{clear}{f6}{pound}vj Your Login ID --> {pound}$f{pound}%a"
+4056 b$=pw$:&"{f6} Your Password --> {f5}{pound}$b{f5}{f6}{pound}vj"
+4058 &"{f6}{rvrs on} Write These Down! "
+4060 &"{f6:2}You Will Need Them To Sign Back Onto{f6}The System.{f6}"
+4062 &"{f6}Press RETURN To Continue.{f6:2}: {$07}{pound}i1"
+4064 gosub4184:ontr%+1goto4088
+4066 ifpw$=""then4086
+4068 gosub4198:ontr%+1goto4088
+4070 gosub4226:ontr%+1goto4088
+4072 gosub4262:ontr%+1goto4088
+4074 goto4276
+4076 dc=.:uc=.:bd=.:bu=.:ps=.:rp=.:ct%=.:tc%=.:im=1:gosub445
+4078 gosub33:x=31:gosub1:print#2,l:l1=l:onegoto4084
+4080 gosub33:x=12:gosub1:print#2,ur+2:close2:ur=ur+1:im=15:gosub445
+4082 gosub35:x=id+6:gosub1:print#2,"0"
+4084 close2:ontr%+1goto4088:return
+4086 gosub4314:&,52,1,4:e%=.:mm=.:f1=4:goto3000
+4088 e%=1:mm=.:f1=4:goto3000
+4090 &"{f6}Part I: General Information:{f6}"
+4092 gosub4106:fort=1to4:ontgosub4146,4126,4136,4138:t=t-5*(tr%<1):next
+4094 iftr%<1then:return
+4096 b$=pw$:&"{clear}{f6}General Information:{f6:2}1) Handle    : {pound}v2{f6}2) Password  : {f5}{pound}$b{f5}"
+4098 b$=ff$:c$=ll$:&"{f6}3) Email Addr: {pound}v4{f6}4) First Name: {pound}$b{f6}5) Last Name : {pound}$c"
+4100 &"{f6:2}Enter # Of Item To Change, Or{f6}Press RETURN To Continue:{f6:2}> {pound}g1"
+4102 a=val(an$):ifathenonagosub4106,4146,4126,4136,4138:goto4096
+4104 return
+4106 poke53252,20:iff1thenf1=.:na$=g$:return
+4108 &"{f6}Enter The Handle That You Wish{f6}To Use On This System:{f6:2}: {pound}i1"
+4110 iftr%<1thenna$="":return
+4112 a=len(an$):ifa<5ora>20then4122
+4114 ifleft$(an$,1)<"A"then4122
+4116 &"{f6}Checking To See If Anybody Is Already{f6}Using That Handle..."
+4118 im=1:gosub441:ifi<1thenna$=an$:return
+4120 a%=i:&"{f6:2}That handle is now used by {pound}$f{pound}%a.{f6}":goto4106
+4122 &"{f6}Your handle must be at least 5 but no{f6}more than 20 characters long and"
+4124 &"begin{f6}with an alphabetic character.{f6}":goto4106
+4126 poke53252,78:&"{f6}Enter Your Email Address:{f6:2}: {pound}i0"
+4128 iftr%<1thenph$="[none.com]":return
+4130 ifan$=""then4134
+4132 ph$=an$:return
+4134 &"{f6}Missing Email Address.{f6}Please Re-Enter.{f6}":goto4126
+4136 a$="First":gosub4140:ff$=an$:rn$=ff$+" "+ll$:return
+4138 a$="Last":gosub4140:ll$=an$:rn$=ff$+" "+ll$:return
+4140 &"{f6}Enter Your {pound}$a Name:{f6:2}: {pound}i1":iftr%=.thenreturn
+4142 if(left$(an$,1)>="A"andright$(an$,1)>="A")thenreturn
+4144 &"{f6}Non-Acceptable Entry.{f6}":goto4136
+4146 &"{f6:2}Would you like to:{f6:2} (A) Enter a password{f6}
+4148 &" (B) Generate a Random Password{f6} (C) Have no password, and have only a{f6}"
+4150 &"     TEMPORARY account on this BBS{f6:2}> {pound}g1"
+4152 iftr%>.thenon-(an$="A")-2*(an$="B")-3*(an$="C")goto4158,4168,4154:goto4146
+4154 &"C{f6:2}"
+4156 pw$="":return
+4158 poke53252,14:&"A{f6:2}Please Enter A Password To Use{f6}"
+4160 &"for your account on this BBS.{f6:2}: {pound}i1":ontr%+1goto4156:ifan$=""then4146
+4162 iftr%<1then4166
+4164 ifna$=an$then:&"{f6}Please Do Not Use Your Handle{f6}As A Password.{f6}":goto4158
+4166 pw$=an$:return
+4168 &"B{f6:2}":gosub4174:&"Your random password is {f5}{pound}$b{f5}{f6:2}Is this Ok? ":gosub96
+4170 ifathenpw$=b$:return
+4172 goto4146
+4174 b$="":v$="AEIOU":c$="STTRSHSCBLFL":n$="NTRSB"
+4176 gosub4180:gosub4182:gosub4180:gosub4182:gosub4180:gosub4182
+4178 b$=b$+mid$(n$,int(rnd(1)*len(n$))+1,1):return
+4180 b$=b$+mid$(c$,int(rnd(1)*(len(c$)/2))*2+1,2):return
+4182 b$=b$+mid$(v$,int(rnd(1)*len(v$))+1,1):return
+4184 &"{f6}Part II: Terminal Parameters:{f6:2}"
+4186 co%=1:&"{f6}":forx=1to9:a%=x:b$=co$(x):&"{pound}%a> {pound}$b{f6}":next
+4188 &"{f6}Which type of computer are you using?{f6:2}> {pound}g1":iftr%<1thenreturn
+4190 co%=val(an$):on-(co%=.)goto4186:an$=co$(co%):&"{pound}v7{f6:2}":&,9
+4192 a$=mid$("402400802400802421402421802421802421802421802421402421",co%*6-5,6)
+4194 ll%=val(left$(a$,2)):mp%=val(mid$(a$,3,2)):ul=val(mid$(a$,5,1))
+4196 lf=val(mid$(a$,6,1)):im=1:a=2:gosub430:a=1:gosub447:goto443
+4198 &"{f6:2}Part III: Miscellaneous Questions:{f6:2}"
+4200 &"{white}{f6}   Your Answers To The Following{f6}Questions Will Be Kept Strictly{f6}"
+4202 &"Confidential And Are For The Sysop's{f6}Records Only.{f6}{cyan}":b=3
+4204 p$="":fori=1tob:gosub4206:gosub4214:next:goto4216
+4206 poke53252,38:onigoto4208,4210,4212
+4208 a$="City":return
+4210 a$="State (if USA) or Country":return
+4212 a$="Birthdate (yymmdd)":return
+4214 &"{f6}Your {pound}$a?{f6}":gosub6:&,15,1:ed$(i)=an$:return
+4216 &"{clear}{f6}Miscellaneous Questions:{f6:2}"
+4218 fori=1tob:gosub4206:b$=ed$(i):a%=i:&"{cyan}{pound}%a> {pound}$a:{f6} {white}{pound}$b{f6}":next
+4220 &"{cyan}{f6}Enter # Of Item To Re-Enter Or Press{f6}RETURN If Correct: {pound}g1{pound}v7{f6}"
+4222 iftr%>.thena=val(an$):ifa>.anda<=btheni=a:gosub4206:gosub4214:goto4216
+4224 return
+4226 q=.:&"{f6:2}Are You An IMAGE BBS Owner? ":gosub94:q=a:ifa=.then4260
+4228 b=8:p$="":fori=1tob:gosub4230:gosub4248:next:goto4252
+4230 poke53252,38:onigoto4232,4234,4236,4238,4240,4242,4244,4246
+4232 a$="BBS Name":return
+4234 a$="BBS Telnet Address":return
+4236 a$="Serial #":return
+4238 a$="Network":return
+4240 a$="Node ID":return
+4242 a$="Street Address (optional)":return
+4244 a$="Zip Code (optional)":return
+4246 a$="Voice Number (optional)":return
+4248 &"{f6}Your {pound}$a?{f6}":gosub6:&,15,1:dt$(i)=an$:ifan$=""thendt$(i)="n/a"
+4250 return
+4252 &"{clear}{f6}Image Sysop Questionnaire:{f6:2}"
+4254 fori=1tob:gosub4230:b$=dt$(i):&"{cyan}{pound}!i> {pound}$a:{f6} {white}{pound}$b{f6}":next
+4256 &"{cyan}{f6}Enter # Of Item To Re-Enter Or Press{f6}RETURN If Correct: {pound}g1{pound}v7{f6}"
+4258 iftr%>.thena=val(an$):ifa>.anda<=btheni=a:gosub4230:gosub4248:goto4252
+4260 return
+4262 &"{f6}Leave a statement for the Sysop? ":gosub96:ifa=.thenkk=1:goto4274
+4264 &"{f6:2}Part IV: Personal Statement:{f6}"
+4266 &"{f6}   Leave a statement for the sysop.{f6}Anything Interesting, And Please{f6}"
+4268 &"Tell Us Where You Found our BBS.{f6:2}"
+4270 &"Enter .S in the leftmost column to save your message{f6}"
+4272 le=10*(val(mid$(fl$,6,1))+1):im=1:gosub440:ifkk=.thenkk=1
+4274 return
+4276 tr%=5:&"{f6:2}  Filing New User Information.{f6}  Please Be Patient Here!"
+4278 gosub4076:b$="new":ad$="New User Registration":gosub37
+4280 print#2,"NEW USER:"r$r$rn$r$ed$(1)", "ed$(2)r$
+4282 print#2,"Birthdate: "ed$(3)r$"Baud Rate:"str$(qb)r$
+4284 ifq=.then4290
+4286 print#2,r$"IMAGE SYSOP"r$r$"Board Name:  "dt$(1)r$"Board Phone: "dt$(2)
+4288 print#2,"Serial #:    "dt$(3)r$"Network:     "dt$(4)r$"Node ID:      "dt$(5)r$
+4290 &"{f6}":gosub39:&"{f6:2}"
+4292 dr=3:a$="e.sysop":gosub4:on-(e%<>.)gosub4318:x=id:gosub1
+4294 w$="":w$=w$+d1$+r$+na$+r$+ff$+r$+ll$+r$+dt$(6)+r$
+4296 w$=w$+ed$(1)+r$+ed$(2)+r$+dt$(7)+r$+dt$(3)+r$+dt$(1)+r$+dt$(8)+r$
+4298 w$=w$+dt$(2)+r$+dt$(4)+r$+dt$(5)+r$
+4300 ifq=.thenw$="n"
+4302 gosub1:print#2,w$:close2
+4304 b$="new temp":a$="a":gosub36:ife%thena$="w":gosub36
+4306 print#2,na$+r$+ed$(1)+r$+ed$(2)
+4308 close2:an$=na$:im=8:gosub445:gosub30:i=1:x=19:gosub16:x=29:gosub16:close2
+4310 a$="e.macs":dr=3:gosub4:ife%then4088
+4312 forx=id*4-4toid*4:gosub1:print#2,"{^}"+r$:next:close2:goto4086
+4314 on-(id=.)goto999:&"{clear}{green}Thank you for filling out your{f6}New User Application{f6:2}"
+4316 &"{lt. blue}Please call back tomorrow to see{f6}if your application is approved{f6}":return
+4318 &"{f6:2}Creating Sysop File...":close2:dr=3:a$="e.sysop,l,"+chr$(250):gosub4
+4320 &"{pound}h6ed...{f6:2}Filling: ":forx=1tour
+4322 &mid$("{white}{cyan}{purple}{green}{yellow}{lt. red}{lt. green}{lt. blue}{gray3}",int(rnd(1)*9)+1,1)+mid$("{^}*+{pound}=[]$#",int(rnd(1)*9)+1,1)
+4324 gosub1:print#2,"{^}":next:&"{f6:2}{lt. green}Finished!!":return
+4418 copr. 1995 new image 02/08/95
+4420 rem:email mod 181221 x-tec
+4430 rem:"i/lo.new (c)nissa 210306 lh

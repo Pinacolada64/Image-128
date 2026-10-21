@@ -1,0 +1,37 @@
+' imported from i_lo-Lotto.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{crunch:on}
+
+4500 &"{clear}{f6}{gray3}         -=<{yellow}{rvrs on}Log-Off' Lottery{rvrs off}{gray3}>=-{f6:2}"
+4502 &"{f6}{lt. blue}       Guess Th' Numbers WIN BIG!{pound}w2"
+4504 &"{f6:2}{pound}c8Yer' Choices Are:            To Win:{f6:2}"
+4506 &"{gray3}[{lt. green}1{gray3}]{cyan} Guess One Digit....: {white}500 Credits{f6}"
+4508 &"{gray3}[{lt. green}2{gray3}]{cyan} Guess Two Digits...: {white}2000 Credits{f6}"
+4510 &"{gray3}[{lt. green}3{gray3}]{cyan} Guess Three Digits.: {white}5000 Credits{f6}"
+4512 &"{gray3}[{lt. green}4{gray3}]{cyan} Guess Four Digits..: {white}10000 Credits{f6}"
+4514 &"{f6}{pound}c7Yer' Choice?{white} {pound}g1{pound}v7":if tr%<1 then 4546
+4515 a=val(an$):poke 53252,a
+4516 on-(an$="1")-(an$="2")*2-(an$="3")*3-(an$="4")*4 goto 4544,4542,4540,4520
+4518 f1=1:return
+4520 aa=9999:bb=10000
+4522 xx=int(rnd(1)*aa)+1:xx$=str$(aa)
+4524 &"{f6:2}{yellow}Enter Yer' Guess Between 1 And"+xx$+"{f6:2}{gray3}Guess{white}: {pound}il":if tr%<1 then 4546
+4526 &"{f6:2}{cyan}Spinning{white}...{pound}w2{pound}h9{pound}h2{lt. green}Spinning{cyan}...{pound}w2{pound}h9{pound}h2{yellow}Spinning{white}...{pound}w2{pound}h9{pound}h2"
+4528 &"{f6:2}{yellow}Th' Winnin' Number Is...{pound}w2{f6:2}{gray3}[>{white}"+str$(xx)+"{f6}":r3=val(an$)
+4530 if r3<>xxthen:&"{f6}{pound}c8Sorry, You Lose, Try Next Time!{pound}b3{pound}w1{f6}":f1=1:return
+4532 &"{f6:2}{yellow}You WIN"+str$(bb)+" Credits!{pound}b3{pound}w2{$07}{f6:2}"
+4534 &"{f6:2}{gray3}Old Amount:{white}"+str$(cr)+"{f6}{yellow}New Amount:{white}"+str$(cr+bb)
+4536 cr=cr+bb
+4538 &"{f6}{pound}w2":f1=1:return
+4540 aa=999:bb=5000:goto 4522
+4542 aa=99:bb=2000:goto 4522
+4544 aa=9:bb=500:goto 4522
+4546 return
+4552 remlogoff lottery by bootlegger/sysop hillbilly express/605-923-4925
+4554 rem:"i/lo-Lotto (c)nissa 211125 lh"

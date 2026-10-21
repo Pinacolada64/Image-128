@@ -1,0 +1,49 @@
+' imported from i_lo_ns.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{crunch:on}
+
+4000 rem netsub lister & mailer
+4002 a$=" {green}Created Netsub List"+r$+" {pound}q0{yellow}{pound}o{$c0}{pound}o{$c0}{pound}q0":gosub 50
+4004 &"{clear}{f6:2} NetSub List Creator v 3.0{f6:2}"
+4006 &"Reading NetSub Configuration{f6:2}Please Wait..."
+4008 a$="netlist":gosub 28:if e%then nn=.
+4010 dr=2:gosub 3:for i=1 to 60:a$=dr$+"nm.netsub"+str$(i):&,16,2,dv%:gosub 5
+4012 if e%then r%=i-1:i=60:next:&"{f6:3}":goto 4022
+4014 &".":&,16:nn$(i)=left$(a$+"......................",22)+" "
+4016 for j=49707 to 49755 step 3:a$=chr$(peek(j)):if a$<"A" or a$>"Z" then j=49755:goto 4020
+4018 nn$(i)=nn$(i)+chr$(peek(j))+chr$(peek(j+1))+chr$(peek(j+2))+" "
+4020 next j:nn$(i)=nn$(i)+"{rvrs off}":next i:&"{f6:3}"
+4022 for i=1 to r%-1:for j=i+1 to r%:if nn$(i)>nn$(j) then a$=nn$(i):nn$(i)=nn$(j):nn$(j)=a$
+4024 next j:a$="{up} Sorting :    {left:3}"+str$(i)+"{f6}":&:next i
+4026 a$="nm.config":dr=2:gosub 4:x=1:gosub 1:&,2,2:b$=a$
+4028 a$="nm.nodes":dr=2:gosub 4:x=1+val(b$):gosub 1:j=.
+4030 for i=1 to 9:&,2,2:tt$(i)=a$:next
+4032 if val(tt$(6)) then x=1+val(tt$(6)):gosub 1:for i=10 to 18:&,2,2:tt$(i)=a$:next:j=j+1
+4034 if val(tt$(7)) then x=1+val(tt$(7)):gosub 1:for i=19 to 27:&,2,2:tt$(i)=a$:next:j=j+1
+4036 if val(tt$(8)) then x=1+val(tt$(8)):gosub 1:for i=28 to 36:&,2,2:tt$(i)=a$:next:j=j+1
+4038 if val(tt$(9)) then x=1+val(tt$(9)):gosub 1:for i=37 to 45:&,2,2:tt$(i)=a$:next:j=j+1
+4040 i=1:for k=1 to j:i=i+9
+4042 dr=2:a$="nm.M."+tt$(i)+"/"+tt$(1)+",s,w":gosub 4:if e%=.then 4046
+4044 dr=2:a$="nm.M."+tt$(i)+"/"+tt$(1)+",s,a":gosub 4
+4046 print# 2,tt$(i+3)+r$+tt$(4)+r$+" 0"+r$+d1$
+4048 print# 2,"!"+b$+"  "+left$(bn$+"                     ",20)+"[Sublist]"
+4050 print# 2," ":gosub 4066:next k
+4052 k=1:for i=1 to j:k=k+9:dr=2:a$="nm.list,s,w":gosub 4:if e%=.then 4056
+4054 dr=2:a$="nm.list,s,a":gosub 4
+4056 print# 2,tt$(k)+"/"+tt$(1)+"/A/nm.M."+tt$(k)+"/"+tt$(1):next
+4058 &"{f6:2} Writing list file...{f6:2}"
+4060 dr=2:a$=tt$(1)+"netsublst":gosub 19
+4062 dr=2:a$=tt$(1)+"netsublst,s,w":gosub 4
+4064 print# 2,"IMAGE Systems"+r$+" 0"+r$+d1$+r$+"[Sublist]"
+4066 print# 2,"Current NetSubs Carried By "+tt$(1):gosub 4072
+4068 print# 2,"{rvrs on}{white}Netsub ID                    Connects {rvrs off}":gosub 4072:print# 2,"{gray3}"
+4070 for z=1 to r%:print# 2,nn$(z):next:print# 2,"{^}":close 2:&,37:return
+4072 print# 2,"{blue}{$c0:38}{rvrs off}"
+4074 return
+4076 rem:"i/lo/ns (c)nissa 200625 lh"

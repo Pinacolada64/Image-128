@@ -1,0 +1,42 @@
+' imported from i_lo_cp maint.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+
+4000 &"{f6}Credit Pool Calculations...{f6}"
+4002 dr=3:a$="e.cr.pool 1,s,r":gosub4:ife%thenk=250:close2:goto4020
+4004 &,2,2:bl=val(a$):&,2,2:k=val(a$):close2:ifbl=.thengosub4040:goto4020
+4006 dr=3:a$="e.cr.pool 2,s,r":gosub4:ife%thenclose2:goto4020
+4008 l$="":fori=1tornd(1)*bl+1:&,2,2:next:an$=a$:&,15,1:m$=a$:ifa$=""then4008
+4010 l$=an$+"":a$="{yellow} Credit Pool Winner: {white} "+l$+r$+" {yellow}Credits Won:{white}"+str$(k)+r$
+4012 a$=a$+" {pound}q0{yellow}{pound}o{$c0}{pound}o{$c0}":gosub50:a$="":an$=m$:gosub505:y=i:ifi=.then4020
+4014 x=i:gosub35:gosub1:fori=1to23:&,2,2:tt$(i)=a$:next
+4016 a$="":tt$(19)=str$(val(tt$(19))+k):fori=1to23:a$=a$+tt$(i)+r$:next
+4018 gosub1:print#2,a$:close2:gosub4026:k=250
+4020 dr=3:a$="e.cr.pool 2":gosub19:a$="e.cr.pool 1":gosub18
+4022 print#2,0;r$;k:close2
+4024 &"Done!":return
+4026 z=1:a$="w":tt$=m$:gosub32:ife%thena$="a":z=.:gosub32
+4028 print#2,"CREDIT{shft space}POOL WINNER"r$;0;r$;d1$;r$;"[Congratulations]"r$
+4030 print#2," You Have WON todays {white}{rvrs on}CREDIT POOL{rvrs off}."r$
+4032 print#2," {lt. green}You were awarded"+str$(k)+" Credits"r$:print#2,"{^}":close2
+4034 gosub30:i=1:x=3:gosub16:x=14:gosub16:x=32:gosub16
+4036 ify=1thenforx=2to24step11:gosub16:next:x=31:gosub16
+4038 x=25:gosub16:close2:gosub62
+4040 dr=1:a$="n.$Winner":gosub18
+4042 ifbl=.then4054
+4044 print#2,"{pound}$q{pound}{back arrow}15{rvrs on}{white} WINNER! {rvrs off}"
+4046 print#2,"{f6:2}{pound}$q{yellow}Today's {lt. red}{rvrs on}Credit Pool Winner{rvrs off} {lt. green}is:"
+4048 print#2,"{f6:2}{pound}$q{rvrs on}{gray3}"+l$+"{rvrs off}{yellow} who won{gray3} {rvrs on}"+str$(k)+"{rvrs off} {yellow}Credits."
+4050 print#2,"{f6:2}{pound}$qMaybe YOU{shft space}will be the NEXT winner!"r$r$
+4052 print#2,"{pound}$q{white}({gray3}Any Key{white}){lt. green} {pound}g1{pound}hj":print#2,"{^}":close2:return
+4054 print#2,"{pound}n3{pound}$q{pound}{back arrow}06{lt. green}{$b0}{$c0:21}{$ae}"
+4056 print#2,"{pound}$q{pound}{back arrow}06{$dd} No Winner in Todays {$dd}"
+4058 print#2,"{pound}$q{pound}{back arrow}06{$dd}     Credit Pool!    {$dd}"
+4060 print#2,"{pound}$q{pound}{back arrow}06{$ad}{$c0:21}{$bd}{pound}n2":goto4052
+4062 copr. 1994 new image 9/8/94
+4064 rem:"i/lo/cp maint (c)nissa 211226 lh"

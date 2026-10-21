@@ -1,0 +1,302 @@
+' imported from i_IM.netmail.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{crunch:on}
+
+4000 y$="Connect":x$="Command":rem "+/IM.netmail"
+4002 v=1.3:vn$="900610":gosub 4104:return
+4004 dr=2:a$="nm.nodes":goto 4
+4006 close 2:open 2,dv%,2,dr$+"nm.nodes":gosub 5:input# 2,n:return
+4008 close 2:open 2,dv%,2,dr$+"nm.nodes,l,"+chr$(100):return
+4010 dr=2:a$="nm.config":goto 4
+4012 dr=2:a$="nm.create":goto 4
+4014 dr=2:a$="nm.connect":goto 4
+4016 dr=2:a$="nm.connect,l,"+chr$(100):goto 4
+4022 if xthen x=x+1:gosub 1:input# 2,z$:return
+4024 z$="{f2:3}":return
+4026 gosub 4006
+4028 for i=1 to n:a%=i:x=i+1:gosub 1:input# 2,a$,b$,b$:&"{pound}#2{pound}%a:/{pound}$a/{pound}{back arrow}10{pound}$b{f6}"
+4030 i=i+rc*n:next:close 2:return
+4034 x=a+1:gosub 1:input# 2,a$,b$,c$,d$,o%,a%,b%,c%,d%
+4036 x=a%:gosub 4022:f$=z$:x=b%:gosub 4022:g$=z$:x=c%:gosub 4022:h$=z$:x=d%:gosub 4022:i$=z$
+4038 close 2:return
+4056 &"Destination Node (?=List):{pound}i1":if an$="{f2}" then gosub 4026:goto 4056
+4058 a$=an$:a%=val(a$):if a%<1 or a%>nthen:&,16,2
+4060 if a%=0 then a=0:a$="":return
+4062 gosub 4004
+4064 a=a%:goto 4034
+4066 &"{lt. blue}Node {blue}({cyan}?{blue}={lt. blue}List{blue},{cyan}A{blue}={lt. blue}Add{blue}):{white}{pound}i1":if an$="{f2}" then gosub 4026:goto 4066
+4068 goto 4058
+4070 a$="path":gosub 28:if e%then:&:return
+4072 gosub 4086:if e%=0 then return
+4074 gosub 4004:if e%then:&:goto 4084
+4076 close 3:open 3,dv%,3,dr$+"nm.nodelist,p,w":print# 3,chr$(0) chr$(194);
+4078 input# 2,n:print# 3,chr$(n);:if n=0 then 4084
+4080 for i=1 to n:x=i+1:gosub 1:input# 2,a$,b$,b$,b$,b$,a,b,c,d
+4082 print# 3,left$(a$+"---",3) chr$(0) chr$(a) chr$(b) chr$(c) chr$(d);:next
+4084 close 3:close 2
+4086 dr=2:gosub 3:a$=dr$+"nm.nodelist":&,16:goto 5
+4088 x=1:z$=str$(nn)+r$+str$(af%)+r$+pn$+r$+vn$+r$:goto 4098
+4090 x=2:z$=str$(br%)+r$+h0$+r$+h1$+r$+h2$+r$:goto 4098
+4092 x=3:z$="":for i=0 to 9:z$=z$+tt$(i)+r$:next:goto 4098
+4094 x=4:z$=ct$+r$+st$+r$:goto 4098
+4098 gosub 4010:gosub 1:print# 2,z$;:gosub 1:close 2:return
+4100 &"Configuration Error!{f6}":&:return
+4104 if zz=0 then:&"{f6}Sorry, This is a SYSOP ONLY program.{f6:2}":return
+4106 gosub 4510:if e%then return
+4108 a$=nn$:&"{clear}{f6}{white} Net Config{f6:2}{lt. blue} Node {pound}%n{blue}:{white} {pound}$a{f6:2}"
+4128 on lmgoto 4130,4178,4294,4456,4332,4240,4474:return
+4130 gosub 4010:&,2,2:&,2,2:af%=val(a$):&,2,2:pn$=a$
+4132 x=4:gosub 1:&,2,2:ct$=a$:&,2,2:st$=a$:close 2
+4134 &"{clear}{f6}{white}   Local Info{f6:2}"
+4136 a%=af%:a$=pn$:b$=ct$:c$=st$
+4138 &"{cyan} 1. {lt. blue}Net Access {blue}:{white}{pound}%a{f6}"
+4140 &"{cyan} 2. {lt. blue}Password   {blue}:{white}{pound}$a{f6}"
+4142 &"{cyan} 3. {lt. blue}City       {blue}:{white}{pound}$b{f6}"
+4144 &"{cyan} 4. {lt. blue}State      {blue}:{white}{pound}$c{f6}"
+4146 &"{f6:2}{lt. blue}-->{white}{pound}g1":a=val(an$):if a=>1 and a<=4 then on agosub 4150,4160,4166,4172:goto 4134
+4148 return
+4150 &"{f6:2} NM Access:{f6:2}":tz=0
+4152 for i=0 to 9:a%=i:a=sgn(af%and 2^i):a$=mid$("NY",a+1,1)
+4154 &"Group #{pound}%a ({pound}$a)? {pound}g1":if an$="Y" or an$="N" then a=-(an$="Y"):tz=1
+4156 af%=(af%and not 2^i) or (a*2^i):gosub 97:next
+4158 on tzgosub 4088:return
+4160 &"{f6:2} Net Password:{f6:2}":tz=0
+4162 p$="Password":w$=pn$:q=16:gosub 4618:pl=1:&,1,32:if an$<>"" then pn$=an$:tz=1
+4164 on tzgosub 4088:return
+4166 &"{f6:2} City:{f6:2}":tz=0
+4168 p$="City":w$=ct$:q=25:gosub 4618:pl=0:&,1,32:if an$<>"" then ct$=an$:tz=1
+4170 on tzgosub 4094:return
+4172 &"{f6:2} State:{f6:2}":tz=0
+4174 p$="State":w$=st$:q=2:gosub 4618:pl=1:&,1,32:if an$<>"" then st$=an$:tz=1
+4176 on tzgosub 4094:return
+4178 gosub 4010:x=2:gosub 1
+4180 &,2,2:br%=val(a$):&,2,2:h0$=a$:&,2,2:h1$=a$:&,2,2:h2$=a$:close 2
+4182 &"{clear}{f6}{white}   Modem Specifications{f6:2}"
+4184 a%=br%:a$=h0$:b$=h1$:c$=h2$
+4186 &"{cyan} 1. {lt. blue}Max Baud Rate{blue}:{white}{pound}%a{f6}"
+4188 &"{cyan} 2. {lt. blue}Off-Hook Cmd {blue}:{white}{pound}$a{f6}"
+4190 &"{cyan} 3. {lt. blue}On-Hook Cmd  {blue}:{white}{pound}$b{f6}"
+4192 &"{cyan} 4. {lt. blue}Dial {pound}$x {blue}:{white}{pound}$c{f6}"
+4194 &"{f6:2}{lt. blue}-->{white}{pound}g1":a=val(an$):if a=>1 and a<=4 then on agosub 4198,4212,4222,4232:goto 4182
+4196 return
+4198 &"{f6:2} Max Baud Rate:{f6}"
+4200 &"{f6} 1.   300":if br%=300 then:&"<-"
+4201 &"{f6} 2.  1200":if br%=1200 then:&"<-"
+4202 &"{f6} 3.  2400":if br%=2400 then:&"<-"
+4203 &"{f6} 4.  9600":if br%=9600 then:&"<-"
+4204 &"{f6} 5. 19200":if br%=19200 then:&"<-"
+4206 &"{f6:2} > {pound}g1":if an$<"1" or an$>"5" then return
+4208 a=val(an$):b=-300*(a=1)-1200*(a=2)-2400*(a=3)-9600*(a=4)-19200*(a=5)
+4209 if br%=bthen return
+4210 br%=b:goto 4090
+4212 &"{f6:2} Modem Off-Hook {pound}$x:{f6:2}"
+4214 a$=h0$:&"Current {pound}$x: {f5}{pound}$a{f5}{f6}"
+4216 q=15:gosub 4618:&"New {pound}$x: {pound}i0":if an$<>"" then h0$=an$:goto 4090
+4218 &"{f6}Remove Off-Hook {pound}$x? ":gosub 94:if athen h0$="":goto 4090
+4220 return
+4222 &"{f6:2} Modem On-Hook {pound}$x:{f6:2}"
+4224 a$=h1$:&"Current {pound}$x: {f5}{pound}$a{f5}{f6}"
+4226 q=15:gosub 4618:&"New {pound}$x: {pound}i0":if an$<>"" then h1$=an$:goto 4090
+4228 &"{f6}Remove On-Hook {pound}$x? ":gosub 94:if athen h1$="":goto 4090
+4230 return
+4232 &"{f6:2} Modem Dial {pound}$x:{f6:2}"
+4234 a$=h2$:&"Current {pound}$x: {f5}{pound}$a{f5}{f6}"
+4236 q=15:gosub 4618:&"New {pound}$x: {pound}i0":if an$<>"" then h2$=an$:goto 4090
+4238 return
+4240 &"{f6}":gosub 4292
+4242 &"{clear}{f6} {white}E-Mail Forwarding{f6:2}":if l=0 then gosub 4266:goto 4252
+4244 for i=1 to l:x=i+1:gosub 1:input# 2,a$,b$,c$:d$=b$+" @ ":if b$=a$then d$=""
+4246 if a$="{^}" then:&"{cyan}#{pound}#2{pound}# {pound}%a {white}(Empty){f6}":next:goto 4252
+4248 if a$<>b$then c$=b$+"{lt. blue} @ {white}"+c$
+4250 a%=x-1:&"{cyan}#{pound}#2{pound}# {pound}%a {white}{pound}$a {lt. blue}To {white}{pound}$c{f6}":next
+4252 close 2:q=20:gosub 4618
+4254 a%=l:&"{f6}{white}{pound}%a {lt. blue}Forwards {blue}[{cyan}A{lt. blue}dd{blue}, {cyan}D{lt. blue}elete{blue}, {cyan}E{lt. blue}dit{blue}, {cyan}Q{lt. blue}uit{blue}]{white}? {pound}g1"
+4256 x=-(an$="A")-2*(an$="D" and l>0)-3*(an$="E" and l>0)
+4258 if xthen on xgosub 4262,4268,4278:goto 4240
+4260 gosub 4292:goto 4266
+4262 &"Add{f6:2}":gosub 4284:if a=0 then return
+4264 gosub 4292:l=l+1:x=l+1:gosub 1:print# 2,a1$r$a2$r$a3$
+4266 x=1:gosub 1:print# 2,l;r$:gosub 1:close 2:return
+4268 &"Delete{f6:2}Which #? {pound}i1":z=val(an$):if z<1 or z>lthen return
+4270 gosub 4292:l=l-1:if z=l+1 then 4276
+4272 for i=z+2 to l+2:x=i:gosub 1:input# 2,a1$,a2$,a3$:x=i-1:gosub 1
+4274 print# 2,a1$r$a2$r$a3$:next:x=1:gosub 1:print# 2,l;r$:return
+4276 goto 4266
+4278 &"Edit{f6:2}Which #? {pound}i1":z=val(an$):if z<1 or z>lthen return
+4280 gosub 4284:if a=0 then return
+4282 gosub 4292:x=z+1:gosub 1:print# 2,a1$r$a2$r$a3$:gosub 1:close 2:return
+4284 a=0:&"Handle Here :{pound}i1":a1$=an$:if an$="" then return
+4286 &"Handle There:{pound}i1":a2$=an$:if an$="" then a2$=a1$:a$=a1$:&"({pound}$a Assumed){f6}"
+4288 gosub 4056:a3$=a$:a$=a1$:b$=a2$:c$=a3$
+4290 &"{f6}Forward {pound}$a'S Mail To{f6}{pound}$b At {pound}$c{f6:2}Correct?":goto 94
+4292 dr=2:a$="nm.forward,l,.":gosub 4:&,2,2:l=val(a$):return
+4294 gosub 4010:if e%then:&:goto 4326
+4296 x=3:gosub 1:for i=0 to 9:&,2,2:if len(a$)<>4 then a$="2306"
+4298 tt$(i)=a$:next:close 2
+4300 &"{clear}{f6} Net Call Times Editor:{f6:2}":for i=0 to 9:a%=i:a$=tt$(i)
+4302 b%=val(left$(a$,2)):c%=val(right$(a$,2))
+4304 b$="A":if b%>11 then b%=b%-12:b$="P"
+4306 c$="A":if c%>11 then c%=c%-12:c$="P"
+4308 b%=b%-12*(b%=0):c%=c%-12*(c%=0)
+4310 &"{pound}%a) {pound}#2{pound}# {pound}%b:00 {pound}$bM to {pound}#2{pound}# {pound}%c:59 {pound}$cM{f6}":next
+4312 &"{f6} Change Which? {pound}g1":a=val(an$):if an$<"0" or an$>"9" then 4092
+4314 &"{pound}v7{f6:2}"
+4316 q=3:gosub 4618
+4318 a$="Start":gosub 4324:if a$<>"" then tt$(a)=a$+mid$(tt$(a),3)
+4320 a$="End":gosub 4324:if a$<>"" then tt$(a)=left$(tt$(a),2)+a$
+4322 goto 4300
+4324 &"{pound}$a Hour: {pound}i1":b=val(an$):if an$="" or b<0 or b>23 then a$="":return
+4326 b=b+12*(b=12):if right$(an$,1)="P" then b=b+12
+4328 a$=right$(str$(100+b),2):return
+4330 &"{clear}{f6}{white} Net {pound}$ys Editor:{f6:2}":return
+4332 gosub 4330:gosub 4578:if e%then 4100
+4334 &"{cyan} 1. {lt. blue}Edit Standard {pound}$ys{f6}{cyan} 2. {lt. blue}Edit Short-Cuts{f6}"
+4336 &"{f6}{lt. blue}Which?{white} {pound}i1":a=val(an$):if athen on agosub 4340,4342:goto 4332
+4338 close 2:return
+4340 k=0:m=4:goto 4344
+4342 x=5:gosub 1:&,2,2:m=val(a$):k=5
+4344 gosub 4330:z=-(k>0 and m<56):on-(m=0) goto 4348
+4346 for i=1 to m:x=i+k:gosub 1:a%=i:&,2,2:&"{cyan}{pound}#2{pound}# {pound}%a){lt. blue} {pound}$a   ":next
+4348 a$="":if zthen a$=" (A=Add) "
+4350 q=2:gosub 4618:&"{f6:2}{cyan}Edit/View Which{pound}$a?{white} {pound}i1":if tr%<1 or an$="" then return
+4352 if zand an$="A" then 4358
+4354 a=val(an$):if a=>1 and a<=mthen x=a+k:gosub 4364:gosub 4368:goto 4344
+4356 return
+4358 m=m+1:x=5:gosub 1:print# 2,m:x=k+m:gosub 4360:gosub 4380:goto 4344
+4360 tt$(1)="{f8}":tt$(2)="{f2}":tt$(3)="-------":tt$(4)="":tt$(5)="0000000":tt$(6)="0"
+4362 tt$(7)="0":tt$(8)=d1$:tt$(9)=d1$:return
+4364 gosub 1:for i=1 to 9:&,2,2:tt$(i)=a$:next:return
+4366 gosub 1:a$="":for i=1 to 9:a$=a$+tt$(i)+r$:next:print# 2,a$;:gosub 1:return
+4368 gosub 4430:&"{f6}{lt. blue} Edit Which? {cyan}(A=All) {white}{pound}i1":on-(an$="A") goto 4380:b=val(an$)
+4370 if bthen gosub 4378:goto 4368
+4372 if tt$(1)<>"{f8}" or k=0 then 4366
+4374 if x-k<mand m>1 then for j=x-kto m-1:x=j+k+1:gosub 4364:x=j+k:gosub 4366:next
+4376 m=m-1:x=5:gosub 1:print# 2,m:gosub 1:return
+4378 &"{f6:2}{pound}q0":on bgoto 4382,4390,4394,4404,4410,4422,4426:return
+4380 gosub 4360:for b=1 to 6:gosub 4378:next:goto 4368
+4382 if k=0 then return
+4384 q=3:gosub 4618:p$="Node":w$=tt$(1):pl=1:&,1,32:if len(an$)=3 then tt$(1)=an$
+4386 if an$="{f8}" then tt$(1)=an$
+4388 return
+4390 q=16:gosub 4618:p$="Password":w$=tt$(2):pl=1:&,1,32:if an$<>"" then tt$(2)=an$
+4392 return
+4394 &"{f5}-{f5}=No Call,0-9=Defined,{f5}+{f5}=24 Hours:{f6}":b$=tt$(3)
+4396 for i=1 to 7:a$=mid$("SunMonTueWedThuFriSat",i*3-2,3):z$=mid$(b$,i,1)
+4398 &"{pound}$a ({pound}$z): {pound}g1":f=(an$="+" or an$="-" or (an$=>"0" and an$<="9"))
+4400 if fthen b$=left$(b$,i-1)+an$+mid$(b$,i+1)
+4402 lp=1:&mid$(b$,i,1):next:tt$(3)=b$:return
+4404 q=20:gosub 4618:p$="Dial Prefix":w$=tt$(4):pl=1:&,1,32:if an$<>"" then tt$(4)=an$
+4406 if an$="" then:&"Remove Dial Prefix? ":gosub 94:if athen tt$(4)=""
+4408 return
+4410 &"Calls/Day:{f6}{f5}#{f5}=# of Calls, {f5}+{f5}=Infinite:{f6}":b$=tt$(5)
+4412 for i=1 to 7:a$=mid$("SunMonTueWedThuFriSat",i*3-2,3):z$=mid$(b$,i,1)
+4414 &"{pound}$a ({pound}$z): {pound}g1":f=(an$="+" or (an$=>"0" and an$<="9"))
+4416 if fthen b$=left$(b$,i-1)+an$+mid$(b$,i+1)
+4418 lp=1:&mid$(b$,i,1):next:tt$(5)=b$:return
+4420 return
+4422 &"Reset Calls Today? ":gosub 94:if athen tt$(6)="0"
+4424 return
+4426 &"Reset Minutes? ":gosub 94:if athen tt$(7)="0":tt$(8)=d1$
+4428 return
+4430 a$=tt$(1):b$=tt$(2):&"{clear}{f6:2}{cyan}1. {lt. blue}Node:      {white}{pound}$a{f6}{cyan}2. {lt. blue}Password:  {white}{f5}{pound}$b{f5}{f6}"
+4432 a$=tt$(3):b$=tt$(4):&"{cyan}3. {lt. blue}Hours:     {white}{pound}$a{f6}{cyan}4. {lt. blue}Prefix:    {white}{pound}$b{f6}"
+4434 a$=tt$(5):&"{cyan}5. {lt. blue}Calls/Day: {white}{pound}$a{f6}"
+4436 a$=tt$(6):b$=tt$(9):&"{cyan}6. {lt. blue}Today:     {white}{pound}$a{f6}{cyan}   {lt. blue}Last Call: {white}{$04}"+b$+"{f6}"
+4438 a$=tt$(7):b$=tt$(8):&"{cyan}7. {lt. blue}Minutes:   {white}{pound}$a{f6}{cyan}   {lt. blue}Since:     {white}{$04}"+b$+"{f6}"
+4440 &"{f6:2}":return
+4442 gosub 4014:if e%=0 then return
+4444 gosub 4004:if e%then 4100
+4446 x=nn+1:gosub 1:for i=1 to 5:&,2,2:next:for i=1 to 4:&,2,2:a%(i)=val(a$):next
+4448 for i=1 to 4:tt$(i)="{^}":if a%(i) then x=a%(i)+1:gosub 1:&,2,2:tt$(i)=a$
+4450 next:gosub 4016:for x=1 to 4:gosub 1
+4452 print# 2,tt$(x) r$"{f2}" r$"-------" r$r$"0000000" r$"0" r$"0" r$d1$r$d1$:next
+4454 x=5:gosub 1:print# 2,0:gosub 1:x=1:gosub 1:return
+4456 &"{f6:2} Making {f5}nm.create{f5}..."
+4458 dr=2:gosub 3:print# 15,"s" dr$"nm.create"
+4460 close 3:open 3,dv%,3,dr$+"nm.create,s,w":gosub 5:if e%then 4472
+4462 gosub 4006
+4464 for a=nto 1 step-1:x=a+1:gosub 1:input# 2,a$,b$,c$,d$,o%,a%,b%,c%,d%
+4466 print# 3,a;r$a$r$b$r$c$r$d$r$o%and 1;r$a%r$b%r$c%r$d%
+4468 next:close 2:close 3
+4470 &"Done!{pound}w1{f6}":return
+4472 close 3:&"{f6:2}Error Creating File {f5}nm.create{f5}.{f6}":return
+4474 &"{clear}{f6}{white} NetWall/NetGrf {pound}$ys Editor:{f6:2}"
+4476 &"{cyan} 1. {lt. blue}Edit Netwall {pound}$ys{f6}{cyan} 2. {lt. blue}Edit Net Graffiti {pound}$ys{f6}"
+4478 &"{f6}{lt. blue}Which?{white} {pound}g1{f6}":a=val(an$):if athen on agosub 4482,4484:goto 4474
+4480 return
+4482 k=7:m$="NetWall":goto 4486
+4484 k=8:m$="Net Graffiti"
+4486 gosub 4010:if e%then close 2:return
+4488 for i=1 to 8:tt$(i)="{^}":next
+4490 x=k:gosub 1:&,2,2:tt$(1)=a$:if st=0 then for i=2 to 8:&,2,2:tt$(i)=a$:next
+4492 &"{clear}{f6}{white} {pound}$m {pound}$ys:{f6:2}":for i=1 to 8:a$=tt$(i):a%=i:&"{cyan} {pound}%a. {lt. blue}{pound}$a{f6}":next
+4494 &"{f6}{lt. blue}Which? {pound}g1":a=val(an$):if athen on-(a<9) gosub 4498:goto 4492
+4496 a$="":for i=1 to 8:a$=a$+tt$(i)+r$:next:x=k:gosub 1:print# 2,a$;:close 2:return
+4498 a%=a:poke 53252,7:&"Enter {pound}$y {pound}%a: {pound}i1"
+4500 if an$="" or an$="{f8}" then:&"Delete #{pound}%a? ":gosub 94:on agoto 4506:return
+4502 if an$<>"" then tt$(a%)=an$
+4504 return
+4506 if a%<8 then for i=a%to 7:tt$(i)=tt$(i+1):next
+4508 tt$(8)="{^}":return
+4510 gosub 4010:if e%then close 2:goto 4516
+4512 &,2,2:nn=val(a$):&,2,2:&,2,2:&,2,2:close 2
+4514 if a$<>vn$then:&"{f6:2}Version Mismatch! Run {f5}+.NM/convert{f5}{f6:2}":e%=1:return
+4516 gosub 4004:if e%=0 then:&,2,2:n=val(a$):goto 4548
+4518 dr=2:a$="nm.create,s,r":gosub 4:if e%then 4544
+4520 &"{f6}Creating {f5}nm.nodes{f5} file..."
+4522 input# 2,a,a$,b$,c$,d$,o%,a%,b%,c%,d%:s=st:close 2
+4524 gosub 4008:n=0
+4526 x=a+1:gosub 1:print# 2,a$r$b$r$c$r$d$r$o%r$a%r$b%r$c%r$d%
+4528 if a>nthen n=a:x=1:gosub 1:print# 2,n
+4530 close 2:close 3:open 3,dv%,3,dr$+"nm.create,s,r"
+4532 gosub 4008:n=0
+4534 input# 3,a,a$,b$,c$,d$,o%,a%,b%,c%,d%:s=st
+4536 x=a+1:gosub 1:print# 2,a$r$b$r$c$r$d$r$o%r$a%r$b%r$c%r$d%
+4538 if a>nthen n=a:x=1:gosub 1:print# 2,n
+4540 if s=.then 4534
+4542 close 2:close 3:print# 15,"s" dr$"nm.nodelist":goto 4548
+4544 &"No {f5}nm.create{f5} file found!{f6}Please contact your NetWork{f6}Administrator.{f6}"
+4546 e%=1:return
+4548 gosub 4070:if e%then return
+4550 if nnthen 4574
+4552 gosub 4004:&,2,2:n=val(a$):close 2
+4554 &"{f6}Enter the Node # you were assigned: {pound}i1":nn=val(an$)
+4556 if nn<1 or nn>nthen e%=1:return
+4558 gosub 4010:if e%then 4562
+4560 &,2,2:&,2,2:&,2,2:af%=val(a$):&,2,2:pn$=a$:gosub 4088:goto 4574
+4562 dr=2:a$="nm.config,l,z":gosub 4
+4564 x=1:gosub 1:print# 2,nn;r$1022;r$"{f2}" r$vn$
+4566 x=2:gosub 1:print# 2,300;r$r$r$"atdt"
+4568 x=3:gosub 1:a$="":for i=0 to 9:a$=a$+"2306"+r$:next:print# 2,a$;
+4570 x=4:gosub 1:print# 2,"{^}" r$"{^}"
+4572 x=1:gosub 1:close 2
+4574 gosub 4004:x=nn+1:gosub 1:&,2,2:nn$=a$:close 2
+4576 n%=nn:goto 4070
+4578 gosub 4014:if e%=0 then 4592
+4580 gosub 4004:if e%then 4100
+4582 x=nn+1:gosub 1:for i=1 to 5:&,2,2:next:for i=1 to 4:&,2,2:a%(i)=val(a$):next
+4584 for i=1 to 4:tt$(i)="{^}":if a%(i) then x=a%(i)+1:gosub 1:&,2,2:tt$(i)=a$
+4586 next:gosub 4016:for x=1 to 4:gosub 1
+4588 print# 2,tt$(x) r$"{f2}" r$"-------" r$r$"0000000" r$"0" r$"0" r$d1$r$d1$:next
+4590 x=5:gosub 1:print# 2,0:gosub 1:x=1:gosub 1:return
+4592 gosub 4004:if e%then 4100
+4594 x=nn+1:gosub 1:&,2,2:nn$=a$:dt$(0)=a$
+4596 &,2,2:&,2,2:&,2,2:&,2,2:for i=1 to 4:&,2,2:a%(i)=val(a$):next
+4598 for i=1 to 4:x=a%(i)+1:dt$(i)="":if x>1 then gosub 1:&,2,2:dt$(i)=a$
+4600 next:gosub 4014:if e%then close 2:return
+4602 for x=1 to 4:gosub 1:b$=""
+4604 &,2,2:b$=b$+a$+r$:on-(st=0) goto 4604:nn$(x)=b$:next
+4606 b$=r$+"{f2}"+r$+"-------"+r$+r$+"-------"+r$+"0"+r$+"0"+r$+d1$+r$+d1$+r$
+4608 for i=1 to 4:for j=1 to 4
+4610 if left$(nn$(j),3)=dt$(i) and i<>jthen a$=nn$(i):nn$(i)=nn$(j):nn$(j)=a$
+4612 next:next:for x=1 to 4:if dt$(x)="" then nn$(x)="{^}"+b$
+4614 if dt$(x)<>left$(nn$(x),3) then nn$(x)=dt$(x)+b$
+4616 gosub 1:print# 2,nn$(x);:next:gosub 1:return
+4618 poke 53252,q:return
+4620 rem "i/IM.netmail" (c)nissa 210305 lh"

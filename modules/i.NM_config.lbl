@@ -1,0 +1,324 @@
+' imported from i.NM_config.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+
+3000 rem "+.NM/config" 03-27-95
+3002 v=1.3:vn$="900610":r$=chr$(13):gosub3104:goto300
+3004 close2:open2,dv%,2,dr$+"nm.nodes":goto5
+3006 gosub3004:input#2,n:return
+3008 close2:open2,dv%,2,dr$+"nm.nodes,l,"+chr$(100):return
+3010 dr=2:a$="nm.nodes":goto4
+3012 gosub3010:input#2,n:return
+3014 f$="nm.list":gosub3016:print#2,tt$:close2:return
+3016 dr=2:a$=f$+",s,w":gosub4:ife%thena$=f$+",s,a":gosub4:return
+3018 return
+3020 f$="nm.sylog":gosub3016:print#2,na$r$d1$r$tt$:close2:return
+3022 ifxthenx=x+1:gosub1:input#2,z$:return
+3024 z$="{f2:3}":return
+3026 gosub3012
+3028 fori=1ton:a%=i:x=i+1:gosub1:input#2,a$,b$,b$:&"{pound}#2{pound}%a:/{pound}$a/{pound}{back arrow}10{pound}$b{f6}"
+3030 i=i+rc*n:next:close2:return
+3032 gosub3012:ifa<1ora>nthen32
+3034 x=a+1:gosub1:input#2,a$,b$,c$,d$,o%,a%,b%,c%,d%
+3036 x=a%:gosub3022:f$=z$:x=b%:gosub3022:g$=z$:x=c%:gosub3022:h$=z$:x=d%:gosub3022:i$=z$
+3038 close2:return
+3040 t$=w$:&,1,32:ifan$=""thenan$=t$
+3042 ifan$<>t$thentz=1
+3044 return
+3046 &"{pound}g1":b=-(an$="Y"):ifan$<>"N"andan$<>"Y"thenb=a
+3048 ifbthen:&"Yes.{f6}"
+3050 ifb=.then:&"No.{f6}"
+3052 ifa<>bthentz=1
+3054 a=b:return
+3056 &"Destination Node (?=List):{pound}i1":ifan$="{f2}"thengosub3026:goto3056
+3058 a$=an$:a%=val(a$):ifa%<1ora%>nthen:&,16,2
+3060 ifa%=0thena=0:a$="":return
+3062 gosub3010
+3064 a=a%:goto3034
+3066 &"{lt. blue}Node {blue}({cyan}?{blue}={lt. blue}List{blue},{cyan}A{blue}={lt. blue}Add{blue}):{white}{pound}i1":ifan$="{f2}"thengosub3026:goto3066
+3068 goto3058
+3070 a$="path":gosub28:ife%then:&:return
+3072 gosub3086:ife%=0thenreturn
+3074 gosub3010:ife%then:&:goto3084
+3076 close3:open3,dv%,3,dr$+"nm.nodelist,p,w":print#3,chr$(0)chr$(194);
+3078 input#2,n:print#3,chr$(n);:ifn=0then3084
+3080 fori=1ton:x=i+1:gosub1:input#2,a$,b$,b$,b$,b$,a,b,c,d
+3082 print#3,left$(a$+"---",3)chr$(0)chr$(a)chr$(b)chr$(c)chr$(d);:next
+3084 close3:close2
+3086 dr=2:gosub3:a$=dr$+"nm.nodelist":&,16:goto5
+3088 x=1:z$=str$(nn)+r$+str$(af%)+r$+pn$+r$+vn$+r$:goto3098
+3090 x=2:z$=str$(br%)+r$+h0$+r$+h1$+r$+h2$+r$:goto3098
+3092 x=3:z$="":fori=0to9:z$=z$+tt$(i)+r$:next:goto3098
+3094 x=4:z$=ct$+r$+st$+r$:goto3098
+3096 x=6:z$=a1$+r$+a2$+r$+a3$+r$:goto3098
+3098 dr=2:a$="nm.config":gosub4:gosub1:print#2,z$;:gosub1:close2:return
+3100 &"Configuration Error!{f6}":goto300
+3102 close2:&:&"{f6}Press a key:{pound}g1{f6}"
+3104 ifzz=0then:&"{f6}Sorry, This is a SYSOP ONLY program.{f6:2}":return
+3106 gosub3548:ife%thenreturn
+3108 a$=nn$:&"{clear}{f6}{white}   NetMail Configuration{f6:2}{lt. blue} Node {pound}%n{blue}:{white} {pound}$a{f6:2}"
+3110 &"{cyan} A. {lt. blue}Local Info{f6}"
+3112 &"{cyan} B. {lt. blue}Modem Specs{f6}"
+3114 &"{cyan} C. {lt. blue}Calling Hours{f6}"
+3116 &"{cyan} D. {lt. blue}Make {f5}nm.create{f5}{f6}"
+3118 &"{cyan} E. {lt. blue}Edit Connections{f6}"
+3120 &"{cyan} F. {lt. blue}Forward List{f6}"
+3124 &"{cyan} G. {lt. blue}Netwall/Graffiti{f6}"
+3126 &"{f6}{cyan}-->{white} {pound}g1":ifan$>="A"andan$<="H"thena=asc(an$)and31:gosub3130:goto3108
+3128 return
+3130 lp=1:&an$:onagoto3132,3180,3296,3458,3332,3242,3512:return
+3132 dr=2:a$="nm.config":gosub4:&,2,2:&,2,2:af%=val(a$):&,2,2:pn$=a$
+3134 x=4:gosub1:&,2,2:ct$=a$:&,2,2:st$=a$:close2
+3136 &"{clear}{f6}{white}   Local Info{f6:2}"
+3138 a%=af%:a$=pn$:b$=ct$:c$=st$
+3140 &"{cyan} 1. {lt. blue}Net Access   {blue}:{white}{pound}%a{f6}"
+3142 &"{cyan} 2. {lt. blue}Password     {blue}:{white}{pound}$a{f6}"
+3144 &"{cyan} 3. {lt. blue}City         {blue}:{white}{pound}$b{f6}"
+3146 &"{cyan} 4. {lt. blue}State        {blue}:{white}{pound}$c{f6}"
+3148 &"{f6:2}{lt. blue}-->{white}{pound}g1":a=val(an$):ifa=>1anda<=4thenonagosub3152,3162,3168,3174:goto3136
+3150 return
+3152 &"{f6:2} NM Access:{f6:2}":tz=0
+3154 fori=0to9:a%=i:a=sgn(af%and2^i):a$=mid$("NY",a+1,1)
+3156 &"Group #{pound}%a ({pound}$a)? {pound}g1":ifan$="Y"oran$="N"thena=-(an$="Y"):tz=1
+3158 af%=(af%andnot2^i)or(a*2^i):gosub97:next
+3160 ontzgosub3088:return
+3162 &"{f6:2} Network Password:{f6:2}":tz=0
+3164 p$="Password":w$=pn$:q=16:gosub3656:pl=1:&,1,32:ifan$<>""thenpn$=an$:tz=1
+3166 ontzgosub3088:return
+3168 &"{f6:2} City:{f6:2}":tz=0
+3170 p$="City":w$=ct$:q=25:gosub3656:pl=0:&,1,32:ifan$<>""thenct$=an$:tz=1
+3172 ontzgosub3094:return
+3174 &"{f6:2} State:{f6:2}":tz=0
+3176 p$="State":w$=st$:q=2:gosub3656:pl=1:&,1,32:ifan$<>""thenst$=an$:tz=1
+3178 ontzgosub3094:return
+3180 dr=2:a$="nm.config":gosub4:x=2:gosub1
+3182 &,2,2:br%=val(a$):&,2,2:h0$=a$:&,2,2:h1$=a$:&,2,2:h2$=a$:close2
+3184 &"{clear}{f6}{white}   Modem Specifications{f6:2}"
+3186 a%=br%:a$=h0$:b$=h1$:c$=h2$
+3188 &"{cyan} 1. {lt. blue}Max Baud Rate{blue}:{white}{pound}%a{f6}"
+3190 &"{cyan} 2. {lt. blue}Off-Hook Cmd {blue}:{white}{pound}$a{f6}"
+3192 &"{cyan} 3. {lt. blue}On-Hook Cmd  {blue}:{white}{pound}$b{f6}"
+3194 &"{cyan} 4. {lt. blue}Dial Command {blue}:{white}{pound}$c{f6}"
+3196 &"{f6:2}{lt. blue}-->{white}{pound}g1":a=val(an$):ifa=>1anda<=4thenonagosub3200,3214,3224,3234:goto3184
+3198 return
+3200 &"{f6:2} Max Baud Rate:{f6}"
+3201 &"{f6} 1.  300":ifbr%=300then:&"<-"
+3202 &"{f6} 2. 1200":ifbr%=1200then:&"<-"
+3203 &"{f6} 3. 2400":ifbr%=2400then:&"<-"
+3204 &"{f6} 4. 9600":ifbr%=9600then:&"<-"
+3205 &"{f6} 5. 19200":ifbr%=19200then:&"<-"
+3208 &"{f6:2} > {pound}g1":ifan$<"1"oran$>"5"thenreturn
+3210 a=val(an$):b=-300*(a=1)-1200*(a=2)-2400*(a=3)-9600*(a=4)-19200*(a=5)
+3211 ifbr%=bthenreturn
+3212 br%=b:goto3090
+3214 &"{f6:2} Modem Off-Hook Command:{f6:2}"
+3216 a$=h0$:&"Current Command: {f5}{pound}$a{f5}{f6}"
+3218 q=15:gosub3656:&"New Command: {pound}i0":ifan$<>""thenh0$=an$:goto3090
+3220 &"{f6}Remove Off-Hook Command? ":gosub94:ifathenh0$="":goto3090
+3222 return
+3224 &"{f6:2} Modem On-Hook Command:{f6:2}"
+3226 a$=h1$:&"Current Command: {f5}{pound}$a{f5}{f6}"
+3228 q=15:gosub3656:&"New Command: {pound}i0":ifan$<>""thenh1$=an$:goto3090
+3230 &"{f6}Remove On-Hook Command? ":gosub94:ifathenh1$="":goto3090
+3232 return
+3234 &"{f6:2} Modem Dial Command:{f6:2}"
+3236 a$=h2$:&"Current Command: {f5}{pound}$a{f5}{f6}"
+3238 q=15:gosub3656:&"New Command: {pound}i0":ifan$<>""thenh2$=an$:goto3090
+3240 return
+3242 &"{f6}":gosub3294
+3244 &"{clear}{f6} {white}E-Mail Forwarding{f6:2}":ifl=0thengosub3268:goto3254
+3246 fori=1tol:x=i+1:gosub1:input#2,a$,b$,c$:d$=b$+" @ ":ifb$=a$thend$=""
+3248 ifa$="{^}"then:&"{cyan}#{pound}#2{pound}# {pound}%a {white}(Empty){f6}":next:goto3254
+3250 ifa$<>b$thenc$=b$+"{lt. blue} @ {white}"+c$
+3252 a%=x-1:&"{cyan}#{pound}#2{pound}# {pound}%a {white}{pound}$a {lt. blue}To {white}{pound}$c{f6}":next
+3254 close2:q=20:gosub3656
+3256 a%=l:&"{f6}{white}{pound}%a {lt. blue}Forwards {blue}[{cyan}A{lt. blue}dd{blue}, {cyan}D{lt. blue}elete{blue}, {cyan}E{lt. blue}dit{blue}, {cyan}Q{lt. blue}uit{blue}]{white}? {pound}g1"
+3258 x=-(an$="A")-2*(an$="D"andl>0)-3*(an$="E"andl>0)
+3260 ifxthenonxgosub3264,3270,3280:goto3242
+3262 gosub3294:goto3268
+3264 &"Add{f6:2}":gosub3286:ifa=0thenreturn
+3266 gosub3294:l=l+1:x=l+1:gosub1:print#2,a1$r$a2$r$a3$
+3268 x=1:gosub1:print#2,l;r$:gosub1:close2:return
+3270 &"Delete{f6:2}Which #? {pound}i1":z=val(an$):ifz<1orz>lthenreturn
+3272 gosub3294:l=l-1:ifz=l+1then3278
+3274 fori=z+2tol+2:x=i:gosub1:input#2,a1$,a2$,a3$:x=i-1:gosub1
+3276 print#2,a1$r$a2$r$a3$:next:x=1:gosub1:print#2,l;r$:return
+3278 goto3268
+3280 &"Edit{f6:2}Which #? {pound}i1":z=val(an$):ifz<1orz>lthenreturn
+3282 gosub3286:ifa=0thenreturn
+3284 gosub3294:x=z+1:gosub1:print#2,a1$r$a2$r$a3$:gosub1:close2:return
+3286 a=0:&"Handle Here :{pound}i1":a1$=an$:ifan$=""thenreturn
+3288 &"Handle There:{pound}i1":a2$=an$:ifan$=""thena2$=a1$:a$=a1$:&"({pound}$a Assumed){f6}"
+3290 gosub3056:a3$=a$:a$=a1$:b$=a2$:c$=a3$
+3292 &"{f6}Forward {pound}$a'S Mail To{f6}{pound}$b At {pound}$c{f6:2}Correct?" :goto94
+3294 dr=2:a$="nm.forward,l,.":gosub4:&,2,2:l=val(a$):return
+3296 dr=2:a$="nm.config":gosub4:ife%then:&:goto3328
+3298 x=3:gosub1:fori=0to9:&,2,2:iflen(a$)<>4thena$="2306"
+3300 tt$(i)=a$:next:close2
+3302 &"{clear}{f6} NetMail Call Times Editor:{f6:2}":fori=0to9:a%=i:a$=tt$(i)
+3304 b%=val(left$(a$,2)):c%=val(right$(a$,2))
+3306 b$="A":ifb%>11thenb%=b%-12:b$="P"
+3308 c$="A":ifc%>11thenc%=c%-12:c$="P"
+3310 b%=b%-12*(b%=0):c%=c%-12*(c%=0)
+3312 &"{pound}%a) {pound}#2{pound}# {pound}%b:00 {pound}$bM to {pound}#2{pound}# {pound}%c:59 {pound}$cM{f6}":next
+3314 &"{f6} Change Which? {pound}g1":a=val(an$):ifan$<"0"oran$>"9"then3092
+3316 &"{pound}v7{f6:2}"
+3318 q=3:gosub3656
+3320 a$="Start":gosub3326:ifa$<>""thentt$(a)=a$+mid$(tt$(a),3)
+3322 a$="End":gosub3326:ifa$<>""thentt$(a)=left$(tt$(a),2)+a$
+3324 goto3302
+3326 &"{pound}$a Hour: {pound}i1":b=val(an$):ifan$=""orb<0orb>23thena$="":return
+3328 b=b+12*(b=12):ifright$(an$,1)="P"thenb=b+12
+3330 a$=right$(str$(100+b),2):return
+3332 gosub3616:ife%thenreturn
+3334 &"{clear}{f6}{white} NetMail Connections Editor:{f6:2}"
+3336 &"{cyan} 1. {lt. blue}Edit Standard Connections{f6}{cyan} 2. {lt. blue}Edit Short-Cuts{f6}"
+3338 &"{f6}{lt. blue}Which?{white} {pound}g1{f6}":a=val(an$):ifathenonagosub3342,3344:goto3334
+3340 close2:return
+3342 k=0:m=4:goto3346
+3344 x=5:gosub1:&,2,2:m=val(a$):k=5
+3346 &"{clear}{f6}{white} NetMail Connections Editor:{f6:2}":z=-(k>0andm<56):on-(m=0)goto3350
+3348 fori=1tom:x=i+k:gosub1:a%=i:&,2,2:&"{cyan}{pound}#2{pound}# {pound}%a){lt. blue} {pound}$a   ":next
+3350 a$="":ifzthena$=" (A=Add) "
+3352 q=2:gosub3656:&"{f6:2}{cyan}Edit/View Which{pound}$a?{white} {pound}i1":iftr%<1oran$=""thenreturn
+3354 ifzandan$="A"then3360
+3356 a=val(an$):ifa=>1anda<=mthenx=a+k:gosub3366:gosub3370:goto3346
+3358 return
+3360 m=m+1:x=5:gosub1:print#2,m:x=k+m:gosub3362:gosub3382:goto3346
+3362 tt$(1)="{f8}":tt$(2)="{f2}":tt$(3)="-------":tt$(4)="":tt$(5)="0000000":tt$(6)="0"
+3364 tt$(7)="0":tt$(8)=d1$:tt$(9)=d1$:return
+3366 gosub1:fori=1to9:&,2,2:tt$(i)=a$:next:return
+3368 gosub1:a$="":fori=1to9:a$=a$+tt$(i)+r$:next:print#2,a$;:gosub1:return
+3370 gosub3432:&"{f6}{lt. blue} Edit Which? {cyan}(A=All) {white}{pound}g1":on-(an$="A")goto3382:b=val(an$)
+3372 ifbthengosub3380:goto3370
+3374 iftt$(1)<>"{f8}"ork=0then3368
+3376 ifx-k<mandm>1thenforj=x-ktom-1:x=j+k+1:gosub3366:x=j+k:gosub3368:next
+3378 m=m-1:x=5:gosub1:print#2,m:gosub1:return
+3380 &"{f6:2}{pound}q0":onbgoto3384,3392,3396,3406,3412,3424,3428:return
+3382 gosub3362:forb=1to6:gosub3380:next:goto3370
+3384 ifk=0thenreturn
+3386 q=3:gosub3656:p$="Node":w$=tt$(1):pl=1:&,1,32:iflen(an$)=3thentt$(1)=an$
+3388 ifan$="{f8}"thentt$(1)=an$
+3390 return
+3392 q=16:gosub3656:p$="Password":w$=tt$(2):pl=1:&,1,32:ifan$<>""thentt$(2)=an$
+3394 return
+3396 &"{f5}-{f5}=No Call,0-9=Defined,{f5}+{f5}=24 Hours:{f6}":b$=tt$(3)
+3398 fori=1to7:a$=mid$("SunMonTueWedThuFriSat",i*3-2,3):z$=mid$(b$,i,1)
+3400 &"{pound}$a ({pound}$z): {pound}g1":f=(an$="+"oran$="-"or(an$=>"0"andan$<="9"))
+3402 iffthenb$=left$(b$,i-1)+an$+mid$(b$,i+1)
+3404 lp=1:&mid$(b$,i,1):next:tt$(3)=b$:return
+3406 q=20:gosub3656:p$="Dial Prefix":w$=tt$(4):pl=1:&,1,32:ifan$<>""thentt$(4)=an$
+3408 ifan$=""then:&"Remove Dial Prefix? ":gosub94:ifathentt$(4)=""
+3410 return
+3412 &"Calls/Day:{f6}{f5}#{f5}=# of Calls, {f5}+{f5}=Infinite:{f6}":b$=tt$(5)
+3414 fori=1to7:a$=mid$("SunMonTueWedThuFriSat",i*3-2,3):z$=mid$(b$,i,1)
+3416 &"{pound}$a ({pound}$z): {pound}g1":f=(an$="+"or(an$=>"0"andan$<="9"))
+3418 iffthenb$=left$(b$,i-1)+an$+mid$(b$,i+1)
+3420 lp=1:&mid$(b$,i,1):next:tt$(5)=b$:return
+3422 return
+3424 &"Reset Calls Today? ":gosub94:ifathentt$(6)="0"
+3426 return
+3428 &"Reset Minutes? ":gosub94:ifathentt$(7)="0":tt$(8)=d1$
+3430 return
+3432 a$=tt$(1):b$=tt$(2):&"{clear}{f6:2}{cyan}1. {lt. blue}Node:      {white}{pound}$a{f6}{cyan}2. {lt. blue}Password:  {white}{f5}{pound}$b{f5}{f6}"
+3434 a$=tt$(3):b$=tt$(4):&"{cyan}3. {lt. blue}Hours:     {white}{pound}$a{f6}{cyan}4. {lt. blue}Prefix:    {white}{pound}$b{f6}"
+3436 a$=tt$(5):&"{cyan}5. {lt. blue}Calls/Day: {white}{pound}$a{f6}"
+3438 a$=tt$(6):b$=tt$(9):&"{cyan}6. {lt. blue}Today:     {white}{pound}$a{f6}{cyan}   {lt. blue}Last Call: {white}{$04}"+b$+"{f6}"
+3440 a$=tt$(7):b$=tt$(8):&"{cyan}7. {lt. blue}Minutes:   {white}{pound}$a{f6}{cyan}   {lt. blue}Since:     {white}{$04}"+b$+"{f6}"
+3442 &"{f6:2}":return
+3444 dr=2:a$="nm.connect":gosub4:ife%=0thenreturn
+3446 dr=2:a$="nm.nodes":gosub4:ife%then:&"Config Error!":&:return
+3448 x=nn+1:gosub1:fori=1to5:&,2,2:next:fori=1to4:&,2,2:a%(i)=val(a$):next
+3450 fori=1to4:tt$(i)="{^}":ifa%(i)thenx=a%(i)+1:gosub1:&,2,2:tt$(i)=a$
+3452 next:close2:dr=2:a$="nm.connect,l,"+chr$(100):gosub4:forx=1to4:gosub1
+3454 print#2,tt$(x)r$"{f2}"r$"-------"r$r$"0000000"r$"0"r$"0"r$d1$r$d1$:next
+3456 x=5:gosub1:print#2,0:gosub1:x=1:gosub1:return
+3458 &"{f6:2} Making {f5}nm.create{f5}..."
+3460 dr=2:gosub3:print#15,"s"dr$"nm.create"
+3462 close3:open3,dv%,3,dr$+"nm.create,s,w":gosub5:ife%then3474
+3464 gosub3006
+3466 fora=nto1step-1:x=a+1:gosub1:input#2,a$,b$,c$,d$,o%,a%,b%,c%,d%
+3468 print#3,a;r$a$r$b$r$c$r$d$r$o%and1;r$a%r$b%r$c%r$d%
+3470 next:close2:close3
+3472 &"Done!{pound}w1{f6}":return
+3474 close3:&"{f6:2}Error Creating File {f5}nm.create{f5}.{f6}":return
+3512 &"{clear}{f6}{white} NetWall/NetGrf Connections Editor:{f6:2}"
+3514 &"{cyan} 1. {lt. blue}Edit Netwall Connections{f6}{cyan} 2. {lt. blue}Edit Net Graffiti Connections{f6}"
+3516 &"{f6}{lt. blue}Which?{white} {pound}g1{f6}":a=val(an$):ifathenonagosub3520,3522:goto3512
+3518 return
+3520 k=7:m$="NetWall":goto3524
+3522 k=8:m$="Net Graffiti"
+3524 dr=2:a$="nm.config":gosub4:ife%thenclose2:return
+3526 fori=1to8:tt$(i)="{^}":next
+3528 x=k:gosub1:&,2,2:tt$(1)=a$:ifst=0thenfori=2to8:&,2,2:tt$(i)=a$:next
+3530 &"{clear}{f6}{white} {pound}$m Connections:{f6:2}":fori=1to8:a$=tt$(i):a%=i:&"{cyan} {pound}%a. {lt. blue}{pound}$a{f6}":next
+3532 &"{f6}{lt. blue}Which? {pound}g1":a=val(an$):ifathenon-(a<9)gosub3536:goto3530
+3534 a$="":fori=1to8:a$=a$+tt$(i)+r$:next:x=k:gosub1:print#2,a$;:close2:return
+3536 a%=a:poke53252,7:&"Enter Connection {pound}%a: {pound}i1"
+3538 ifan$=""oran$="{f8}"then:&"Delete #{pound}%a? ":gosub94:onagoto3544:return
+3540 ifan$<>""thentt$(a%)=an$
+3542 return
+3544 ifa%<8thenfori=a%to7:tt$(i)=tt$(i+1):next
+3546 tt$(8)="{^}":return
+3548 dr=2:a$="nm.config":gosub4:ife%thenclose2:goto3554
+3550 &,2,2:nn=val(a$):&,2,2:&,2,2:&,2,2:close2
+3552 ifa$<>vn$then:&"{f6:2}Version Mismatch! Run {f5}+.NM/convert{f5}{f6:2}":e%=1:return
+3554 dr=2:a$="nm.nodes":gosub4:ife%=0then:&,2,2:n=val(a$):goto3586
+3556 dr=2:a$="nm.create,s,r":gosub4:ife%then3582
+3558 &"{f6}Creating {f5}nm.nodes{f5} file..."
+3560 input#2,a,a$,b$,c$,d$,o%,a%,b%,c%,d%:s=st:close2
+3562 gosub3008:n=0
+3564 x=a+1:gosub1:print#2,a$r$b$r$c$r$d$r$o%r$a%r$b%r$c%r$d%
+3566 ifa>nthenn=a:x=1:gosub1:print#2,n
+3568 close2:close3:open3,dv%,3,dr$+"nm.create,s,r"
+3570 gosub3008:n=0
+3572 input#3,a,a$,b$,c$,d$,o%,a%,b%,c%,d%:s=st
+3574 x=a+1:gosub1:print#2,a$r$b$r$c$r$d$r$o%r$a%r$b%r$c%r$d%
+3576 ifa>nthenn=a:x=1:gosub1:print#2,n
+3578 ifs=.then3572
+3580 close2:close3:print#15,"s"dr$"nm.nodelist":goto3586
+3582 &"No {f5}nm.create{f5} file found!{f6}Please contact your NetWork{f6}Administrator.{f6}"
+3584 e%=1:return
+3586 gosub3070:ife%thenreturn
+3588 ifnnthen3612
+3590 dr=2:a$="nm.nodes":gosub4:&,2,2:n=val(a$):close2
+3592 &"{f6}Enter the Node # you were assigned: {pound}i1":nn=val(an$)
+3594 ifnn<1ornn>nthene%=1:return
+3596 dr=2:a$="nm.config":gosub4:ife%then3600
+3598 &,2,2:&,2,2:&,2,2:af%=val(a$):&,2,2:pn$=a$:gosub3088:goto3612
+3600 dr=2:a$="nm.config,l,z":gosub4
+3602 x=1:gosub1:print#2,nn;r$1022;r$"{f2}"r$vn$
+3604 x=2:gosub1:print#2,300;r$r$r$"atdt"
+3606 x=3:gosub1:a$="":fori=0to9:a$=a$+"2306"+r$:next:print#2,a$;
+3608 x=4:gosub1:print#2,"{^}"r$"{^}"
+3610 x=1:gosub1:close2
+3612 dr=2:a$="nm.nodes":gosub4:x=nn+1:gosub1:&,2,2:nn$=a$:close2
+3614 n%=nn:goto3070
+3616 dr=2:a$="nm.connect":gosub4:ife%=0then3630
+3618 dr=2:a$="nm.nodes":gosub4:ife%then:&"Config Error!":&:return
+3620 x=nn+1:gosub1:fori=1to5:&,2,2:next:fori=1to4:&,2,2:a%(i)=val(a$):next
+3622 fori=1to4:tt$(i)="{^}":ifa%(i)thenx=a%(i)+1:gosub1:&,2,2:tt$(i)=a$
+3624 next:close2:dr=2:a$="nm.connect,l,"+chr$(100):gosub4:forx=1to4:gosub1
+3626 print#2,tt$(x)r$"{f2}"r$"-------"r$r$"0000000"r$"0"r$"0"r$d1$r$d1$:next
+3628 x=5:gosub1:print#2,0:gosub1:x=1:gosub1:return
+3630 dr=2:a$="nm.nodes":gosub4:ife%then:&"Config Error!":&:return
+3632 x=nn+1:gosub1:&,2,2:nn$=a$:dt$(0)=a$
+3634 &,2,2:&,2,2:&,2,2:&,2,2:fori=1to4:&,2,2:a%(i)=val(a$):next
+3636 fori=1to4:x=a%(i)+1:dt$(i)="":ifx>1thengosub1:&,2,2:dt$(i)=a$
+3638 next:close2:dr=2:a$="nm.connect":gosub4:ife%thenclose2:return
+3640 forx=1to4:gosub1:b$=""
+3642 &,2,2:b$=b$+a$+r$:on-(st=0)goto3642:nn$(x)=b$:next
+3644 b$=r$+"{f2}"+r$+"-------"+r$+r$+"-------"+r$+"0"+r$+"0"+r$+d1$+r$+d1$+r$
+3646 fori=1to4:forj=1to4
+3648 ifleft$(nn$(j),3)=dt$(i)andi<>jthena$=nn$(i):nn$(i)=nn$(j):nn$(j)=a$
+3650 next:next:forx=1to4:ifdt$(x)=""thennn$(x)="{^}"+b$
+3652 ifdt$(x)<>left$(nn$(x),3)thennn$(x)=dt$(x)+b$
+3654 gosub1:print#2,nn$(x);:next:gosub1:return
+3656 poke53252,q:return
+3658 rem
+3660 rem:"i.NM/config (c)nissa 210305 lh"

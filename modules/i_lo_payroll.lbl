@@ -1,0 +1,33 @@
+' imported from i_lo_payroll.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+
+4000 rem distribute paychecks
+4002 n=0:dr=6:a$="u.payroll,s,r":gosub4:ife%then4012
+4004 n=n+1:&,2,2:a%(n)=val(left$(a$,3)):c%(n)=val(mid$(a$,5)):ifst=.then4004
+4006 close2:&"{f6}Executing Credit Payroll{f6:2}"
+4008 gosub35:fori=1ton:x=a%(i):c%=c%(i):gosub4014:next:close2
+4010 fork=1ton:tt$=tt$(k):c%=c%(k):y=a%(k):gosub4022:next
+4012 close2:return
+4014 gosub1:forj=1to23:&,2,2:ed$(j)=a$:next
+4016 a$=ed$(1):tt$(i)=a$:ifa$="{^}"thenreturn
+4018 &"{pound}$a{pound}{back arrow}25{pound}%c Credits{f6}":ed$(19)=str$(val(ed$(19))+c%)
+4020 a$="":forj=1to23:a$=a$+ed$(j)+r$:next:gosub1:print#2,a$:return
+4022 a$=tt$:&"{pound}$a{pound}{back arrow}30Notified{f6}":iftt$="{^}"then4036
+4024 z=1:a$="w":gosub32:ife%thenz=.:a$="a":gosub32
+4026 print#2,"IMAGE"r$0;r$d1$r$"[Payroll]"r$
+4028 print#2,"You have received"str$(c%)" credits{f6}"r$"for this week's paycheck."
+4030 print#2,"{^}":close2:gosub30:i=1:x=3:gosub16:x=14:gosub16:x=32:gosub16
+4032 ify=1thenforx=2to24step11:gosub16:next:x=31:gosub16
+4034 x=25:gosub16:close2:gosub61
+4035 a$=" {green}Payroll Completed"+r$+" {pound}q0{yellow}{pound}o{$c0}{pound}o{$c0}":gosub50:close2:return
+4036 dr=3:a$="fback":b$="a":gosub36:ife%thena$="fback":b$="w":gosub36
+4038 print#2,"IMAGE"r$"0"d1$r$"0"r$"None"r$"IMAGE BBS"r$"Commodore 64"
+4040 print#2,"Paycheck To Non-Existant User:"r$tt$r$"{^}":close2:return
+4042 copr. 1990 new image 12-26-90
+4099 rem:"i/lo/payroll (c)nissa 211226 lh"

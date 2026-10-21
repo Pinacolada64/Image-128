@@ -1,0 +1,58 @@
+' imported from i_lo-news3.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+
+4500 rem news subsystem--m][p 9103-9105
+4502 &,27,2:gosub306:&"{f6:2}{lt. blue} Scanning News Files{pound}s1.....{f6}":gosub4558
+4504 fori=1tot:sh=.:f2=-(mid$(nn$(i),2)<mid$(d5$,2))*-(tc%>1)
+4506 gosub4570
+4508 iff2=.ore1=1then4514
+4510 nexti
+4512 goto4526
+4514 &"{f6}{yellow}{pound}v5 News:{f6}{white}{rvrs on}{pound}$b{white}{f6:2}":dr=1:b$=a$:on-(e1=1)goto4516:goto4518
+4516 gosub90:a$="n."+left$(ed$(i),14)+",s,r":dr=1:gosub14:goto4520
+4518 a$="n."+left$(ed$(i),14)+",s,r":dr=1:gosub4:on-(e%<>.)goto4520:&,12,2:close2
+4520 close2:gosub12:iftr%<1theni=t
+4522 &"{pound}w1"
+4524 on-(tr%<1)goto4580:nexti
+4526 i=.
+4528 &"{clear}{f6:2}{lt. red} -=<{lt. blue}{rvrs on} {pound}v5 News SubSystem {rvrs off}{lt. red}>=-{f6:3}{lt. blue}{pound}vj":kk=1
+4530 fori=1tot:sh=.:c$="*NEW*":f2=-(mid$(nn$(i),2)<mid$(d5$,2))*-(tc%>1)
+4532 gosub4570
+4534 iff2thenc$=" --- "
+4536 ife1=1thenc$="*REM*"
+4538 an$=nn$(i):&,15:&"{pound}{back arrow}01{lt. red}{pound}$c "+str$(i)+")  {yellow}{pound}$b{pound}{back arrow}39             {cyan}{pound}v7M{f6}":nexti
+4540 &"{lt. blue}{pound}vj{f6:2}{gray3}Enter Number To Read or RETURN: {pound}i1":on-(tr%<1)goto4580
+4542 on-(an$=""oran$=" ")goto4580:ck=asc(an$+chr$(0)):on-(ck<48orck>57)goto4526
+4544 on-(tr%<1)goto4580:x=val(an$):on-(x<0orx>t)goto4526
+4546 gosub4578
+4548 &"{f6}{yellow}{pound}v5 News:{f6}{white}{rvrs on}{pound}$b{rvrs off}{f6}{cyan}({$04}"+nn$(x)+"){f6:2}":dr=1:b$=a$
+4550 a$="n."+left$(ed$(x),14)+",s,r":gosub4:on-(e%<>.)goto4552:&,12,2
+4552 close2:gosub12:iftr%<1theni=t
+4554 &"{pound}w1"
+4556 on-(tr%<1)goto4580:goto4526
+4558 cm$="News":gosub9:kk=.:b=.:t=.:dr=4:a$="d.n.Main,s,r":gosub4
+4560 onsgn(e%)goto4568:input#2,b:ifb<1then4568
+4562 t=.:forx=1tob:input#2,ed$(x),nn$(x),d%(x):d%(x)=d%(x)*-((d%(x)and2^ac%)<>.)
+4564 ifd%(x)thent=t+1:ed$(t)=ed$(x):nn$(t)=nn$(x):c%(t)=d%(x)
+4566 next:close2
+4568 return
+4570 b$=ed$(i)
+4572 e1=.:ifleft$(b$,1)="$"thene1=1
+4574 ife1=1thenb$=mid$(b$,2)
+4576 return
+4578 i=x:goto4570
+4580 &,28,2:return
+4582 rem   news menu mod by phydoux
+4584 rem   nowhere bbs--(208)/238-0001
+4586 rem   news menu mod 07/04/90
+4588 nissa modded! converted to +.on
+4590 modules and major modifications
+4592 by uss menahga ][ productions 9105!
+4594 rem converted to 2.0 12/31/17 by x-tec
+4596 rem:"i/lo-news3 (c)nissa 200323 lh"

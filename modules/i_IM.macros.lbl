@@ -1,0 +1,86 @@
+' imported from i_IM.macros.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+
+4000 onlmgoto4012,4108
+4002 dr=3:a$="e.macros":goto4
+4004 fort=1tolen(tt$):ifmid$(tt$,t,1)="{back arrow}"thentt$=left$(tt$,t-1)+"{f6}"+mid$(tt$,t+1)
+4006 next:return
+4008 gosub4002:ife%then:&:close2:fl=1:return
+4010 x=1:&,2,2:mc=val(a$):return
+4012 &"{f6:2}{rvrs on}   <>-     IMAGE V3.0     -<>   {rvrs off}{f6}{rvrs on}   <>-Macro Editor/Creator-<>   {rvrs off}{f6:2}"
+4014 lp=1:&"Keyboard Colors are active.{f6}Use the {f5}{back arrow}{f5} when you want a >RETURN< in"
+4016 lp=1:&" your macro."
+4018 poke53252,78:goto4078
+4020 &"{f6:2}You Must [C]reate The File First"
+4022 fl=.:&"{f6:2}C)reate, E)dit, L)ist, A)dd, Q)uit {f6:2}MC-]: {pound}g1{pound}v7{f6}"
+4024 iftr%<1then4148
+4026 on-(an$="C")-(an$="E")*2goto4082,4030
+4028 on-(an$="L")-(an$="A")*2-(an$="Q")*3goto4062,4048,4148:goto4022
+4030 gosub4008:onflgoto4020
+4032 z%=mc:&"{f6:2}There Are {pound}%z Macros, Edit Which?: {pound}i1":x=val(an$)+1
+4034 ifan$=""orx=.orx>mc+1thenclose2:goto4022
+4036 gosub1:&,2,2:b$=a$
+4038 x%=x-1:&"{f6}MACRO# {pound}%x{f6}{pound}$b{f6:2}Change It?: ":gosub96:iftr%<1then4148
+4040 ifa=.thenclose2:goto4022
+4042 p$="{f6}Enter New MACRO #{pound}%x (78 CHRS){f6:2}":pl=.:&,1,43:p$="":iftr%<1then4148
+4044 ifan$=""then:&"{f6:2}No Change!":close2:goto4022
+4046 tt$=left$(an$,78):gosub4004:gosub1:print#2,tt$:goto4022
+4048 &"{f6:2}Adding Macros...":gosub4008:onflgoto4022
+4050 z%=mc:&"{f6:2}There Are {pound}%z Macros{f6}Would You Like To Add One?: ":gosub96
+4052 ifa=.thenclose2:goto4022
+4054 z%=z%+1:&"{f6:2}Add Macro {pound}%z (78 CHRS){f6:2}":pl=.:&,1,43:ontr%+1goto999
+4056 ifan$=""thenclose2:goto4022
+4058 tt$=an$:gosub4004:mc=z%:x=mc+1:gosub1:print#2,tt$:x=1:gosub1
+4060 print#2,mc:close2:&"{f6:2}Added...{pound}w1":goto4022
+4062 &"{f6:2}Listing Macros...{f6:2}"
+4064 gosub4008:onflgoto4022
+4066 b%=mc:&"Starting #? (1 to {pound}%b) {pound}i1":ontr%+1goto999:a=val(an$)+1
+4068 ifa<1ora>mcthen4062
+4070 ifan$=""thena=2
+4072 forx=atomc+1
+4074 gosub1:input#2,tt$:x%=x-1:&"[{pound}%x]{f6}":&tt$:&"{f6}"
+4076 next:close2:goto4022
+4078 gosub4008:onflgoto4080:close2:goto4022
+4080 &"{f6:2}No Macros Defined!!{pound}w2":close2:goto4022
+4082 &"Creating Macros File...":a$="e.macros,l,"+chr$(100):dr=3:gosub4
+4084 x=20:gosub1:print#2,chr$(255):x=1:print#2,0:close2
+4086 &"{f6:2}Macro File Has Been Created"
+4088 &"{f6:2}How Many Macros Would You Like To Have?{f6:2}: {pound}i1":iftr%<1then4148
+4090 mc=int(val(an$)):ifmc<1then4088
+4092 gosub4002
+4094 fori=2tomc:x%=i-1
+4096 &"{f6}RETURN On Blank Will End!{f6:2}"
+4098 &"{f6}Enter Macro #{pound}%x (78 CHRS){f6:2}":pl=.:&,1,43:iftr%<1then4148
+4100 ifan$=""thenx=mc:goto4104
+4102 tt$=an$:gosub4004:x=i:gosub1:print#2,tt$
+4104 next:&"{f6:2}Macros Are Being Saved{f6:2}Use E)dit To EDIT {pound}w3"
+4106 x=1:gosub1:print#2,mc:close2:goto4022
+4108 dr=3:a$="e.fkeys,s,r":gosub4:ife%thenfori=1to8:tt$(i)="":next:goto4112
+4110 fori=1to8:&,2,2:tt$(i)=a$:next
+4112 close2:cf=.
+4114 &"{clear}{f6}{gray3}Function Key Editor 2.0{f6}{white}{pound}vj":poke53252,38
+4116 &"{f6:2}Use {f5}{back arrow}{f5} for a >RETURN<{f6:2}"
+4118 fori=1to8:a$=left$(tt$(i),35):a%=i
+4120 &"{green}F{pound}#1{pound}%a{blue}) {white}{pound}$a{f6}":i=i+rc*n:next
+4122 &"{white}{pound}vj{green}E{lt. green}dit Which{blue}?{white} {pound}g1":a=val(an$):ifa<1ora>8then4130
+4124 &an$:&"{f6:2}":w$=tt$(a):p$="F"+chr$(48+a):poke53252,75:pl=.:&,1,32
+4126 ifan$<>""thentt$(a)=an$:cf=1
+4128 goto4114
+4130 &"Quit{f6:2}":ifcf=.then4148
+4132 &"Save Changes? ":gosub96:ifa=.then4138
+4134 dr=3:a$="e.fkeys":gosub18
+4136 fori=1to8:print#2,tt$(i):next:close2
+4138 &"Activate? ":gosub96:ifa=.then4148
+4140 fori=1to8:a$=tt$(i):ifright$(a$,1)="{back arrow}"thena$=left$(a$,len(a$)-1)+chr$(13)
+4142 tt$(i)=a$:next
+4144 f1$=tt$(1):f2$=tt$(2):f3$=tt$(3):f4$=tt$(4)
+4146 f5$=tt$(5):f6$=tt$(6):f7$=tt$(7):f8$=tt$(8)
+4148 return
+4150 copr. 1994 new image 9/25/94
+4152 rem:"(c)nissa 181229 lh

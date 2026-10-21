@@ -1,0 +1,33 @@
+' imported from i_lo!help.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+' Image BBS 128 (10/21/2026): C64 addresses in peek/poke/sys are the 128's,
+' as {sym:...} names from asm/equates.asm (included below).
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{include:"..\asm\equates.asm"}
+{crunch:on}
+
+4500 rem"+/lo.telecheck  - Rask v2.0 -           Date Stamp: 26 Oct 94  6:51pm
+4502 dr=1:a$="s.logon help":gosub 14
+4504 lp=1:&"{f6:2}Would You Like To Log On With A Temporary Account? ":gosub 94
+4506 if a=.then return
+4508 &"{f6}Logging On For HELP...{f6}":t=5
+4510 a$="First Name":gosub 4532:on-(t<1) goto 4522:ff$=an$:if an$="" then 4510
+4512 a$="Last Name":gosub 4532:on-(t<1) goto 4522:ll$=an$:if an$="" then 4512
+4514 a$="Email Address":gosub 4534:on-(t<1) goto 4522:ph$=an$:if an$="" then 4514
+4516 na$="HELP"+"":pw$="NONE"+"":ld$=d1$:ac%=0:dt%=0:tc%=0:co%=1:id=0
+4518 ul=1:lf=1:em=.:dc=.:uc=.:bd=.:bu=.:cr=.:ps=.:rp=.:d5$=d1$:fl$=fl$(ac%)
+4520 co$=co$(co%):rn$=ff$+" "+ll$:tr%=30:gosub 4533:gosub 4524:if tr%>.then a=2:return
+4522 &"{f6:2}Sorry, Unable To Log You In...{f6:2}":a=1:return
+4524 &"{f6:2}Enter A Brief Message Stating Why You{f6}Need Help.{f6}NOTE: Aborting This "
+4526 &"WILL Log You Off.{f6:2}"
+4528 le=10*(val(mid$(fl$,6,1))+1):im=1:gosub 440:if kk=.then tr%=.:return
+4530 b$="telecheck":gosub 37:print# 2,"Forgotten Password" r$:goto 39
+4532 poke 53252,15:&"{f6}Enter Your {pound}$a:{f6}: {pound}i1":t=t+(an$=""):t=t*-(tr%>.):return
+4533 &,52,17,lf:&,52,20,em:poke {sym:modclmn},ll%:poke {sym:usrlin},mp%:poke {sym:ptrlinm},.:return
+4534 poke 53252,78:&"{f6}Enter Your {pound}$a:{f6}: {pound}i0":t=t+(an$=""):t=t*-(tr%>.):return
+4536 rem:"i/lo!help (c)nissa 200207 lh"

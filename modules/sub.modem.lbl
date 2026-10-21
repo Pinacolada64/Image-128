@@ -48,7 +48,7 @@
 60180 onntgoto999:print#131,"ata":return
 60185 a=sgn(peek({sym:carrst})and128):return
 60205 &,52,16,1:x=b:gosub60390:&"{f6}{lt. blue}Dialing {pound}$b: {pound}$c{f6}":a$="dt"+c$:t=250:gosub60325
-60210 ifpeek(653)and2then60290
+60210 ifpeek({sym:shflag})and2then60290
 60215 onagoto60275:x=-(b=1)-2*(b=5)-3*(b=10):ifxthenx=val(mt$):goto60280
 60220 onbgoto60065,60245,60250,60255,60270,60265,60270,60265,60255,60285,60245
 60240 gosub60330:goto60210
@@ -72,7 +72,7 @@
 60330 a$="":t=10
 60335 &,4:a=peek({sym:sareg})and127:&,22,1:ifathent=100:a$=right$(a$+chr$(a),32)
 60336 ifa=49thenb=1:a=0:return
-60340 ifpeek(653)=2then60350
+60340 ifpeek({sym:shflag})=2then60350
 60345 t=t-1:on-(t<1)goto60350:on-(a<>13andt>0)goto60335:b=val(a$):a=0:return
 60350 print#131,"at":b=0:a=1:return
 60355 qb=300:&,41,0:goto60305

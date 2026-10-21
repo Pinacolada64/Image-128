@@ -1,0 +1,61 @@
+' imported from i_GF-other.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{crunch:on}
+
+4000 &,52,34,1:on rkgoto 4002,4100
+4002 n=0
+4004 p$="Other Options":gosub 4026
+4006 a$="M":b$="Movie Speed":gosub 4018
+4008 a$="S":b$="Send Mail":gosub 4018
+4010 a$="Q":b$="Return to Menu":gosub 4018
+4012 if mmthen:&"{right:9}{rvrs on}{yellow}{pound}{back arrow}32{rvrs off} {f6}"
+4014 if mmthen:&"{right:10}{pound}{back arrow}33{f6}"
+4016 fd=2:return
+4018 n=n+1:m%(3,n)=asc(a$+chr$(0)):m%(2,n)=-1:m%(1,n)=(n-1)*256+n+1
+4020 m%(0,n)=14*256+5+n
+4022 if mmthen:&"{right:9}{rvrs on}{yellow} {f5}{pound}$a{f5} {white}{$a4}{yellow} {pound}$b{pound}{back arrow}32{rvrs off} {f6}":return
+4024 &"{pound}$a) {pound}$b{f6}":return
+4026 if mm=0 then:&"{clear}{pound}$p{f6:2}":return
+4028 &"{home}{down:4}{right:9}{rvrs on}{yellow} {pound}$p{pound}{back arrow}32{f6}"
+4030 &"{right:9}{rvrs on}{yellow}     {$a4}{pound}{back arrow}32{rvrs off} {f6}"
+4032 return
+4100 rs=1:tz=0:&"{up}Which Option?: ":gosub 7:&"{pound}v7{f6}"
+4102 on-(a$="M")-2*(a$="S")-3*(a$="Q")-4*(a$="x") goto 4200,4300,4400,4500
+4104 rs=0:return
+4200 &"{f6:2}{yellow}Present Movie Speed Is{lt. green} {pound}%f{f6:2}"
+4202 &"{yellow}Enter New Speed {lt. green}(1-Faster to 20-Slower) :{lt. blue} {pound}i1":if tr%<1 then return
+4204 a=val(an$):if a<1 or a>20 then:&"{f6}{yellow}Unchanged{f6}":return
+4206 f%=a:&"{f6}{yellow}Speed Changed To:{lt. green} {pound}%f":return
+4300 &"{clear}{f6:2}{lt. blue}{pound}v5 Notepad{f6}"
+4302 fl=.:a=9:gosub 11:if a=.then x=4:goto 390
+4304 x=abs(val(mid$(an$,3))):if xthen:&"{f6:2}":goto 4312
+4306 p$="":&"{f6:2}{lt. red}Enter User Handle Or ID#.{f6:2}":gosub 6:x=abs(val(an$)):if xthen 4312
+4308 on-(an$="") goto 4346:gosub 505:x=i:if xthen nn$=an$:goto 4320
+4310 &"{f6:2}{white}{f5}{lt. blue}{pound}v7{white}{f5} {lt. blue}Not Found.{f6}":goto 4306
+4312 i=x:if x<1 or x>urthen 4316
+4314 gosub 35:gosub 1:input# 2,nn$:if nn$<>"{^}" and nn$<>"RES" then 4318
+4316 &"{f6}{yellow}Invalid Account Number.{f6}":x=.:goto 4346
+4318 &"{f6}{lt. green}Handle: {rvrs on}":&nn$:&"{f6}{yellow}Is That Correct?: ":gosub 94:if a=.then 4302
+4320 y=i:dr=2:gosub 61:on-(a<20) goto 4342:gosub 60:if athen gosub 390:goto 4346
+4322 on flgoto 4330
+4324 poke 53252,30:&"{f6}":&"Subject: ":pl=.:&,1,5:if an$="" then an$="NISSA Note"
+4326 &"{up}Subject: {pound}v7{f6}"
+4328 tt$(.)="["+an$+"]":im=1:gosub 440:a=1:if kk=.then 4346
+4330 c$="Note":&"{f6}Filing {pound}$c For ":&nn$:&"...{f6}"
+4332 z=1:a$="w":tt$=nn$:gosub 32:if e%then a$="a":z=.:gosub 32
+4334 print# 2,na$r$id;r$d1$:for x=.to kk-1:print# 2,tt$(x):next:print# 2,"{^}":close 2
+4336 if y=1 then gosub 30:x=2:i=1:gosub 16:x=13:gosub 16:x=24:gosub 16:x=31:gosub 16
+4338 on-(y<>1) gosub 30:x=3:i=1:gosub 16:x=14:gosub 16:x=32:gosub 16
+4340 x=25:on zgosub 16:close 2:gosub 62:goto 4344
+4342 x=2:gosub 390
+4344 &"{f6:2}Send to another user? ":gosub 94:if athen fl=1:goto 4306
+4346 fl=.:rs=1:return
+4400 return
+4500 &"Sorry, that is not yet supported.{pound}w1":return
+4501 rem:"i/GF-other (c)nissa 190523 lh"

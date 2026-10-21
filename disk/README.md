@@ -1,6 +1,6 @@
 # disk/
 
-Data files `asm/build.sh` writes to `build/image128.d71` as they are.
+Data files `asm/build.sh` writes to `build/image128.d81` as they are.
 
 | File | On the disk as | From | What it is |
 |---|---|---|---|

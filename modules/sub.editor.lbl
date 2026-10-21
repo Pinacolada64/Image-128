@@ -23,9 +23,9 @@
 60016 p$=pu$:goto12
 60018 pu$=p$:v$="":le=10+val(mid$(fl$,6,1))*10:poke{sym:lines},le:return
 60020 poke53249,0:poke{sym:mline},kk:poke{sym:flags},4:poke{sym:cline},kk
-60022 poke{sym:modes},87:a=14:gosub11:&,52,31,3:ifa%=0thenpoke1023,87+a*8
-60024 pl=.:poke{sym:lines},le+1:gosub60122:a=int((z%-300)/79)+1:ifle>athenpoke1022,a+1
-60026 poke53252,ll%-2:ifzzthenpoke1022,254
+60022 poke{sym:modes},87:a=14:gosub11:&,52,31,3:ifa%=0thenpoke{sym:modes},87+a*8
+60024 pl=.:poke{sym:lines},le+1:gosub60122:a=int((z%-300)/79)+1:ifle>athenpoke{sym:lines},a+1
+60026 poke53252,ll%-2:ifzzthenpoke{sym:lines},254
 60028 return
 60030 b$="Get":gosub60004:onflgoto60108:&"{f6:2}":gosub60126:v$=an$:ifv$=""then60110
 60032 gosub349:gosub350:ifathen:gosub60134:goto60032

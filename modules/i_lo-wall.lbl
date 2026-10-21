@@ -1,0 +1,38 @@
+' imported from i_lo-wall.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{crunch:on}
+
+4500 rem +.on.wall
+4501 &,5:v=lp:gf=1:nn=1:s$="                    ":s$=s$+s$+s$+s$
+4502 b%=.:l$="":dr=3:m$="                                        ":a=ll%/2-14
+4504 if a>.then l$=left$(m$,a)
+4506 &"{clear}{f6}{pound}$l         {lt. blue}{rvrs on} {$a5}{$b4}{$b5}{lt. red}Wall{lt. green}Writer{f6}{pound}$l{cyan}              v3.0"
+4508 a$="e.walladds":dr=3:gosub 4:if e%then close 2:&"{f6}{lt. red}{pound}vz{f6}":goto 4516
+4510 x=1:gosub 1:&,2,2:x=val(a$):x=int(rnd(.)*x)+2:gosub 1:&,2,2:b$=a$
+4512 &,2,2:c$=a$:close 2:a=int((ll%/2)-(len(b$)/2)):b=int((ll%/2)-(len(c$)/2))
+4514 l$=left$(s$,a):j$=left$(s$,b):&"{f6}{pound}$l{pound}$b{f6}{pound}$j{pound}$c{f6}{lt. red}{pound}vz{f6}"
+4516 dr=3:a$="e.grf,s,r":gosub 4:if e%then:&"{orange}The Wall Is Blank!{f6}":goto 4538
+4518 m$=m$+m$:&"Scanning For New Writings...":sh=.
+4520 input# 2,b$,c$,d$:s=66 and st:a%=-(mid$(c$,2)>mid$(ld$,2))
+4522 if a%+s=.and tr%then:&".":b%=rc:if b%=.then 4520
+4524 if b%then:&"{f6}":goto 4538
+4526 f$="New Writings":if a%=.then:&"{f6:2}{orange}No {pound}$f!{f6}":goto 4538
+4528 &"{f6:2}{orange}{pound}vz"
+4530 n$=left$(m$,ll%-len(b$)-1):&"{yellow}   {pound}$d{f6}{pound}$n"
+4532 &"{pound}c"+mid$("1237jmn",int(rnd(.)*7)+1,1):&"{pound}$b{orange}{f6}{pound}vz":b%=rc
+4534 if sor tr%<1 then 4538
+4536 if b%=.then input# 2,b$,c$,d$:s=(64 and st):goto 4530
+4538 close 2:if tr%<1 then 4548
+4540 &"{f6}{yellow}Add Your Words Of Wisdom?: ":gosub 94:if a=.then 4548
+4542 poke 53252,76:&"{f6}{orange}Go Ahead And Write{lt. green}{f6}:":pl=.:&,1,5:if an$="" or tr%<1 then 4548
+4544 a$="e.grf,s,a":dr=3:gosub 4:if e%then a$="e.grf,s,w":gosub 4
+4546 print# 2,na$r$d1$r$an$
+4548 close 2:close 15:&"{pound}q0"
+4550 return
+4552 rem:"i/lo-wall (c)nissa 191218 lh"

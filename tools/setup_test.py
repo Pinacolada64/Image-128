@@ -3,9 +3,9 @@
 boot disk in x128, taking every default, then watch im boot from the new
 configuration.
 
-    tools/setup_test.py [disk.d71] [--cols 40|80] [--keep]
+    tools/setup_test.py [disk.d81] [--cols 40|80] [--keep]
 
-Copies build/image128.d71 (or the disk given) to build/setup-test.d71 and
+Copies build/image128.d81 (or the disk given) to build/setup-test.d81 and
 works on that. It presses 1 at im's start-up menu, then Return at every
 prompt the setup shows (each takes its default), except the few in
 `special` below that want a key, and logs each new line of the setup's frame (the "Part I:
@@ -25,11 +25,11 @@ if '--cols' in args:
     i = args.index('--cols'); cols = int(args[i + 1]); del args[i:i + 2]
 keep = '--keep' in args
 args = [a for a in args if a != '--keep']
-src = args[0] if args else os.path.join(repo, 'build', 'image128.d71')
-disk = os.path.join(repo, 'build', 'setup-test.d71')
+src = args[0] if args else os.path.join(repo, 'build', 'image128.d81')
+disk = os.path.join(repo, 'build', 'setup-test.d81')
 shutil.copyfile(src, disk)
 
-v = X128(['-drive8type', '1571', '-warp', '-autostart', disk + ':boot 128'], cols=cols, wait=2)
+v = X128(['-drive8type', '1581', '-warp', '-autostart', disk + ':boot 128'], cols=cols, wait=2)
 t0 = time.time()
 
 

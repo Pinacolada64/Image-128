@@ -1,0 +1,86 @@
+' imported from i_NM.update.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{crunch:on}
+
+4000 rem "+.NM.update" 06-29-90
+4002 g$="nm.U.":&"{f6}Scanning For Updates..."
+4004 dr=2:a$="nm.list,s,r":gosub 4:kk=0:if e%then close 2:goto 4010
+4006 &,2,2:kk=kk+1:ed$(kk)=a$:on-(st=0 and kk<61) goto 4006:close 2
+4008 for u=1 to kk:o$=mid$(ed$(u),11):on-(left$(o$,5)=g$) gosub 4012:next
+4010 &"{f6}Done{f6}":return
+4012 b$=mid$(o$,6)
+4014 if b$="nodes" then 4050
+4016 if b$="map" then 4040
+4017 if b$="map 80" then 4045
+4018 if b$="message" then 4024
+4020 if b$="news" then 4100
+4022 return
+4024 n=0:dr=2:a$=o$+",s,r":gosub 4:if e%then 4034
+4026 &"{f6} Delivering Sysop Message..."
+4028 f$="m."+left$(sy$,13):close 3:open 3,dv%,3,dr$+f$+",s,w":gosub 5
+4030 if e%then close 3:open 3,dv%,3,dr$+f$+",s,a"
+4032 &,2,2:s=st:print# 3,a$:on-(a$<>"{^}" and s=0) goto 4032:n=n+1:on-(s=0) goto 4032
+4034 close 2:close 3:if n=0 then return
+4036 gosub 30:i=n:x=2:gosub 16:x=13:gosub 16:x=24:gosub 16:x=31:gosub 16
+4038 close 2:return
+4040 &"{f6} Updating {f5}nm.map{f5}...":dr=2:gosub 3
+4041 print# 15,"s" dr$"nm.map.bak"
+4042 print# 15,"r" dr$"nm.map.bak=" dr$"nm.map"
+4043 print# 15,"c" dr$"nm.map=" dr$o$
+4044 return
+4045 &"{f6} Updating {f5}nm.map 80{f5}...":dr=2:gosub 3
+4046 print# 15,"s" dr$"nm.map 80.bak"
+4047 print# 15,"r" dr$"nm.map 80.bak=" dr$"nm.map 80"
+4048 print# 15,"c" dr$"nm.map 80=" dr$o$
+4049 return
+4050 on nngoto 4064:&"{f6} Updating {f5}nm.nodes{f5}..."
+4052 dr=2:gosub 3:close 3:open 3,dv%,3,dr$+o$+",s,r"
+4054 close 2:open 2,dv%,2,dr$+"nm.nodes":input# 2,z
+4056 input# 3,a,a$,b$,c$,d$,o%,a%,b%,c%,d%:s=st
+4058 x=a+1:gosub 1:print# 2,a$r$b$r$c$r$d$r$o%r$a%r$b%r$c%r$d%
+4060 if a>zthen z=a:x=1:gosub 1:print# 2,z
+4062 on-(s=0) goto 4056:x=1:gosub 1:close 2:close 3
+4064 &"{f6} Updating {f5}nm.nodelist{f5}...":dr=2:gosub 3:print# 15,"s" dr$"nm.nodelist"
+4066 dr=2:a$="nm.nodes":gosub 4
+4068 close 3:open 3,dv%,3,dr$+"nm.nodelist,p,w":print# 3,chr$(0) chr$(194);
+4070 input# 2,n:print# 3,chr$(n);:if n=0 then 4076
+4072 for i=1 to n:x=i+1:gosub 1:input# 2,a$,b$,b$,b$,b$,a,b,c,d
+4074 print# 3,left$(a$+"---",3) chr$(0) chr$(a) chr$(b) chr$(c) chr$(d);:next
+4076 close 3:x=nn+1:gosub 1:&,2,2:nn$=a$:dt$(0)=a$
+4078 &,2,2:&,2,2:&,2,2:&,2,2:for i=1 to 4:&,2,2:a%(i)=val(a$):next
+4080 for i=1 to 4:x=a%(i)+1:dt$(i)="":if x>1 then gosub 1:&,2,2:dt$(i)=a$
+4082 next:close 2:dr=2:a$="nm.connect":gosub 4:if e%then close 2:return
+4084 for x=1 to 4:gosub 1:b$=""
+4086 &,2,2:b$=b$+a$+r$:on-(st=0) goto 4086:nn$(x)=b$:next
+4088 b$="{^}"+r$+"{f2}"+r$+"-------"+r$+r$+"-------"+r$+"0"+r$+"0"+r$+d1$+r$+d1$+r$
+4090 for i=1 to 4:for j=1 to 4
+4092 if left$(nn$(j),3)=dt$(i) and i<>jthen a$=nn$(i):nn$(i)=nn$(j):nn$(j)=a$
+4094 next:next:for x=1 to 4:if dt$(x)="" then nn$(x)="{^}"+b$
+4096 if dt$(x)<>left$(nn$(x),3) then nn$(x)=dt$(x)+b$
+4098 gosub 1:print# 2,nn$(x);:next:gosub 1:close 2:return
+4100 &"{f6} Adding NetNews..."
+4102 dr=4:a$="d.n.Main,s,r":gosub 4:n=0:on-(e%<>0) goto 4106:&,2,2:n=val(a$)
+4104 if nthen for i=1 to n:b$="":for j=1 to 3:&,2,2:b$=b$+a$+r$:next:tt$(i)=b$:next
+4106 close 2
+4108 dr=2:a$=o$+",s,r":gosub 4:if e%then close 2:goto 4134
+4110 f=1:&,2,2:a$=a$+r$:on-(n=0) goto 4116:a=len(a$)
+4112 for i=1 to n:if left$(tt$(i),a)=a$then tt$(i)=a$+d1$+str$(af%)+r$:f=0:i=n
+4114 next
+4116 if fthen n=n+1:tt$(n)=a$+d1$+r$+str$(af%)+r$
+4118 &,2,2:s=st:on-(a$<>"{^}" and s=0) goto 4118:on-(s=0) goto 4110:close 2
+4120 dr=1:gosub 3:dr=2:gosub 2:close 3:open 3,dv%,3,dr$+o$+",s,r":dr=1
+4122 gosub 2:&,2,3:f$=left$("n."+a$,16)+",s,w":close 2:open 2,dv%,2,dr$+f$+",s,w
+4124 gosub 5:on-(e%=0) goto 4128:close 2:print# 15,"s" dr$f$
+4126 open 2,dv%,2,dr$+f$+",s,w":gosub 5
+4128 &,2,3:s=st:print# 2,a$:on-(a$<>"{^}" and s=0) goto 4128:close 2:on-(s=0) goto 4096
+4130 close 3:dr=4:gosub 3:print# 15,"s" dr$"d.n.Main"
+4132 a$="d.n.Main,s,w":gosub 4:print# 2,n:for i=1 to n:print# 2,tt$(i);:next:close 2
+4134 return
+4136 rem:"i/NM.update (c)nissa 190107 lh"
+4138 rem check 4128 was 048 at end of line

@@ -1,0 +1,43 @@
+' imported from i_IM.filelist.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{crunch:on}
+
+4000 &,27,2:fd=10:bl=10:dim s%(8+bl,fd):tz=0:gosub 4002:&,28,2:return
+4002 dr=3:a$="e.U/D":gosub 4:if e%then:&"{f6}Error opening UD file{f6:2}{pound}w1":return
+4004 &,2,2:bz=val(a$):for x=2 to bz+1:gosub 1:&,2,2:&,2,2:&,2,2:tt$(x-1)=a$:next
+4006 close 2:tt$(0)="None":a$=dr$+"e.filelists":&,60,2,0,s%(0,0),a$,dv%:gosub 5
+4008 &"{clear}Filelists{f6}{pound}o{$c0}{pound}o{$c0}{f6}"
+4010 for i=1 to fd:&,60,1,16,s%(1,i),a$:b$=tt$(s%(0,i)):&"{pound}!i{pound}{back arrow}03{pound}$a{pound}{back arrow}20{pound}$b{f6}":next
+4012 &"{pound}o{$c0}{pound}o{$c0}{f6}"
+4014 poke 53252,2:&"#: {pound}i1":if tr%<1 then return
+4016 x=val(an$):if x<1 or x>fdthen 4020
+4018 gosub 4100:goto 4008
+4020 if tzthen:&"Save Changes? ":gosub 94:on agosub 4024
+4022 return
+4024 dr=3:gosub 3:a$=dr$+"e.filelists":print# 15,"s" a$
+4026 &,60,3,0,s%(0,0),2*(9+bl)*(fd+1),a$,dv%:gosub 5:&:return
+4100 &"{clear}#{pound}!x:{f6}":&,60,1,16,s%(1,x),a$
+4102 &"1. Filename: {f5}{pound}$a{f5}{f6}":a$=tt$(s%(0,x))
+4104 &"2. Destination UD: {pound}$a{f6}"
+4106 &"3. Edit UD List{f6}"
+4108 &"{f6}> {pound}g1{pound}v7{f6:2}":on val(an$) goto 4110,4116,4124:return
+4110 p$="Filename":&,60,1,16,s%(1,x),w$:poke 53252,16:pl=0:&,1,32
+4112 if an$<>"" then tz=1:&,60,0,16,s%(1,x),an$
+4114 goto 4100
+4116 poke 53252,3:&"UD # (?=List): {pound}i1":a=val(an$)
+4118 if an$="{f2}" then for i=1 to bz:a$=tt$(i):&"{pound}!i{pound}{back arrow}04{pound}$a{f6}":next:goto 4116
+4120 if a>0 and a<=fdthen tz=1:s%(0,x)=a
+4122 goto 4100
+4124 &"{clear}{pound}o{$c0}{pound}o{$c0}{f6}":for i=1 to bl:a$=tt$(s%(8+i,x)):&"{pound}!i{pound}{back arrow}04{pound}$a{f6}":next:&"{pound}o{$c0}{pound}o{$c0}{f6}"
+4126 poke 53252,2:&"#: {pound}i1":a=val(an$):if a<1 or a>blthen 4100
+4128 poke 53252,3:&"UD # (?=List): {pound}i1":b=val(an$)
+4130 if an$="{f2}" then for i=1 to bz:a$=tt$(i):&"{pound}!i{pound}{back arrow}04{pound}$a{f6}":next:goto 4128
+4132 if b>0 and b<=fdthen tz=1:s%(a+8,x)=b
+4134 goto 4124
+4136 rem:"(c)nissa 181229 lh

@@ -1,0 +1,178 @@
+' imported from i.LB.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{crunch:on}
+
+3000 rem "*  The Street Corner: File Ori. #0004 *"
+3005 b$="The Street Corner BBS!"
+3010 d$="September 7,1991":goto 3025
+3015 if tr%<1 then 300
+3020 return
+3025 &"{pound}f1{f6:2}  {lt. blue} Lite Bar Editor!{f6:2}      By: {lt. blue}[{rvrs on}{lt. green} Cool Man {rvrs off}{lt. blue}]{f6}  {purple}   Of {rvrs on}{yellow} {pound}$b"
+3030 &"{f6} {rvrs off}{lt. blue} Written On: {rvrs on}{yellow} {pound}$d"
+3035 &"{f6:2}   (504)-892-7190{f6}   {$b0}{$c0:11}{$ae}{f6}   {$dd}Hit Any Key{$dd}{f6}   {$ad}{$c0:11}{$bd}"
+3036 &"{f6} {white}Expanded and converted to Image 3.0 By X-Tec 9/9/2021{f6}"
+3038 &" {white}40/80 Column remote term capable{f6}"
+3040 gosub 3015:&"{pound}g1":goto 3380
+3045 &"{pound}f1{rvrs on}{gray3} Sys  Acs  Loc  Tsr  Cht  New  Prt  U/D {rvrs off}"
+3050 &"{rvrs on}{gray3} Asc  Ans  Exp  Unv  Trc  Bel  Net  Mac {rvrs off}"
+3051 &"{rvrs on}{gray3} Chk  Mor  Frd  Sub  Res  Mnt  Mnu  Xpr {rvrs off}"
+3052 &"{rvrs on}{gray3} Em3  Sc2  Scp  Alt  Trb  Dcd  Dsr  $3e {rvrs off}{f6}"
+3060 &"{home}{rvrs on}{gray3}":for i=.to 14 step 2
+3062 &,52,i,3:if a%then:&"{$ba}{right:3}":goto 3066
+3064 &"{right:4}"
+3066 &,52,i+1,3:if a%then:&"{$ba}":goto 3070
+3068 &"{right}"
+3070 next
+3078 if ll%=40 then:&"{home}{rvrs on}{gray3}{down}"
+3080 for i=16 to 30 step 2
+3082 &,52,i,3:if a%then:&"{$ba}{right:3}":goto 3086
+3084 &"{right:4}"
+3086 &,52,i+1,3:if a%then:&"{$ba}":goto 3090
+3088 &"{right}"
+3090 next
+3098 &"{home}{rvrs on}{gray3}{down}":if ll%=40 then:&"{down}"
+3100 for i=32 to 46 step 2
+3102 &,52,i,3:if a%then:&"{$ba}{right:3}":goto 3106
+3104 &"{right:4}"
+3106 &,52,i+1,3:if a%then:&"{$ba}":goto 3110
+3108 &"{right}"
+3110 next
+3215 if ll%=40 then:&"{home}{rvrs on}{gray3}{down:3}"
+3285 for i=48 to 62 step 2
+3290 &,52,i,3:if a%then:&"{$ba}{right:3}":goto 3300
+3295 &"{right:4}"
+3300 &,52,i+1,3:if a%then:&"{$ba}":goto 3310
+3305 &"{right}"
+3310 next
+3315 return
+3380 gosub 3045
+3385 &"{rvrs off}   1. SysOp In/Out{f6}   2. Background Page{f6}   3. No 300 Bd. Callers."
+3390 &"{f6}   4. Pseudo-Local On/Off{f6}   5. Prime Time On/Off{f6}   6. Disable Modem"
+3395 &"{f6}   7. No New Users On/Off{f6}   8. Screen Blanking Mode On/Off"
+3400 &"{f6}   9. Printer On/Off{f6}   A. Print Only Log On/Off"
+3405 &"{f6}   B. U/D's & U/X's On/Off{f6}   C. No 300 Bd. U/D's & U/X's"
+3425 &"{f6}   N. Next Page"
+3430 &"{f6}   Q. Quit To Main Menu.{f6}"
+3435 &"{white} Command: {pound}g1{pound}v7":gosub 3015:if an$="" then 3045
+3440 if an$="1" then:&,52,0,2:goto 3380
+3445 if an$="2" then:&,52,1,2:goto 3380
+3450 if an$="3" then:&,52,3,2:goto 3380
+3455 if an$="4" then:&,52,5,2:goto 3380
+3460 if an$="5" then:&,52,7,2:goto 3380
+3465 if an$="6" then goto 3380
+3470 if an$="7" then:&,52,10,2:goto 3380
+3475 if an$="8" then:&,52,11,2:goto 3380
+3480 if an$="9" then:&,52,12,2:goto 3380
+3485 if an$="A" then:&,52,13,2:goto 3380
+3490 if an$="B" then:&,52,14,2:goto 3380
+3495 if an$="C" then:&,52,15,2:goto 3380
+3530 if an$="Q" or an$="" then 300
+3535 if an$="N" then 3545
+3540 goto 3380
+3545 gosub 3045
+3546 &"{rvrs off}   1. C/G &{shft space}ASCII{shft space}Mode Toggle{f6}   2. Linefeeds On/Off"
+3547 &"{f6}   3. ANSI{shft space}On/Off{f6}   4. IBM{shft space}Grafix On/Off{f6}   5. Expert Mode On/Off"
+3548 &"{f6}   6. No Back-Back Calls"
+3550 &"{f6}   7. Credits/Valid On/Off (TR){f6}   8. U/D Auto Logoff On/Off (TR)"
+3555 &"{f6}   9. Trace Enable{f6}   A. Reset Clock at Idle"
+3556 &"{f6}   B. Local Bells Enable{f6}   C. Local Beeps Disable"
+3560 &"{f6}   D. Netmail Enable{f6}   E. Netmail Trigger"
+3561 &"{f6}   F. Macros On/Off{f6}   G. MCI Disable in Editor{f6}"
+3565 &"   N. Next Page{f6}   Q. Quit To Main Menu{f6}"
+3566 &"{white} Command: {pound}g1{pound}v7":gosub 3015:if an$="" then 3545
+3567 if an$="1" then:&,52,16,2:goto 3545
+3568 if an$="2" then:&,52,17,2:goto 3545
+3569 if an$="3" then:&,52,18,2:goto 3545
+3570 if an$="4" then:&,52,19,2:goto 3545
+3571 if an$="5" then:&,52,20,2:goto 3545
+3572 if an$="6" then:&,52,21,2:goto 3545
+3575 if an$="7" then:&,52,22,2:goto 3545
+3580 if an$="8" then:&,52,23,2:goto 3545
+3585 if an$="9" then:&,52,24,2:goto 3545
+3590 if an$="A" then:&,52,25,2:goto 3545
+3595 if an$="B" then:&,52,26,2:goto 3545
+3600 if an$="C" then:&,52,27,2:goto 3545
+3605 if an$="D" then:&,52,28,2:goto 3545
+3610 if an$="E" then:&,52,29,2:goto 3545
+3615 if an$="F" then:&,52,30,2:goto 3545
+3620 if an$="G" then:&,52,31,2:goto 3545
+3625 if an$="N" then 3700
+3630 if an$="Q" then 300
+3632 goto 3545
+3700 gosub 3045
+3702 &"{rvrs off}   1. Enable MailCheck At Logon{f6}   2. Excessive Chat Logoff"
+3704 &"{f6}   3. More Prompt On/Off{f6}   4. More Prompt Not Available"
+3706 &"{f6}   5. Full Color Read Disable{f6}   6. Menu Mode Logon Enabled"
+3708 &"{f6}   7. Message Bases Closed (SB){f6}   8. Files Section Closed (GF)"
+3710 &"{f6}   9. System Reserved{f6}   A. Network Reserved"
+3712 &"{f6}   B. Zero tr% at Backspace{f6}   C. Modem Answer Disabled"
+3714 &"{f6}   D. Menu Mode On/Off{f6}   E. Menus Available on BBS"
+3716 &"{f6}   F. Enable Express Logon{f6}   G. Use s.detect Files"
+3718 &"{f6}   N. Next Page{f6}   Q. Quit to Main Menu{f6}"
+3720 &"{white} Command: {pound}g1{pound}v7":gosub 3015:if an$="" then 3700
+3722 if an$="1" then:&,52,32,2:goto 3700
+3724 if an$="2" then:&,52,33,2:goto 3700
+3726 if an$="3" then:&,52,34,2:goto 3700
+3728 if an$="4" then:&,52,35,2:goto 3700
+3730 if an$="5" then:&,52,36,2:goto 3700
+3732 if an$="6" then:&,52,37,2:goto 3700
+3734 if an$="7" then:&,52,38,2:goto 3700
+3736 if an$="8" then:&,52,39,2:goto 3700
+3738 if an$="9" then:&,52,40,2:goto 3700
+3740 if an$="A" then:&,52,41,2:goto 3700
+3742 if an$="B" then:&,52,42,2:goto 3700
+3744 if an$="C" then:&,52,43,2:goto 3700
+3746 if an$="D" then:&,52,44,2:goto 3700
+3748 if an$="E" then:&,52,45,2:goto 3700
+3750 if an$="F" then:&,52,46,2:goto 3700
+3752 if an$="G" then:&,52,47,2:goto 3700
+3754 if an$="Q" then 300
+3756 if an$="N" then 3800
+3758 goto 3700
+3800 gosub 3045
+3802 &"{rvrs off}   1. Emulate Image 1.3 Mode{f6}   2. Em3-R (Not Used)"
+3804 &"{f6}   3. Disable 2nd Security Check{f6}   4. Logoff Lotto Menu Enabled"
+3806 &"{f6}   5. Super CPU Configured{f6}   6. Turbo Mode (System Controlled)"
+3808 &"{f6}   7. Alternate Last 10 at Idle{f6}   8. Alternate Idle Screen"
+3810 &"{f6}   9. Disable T/S Mode{f6}   A. Trb-R (Not Used)"
+3812 &"{f6}   B. Invert DCD (System Use){f6}   C. Carrier Present (System Use)"
+3814 &"{f6}   D. Use DCD/DSR{f6}   E. Enable Rx/Tx Windows"
+3816 &"{f6}   F. $3e-L (Not Used){f6}   G. $3e-R (Not Used)"
+3818 &"{f6}   N. Next Page{f6}   Q. Quit to Main Menu{f6}"
+3820 &"{white} Command: {pound}g1{pound}v7":gosub 3015:if an$="" then 3800
+3822 if an$="1" then:&,52,48,2:goto 3800
+3824 if an$="2" then:&,52,49,2:goto 3800
+3826 if an$="3" then:&,52,50,2:goto 3800
+3828 if an$="4" then:&,52,51,2:goto 3800
+3830 if an$="5" then:&,52,52,2:goto 3800
+3832 if an$="6" then:goto 3800
+3834 if an$="7" then:&,52,54,2:goto 3800
+3836 if an$="8" then:&,52,55,2:goto 3800
+3838 if an$="9" then:&,52,56,2:goto 3800
+3840 if an$="A" then:&,52,57,2:goto 3800
+3842 if an$="B" then:goto 3800
+3844 if an$="C" then:goto 3800
+3846 if an$="D" then:&,52,60,2:goto 3800
+3848 if an$="E" then:&,52,61,2:goto 3800
+3850 if an$="F" then:&,52,62,2:goto 3800
+3852 if an$="G" then:&,52,63,2:goto 3800
+3854 if an$="Q" then 300
+3856 if an$="N" then 3380
+3858 goto 3800
+3990 rem *******************************
+3991 rem minor fixes by x-tec 10-20-91
+3992 rem fixed for 80-columns and fn5
+3993 rem reversal as well as fn1 right
+3994 rem return error.
+3995 rem "A NISSA-Tested File" 10-20-91
+3996 rem *******************************
+3997 rem "* Need Image v1.2 or Higher To Run!      NISSA RULEZ!"
+3998 rem " Converted to Image 3.0 by X-Tec"
+3999 rem"i.LB (c)nissa 230314 lh"
+31088 "{right}"

@@ -1,0 +1,87 @@
+' imported from the 2023-12-31 master release's i/NM.netsub3 with C64List 4.04
+' (-txt -keycase -varcase -alpha:alt); tools/detok.sh wouldn't write it (it
+' doesn't rebuild byte for byte): see the notes below for what changed.
+
+' Image BBS 128 (10/21/2026): jumps to lines in other modules, or to lines
+' that don't exist (as in the original), are written {$3d}ddd so that
+' C64List leaves the number as it is (it wrote [n] otherwise): 3488, 3641
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+
+4000 rem "+.ÎÍ.netsub3"
+4002 forq=1ton:dr=2:a$="nm.P.temp"+str$(q)+",s,r":gosub4:ife%thennext:goto4146
+4004 close2:a$="netlist":gosub28:close14:dr=2:gosub3
+4006 a$=dr$+"nm.netsub"+str$(q):&,16,2,dv%:gosub5:ife%thennext:goto4146
+4008 &,16:nb$=an$+"":d$=a$+"":gosub4090
+4010 a$="post":gosub28:ife%then4148
+4012 dr=3:a$="e.Sub":gosub4:ife%thenclose2:goto4148
+4014 f=a%(0):iff=0thenclose2:goto4072
+4016 fori=1tof:x=a%(i)+1:gosub1:&,2,2:&,2,2:&,2,2:&,2,2:&,2,2:c%(i)=val(a$)
+4018 &,2,2:d%(i)=val(a$):next:close2
+4020 a$="nm.P.temp"+str$(q)+",s,r":dr=2:gosub4:ife%thenclose2:next:goto4146
+4022 &,2,2:a=-(st=0):ona+1goto4072:&,2,2:a=-(st=0):ona+1goto4072:h$=mid$(a$,5)
+4024 &,2,2:a=-(st=0):ona+1goto4072:h$="!"+mid$(a$,5)+h$:td$=d1$+"10001011200"
+4026 &,2,2:a=-(st=0):ona+1goto4072:&,2,2:a=-(st=0):t$=mid$(a$,5):ona+1goto4072
+4028 f=a%(0):fori=1tof:gosub4118
+4030 ife%thennext:goto4056
+4032 x=1:gosub4140:&,2,3:aa=val(a$):ifaa=.thenclose3:next:goto4056
+4034 forx=2toaa+1:gosub4140:&,2,3:ifa$<>t$anda$<>"{f8}"+t$thennext:next:goto4056
+4036 ifleft$(a$,1)="{f8}"then:&"{f6}{white}--> Fzn Post: {f5}{pound}$t{f5}...":goto4084
+4038 mn=x:dn=i:forx=1to1:next:fori=1to1:next:x=mn:gosub4140:&,2,3:sh$=h$
+4040 &,2,3:h$=a$:&,2,3:an$=d1$:td$=left$(a$,11)+an$:gosub4128:cd$=a$
+4042 gosub4122:gosub4126:ife%thenclose3:goto4084
+4044 x=1:gosub4140:&,2,3:yy%=val(a$):&,2,3:zz%=val(a$):&,2,3:ww%=val(a$):b%=2
+4046 zz$="":&,16,8:xx%=a%:ifa%>511then:&"{f6}{lt. red}--> 512 Resp: {f5}{pound}$t{f5}...":goto4084
+4048 &,2,2:a=-(st=0):ifleft$(a$,3)="ms:"thenzz$="*"+mid$(a$,5)
+4050 on-(a=1andleft$(a$,3)<>"st:"anda$<>"{^}")goto4048:ifa=0then4072
+4052 on-(a$="{^}")goto4070:x=yy%:gosub4140:print#3,cd$r$right$(td$,11)r$sh$r$zz$
+4054 b%=xx%+1:a%=x:&,16,4:&"{f6}{lt. blue}--> New Resp: {f5}{pound}$t{f5}...":rn=rn+1:x=x+1:goto4064
+4056 fori=1tof:gosub4118:ife%thenclose3:gosub4120:x=1:gosub4140:print#3,0
+4058 x=1:gosub4140:&,2,3:ifval(a$)>59thenclose3:next:goto4084
+4060 mn=val(a$)+2:dn=i:fori=1to1:next:gosub4098:on-(a$="{^}"ora=.)goto4070:gosub4124:gosub4126:ife%thenclose3:goto4084
+4062 yy%=3:zz%=3:ww%=0:x=2:gosub4140:print#3,nl$nl$nl$:&,16,3:x=3:gosub4088
+4064 gosub4102:&,16,10:xx%=a%:i=dn:gosub4118:x=mn:gosub4140
+4066 print#3,t$r$h$r$td$r$0r$xx%:x=1:gosub4140:&,2,3
+4068 ifval(a$)+1<mnthenx=1:gosub4140:print#3,mn-1
+4070 close3:onagoto4022
+4072 fori=1tolen(nb$)step3:close2:a$="nm.P.temp"+str$(q)+",s,r":dr=2:gosub4
+4074 dr=2:c$=mid$(nb$,i,3):ifc$="---"orc$=mid$(tt$(tt),10,3)then4082
+4076 b$="nm.P."+c$+"/"+nn$+",s,":gosub4094:a$=b$+"a":gosub4136
+4078 &"{f6:2}{cyan}Distributing {f5}{pound}$d{f5}{f6}NetSub Messages from {pound}$z to {pound}$c...":tz=1:ife%thena$=b$+"w":gosub4136
+4080 &,2,2:a=-(st=0):print#3,a$:onagoto4080:ifa$<>"{^}"thenprint#3,"{^}"
+4082 close3:close2:next:a$="nm.P.temp"+str$(q):dr=2:gosub19:gosub4144:next:goto4146
+4084 forx=1to1:next:fori=1to1:next
+4086 &,2,2:a=-(st=0):on-(a$<>"{^}"anda=1)goto4086:goto4070
+4088 &"{f6}{green}--> New Post: {f5}{pound}$t{f5}...":pn=pn+1:return
+4090 z$=mid$(tt$(tt),10,3):&"{f6:2} {yellow}{rvrs on} Processing NetSub Messages From {pound}$z {f6}"
+4092 &"{f6}{orange}NetSub ID: {pound}$d{f6}":return
+4094 a$="nm.list,s,a":dr=2:gosub4136:ife%thena$="nm.list,s,w":gosub4136
+4096 print#3,c$"/"nn$"/A/nm.P."c$"/"nn$:close3:return
+4098 &,2,2:a=-(st=.):ifa$<>"st:"anda$<>"{^}"anda=1goto4098
+4100 return
+4102 l=.:gosub4140:yy$=""
+4104 &,2,2:a=-(st=0)
+4106 ifl+len(a$)>79thenl=.:print#3,yy$:x=x+1:gosub4140:yy$=""
+4108 yy$=yy$+left$(r$,-(yy$<>""))+a$:l=len(yy$):if(a=1)and(a$<>"{^}")then4104
+4110 ifa$<>"{^}"thena$="{^}":goto4106
+4112 print#3,yy$:yy$="":ifx+1>yy%thenyy%=x+1
+4114 b%=2:a%=yy%:&,16,9:ifb%>=yy%thenyy%=b%+1
+4116 x=yy%:gosub4140:print#3,nl$:x=1:gosub4140:print#3,yy%r$zz%r$ww%:close3:return
+4118 a$="d.sub"+str$(a%(i)):dr=4:goto4136
+4120 a$="d.sub"+str$(a%(i))+",l,p":dr=4:goto4136
+4122 a$=right$(str$(a%(dn)),2-(a%(dn)>99))+left$(t$,14+(a%(dn)>99)):return
+4124 gosub4122:a$=a$+",l,q":return
+4126 d1%=c%(dn):d2%=d%(dn):&,16,13,3:dr=0:gosub4136:&,16,12,ff:return
+4128 a$=mid$(an$,2):an$=mid$(a$,7,2):a=-1*(an$="12")-3*(an$="92"):a=a-5*(a=0)
+4130 a$=left$(a$,6)+mid$("0012"+an$,a,2)+mid$(a$,9):return
+4132 ff=15:x=dr:dr=2:gosub2:dr=x:x=dv%:gosub2:ifdv%=xthenreturn
+4134 ff=14:close14:open14,dv%,15:return
+4136 close3:gosub4132:open3,dv%,3,dr$+a$
+4138 input#ff,e%,e$,t%,s%:a$="{f6}Status:{pound}#2{pound}%e:{pound}$e:{pound}%t:{pound}%s{f6}":return
+4140 gosub4142:&,22,1
+4142 print#ff,"p{stop}"chr$(xand255)chr$(x/256)"{$01}":return
+4144 forii=1toa%(0):d1%=c%(ii):d2%=d%(ii):dr=0:gosub62:next:return
+4146 tt=tt-1:ifttthena$="netsub2":gosub{$33}641:goto{$33}488
+4148 a$="netsub4":gosub{$33}641:goto{$33}488
+4150 copr.1990 new image 12/01/90  2:34a
+4152 rem:"i/ÎÍ.netsub3 (c)nissa 200101 lh"

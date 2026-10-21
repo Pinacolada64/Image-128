@@ -1,0 +1,18 @@
+' imported from i_lo_blocks free.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+
+4000 rem blocks free
+4002 &"{f6}Updating Blocks Free.{f6}"
+4004 fordr=1to6:gosub62:tt$(dr)=str$(bf):next:a$="  {lt. green}Blocks Free:"+r$
+4006 gosub50:fori=1to6
+4008 a$=" {lt. green}"+mid$("SysE-MEtcDirPrgUsr",i*3-2,3)+" Disk:{white}"+tt$(i)
+4010 gosub50:next:a$=" {pound}q0{yellow}{pound}o{$c0}{pound}o{$c0}":gosub50:close2:return
+4012 close2:return
+4014 copr. 1994 new image 9/17/94
+4016 rem:"(c)nissa 181229 lh

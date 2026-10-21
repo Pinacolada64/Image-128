@@ -1,0 +1,24 @@
+' imported from i.relread.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{crunch:on}
+
+3000 gosub 3002:goto 300
+3002 poke 53252,16:n=.:&"{f6:2}Filename: {pound}i0{f6}":f$=an$:if an$="" then return
+3004 if d1%<7 then d1%=8
+3006 a%=d1%:b%=d2%:&"Device ({pound}%a,{pound}%b): {pound}i1":dr=val(an$)
+3008 if dr>6 then d1%=dr:dr=0:&"Drive: {pound}i1":d2%=val(an$)
+3010 on-(dr<0) goto 3002:gosub 3:close 15:a=-(st<>.):if athen 3022
+3012 close 15:open 15,dv%,15:close 2:open 2,dv%,2,dr$+f$:gosub 5:if e%then 3024
+3014 &"{f6}Record: {pound}i1{f6}":x=val(an$):if x<1 then close 2:&"{f6}":return
+3016 gosub 1
+3018 get#2,a$:a=asc(a$+chr$(0)):if (aand 127)<32 then a$="{rvrs on}"+chr$(a+64)+"{rvrs off}"
+3020 &:on-(st=.) goto 3018:&"{f6}":goto 3014
+3022 a$="{f6}Error: Device Not Present{f6}"
+3024 &:close 2:return
+3026 rem

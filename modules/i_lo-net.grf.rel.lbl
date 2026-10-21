@@ -1,0 +1,79 @@
+' imported from i_lo-net.grf.rel.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+
+4500 rem wallwriter
+4502 rem&"‹žRead šÝÝÝ–Wall™Writer?:’ ":gosub94:ifa=.then4634
+4504 &,5:v=lp:gf=1:nn=1:s$="                    ":s$=s$+s$+s$+s$
+4506 ongf+1goto4516:dr=2:a$="nm.config":gosub4:ife%thennn=.:goto4516
+4508 input#2,nn,a%:if((a%and2^ac%)=.)ornn<1thenclose2:nn=.:goto4516
+4510 x=4:gosub1:&,2,2:kk$=a$:&,2,2:kk$=kk$+"{f1} "+a$
+4512 a$="nm.nodes":dr=2:gosub4:ife%thennn=.:goto4516
+4514 x=nn+1:gosub1:&,2,2:nn$=a$:close2
+4516 dr=2:a$="nm.grf2":gosub4:&,2,2:a1=val(a$):&,2,2:a2=val(a$)
+4518 &,2,2:a3=val(a$):ifa3=.then:&"{f6}{yellow}Wall not CONFIGURED!{f6}":close2:goto4618
+4520 l$=left$(s$,ll%/2-17)
+4522 lp=1:&"{clear}{f6}{pound}$l          {lt. blue}{rvrs on} {$a5}{$b4}{$b5}{lt. red}Wall{lt. green}Writer{f6}{pound}$l{cyan}               v3.0"
+4524 a$="e.walladds":dr=3:gosub4:ife%thenclose2:&"{f6}{lt. red}{pound}vz{f6}":goto4532
+4526 x=1:gosub1:&,2,2:x=val(a$):x=int(rnd(.)*x)+2:gosub1:&,2,2:b$=a$
+4528 &,2,2:c$=a$:close2:a=int((ll%/2)-(len(b$)/2)):b=int((ll%/2)-(len(c$)/2))
+4530 l$=left$(s$,a):j$=left$(s$,b):&"{f6}{pound}$l{pound}$b{f6}{pound}$j{pound}$c{f6}{lt. red}{pound}vz{f6}"
+4532 a$="nm.grf2":dr=2:gosub4:ifa1=.then:&"{yellow}The Wall Is BLANK!{f6}":goto4538
+4534 &"{purple}Scanning For New Writings{pound}k1..."
+4536 x=a1:q=.:gosub4556:ifq=.then:&"{pound}q0{f6:2}{yellow}No New Writings!{f6}"
+4538 &"{f6}{lt. green}Wanna Add your words of wisdom? ":gosub94:ifa=.then4546
+4540 n=76:gosub4632:pl=.:&"{f6}{purple}Go ahead and write:{f6}:{yellow} ":&,1,5:ifan$=""then4546
+4542 a$=d1$:b$=right$(str$(10000+id),4)+na$:c$="{^}":d$=an$:gosub4548
+4544 x=1:gosub1:print#2,a1;r$a2;r$a3:gosub1:close2:ongfgosub4578
+4546 close2:return
+4548 ifa1=.thena1=2:a2=2
+4550 x=a2:gosub1:print#2,a$r$b$r$c$r$d$:a2=a2+1:ifa2=>a3thena2=2
+4552 ifa2=a1thena1=a1+1:ifa1=>a3thena1=2
+4554 return
+4556 gosub1:gosub4586:ifmid$(a$,2,6)<mid$(ld$,2,6)then:&".":goto4570
+4558 ifq=.thenq=1:&"{pound}q0{f6:2}{yellow}New Writings!{f6:2}{orange}{pound}vz"
+4560 a$=left$(b$,4):an$=mid$(b$,5):&,15,1:b$=an$:ifc$="{^}"thenc$=""
+4562 b=val(a$):ifbthenb$=b$+"-"+cc$+mid$(str$(b),2):goto4566
+4564 b$=b$+" @ "+mid$(a$,2)
+4566 a$=b$:gosub4576:b$=a$:ifc$<>""thena$=c$:gosub4576:c$=a$
+4568 lp=1:&"{pound}q0{yellow} {pound}$d{f6:2}{pound}$b{pound}$c{f6}{lt. red}{pound}vj"
+4570 x=x+1:ifx=>a3thenx=2
+4572 ifx<>a2andx<>a1andrc=.then4556
+4574 return
+4576 a$=right$(s$+mid$("{cyan}{green}{yellow}{lt. red}{lt. green}{gray3}{white}",int(rnd(1)*7)+1,1)+a$,ll%):return
+4578 ifnn=.thenreturn
+4580 a$="nm.B.temp,s,a":dr=2:gosub4:ife%thena$="nm.B.temp,s,w":gosub4
+4582 a$="!"+nn$+na$:print#2,a$r$kk$r$an$
+4584 close2:return
+4586 &,2,2:e$=a$:&,2,2:b$=a$:&,2,2:c$=a$:&,2,2:d$=a$:a$=e$:s=st:return
+4588 ifq=.thenq=1:&"{f6}"
+4590 a$=left$(b$,4):an$=mid$(b$,5):&,15,1:b$=an$:ifc$="{^}"thenc$=""
+4592 b=val(a$):ifbthenb$=b$+"-"+cc$+mid$(str$(b),2):goto4596
+4594 b$=b$+" @ "+mid$(a$,2)
+4596 a$=b$:gosub4606:b$=a$:ifc$<>""thena$=c$:gosub4606:c$=a$
+4598 lp=1:&"{yellow} {pound}$d{f6:2}{pound}$b{pound}$c{f6}{lt. red}{pound}vj":q=1
+4600 x=x+1:ifx=>a3thenx=2
+4602 ifx<>a2andx<>a1andrc=.then4584
+4604 return
+4606 a$=right$(s$+mid$("{cyan}{green}{yellow}{lt. red}{lt. green}{gray3}{white}",int(rnd(1)*7)+1,1)+a$,ll%):return
+4608 ifnn=.thenreturn
+4610 a$="nm.B.temp,s,a":dr=2:gosub4:ife%thena$="nm.B.temp,s,w":gosub4
+4612 a$="!"+nn$+na$:print#2,a$r$kk$r$an$
+4614 close2:return
+4616 &,2,2:e$=a$:&,2,2:b$=a$:&,2,2:c$=a$:&,2,2:d$=a$:a$=e$:s=st:return
+4618 ifzz=.thenreturn
+4620 &"{f6}Configure it? ":gosub96:ifa=.thenreturn
+4622 n=3:gosub4632:&"{f6}Enter max # of messages: {pound}i1":ifan$=""thenreturn
+4624 n=val(an$)+3:ifn<23then:&"{f6}Sorry, that is too low.{f6}":goto4622
+4626 &"Building file..."
+4628 dr=2:a$="nm.grf2,l,"+chr$(160):gosub4:x=n:gosub1:print#2,"{^}"
+4630 x=1:gosub1:print#2,.;r$;.;r$;n:gosub1:close2:goto4504
+4632 poke53252,n:return
+4634 return
+4636 copr. 1994 new image 9/5/94
+4638 rem:"i/lo-net.grf.rel (c)nissa 191218 lh"

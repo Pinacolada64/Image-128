@@ -1,0 +1,26 @@
+' imported from i_lo_an.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+
+4000 rem write new user welcome
+4002 &"{f6}{yellow}AutoNew {green}- Version 1.0{f6:2}{gray3}Reading new users."
+4004 x=.:dr=3:a$="e.new temp,s,r":gosub4:b=.:ife%thenclose2:x=1:goto4012
+4006 &,2,2:b=b+1:tt$(b)=a$:s=st:&"."
+4008 ifs=.then4006
+4010 &"{f6}{lt. green}Scratching Old File...{f6}":close2:dr=3:a$="e.new temp":gosub19
+4012 &"{f6}{green}Writing News File...{f6}":dr=1:a$="n.$Welcome!":gosub18:onxgoto4026
+4014 print#2,"{lt. green}{pound}vj {rvrs on}{white}{pound}$q{pound}{back arrow}03Please Welcome Our New Users:    {pound}{back arrow}39{rvrs off}{f6}{lt. green}{pound}vj{f6}"
+4016 fori=1tobstep3:an$=tt$(i):&,15,1:tt$(i)=an$:print#2,"{pound}$q {yellow}{rvrs on}";tt$(i)
+4018 an$=tt$(i+1):&,15,1:tt$(i+1)=an$:print#2,"{pound}$q     {gray3}From:{white} ";tt$(i+1);
+4020 print#2,", ";tt$(i+2):next:print#2,"{pound}n2{lt. green}{pound}$qYou are invited to send them a";
+4022 print#2," message  of welcome!"
+4024 print#2,"{pound}n2{pound}$q{gray3}(Tap One) {pound}g1{pound}hj":close2:return
+4026 print#2,"{lt. green}{pound}vj {rvrs on}{white}{pound}$q{pound}{back arrow}03No New Users In The Past 24 Hours{pound}{back arrow}39{rvrs off}{f6}{lt. green}{pound}vj{f6}"
+4030 x=.:goto4024
+4032 copr. 1994 new image 9/11/94
+4034 rem:"i/lo/an (c)nissa 200609 lh ad"

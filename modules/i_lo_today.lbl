@@ -1,0 +1,52 @@
+' imported from i_lo_today.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{crunch:on}
+
+4000 rem"      Today In History Maker
+4002 rem"     Programmed by Specter on
+4004 rem"          May 19th, 1992
+4006 rem"   Spotlight BBS (413)599-1713
+4008 rem"      NissaNet Node#66(TSL)
+4010 rem" -------------------------------
+4012 rem" Read Today.doc for installation
+4014 gosub 82
+4016 dim zt$(3,20):&"{clear}{f6}{yellow}The Spotlight!  NissaNet Node 66/TSL{f6}(413)599-1713{f6:2}Creating Today In History For{f6}"
+4018 zm$=mid$("JanFebMarAprMayJunJulAugSepOctNovDec",(val(mid$(d1$,4,2))*3-2),3)
+4020 zd$=mid$(d1$,6,2):zy$=mid$(d1$,2,2):zx$=left$(d1$,1)
+4022 a$=" "+zm$+" "+zd$+", 20"+zy$:&:&"{f6:2}{white}Scanning Files...":dr=3
+4024 a$="today."+zm$+",s,r":gosub 4
+4026 &,2,2:b$=left$(a$,1):d$=mid$(a$,4,2):c$=","
+4028 if b$="{^}" then close 2:goto 4048
+4030 zw$=mid$(a$,10,1):if zw$="C" or zw$=" " then 4034
+4032 if zw$<>zx$then 4026
+4034 if d$<>zd$then 4026
+4036 if b$="B" then zp=1
+4038 if b$="S" then zp=2
+4040 if b$="R" then zp=3:c$=" "
+4042 tt(zp)=tt(zp)+1:if mid$(a$,10,1)="C" then a$="       {yellow}"+mid$(a$,11):goto 4046
+4044 a$="{white} "+mid$(a$,6,4)+c$+" {yellow}"+mid$(a$,11)
+4046 zt$(zp,tt(zp))=a$:goto 4026
+4048 &"{f6:3}{lt. blue}Born Today:{f6}":for i=1 to tt(1):&zt$(1,i):&"{f6}":next
+4050 &"{lt. blue}Happened Today:{f6}":for i=1 to tt(2):&zt$(2,i):&"{f6}":next
+4052 &"{lt. blue}Dont Forget:{f6}":for i=1 to tt(2):&zt$(3,i):&"{f6}":next
+4054 &"{f6}{lt. red}Writing File..."
+4056 dr=1:a$="s.today/hist":gosub 18
+4058 a$="{lt. blue} Here are some facinating facts for "+zm$+" "+zd$+", 20"+zy$+"..."
+4060 print# 2,a$+r$:if tt(1)=0 then 4066
+4062 print# 2,"{purple}Famous people born on this date..." r$
+4064 for i=1 to tt(1):a$=zt$(1,i):print# 2,a$:next
+4066 if tt(2)=0 then 4072
+4068 print# 2,r$"{purple}Events that happened on this date..." r$
+4070 for i=1 to tt(2):a$=zt$(2,i):print# 2,a$:next
+4072 if tt(3)=0 then 4078
+4074 print# 2,r$"{purple}And don't forget..." r$
+4076 for i=1 to tt(3):a$=zt$(3,i):print# 2,a$:next
+4078 close 2:gosub 82:return
+4080 rem (c) 1992 tlm software
+4082 rem:"i/lo/today (c)nissa 190531 lh"

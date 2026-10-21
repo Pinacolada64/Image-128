@@ -1,0 +1,60 @@
+' imported from the 2023-12-31 master release's i/EM.fwd with C64List 4.04
+' (-txt -keycase -varcase -alpha:alt); tools/detok.sh wouldn't write it (it
+' doesn't rebuild byte for byte): see the notes below for what changed.
+
+' Image BBS 128 (10/21/2026): jumps to lines in other modules, or to lines
+' that don't exist (as in the original), are written {$3d}ddd so that
+' C64List leaves the number as it is (it wrote [n] otherwise): 3416, 3418, 3434, 3436, 3440, 3444, 3478, 3570
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+
+4000 onmmgosub4010,4060,4058,4298:return
+4009 rem --read mail into tt$()--
+4010 tt$=na$:gosub32:o=1:gosub4030:k=.
+4011 fork=1to4:&,2,2:tt$(k)=a$:next
+4020 k=k+1:&,2,2:tt$(k)=a$:on-(a$<>"{^}"andpeek(144)=.)goto4020
+4030 ifo=brthen4050
+4040 &,2,2:on-(a$<>"{^}")goto4040:o=o+1:goto4030
+4050 return
+4057 rem --fwd netmail as netmail--
+4058 gosub4010:tt$(3)=left$(tt$(3),11):fd=1
+4059 rem --fwd email as netmail--
+4060 p$="{f6}Send NetMail To":gosub6:nn$=an$:ifan$=""then{$33}434
+4070 l$=tt$(4):gosub{$33}416:iftt$=""then{$33}434
+4080 tt$(.)="!"+left$(str$(nn)+"    ",4):j$="                    "
+4090 kk=k
+4100 tt$(.)=tt$(.)+left$(bn$+j$,20)+l$:ifkk=.then{$33}434
+4101 lf$=na$:na$=tt$(1)
+4110 gosub4200:na$=lf$:return
+4120 &"{f6}{lt. blue}Forward As [{yellow}E{lt. blue}]-Mail Or [{yellow}N]et-Mail ? {white}{pound}g1"
+4130 on-(an$="E")-(an$="N")*2goto{$33}570,4140
+4140 return
+4200 gosub{$33}436:iflgthenfd$="NetMail":gosub{$33}478
+4210 &"{f6}Filing NetMail...":f$="nm.M."+tt$:tt$=tt$+"/A/"+f$
+4212 gosub{$33}444
+4220 print#2,nn$r$tt$(1)r$0;r$tt$(3)
+4222 iffd=.then:print#2,tt$(.)
+4224 iffd=1then:print#2,tt$(4):fd=.
+4230 fori=6tokk-1:print#2,tt$(i):next
+4236 print#2,"{f6}[Forwarded from "right$(f$,3)" On]{f6}{$04}"d1$
+4238 print#2,"{^}":close2
+4240 gosub{$33}440:&"Done!{f6}":return
+4297 rem --send read receipt--
+4298 &"{f6:2}{lt. blue}Send Read Report? ":gosub94:ifa=.then4334
+4300 &"{f6}Sending Read Report{f6}"
+4301 an$="":kk=val(mid$(ed$(br),2,4))
+4302 ifmid$(ed$(br),27,3)="RE:"thened$(br)=left$(ed$(br),26)+mid$(ed$(br),31)
+4304 ifan$=""thenan$="RE: "+mid$(ed$(br),27,len(ed$(br))-27):&"Subject: {pound}v7{f6}"
+4306 l$=an$:an$=str$(kk):gosub{$33}418:on-(tt$="")goto{$33}434:nn$=nn$(br):goto4310
+4308 close2:&"Unknown Node #!{f6}":return
+4310 tt$(1)="{f6}Your Netmail Was Viewed On {f6}{$04}"+d1$
+4312 tt$(2)="{f6}No Reply Was Sent"
+4320 tt$(.)="!"+left$(str$(nn)+"    ",4):j$="                    "
+4322 tt$(.)=tt$(.)+left$(bn$+j$,20)+"["+l$+"]":kk=3
+4324 gosub{$33}436:iflgthenfd$="NetMail":gosub{$33}478
+4326 &"{f6}Filing NetMail...":f$="nm.M."+tt$:tt$=tt$+"/A/"+f$
+4328 gosub{$33}444:print#2,nn$r$na$r$0;r$d1$
+4330 fori=0tokk-1:print#2,tt$(i):next:print#2,"{^}":close2
+4332 gosub{$33}440:&"Done!{f6}"
+4334 return
+4999 rem:"i/ем.fwd (c)nissa 230319 lh"

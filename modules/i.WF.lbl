@@ -1,0 +1,85 @@
+' imported from the 2023-12-31 master release's i.WF with C64List 4.04
+' (-txt -keycase -varcase -alpha:alt); tools/detok.sh wouldn't write it (it
+' doesn't rebuild byte for byte): see the notes below for what changed.
+
+' Image BBS 128 (10/21/2026): C64 addresses in peek/poke/sys are the 128's,
+' as {sym:...} names from asm/equates.asm (included below).
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{include:"..\asm\equates.asm"}
+
+3000 gosub3082:goto300
+3002 close6:open6,dv%,6,dr$+v$+",s,"+a$:goto5
+3004 p$="Filename":b$=b$+" File"
+3006 &"{pound}$b {pound}g1":fl=.:ifan$<>r$then:&"{pound}h"+chr$(65+len(b$)):fl=1:return
+3008 &"{f6}":return
+3010 a%=peek({sym:lines})-1:c%=a%-b%:&"{pound}q0{f6:2}{white}{rvrs on}Total Lines:{f6}{gray3}Available  : {yellow}{pound}%a"
+3012 &"{pound}{back arrow}20{gray3}In Memory  : {yellow}{pound}%b{f6}{gray3}Remaining  : {yellow}{pound}%c":ifzzthen:&"{pound}{back arrow}20{gray3}Free Memory: {yellow}{pound}%z"
+3014 &"{lt. green}{f6:2}":return
+3016 p$=pu$:goto12
+3018 pu$=p$:v$="":return
+3020 poke53249,.:poke{sym:mline},kk:poke{sym:flags},4:poke{sym:cline},kk
+3022 poke{sym:modes},87:a=14:gosub11:&,52,31,3:ifa%=.thenpoke{sym:modes},87+a*8
+3024 pl=.:poke{sym:lines},le+1:gosub3122 :a=int((z%-300)/79)+1:ifle>athenpoke{sym:lines},a+1
+3026 poke53252,ll%-2:ifzzthenpoke{sym:lines},254
+3028 return
+3030 b$="Get":gosub3004:onflgoto3108:&"{f6:2}":gosub3126 :v$=an$:ifv$=""then3110
+3032 gosub349:gosub350:ifathengosub3134 :goto3032
+3034 gosub3:a$="r":gosub3002:gosub3122 :ife%thenclose6:&:goto3110
+3036 &,2,6:tt$(kk)=a$:kk=kk+1:gosub3124 :on-(z%>100andkk<254andst=.)goto3036
+3038 close6:goto3110
+3040 onkkgoto3108:b$="Put":gosub3004:onflgoto3108:&"{f6:2}"
+3042 ifv$<>""thenpoke53252,16:w$=v$:&,1,32:goto3046
+3044 gosub3126 :ifan$=""then3110
+3046 ifan$<>""thenv$=an$
+3048 gosub349:gosub350:ifathengosub3134 :goto3048
+3050 gosub3
+3052 a$="w":gosub3002:ife%=.then3062
+3054 close6:&:ife%<>63then3066
+3056 &"{f6} [A]ppend [R]eplace [Q]uit: {pound}i1":ifan$="Q"ortr%<1then3066
+3058 ifan$="R"thena$=v$:gosub19:goto3052
+3060 on-(an$<>"A")goto3054:a$="a":gosub3002:ife%then3066
+3062 fori=1tokk-1:iftt$(i)="{f8}"thentt$(i)="{^}"
+3064 next:&,14,6,kk-1
+3066 close6:gosub62:goto3110
+3068 b$="View Directory":gosub3006:onflgoto3108:gosub349:gosub3130:goto3110
+3070 &"Query{f6}":goto3110
+3072 b$="Disk Command":gosub3006:onflgoto3108:&"{f6:2}":gosub3136:goto3110
+3074 b$="Read":gosub3004:onflgoto3108:&"{f6:2}":gosub3126 :v$=an$:ifv$=""then3110
+3076 gosub349:gosub350:ifathengosub3134 :goto3110
+3078 gosub3:a$="r":gosub3002:ife%thenclose6:&:goto3110
+3080 &,3,6:close6:goto3110
+3082 gosub3018:kk=1:ifle<1thenp$=pu$:kk=.:return
+3084 gosub3020:dr=1:a$="s.editor":gosub14
+3086 b%=.:gosub3010:a=.:goto3100
+3088 gosub3018:ifle<1thenp$=pu$:kk=.:return
+3090 goto3110
+3092 kk=peek({sym:mline}):onagoto3094,3102,3098:&"{f6:2}":b%=kk-1:kk=.:goto3016
+3094 poke{sym:mci},.:b%=kk-1:&"{f6}{pound}%b Lines Used.{f6}":ifkk=1thena=.:goto3092
+3096 b%=kk:goto3016
+3098 poke{sym:mci},.:dr=1:a$="s.menu 3":gosub13:goto3088
+3100 &,54,a:a=peek({sym:sxreg}):an$=chr$(peek({sym:sareg})and127):goto3092
+3102 b%=kk-1:on-(an$="u")goto3112:ifan$="q"then3070
+3104 ifzzthenon-(an$="g")-(an$="p")*2-(an$="$")*3goto3030,3040,3068
+3106 ifzzthenon-(an$="@")-(an$="&")*2goto3072,3074
+3108 a=2:goto3100
+3110 b%=kk-1:gosub3020:gosub3010:poke{sym:mci},1:a=1:goto3100
+3112 b$="Signature":gosub3004:onflgoto3100:&"{lt. green}Which signature? (0-9) {pound}g1"
+3114 &"{f6:2}":v$="ps."+an$+na$:dr=3:a$="r":gosub3:gosub3002:gosub3122
+3116 a=1948:ife%thenclose6:&:goto3110
+3118 &,2,6:tt$(kk)=a$:kk=kk+1:gosub3124 :on-(z%>100andkk<254andst=.)goto3118
+3119 rem:ifa$="^"thentt$(kk)="":kk=kk-1
+3120 close6:goto3110
+3122 &,40
+3124 z%=(peek({sym:fretop}+1)-peek({sym:strend}+1))*256+peek({sym:fretop})-peek({sym:strend}):return
+3126 pl=.:poke53249,pl:lp=.:&,1:return
+3128 &"{f6}Sorry, {pound}$b Limit Exceeded.{f6}":return
+3130 gosub350:onagoto3134:&"{f6}Pattern: ":gosub289:b$="*"
+3132 fori=1tolen(an$):ifmid$(an$,i,1)="*"thenb$=""
+3133 next:close1:open1,dv%,.,"$"+dr$+an$+b$:&"{f6}":&,8,1:close1:return
+3134 x=6:goto390
+3136 gosub350:onagoto3134:&"{f6}Disk Command?: ":poke53252,58
+3138 gosub289:z$=an$:ifz$=""orz$="@"thengosub3:gosub5:&:return
+3140 b$=left$(z$,1):ifb$="n"orb$="s"thengosub93:ifa=.thenreturn
+3142 gosub3:print#15,z$:gosub5:&:return
+3150 rem:"i.×Æ (c)nissa 190308 lh"

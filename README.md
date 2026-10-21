@@ -31,10 +31,11 @@ https://rvbelzen.tripod.com/128intpt/index.html
 
 On Linux, `asm/build.sh` builds everything (the modules, the ML cut into
 the parts the boot loads, `boot 128` and `im 128`) and writes
-`build/image128.d71`, a 1571 disk (the 128 loads it in burst mode). To run it
-in VICE with a 1571 as drive 8:
+`build/image128.d81`, a 1581 disk (the 128 loads it in burst mode; the
+modules need more room than a 1571 has). To run it in VICE with a 1581 as
+drive 8:
 
-    x128 -drive8type 1571 -autostart "build/image128.d71:boot 128"
+    x128 -drive8type 1581 -autostart "build/image128.d81:boot 128"
 
 (or attach the disk and `RUN "BOOT 128"`). The memory map is at the
 top of `asm/memory 128.txt`.

@@ -1,8 +1,9 @@
 #!/bin/bash
 # build.sh -- Linux build of Image BBS 128 (make.bat's job, plus the boot
 # disk): the module .bin files, the ML (cut into the parts boot.asm loads),
-# boot 128, and im 128, written to build/image128.d71: a 1571 disk, so the
-# 128 KERNAL loads it in burst mode.
+# boot 128, im 128 and the modules, written to build/image128.d81: a 1581
+# disk (3160 blocks: the i.* and i/* modules alone are 2200), which the
+# 128 KERNAL loads in burst mode too.
 #
 #   asm/build.sh            (from anywhere)
 #
@@ -86,12 +87,14 @@ if ! grep -q "^0 Errors" <<<"$log"; then
 	exit 1
 fi
 
-# the sub.* modules (modules/: im loads them at line 60000), the same way;
-# a jump to a line C64List can't find stops the build too
+# the modules (modules/): sub.* (im loads them at line 60000), i.* (3000)
+# and i/* (4000; the listing names have "_" for "/"), the same way; a jump
+# to a line C64List can't find stops the build too
 modwrites=()
 cd "$repo/modules"
-for f in sub.*.lbl; do
+for f in sub.*.lbl i.*.lbl i_*.lbl; do
 	m=${f%.lbl}
+	disk=${m//_//}
 	crunch=; grep -q '{crunch:on}' "$f" && crunch=-crunch
 	# a module that includes Basic70.bas (BASIC 7.0 keywords: dec, do...)
 	# needs C64List 4.06, which tokenizes them; 4.06 won't take the
@@ -103,12 +106,12 @@ for f in sub.*.lbl; do
 		echo "build.sh: modules/$f failed" >&2
 		exit 1
 	fi
-	modwrites+=(-write "$m.prg" "$m")
+	modwrites+=(-write "$m.prg" "$disk")
 done
 
 cd "$build"
-rm -f image128.d64 image128.d71
-c1541 -format "image bbs 128,ib" d71 image128.d71 \
+rm -f image128.d64 image128.d71 image128.d81
+c1541 -format "image bbs 128,ib" d81 image128.d81 \
 	-write "boot 128.prg" "boot 128" \
 	-write ml.buf ml.buf -write ml.low ml.low -write ml.mod ml.mod \
 	-write ml.res1 ml.res1 -write ml.res2 ml.res2 \
@@ -123,4 +126,4 @@ c1541 -format "image bbs 128,ib" d71 image128.d71 \
 	-write "$repo/disk/nm.times.prg" nm.times \
 	-write "$repo/disk/e.fkeys.seq" "e.fkeys,s" \
 	"${modwrites[@]}" "${ovlwrites[@]}" >/dev/null
-c1541 image128.d71 -list
+c1541 image128.d81 -list

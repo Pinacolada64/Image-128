@@ -1,0 +1,39 @@
+' imported from i_lo.off.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{crunch:on}
+
+4000 rem"i.lo.off
+4002 goto 4100
+4010 d$=b$+"{white}, "+c$+r$:if b$="" and c$="" then d$="":goto 4016
+4012 if b$="" then d$=c$+r$:goto 4016
+4014 d$=b$+r$
+4016 b$="":c$="":return
+4100 im=5:gosub 447:o$=d1$:o%=mn%:gosub 30:for x=1 to 11:gosub 17:next:close 2
+4102 &,27,3:dim l%(30,9):dr=3:gosub 3:&,60,2,.,l%(.,.),dr$+"e.last",dv%
+4104 l%(7,.)=o%-l%(7,.):&,60,4,.,l%(4,.),o$:f=.
+4110 b$="":c$="":d$=""
+4112 a=st(4):if athen b$="{white}"+str$(a)+" {lt. green}Post":f=(f) or 2:if a<>1 then b$=b$+"s"
+4114 a=st(5):if athen c$="{white}"+str$(a)+" {green}Response":f=(f) or 2:if a<>1 then c$=c$+"s"
+4116 gosub 4010:a$=d$
+4118 a=st(6):if athen b$="{white}"+str$(a)+" {lt. green}Upload":f=(f) or 4:if a<>1 then b$=b$+"s"
+4120 a=st(7):if athen c$="{white}"+str$(a)+" {green}Download":f=(f) or 8:if a<>1 then c$=c$+"s"
+4122 gosub 4010:a$=a$+d$
+4124 a=st(3):if athen b$="{white}"+str$(a)+" {lt. green}Mail":f=(f) or 16
+4126 a=st(1):if athen c$="{white}"+str$(a)+" {green}Feedback":f=(f) or 32
+4128 l%(.,.)=f:gosub 4010:a$=a$+d$
+4140 a$=a$+" {lt. blue}Logoff{white}: {$04}"+o$+r$+" {yellow}Stats {white}:"+str$(cr)+" {gray3}Credits"+r$
+4141 if tr%<1 then a$=a$+" {lt. red}Dropped Carrier"+r$
+4142 a$=a$+" {pound}q0{yellow}{pound}o{$c0}{pound}o{$c0}":gosub 50
+4144 dr=3:gosub 3:a$="e.last":gosub 19:close 15
+4150 dr=3:gosub 3:&,60,3,.,l%(.,.),620,dr$+"e.last",dv%
+4170 &,25,.,2:im=1:gosub 445:close 2:d3$=na$:if id=.then d3$="VISITOR"
+4172 gosub 33:x=17:gosub 1:print# 2,d3$
+4174 x=19:gosub 1:print# 2,o$:close 2:close 15
+4176 &,28,3:return
+4178 rem:"i/lo.off (c)nissa 220714 lh"

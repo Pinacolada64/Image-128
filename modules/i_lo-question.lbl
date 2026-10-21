@@ -1,0 +1,59 @@
+' imported from i_lo-question.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+
+4500 dr=3:a$="e.sysop":gosub4:x=id:gosub1
+4502 a=.:&,2,2:on-(a$="n")goto4510:ifa$="{^}"thena=1:goto4512
+4504 ifac%<=3then4510
+4506 ifmid$(d1$,4,2)=mid$(a$,4,2)then4510
+4508 &"{clear}{blue}{pound}vj{white} {rvrs on}       Sysop Information Update       {rvrs off}{f6}{blue}{pound}vj{green}":goto4512
+4510 close2:return
+4512 ed$(1)="Handle":ed$(2)="First":ed$(3)="Last":ed$(4)="Address"
+4514 ed$(5)="City":ed$(6)="State":ed$(7)="Zipcode":ed$(8)="IMAGE S#"
+4516 ed$(9)="Board Name":ed$(10)="Voice No.":ed$(11)="Telnet Addr"
+4518 ed$(12)="Network"
+4520 ed$(13)="Node ID.":onagoto4556
+4522 &"{f6}Getting Your Current Info..."
+4524 x=id:gosub1:fd=.
+4526 &,2,2:ifa$="{^}"then4556
+4528 gosub1:fori=.to13:&,2,2:ifasc(a$+nl$)=32thena$=mid$(a$,2)
+4530 tt$(i)=a$:next:fd=.
+4532 &"{f6}Please Verify The Following Information: ":poke53252,30
+4534 &"{f6:2}No.{pound}{back arrow}03:Info:{pound}{back arrow}17Current Value"
+4536 fori=1to13:b%=i
+4538 &"{f6}{pound}%b{pound}{back arrow}03:":&ed$(i):&"{pound}{back arrow}17:":&tt$(i)
+4540 next:&"{f6:2}Is This Correct? ":gosub94
+4542 onagoto4568
+4544 fd=.:&"{f6:2}Which No. Is Wrong? {pound}i1":i=val(an$):ifan$=""thenreturn
+4546 &"{f6:2}Input New ":&ed$(i):ifi<4ori=8then4550
+4548 &"{f6}[> {pound}i0":ontr%+1goto999:goto4552
+4550 &"{f6}[> {pound}i1":ontr%+1goto999
+4552 tt$=an$:&"{f6:2}Is :":&tt$:&" Correct? ":gosub96:ifa=.then4532
+4554 tt$(i)=tt$:fd=1:goto4532
+4556 &"{f6:2}Please Provide The Following Information: ":poke53252,30
+4558 tt$(1)=na$:tt$(2)=ff$:tt$(3)=ll$:fori=4to13
+4560 ifi=8then:&ed$(i):&"{pound}{back arrow}13: {pound}i1":tt$(i)=an$:ontr%+1goto4564:goto4564
+4562 &ed$(i):&"{pound}{back arrow}13: {pound}i0":tt$(i)=an$:ontr%+1goto4564
+4564 next:ontr%+1goto999:fori=1to12:&"{f6}":&ed$(i):&"{pound}{back arrow}17:":&tt$(i):next
+4566 &"{f6:2}Is This Correct? :":gosub96:fd=1:ona+1goto4534
+4568 &"{f6:2}Writing Data..."
+4570 tt$(.)=d1$:w$="":fori=.to13:w$=w$+tt$(i)+r$:next
+4572 x=id:gosub1:print#2,w$:close2:iffd=.thenreturn
+4574 b$="fback":gosub37:poke53280,6
+4576 print#2,"Changed Sysop Data"+r$r$
+4578 print#2,"Handle: "+tt$(1)+r$+"First:  "+tt$(2)+r$+"Last:   "+tt$(3)+r$
+4580 print#2,"Address:{pound}{back arrow}17"+tt$(4)+r$+"City, State Zip: "+tt$(5)+", "+tt$(6)+" ";
+4582 print#2,tt$(7)+r$+"IMAGE S#:{pound}{back arrow}17"+tt$(8)+r$+"Board Name:{pound}{back arrow}17"+tt$(9)
+4584 print#2,"Voice No.:{pound}{back arrow}17"+tt$(10)+r$+"BBS Addr.:{pound}{back arrow}17"+tt$(11)
+4586 print#2,"Network :{pound}{back arrow}17"+tt$(12)+r$+"Node No. :{pound}{back arrow}17"+tt$(13)
+4588 print#2,"{^}"
+4590 close2:gosub30:i=1:x=1:gosub16:x=12:gosub16:x=23:gosub16
+4592 x=30:gosub16:close2:return
+4594 copr. 1994 new image 9/6/94
+4596 rem:fixes 181220 x-tec
+4598 rem:"i/lo-question (c)nissa 190514 lh"

@@ -1,0 +1,88 @@
+' i/MM.load: SIG list and selection (loaded from i.MM)
+' imported from the release disk (MASTER D1 231231.d81), "i/MM.load" with:
+'   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+' changed since then: line 4110 tests x1%(2,1), the SIG's sysop, instead of
+' x1%(0,1), the flags word, so SIG sysops always see their own SIGs
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{crunch:on}
+
+' structs (see the Programmer's Reference Guide, "Structures"):
+' x1%(17,60): the SIG list, "e.Siglist". 18 integers = 36 bytes per record.
+'   x1%(0,0) = number of SIGs; SIGs are records 1 on
+'   x1%(0,r) = flags word; this module sets bits 4096, 8192 and 16384 here
+'   x1%(1,r) = access groups allowed (one bit per access level)
+'   x1%(2,r) = the SIG's sysop (user id)
+'   x1%(3,r) = the SIG's name, up to 30 bytes (read with &,60,1)
+' x2%(60): record numbers of the SIGs this user may pick (x2%(0) = how many)
+' x3%(60,2): the chosen SIG's list, "e.Siglist<n>"
+4000 dim ba$,bz,lm,oc$,r,sg,sg$,tz:&,27,2:dim x1%(17,60),x2%(60),x3%(60,2)
+4002 lm=1:gosub 4100:x=lm:y=sg:z=tz:&,28,2:return
+4004 &,15,6,133:r=abs(int(val(a$))):return
+' &,60,2,0,struct%(field,record),filename$,device: load a struct from disk
+'   0 = necessary but ignored; dr=3:gosub 3 sets dv% and dr$ first
+4006 dr=3:gosub 3:&,60,2,0,x1%(0,0),dr$+"e.Siglist",dv%:goto 5
+4008 dr=3:gosub 3:&,60,2,0,x3%(0,0),dr$+"e.Siglist"+str$(sg),dv%:goto 5
+4010 lp=1:&"Sorry, that function is temporarily not available.":return
+4100 q=.:a=12:gosub 11:b=a:a=8:gosub 11:if a+bthen q=1
+4102 gosub 4006:if e%<>0 or x1%(0,0)=0 then 4146
+' build the list of SIGs to show, using flag bits in x1%(0,r):
+' f = 4096 (access bit, below) + the bit for this SIG type: 2^xx, xx=0..2
+4104 xx=-(sy$="U/D")-2*(sy$="U/X"):f=4096+2^xx
+' &,60,6,count,oper,flags%(f,r),object%(f,r),size,bits,test: Scan Struct
+'   for each record: unless oper has 128, clear bits in the flags word;
+'   compare object with test; if true, set bits and add 1 to a%
+'   oper bits: 1 invert, 0/6 and/compare, 8 less-than, 64 date, 128 keep bits
+' 4106: oper 0 = (object and test)<>0: set bit 4096 where the SIG's access
+'   groups, x1%(1,r), include the user's access level bit, 2^ac%
+4106 &,60,6,x1%(0,0),0,x1%(0,1),x1%(1,1),36,4096,2^ac%
+' 4108: oper 5 = object has all of test's bits: set bit 8192 where the flags
+'   word has all of f's bits (user may access it, and it's the right type)
+4108 &,60,6,x1%(0,0),5,x1%(0,1),x1%(0,1),36,8192,f
+' 4110: oper 7 = object equals test: set bit 16384 where the SIG's sysop,
+'   x1%(2,r), is this user. (released as x1%(0,1), the flags word: a bug)
+4110 &,60,6,x1%(0,0),7,x1%(0,1),x1%(2,1),36,16384,id
+' &,60,8,count,size,bits,field%(f,r),result%(e),first: Scan Numbers
+'   for each record: if the field shares any bit with bits, store the record
+'   number in result%(e), result%(e+1), ...; first = number of the first
+'   record scanned. a% = how many matched. the struct isn't changed
+'   (x2%(0)=a% saves the count)
+' 4112: list the SIGs with bit 8192 or 16384 set (from 4108 and 4110)
+4112 &,60,8,x1%(0,0),36,8192+16384,x1%(0,1),x2%(1),1:x2%(0)=a%
+4114 a$=left$(an$,2):an$=mid$(an$,3):if a%=0 then 4146
+4116 if a$=">>" or a$="<<" then r=sg+1+2*(a$="<<"):on-(r<>0) goto 4124
+4118 tz=0:gosub 4004:on-(r<>0) goto 4124:if a%=1 then r=1:tz=1:goto 4124
+' &,60,1,length,struct%(field,record),string$: Get String
+'   copy up to length bytes from the struct into string$ (here, a SIG name)
+4120 &"{f6}{white} ##  SIG Name{f6:2}":for i=1 to x2%(0):a%=i:x=x2%(i):&,60,1,30,x1%(3,x),b$
+4122 &"{white}{pound}#3{pound}# {pound}%a  {cyan}{pound}$b{f6}":next:&"{white}{f6}":p$="Which SIG?"+"":gosub 6:gosub 4004
+4124 if r<1 or r>x2%(0) then 4168
+4126 sg=x2%(r):r=0:so%=x1%(2,sg):&,60,1,30,x1%(3,sg),s$
+4128 sg$=s$:gosub 4008:bz=0:if e%then 4144
+4130 bz=x3%(0,xx):if bz<1 then 4144
+4132 if bz>60 then bz=60
+4134 for b=1 to bz:e%(b)=x3%(b,xx):next
+4136 rem:b$=sg$:&"‹Welcome to the \$b SIG!‹"
+4138 dr=1:a$="s.Sig"+str$(sg)+str$(nl):if ll%=80 then a$=a$+" 80"
+4139 gosub 14
+4140 gosub 35:x=so%:gosub 1:&,2,2:close 2
+4142 b$=an$:an$=a$:&,15,1:&"{f6}Your SIG Host here is {pound}v7.{f6}":an$=b$:goto 4152
+4144 &"{f6}This SIG has no "+sy$+" Boards.{f6:2}":sg=0:bz=0:goto 4120
+4146 sg=0:close 2:dr=3:a$="e."+sy$:gosub 4:if e%then 4010
+4148 &,2,2:bz=val(a$):close 2:if bz>60 then bz=60
+4150 for i=1 to bz:e%(i)=i:next
+4152 dr=3:a$="e."+sy$:gosub 4:if e%then 4010
+4154 ba$="":oc$="":b=0:for s=1 to bz:x=e%(s)+1:gosub 1:&,2,2:&,2,2:a=val(a$)
+4156 &,2,2:if ((aand 2^ac%)=0) then 4166
+4158 b=b+1:ac%(b)=a:bb$(b)=a$:&,2,2:a=abs(int(val(a$))):so%(b)=a+(a=0)
+4160 &,2,2:dv%(b+6)=val(a$):&,2,2:dr%(b+6)=val(a$):e%(b)=e%(s)
+4162 d$="0":if (so%(b)=id) or (so%=id) or qthen d$="1"
+4164 ba$=ba$+d$:&,2,2:oc$=oc$+mid$(str$(val(a$)),2)
+4166 next:close 2:bz=b:on-(bz=0 and sg>0) goto 4144:lm=0:return
+4168 if sgthen lm=1:return
+4170 lm=2:return
+4172 rem:"i/MM.load (c)nissa 200504 lh"

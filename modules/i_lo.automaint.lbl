@@ -1,0 +1,70 @@
+' imported from i_lo.automaint.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+' Image BBS 128 (10/21/2026): C64 addresses in peek/poke/sys are the 128's,
+' as {sym:...} names from asm/equates.asm (included below).
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{include:"..\asm\equates.asm"}
+{crunch:on}
+
+4000 rem automaint main module
+4001 print# 131,"ath1"
+4002 poke 53248,1:poke {sym:clock},.:z$=left$(am$,1):&"{clear}{f6:2}Image v3.0 Auto-Maintenance{f6:2}"
+4004 gosub 4096:rem update daily stats
+4006 gosub 4080:rem totals at end of log
+4008 gosub 4040:rem weekly log routines
+4010 gosub 4048:rem daily log routines
+4012 gosub 4018:rem read e.data from disk
+4013 gosub 4104:rem delete daily nm.log x
+4014 gosub 4034:rem compute idle time
+4015 gosub 4100:rem reset e.idle file
+4016 close 2:return
+4018 &"{f6}{yellow}Reading {f5}e.data{f5}{f6}":gosub 33:if e%then close 2:&"{rvrs on}{lt. red}{f5}e.data{f5}{shft space}Not Found{f6}":return
+4020 x=1:gosub 1:input# 2,ca:x=12:gosub 1:&,2,2:ur=val(a$)-1
+4022 x=17:gosub 1:input# 2,d3$:x=18:gosub 1:input# 2,pp$
+4024 x=19:gosub 1:input# 2,z$:x=20:gosub 1:input# 2,p1%,p2%,p3%
+4026 x=31:gosub 1:input# 2,l1:close 2:gosub 31:if e%then close 2:goto 4032
+4028 for x=1 to 10:gosub 1:&,2,2:&,2,2:fl$(x-1)=a$:next
+4030 x=val(i1$)+1:gosub 1:&,2,2:i3$=a$:close 2
+4032 gosub 30:for x=1 to 38:gosub 1:input# 2,st(x):next:close 2:im=11:goto 445
+4034 &"{f6}{green}Computing Idle/Used Time{f6}":i=t1:a$=d1$:a=mn%:t1=a:if a<ithen a=a+1440
+4036 gosub 30:i=a-i:st(11)=i:x=11:gosub 17:x=22:gosub 16:x=38:gosub 16
+4038 close 2:return
+4040 a$="e.logweek,s,r":dr=3:gosub 4:on-(e%<>.) goto 4074:if left$(d1$,1)="2" then 4068
+4042 &"{f6}{gray2}Appending to Weekly Log{f6}"
+4044 close 2:gosub 3:print# 15,"c" dr$"temp=" dr$"e.logweek,e.log" z$
+4046 print# 15,"s" dr$"e.logweek":print# 15,"r" dr$"e.logweek=" dr$"temp":return
+4048 &"{f6}Restarting log for ":dr=3:gosub 3:z$=left$(d1$,1)
+4050 &mid$("SunMonTueWedThuFriSat",val(z$)*3-2,3)
+4052 dr=3:a$="e.log"+z$:gosub 18
+4054 an$=d1$:&,15:d6$=an$+"M"
+4056 c$=mid$("SunMonTueWedThuFriSat",val(z$)*3-2,3)+" "
+4057 a$="{lt. green} {rvrs on}START--"+c$+d6$+"{pound}{back arrow}39{rvrs off}"+r$
+4058 a$=" {yellow}{pound}o{$c0}{pound}o{$c0}"+r$+a$+" {yellow}{pound}o{$c0}{pound}o{$c0}"+r$
+4060 print# 2,a$:close 2
+4062 gosub 62
+4064 gosub 30:for x=12 to 22:st(x)=.:gosub 17:next:close 2
+4066 &"{f6} Weekly Log Restarted.{f6:2}":t$=am$:am$=d1$+"":lt$=d1$+"":return
+4068 k$=".prev":a$="e.logweek"+k$
+4070 &"{f6}{brown} Archiving Weekly Log{f6}"
+4072 dr=3:gosub 3:gosub 19:print# 15,"r" dr$a$"=e.logweek":close 15
+4074 &"{f6}{gray1}Starting New Weekly Log{f6}":gosub 4064
+4076 a$="e.logweek,s,w":dr=3:gosub 4:print# 2," Weekly Log Restarted " r$
+4078 close 2:goto 4044
+4080 b$="log"+z$:a$="a":gosub 36:if e%then close 2:return
+4082 print# 2,r$"{gray3} Log Totals:" r$
+4084 print# 2,"{yellow} Posts :" str$(st(15)) r$" Resps :" str$(st(16)) r$
+4086 print# 2," {cyan}Uplds :" str$(st(17)) r$" Dwnld :" str$(st(18)) r$
+4088 print# 2," {green}New Ur:" str$(st(19)) r$" Calls :" str$(st(20))
+4090 a=st(21):b=st(22):c=a+b:if c=.then a$=" 0":b$=" 0":goto 4094
+4092 a=int(a/c*100):b$=str$(100-a):a$=str$(a)
+4094 print# 2,r$" {cyan}{rvrs on} System used" a$"%, Idle" b$"% this log " r$:close 2:return
+4096 dr=3:a$="e.daily stats,l,p":gosub 4:x=int(val(z$)):gosub 1
+4098 a$="":for i=12 to 22:a$=a$+str$(st(i))+r$:next:print# 2,d1$r$a$:close 2:return
+4100 dr=3:a$="e.idle "+left$(d1$,1):gosub 19:close 2:return
+4104 dr=2:a$="nm.log "+left$(d1$,1):gosub 19:close 2:return
+4110 rem:"i/lo.automaint (c)nissa 230703 lh"

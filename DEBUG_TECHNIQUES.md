@@ -161,7 +161,7 @@ each answer until the monitor's prompt comes back (and goes quiet, since
 VICE can print a prompt twice) instead of waiting out a timeout.
 
 `tools/setup_test.py` runs the new-system setup on a copy of the boot
-disk (`build/setup-test.d71`): 1 at the start-up menu, Return at every
+disk (`build/setup-test.d81`): 1 at the start-up menu, Return at every
 prompt (each takes its default) and 1 at the clock menu, logging each
 part as the setup's frame shows it; then it watches `im` boot from the
 new configuration and prints where it stopped. About a minute for the

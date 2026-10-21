@@ -1,0 +1,51 @@
+' imported from i_lo-vote.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+
+4500 rem vote on new
+4502 dr=4:a$="d.votes,s,r":gosub4:rn=.:ife%thenclose2:goto4580
+4504 input#2,a$,b$,a%:ifmid$(d5$,2,6)>=mid$(b$,2,6)thena%=0
+4506 ifa%and(2^ac%)thenrn=rn+1:nn$(rn)=a$
+4508 on-(st=.)goto4504:close2:ifrn=0then4580
+4510 &"{f6}{lt. blue}There Are {white}New {lt. blue}Vote Topics.{f6}Vote Now{blue}?{white} ":gosub96:ifa=0thenreturn
+4512 forb=1torn:gosub4536:next:return
+4514 dr=3:o$="v.t."+left$(nn$(b),12):return
+4516 dr=3:o$="v.r."+left$(nn$(b),12):return
+4518 gosub4532:close2
+4520 x=0:gosub4516:a$=o$+",s,r":gosub4
+4522 ife%then:&"No Vote Reasons On File.{f6:2}":goto4530
+4524 &"{f6}Read Reason File? ":gosub96:ifa=0thenclose2:return
+4526 rc=0:gosub12:x=x+1:&,2,2:a%=x:&"{f6:2}Reason #{pound}%a:{pound}$a{f6:2}":&,3,2
+4528 if(st=0)and(rc=0)then4526
+4530 close2:return
+4532 a$=nn$(b):&"{f6}{lt. blue}Vote Topic: {white}{pound}$a{f6:2}":gosub12
+4534 gosub4514:a$=o$+",s,r":gosub4:&,12,2:return
+4536 gosub4532:&"{f6}":x=0:f=0:z=0
+4538 &,2,2:ifa$<>"{^}"thenx=x+1:tt$(x)=a$:f%(x)=0:goto4538
+4540 on-(st<>0)goto4544
+4542 input#2,a,i,a$:f%(a)=f%(a)+1:z=z+1:f=f-(i=idanda$=na$):on-(st=0)goto4542
+4544 close2:&"Press a key for topics ... {pound}g1{f6}":onfgoto4554:&"{f6}"
+4546 fori=1tox:a$=tt$(i):a%=i:&"{pound}%a {pound}$a{f6}":next:&"{f6}Choice -> {pound}g1":c=val(an$)
+4548 ifc<1orc>xthen:&"Aborted!{f6}":return
+4550 a$=tt$(c):&"{pound}$a{f6:2} Correct? ":gosub96:ifa=0thenreturn
+4552 f%(c)=f%(c)+1:z=z+1:dr=3:a$=o$+",s,a":gosub4:print#2,c;r$id;r$na$:close2
+4554 ifz=0then:&"{f6}No Votes so far!{f6:2}":goto4562
+4556 s$="s":ifz=1thens$=""
+4558 a%=z:&"{f6}Results From {pound}%a Vote{pound}$s:{f6:2}"
+4560 fori=1tox:a$=tt$(i):a%=100*f%(i)/z+.5:&"{pound}#3{pound}# {pound}%a% {pound}$a{f6}":next
+4562 onfgoto4576:&"{f6}Would you like to leave an Anonymous{f6}reason? ":gosub94
+4564 ifa=0then4576
+4566 tt$(0)=chr$(48+c)+tt$(c):im=1:gosub440:ifkk=.then4576
+4568 a=b:gosub4516:a$=o$+",s,w":gosub4:ife%thena$=o$+",s,a":gosub4
+4570 ife%then4574
+4572 print#2,mid$(tt$(0),2):fori=1tokk-1:print#2,tt$(i):next:print#2,"{^}"
+4574 close2
+4576 gosub4520
+4578 return
+4580 &"{f6:2}{lt. blue}No New Voting Topics.{f6:2}{pound}w1":return
+4590 copr. 1990 new image 12-26-90

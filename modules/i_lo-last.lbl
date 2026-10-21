@@ -1,0 +1,45 @@
+' imported from i_lo-last.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{crunch:on}
+
+4500 rem" ** i/lo-last ** 95JUN04  JLF            Last 10 Caller Display      "
+4502 on-(ll%>77) goto 4700:goto 4600
+4600 for x=1 to 5:tt$(x)="":&,60,1,20,l%(8,x),a$:&,60,1,25,l%(18,x),b$
+4602 tt$(x)="{pound}$q {purple}{$dd}{cyan}"+a$+" {gray3}("+left$(b$,33-len(a$))+"{gray3}){pound}{back arrow}38{purple}{$dd}{f6}{pound}$q {$dd}{yellow}On "
+4604 &,68,5,0,l%(1,x),an$:tt$(x)=tt$(x)+mid$(an$,4,2)+"/"+mid$(an$,6,2)+" @"
+4606 &,15:tt$(x)=tt$(x)+mid$(an$,13,6)+chr$(asc(mid$(an$,20,1))-128)+"m-"
+4608 &,68,5,0,l%(4,x),an$:&,15:b$="UlDlEmFbPfTf"
+4610 tt$(x)=tt$(x)+mid$(an$,14,5)+chr$(asc(mid$(an$,20,1))-128)+"m {white}("
+4612 tt$(x)=tt$(x)+mid$(str$(l%(7,x)),2,3)+" Min){pound}{back arrow}38{purple}{$dd}{f6}{pound}$q {$dd}{red}Activity{orange}:{lt. red}"
+4613 if l%(.,x)=.then tt$(x)=tt$(x)+" None":goto 4618
+4614 if l%(.,x) and 2 then tt$(x)=tt$(x)+" Msg"
+4616 for i=2 to 7:if l%(.,x) and 2^ithen tt$(x)=tt$(x)+" "+mid$(b$,((i-2)*2)+1,2)
+4617 next
+4618 tt$(x)=tt$(x)+"{pound}{back arrow}38{purple}{$dd}{f6}":next:a$="{pound}o{$c0:18}"
+4620 &"{pound}$q {purple}{$b0}"+a$+"{$ae}{f6}{pound}$q {$dd}{lt. blue}Last Five Callers & Activity Listing{purple}{$dd}{f6}"
+4622 for x=1 to 5:&"{pound}$q {purple}{$ab}"+a$+"{$b3}{f6}"+tt$(x):next:&"{pound}$q {purple}{$ad}"+a$+"{$bd}{f6}":&"{pound}$q{lt. green}({green}Press a Key{lt. green}){pound}g1"
+4624 &"{f6}{cyan}Updating Records...{f6}":return
+4700 for x=1 to 7:tt$(x)="":&,60,1,20,l%(8,x),a$:&,60,1,25,l%(18,x),b$
+4702 tt$(x)=" {purple}{$dd}{cyan}"+a$+" {gray3}("+left$(b$,33-len(a$))+"{gray3}) {yellow}On "
+4704 &,68,5,0,l%(1,x),an$:tt$(x)=tt$(x)+mid$(an$,4,2)+"/"+mid$(an$,6,2)+" @"
+4706 &,15:tt$(x)=tt$(x)+mid$(an$,13,6)+chr$(asc(mid$(an$,20,1))-128)+"m-"
+4708 &,68,5,0,l%(4,x),an$:&,15:b$="UlDlEmFbPfTf"
+4710 tt$(x)=tt$(x)+mid$(an$,14,5)+chr$(asc(mid$(an$,20,1))-128)+"m {white}("
+4712 tt$(x)=tt$(x)+mid$(str$(l%(7,x)),2,3)+" Min)":gosub 4726:tt$(x)=tt$(x)+c$+"  {purple}{$dd}{rvrs off}{f6} {$dd}{red}Activity{orange}:{lt. red}"
+4713 if l%(.,x)=.then tt$(x)=tt$(x)+" None ":goto 4718
+4714 if l%(.,x) and 2 then tt$(x)=tt$(x)+" Msg"
+4716 for i=2 to 7:if l%(.,x) and 2^ithen tt$(x)=tt$(x)+" "+mid$(b$,((i-2)*2)+1,2)
+4717 next
+4718 gosub 4728:tt$(x)=tt$(x)+c$+" {purple}{$dd}{rvrs off}{f6}":next:a$="{pound}o{$c0}{pound}o{$c0}{pound}o{$c0}{pound}o{$c0}"
+4720 &" {purple}{$b0}"+a$+"{$ae}{f6} {$dd}{lt. blue}                   Last Seven Callers & Activity Listing                    {purple}{$dd}{rvrs off}{f6}"
+4722 for x=1 to 7:&" {purple}{$ab}"+a$+"{$b3}{rvrs off}{f6}"+tt$(x):next:&" {purple}{$ad}"+a$+"{$bd}{rvrs off}{f6}":&"   {lt. green}({green}Press a Key{lt. green}){pound}g1"
+4724 &"{f6}{cyan}Updating Records...{f6}":return
+4726 c$="":for c=len(tt$(x)) to 82:c$=c$+" ":next:return
+4728 c$="":for c=len(tt$(x)) to 168:c$=c$+" ":next:return
+4730 rem:"i/lo-last (c)nissa 200813 lh"

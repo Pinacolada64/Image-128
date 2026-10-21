@@ -1,0 +1,70 @@
+' imported from i.sigedit.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{crunch:on}
+
+3000 &,28,1:dim x1%(17,60),x3%(60,2):gosub 3100:&,28,1:goto 300
+3002 goto 3
+3004 goto 5
+3006 goto 96
+3010 dr=3:gosub 3002:&,60,2,0,x1%(0,0),dr$+"e.Siglist",dv%:goto 3004
+3012 dr=3:gosub 3002:&,60,2,0,x3%(0,0),dr$+"e.Siglist"+str$(x),dv%:goto 3004
+3014 a$="e.Siglist":gosub 3018:&,60,3,0,x1%(0,0),2196,dr$+a$,dv%:goto 3004
+3016 a$="e.Siglist"+str$(x):gosub 3018:&,60,3,0,x3%(0,0),366,dr$+a$,dv%:goto 3004
+3018 dr=3:gosub 3002:print# 15,"s" dr$a$:return
+3020 a%=i:&,60,1,30,x1%(3,i),a$:b%=x1%(1,i):c%=x1%(2,i):a=x1%(0,i)
+3022 b$=chr$(48+sgn(aand 1))+chr$(48+sgn(aand 2))+chr$(48+sgn(aand 4))
+3024 &"{pound}#2{pound}# {pound}%a) {pound}$a{f6}    {pound}#5{pound}# Ac:{pound}%b Op:{pound}%c Fl:{pound}$b{f6}":return
+3100 tz=0:gosub 3010:if e%then x1%(0,0)=0
+3102 a%=x1%(0,0):&"{clear}SigEdit 2.0: {pound}%a Sigs Defined.{f6:2}"
+3104 if a%then for i=1 to a%:gosub 3020:next
+3106 &"{f6}Edit Which (A=Add): {pound}i1":x=abs(int(val(an$)))
+3108 if an$="A" then gosub 3200:goto 3102
+3110 if x>0 and x<=x1%(0,0) then gosub 3204:goto 3102
+3112 if tzthen:&"Save changes? ":gosub 3006:on agosub 3014
+3114 return
+3200 x=x1%(0,0)+1:x1%(0,0)=x:&,60,0,30,x1%(3,x),"---"
+3202 x1%(0,x)=7:x1%(1,x)=1023:x1%(2,x)=1
+3204 x3%(0,0)=0:x3%(0,1)=0:x3%(0,2)=0:gosub 3012
+3206 &"{clear}Sig #{pound}!x{f6:2}":&,60,1,30,x1%(3,x),a$:b%=x1%(1,x):c%=x1%(2,x):a=x1%(0,x)
+3208 &"1. Name: {pound}$a{f6}"
+3210 &"2. Accs: {pound}%b{f6}"
+3212 &"3. Oper: {pound}%c{f6}"
+3214 &"4. Subs: ";mid$("YesNo ",4-3*sgn(aand 1),3):a%=x3%(0,0):&" ({pound}%a){f6}"
+3216 &"5. U/Ds: ";mid$("YesNo ",4-3*sgn(aand 2),3):a%=x3%(0,1):&" ({pound}%a){f6}"
+3218 &"6. U/Xs: ";mid$("YesNo ",4-3*sgn(aand 4),3):a%=x3%(0,2):&" ({pound}%a){f6}"
+3220 &"{f6}Change which?: {pound}g1{pound}v7{f6}":a=val(an$)
+3222 if athen on agosub 3232,3236,3242,3226,3228,3230:goto 3206
+3224 return
+3226 xx=0:goto 3300
+3228 xx=1:goto 3300
+3230 xx=2:goto 3300
+3232 &,60,1,30,x1%(3,x),w$:poke 53252,30:p$="Name":pl=0:&,1,32:if an$="" then return
+3234 &,60,0,30,x1%(3,x),an$:tz=1:return
+3236 w$=mid$(str$(x1%(1,x)),2):poke 53252,5:p$="Accs":pl=1:&,1,32
+3238 if an$="" then return
+3240 x1%(1,x)=val(an$):tz=1:return
+3242 w$=mid$(str$(x1%(2,x)),2):poke 53252,5:p$="Oper":pl=1:&,1,32
+3244 if an$="" then return
+3246 x1%(2,x)=val(an$):tz=1:return
+3300 s$=mid$("SubU/DU/X",xx*3+1,3):&"Have {pound}$ss? ":gosub 3006
+3302 b=2^xx:if a=0 then x1%(0,x)=x1%(0,x) and not b:tz=1:return
+3304 x1%(0,x)=x1%(0,x) or b
+3306 a%=x3%(0,xx):&"{clear}Sig {pound}!x: {pound}%a {pound}$ss{f6:2}"
+3308 if a%then for i=1 to a%:b%=x3%(i,xx):&"{pound}#4{pound}# {pound}%b":next:&"{f6:2}"
+3310 &"Add Delete Insert: {pound}g1":a=-(an$="A")-2*(an$="D")-3*(an$="I")
+3312 if athen on agosub 3316,3322,3330:goto 3306
+3314 goto 3016
+3316 if x3%(0,xx)=60 then return
+3318 &"Add #{pound}i1":a=val(an$):if a<1 or a>999 then return
+3320 i=x3%(0,xx)+1:x3%(i,xx)=a:x3%(0,xx)=i:return
+3322 if x3%(0,xx)=0 then return
+3324 &"Delete #{pound}i1":a=val(an$):if a<1 or a>999 then return
+3326 j=0:for i=1 to x3%(0,xx):if x3%(i,xx)<>athen j=j+1:x3%(j,xx)=x3%(i,xx)
+3328 next:x3%(0,xx)=j:return
+3330 return

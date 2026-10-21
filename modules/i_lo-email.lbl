@@ -1,0 +1,24 @@
+' imported from i_lo-email.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{crunch:on}
+
+4500 rem:change phone # to email mod
+4502 if left$(ph$,1)="[" then 4506
+4503 if left$(ph$,1)="(" then 4506
+4504 return
+4506 &"{clear}{f6}{green}Our records contain the phone{f6}number that you provided with your"
+4508 &"{f6}new user application.{f6:2}{lt. blue}In an effort to protect your privacy,"
+4510 &"{f6}we request you replace your phone #{f6}with your email address.{f6:2}"
+4512 &"{green}Please enter your email address below{f6:2}"
+4514 poke 53252,78:w$=ph$:pl=.:p$="{white}Email: {yellow}":&,1,32:if an$<>"" then ph$=an$
+4516 if an$="" then 4522
+4518 b$=ph$:&"{green}{f6}Is {pound}$b {f6}your correct email address? ":gosub 96
+4520 on a+1 goto 4512,4504
+4522 &"{f6}{lt. red}Not acceptable{f6:2}":goto 4512
+4524 rem:"i/lo-email (c)nissa 200615 lh"

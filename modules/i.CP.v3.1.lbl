@@ -1,0 +1,304 @@
+' imported from i.CP.v3.1.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+' Image BBS 128 (10/21/2026): C64 addresses in peek/poke/sys are the 128's,
+' as {sym:...} names from asm/equates.asm (included below).
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{include:"..\asm\equates.asm"}
+{crunch:on}
+
+3000 cm=.:gosub 3042:rem "i.CP.v3.0"
+3002 a$="2":gosub 28:poke 142,.:b$="":d$=""
+3004 ve=1.2:gosub 3034
+3006 &,18:t$="Off":if tnthen t$="On":gg=int(rnd(.)*3)
+3008 &"{clear}{pound}n2{lt. blue} {$b0}{$c0:36}{$ae}{f6} {$dd}{pound}{back arrow}14{white}Copier 3.0{lt. blue}{pound}{back arrow}38{$dd}{f6}"
+3010 &" {$ab}{$c0:36}{$b3}{f6} {$dd}{pound}{back arrow}38{$dd}{f6}"
+3012 &" {$dd} {white}B    Blocks Free{pound}{back arrow}38{lt. blue}{$dd}{f6} {$dd} {white}C    Copy{pound}{back arrow}38{lt. blue}{$dd}{f6} {$dd} {white}D    Directory{pound}{back arrow}38{lt. blue}{$dd}{f6}"
+3014 &" {$dd} {white}F    File Counter{pound}{back arrow}38{lt. blue}{$dd}{f6}":if cm=.then 3018
+3016 &" {$dd} {white}H    HD/FD Partition Directory{pound}{back arrow}38{lt. blue}{$dd}{f6}"
+3018 &" {$dd} {white}Q    Quit{pound}{back arrow}38{lt. blue}{$dd}{f6}"
+3020 &" {$dd} {white}R    Read a File{pound}{back arrow}38{lt. blue}{$dd}{f6} {$dd} {white}S    Scratch (Multi){pound}{back arrow}38{lt. blue}{$dd}{f6}"
+3022 &" {$dd} {white}T    Tone:  {rvrs on} {pound}$t {rvrs off}{pound}{back arrow}38{lt. blue}{$dd}{f6} {$dd}{pound}{back arrow}38{$dd}{f6} {$dd} {white}@    DOS Command{pound}{back arrow}38{lt. blue}{$dd}{f6} {$dd}{pound}{back arrow}38{$dd}{f6}"
+3024 &"{lt. blue} {$ad}{$c0:36}{$bd}{f6:2}{white}   CP:  "
+3026 gl=.:gosub 3282:u1$=an$:if u1$="H" and cm=1 then 3040
+3028 on-(an$="C")-(an$="D")*2-(an$="@")*3-(an$="T")*4 goto 3070,3070,3070,3054
+3030 on-(an$="R")-(an$="B")*2-(an$="S")*3-(an$="G")*4 goto 3263,3274,3070,3008
+3032 on-(an$="F")-(an$=r$or an$="Q")*2 goto 3550,3036:goto 3026
+3034 for x=1 to 15:close x:next:gosub 82:gosub 3544:return
+3036 gosub 3034:&,18,1:goto 300
+3038 gl=1:an$="C":goto 3070
+3040 d$="CMD":gosub 3290:dp=a:if a<8 or a>29 or ab=1 then:&"{f6}":goto 3040
+3041 &"{clear}{white}":open 2,dp,0,"$=p":&,8,2:close 2:gosub 3326:goto 3006
+3042 y=1:for dn=8 to 30:close 2:open 2,dn,3:close 2:s=st:if st=>.then e$="":close 8:goto 3046
+3044 next:return
+3046 open 8,dn,15:print# 8,"m-r" chr$(160) chr$(254) chr$(6):for i=1 to 3:get#8,a$
+3048 e$=e$+a$:next:close 8
+3050 if e$="cmd" then cm=1:dp=dn:dn=30
+3052 goto 3044
+3054 tn=1-tn:t$="Off":if tnthen gg=int(rnd(.)*3):t$="On"
+3056 &"{home}{pound}n9{pound}n6":if cmthen:&"{pound}n1"
+3058 &"{lt. blue} {$dd} {white}T    Tone:  {rvrs on} {pound}$t {rvrs off}{pound}n6   CP:  ":goto 3026
+3060 gosub 3526:gosub 3282:y=.:if an$="L" then y=7:goto 3026
+3062 return
+3064 &,25,gg:return
+3066 gosub 3166:gosub 290:if an$="" then an$="*"
+3068 &"{clear}{white}":close 2:open 2,s1,0,"$"+s1$+an$:&,8,2:close 2:gosub 3326:goto 3006
+3070 a$="2":gosub 28:u1$=an$:ev%=.:t=.:&"{pound}f1{pound}n5"
+3072 &r$:d$=" Source":b%=8:f=8:y=.:gosub 3290:on abgoto 3070:if b%>6 and b%<33 then f=b%
+3074 s1=f:dn=f:on-(u1$="H") goto 3040:gosub 3292:on abgoto 3070:a=c%:f$=mid$(str$(a),2)+":":gosub 3434
+3076 s1$=f$:on-(u1$="@")-(u1$="S")*2-(u1$="D")*3 goto 3150,3086,3066:if u1$="P" then g=f:&r$:d$=" Target":goto 3080
+3078 &"{home}{pound}n8":d$=" Target":b%=8-(f=8):g=b%:gosub 3290:if b%>6 and b%<33 then g=b%
+3080 on abgoto 3078:dn=g:t9=g:g$="0:":gosub 3292:a=val(an$)
+3081 if a>.then g$=mid$(str$(a),2)+":"
+3082 t1$=g$:gosub 3434:on abgoto 3078:gosub 3294
+3084 if a<.and u1$<>"S" then gosub 92:goto 3006
+3086 on-(u1$="P") goto 3444:gosub 3166:gosub 290:if an$="" then an$="*"
+3088 t$=an$:gosub 3288
+3090 &"{clear}{pound}n4 {white}Y{lt. blue}es  {white}N{lt. blue}o  {white}S{lt. blue}tart  {white}A{lt. blue}bort  {white}E{lt. blue}very  {white}J{lt. blue}ump 8{f6:2}{white}":tz=.
+3092 open 1,s1,0,"$"+s1$+t$:get#1,a$,a$:&,8,1,1:lp=1:&:&"{f6}"
+3094 &,8,1,1:s=st:if mid$(a$,7,1)="b" then b$=a$:&"{f6}{white} {pound}$b{f6}":goto 3124
+3096 a=val(a$):c$=mid$(a$,8):a$=mid$(a$,26,1):for i=2 to 17:if mid$(c$,i,1)=qt$then c$=left$(c$,i-1)
+3098 next:tt$=c$+","+a$:b$=a$:if sthen 3122
+3100 if s8then c8=c8+1:on-(c8<>8) goto 3094:s8=.:c8=.
+3102 a%=a:&"{white}{pound}#4{pound}# {pound}%a {f5}{pound}$c{f5},{pound}$b{pound}{back arrow}26":if u1$="S" then 3106
+3104 if tz+a>tbthen:&"{lt. red}Too Big!{f6}":goto 3122
+3106 if ev%=.then gosub 3282:y$=an$:if a9$="R" and u1$<>"S" then x=x9:gosub 3298:goto 3110
+3108 x=-(y$="Y")-(y$="N")*2-(y$="S")*3-(y$="A")*4-(y$="E")*5-(y$="J")*6:gosub 3298
+3110 if ev%=1 or x=5 then x=1:ev%=1
+3112 lp=1:&"{lt. green}"+mid$("Yes  No   StartAbortEveryJump8",x*5-4,5)+"{rvrs off}"
+3113 if x=6 then s8=1:goto 3094
+3114 if x=1 then t=t+1:tz=tz+a%:tt$(t)=tt$:on-(u1$="D") goto 3116:if t>253 then x=3
+3116 on-(x=3) goto 3124:if x=4 then t=.:goto 3124
+3118 on-(u1$="S") goto 3094:if tz=tbthen 3124
+3120 if tb-tz<.and u1$<>"S" then gosub 3528:goto 3124
+3122 if s=.then 3094
+3124 close 1:a9$="":if t=.then gosub 3518:on tngosub 3064:goto 3006
+3126 &"{f6}":a=f:gosub 3160:on-(a<>.) goto 3146:a=g:if u1$<>"S" then gosub 3160:on-(a<>.) goto 3146
+3128 gosub 3314:on-(u1$="S") goto 3202:goto 3302
+3130 &"{pound}f1":close 15:open 15,s1,15:close 14:open 14,t9,15:print# 15,"i":print# 14,"i"
+3132 on-(u1$="S") goto 3202:for i=1 to t:c$=tt$(i):if tt$(i)="[Deleted]" then 3142
+3134 gosub 3510:if right$(c$,1)="r" then 3220
+3136 open 3,s1,3,s1$+c$+",r":input# 15,a$,b$:if a$<>"00" then gosub 3328:goto 3142
+3138 open 2,t9,2,t1$+c$+",w":input# 14,a$,b$:if a$<>"00" then gosub 3328:goto 3144
+3140 sys {sym:protostart}:input# 14,a$,b$
+3142 close 2:close 3:gosub 3328:next:gosub 3514:on tngosub 3064:gosub 3522:goto 3162
+3144 on-(a$<>"63") goto 3142:goto 3342
+3146 gosub 3516:goto 3006
+3148 for x=1 to 15:close x:next:return
+3150 a=40:gosub 3278
+3152 &"{cyan}{f6} Command: {white}{f6:2} ":gosub 289:c$=an$:a$=left$(c$,1):b$=mid$(c$,3):if a$="" then 3006
+3154 di=.:if mid$(c$,2,1)=":" or a$="v" then di=1:if a$="n" or a$="s" then gosub 93:if a=.then 3006
+3156 on digoto 3158:close 15:open 15,s1,15:print# 15,"i":print# 15,c$:goto 3340
+3158 close 15:open 15,s1,15:print# 15,"i":print# 15,left$(c$,1)+s1$+b$:goto 3340
+3160 close 15:open 15,a,15:print# 15,"i":poke {sym:sxreg},15:sys 65481:sys 65484:close 15:a=st:return
+3162 gosub 3282:if an$="Y" then 3204
+3164 goto 3006
+3166 a=16:gosub 3278:&"{f6}{cyan} Pattern (RETURN=*):  {white}":gosub 289:return
+3168 b%=8:f=8:gosub 3290:gosub 3292:gosub 3294:f%=.:l=.:if stthen 3006
+3170 gosub 3148:gosub 3166:gosub 290:if an$="" then an$="*"
+3172 close 1:open 1,s1,0,"$"+s1$+an$:get#1,a$,a$
+3174 &"{f6}{lt. blue} [{yellow}Y{lt. blue}]es [{yellow}N{lt. blue}]o [{yellow}S{lt. blue}]tart [{yellow}A{lt. blue}]bort{pound}q0{f6}{white}{pound}vj"
+3176 &,8,1,1:lp=1:&a$+"{f6}"
+3178 &,8,1,1:s=st:if mid$(a$,7,1)="b" then b$=a$:&"{f6}{white} {pound}$b{f6}":goto 3192
+3180 b=val(a$):z$=mid$(str$(b),2):f$=mid$(a$,8):t$=mid$(a$,26,1):g$=t$
+3182 for i=2 to 17:if mid$(f$,i,1)=qt$then f$=left$(f$,i-1)
+3184 next:&"{white} {pound}#4{pound}# {pound}$z{pound}{back arrow}11{pound}$f{pound}{back arrow}30{pound}$g ? ":gosub 3282:a$=an$:lp=1
+3186 x=-(a$="Y")-2*(a$="S")-3*(a$="A"):&"{lt. green}"+mid$("No   Yes  StartAbort",x*5+1,5)
+3188 on x+1 goto 3194,3190,3192,3192
+3190 f%=f%+1:a%(f%)=b%:tt$(f%)=f$:a%(f%)=b%:l=l+b%:goto 3194
+3192 s=1:if x=3 then f%=.:gosub 92
+3194 on-(s=.and f%<100) goto 3178:close 1:on-(f%=.) goto 3006
+3196 for i=1 to f%:c=len(tt$(i)):b$=left$(tt$(i),c-2):b%=i:x$=right$(tt$(i),1)
+3198 &"{white}{f6}{pound}#2{pound}# {pound}%b{pound}{back arrow}08{pound}$b{pound}{back arrow}27{pound}$x":next
+3200 &"{f6:2}Correct? {lt. green}":gosub 94:gosub 3288:on a+1 goto 3006:goto 3130
+3202 gosub 93:gosub 3288:on a+1 goto 3006
+3204 &"{pound}f1":close 15:open 15,s1,15:print# 15,"i":u2=.
+3206 for i=1 to t:c=len(tt$(i)):c$=left$(tt$(i),c-2):gosub 3520
+3208 print# 15,"s"+s1$+c$:input# 15,a$,b$,u2$,u3$
+3210 if a$="01" then b$="{white}ok":gosub 3328:u2=u2+val(u2$)
+3212 if a$<>"01" then v$="{lt. red}Error: "+b$:b$=v$:gosub 3328
+3214 close 3:next:gosub 3530:on tngosub 3064:goto 3006
+3216 if left$(c$,1)="s" then b$=b$+str$(t%)
+3218 return
+3220 l=.:c$=left$(c$,len(c$)-2):gosub 3222:goto 3142
+3222 gosub 3504:open 3,s1,3,s1$+c$:input# 15,e%,b$:if e%then return
+3224 &"Rec.Len. {cyan}[{rvrs on}{lt. blue}000":for u1=7 to 0 step-1:l=l+2^u1:a%=l:&"{pound}h3{pound}#3{pound}%a"
+3226 print# 15,"p"+chr$(3)+chr$(1)+chr$(0)+chr$(l):input# 15,e%,b$
+3228 if e%then l=l-2^u1
+3230 next:a%=l:&"{pound}h3{pound}#3{pound}%a{rvrs off}{cyan}]{white}":rl=l:l=.
+3232 &"{f6}Ttl.Rec. {cyan}[{rvrs on}{lt. blue}00000":for u1=15 to 0 step-1:l=l+2^u1
+3234 a$=str$(l):a$=right$(a$,len(a$)-1):&"{pound}h5"+right$("00000"+a$,5)
+3236 u2=l/256:u3=int((u2-int(u2))*256):u2=int(u2)
+3238 print# 15,"p"+chr$(3)+chr$(u3)+chr$(u2)+chr$(0):input# 15,e%,b$
+3240 if e%then l=l-2^u1:a$=str$(l):a$=right$(a$,len(a$)-1)
+3242 next:&"{pound}h5"+right$("00000"+a$,5):rn=l:w$="":close 2
+3244 gosub 3508:open 2,t9,2,t1$+c$+",l,"+chr$(rl):input# 14,e%,b$
+3246 if e%then return
+3248 u2=rn/256:u3=int((u2-int(u2))*256):u2=int(u2)
+3250 print# 14,"p"+chr$(2)+chr$(u3)+chr$(u2)+chr$(0):print# 2,chr$(255)
+3252 print# 15,"p"+chr$(3)+chr$(1)+chr$(0)+chr$(0)
+3254 print# 14,"p"+chr$(2)+chr$(1)+chr$(0)+chr$(0)
+3256 gosub 3510:on-(rn=1) goto 3258:sys {sym:protostart}
+3258 for u1=2 to rn:sys {sym:protostart}+28:next:b$="{white}Ok":return
+3260 on-(u1$="C" or u1$="P") goto 3262:return
+3262 &"{f6}{cyan}RETURN = {f5}*{f5}":return
+3263 d$="       "
+3264 &"{clear}{pound}n5":b%=8:f=8:gosub 3290:on abgoto 3264:gosub 3292:on abgoto 3264:gosub 3294:a=16:gosub 3278:&"{f6} {cyan}Filename?{white} ":gosub 3286
+3266 on-(an$="") goto 3368:f$=an$:dr=.:a$=f$+",s,r":gosub 4:if e%then 3388
+3268 gosub 3532:gosub 3282:&"{pound}f1":if an$<>"P" then 3272
+3270 &,18,1:&,52,12,1:close 4:open 4,4:close 4:on-(st<>.) goto 3016:gosub 3060:open 4,4,y
+3272 &,2,2:s=st:lp=-(len(a$)<>80):&:on-(rc+s=.) goto 3272:gosub 3548:&,52,12,0:goto 3006
+3274 &"{clear}{pound}n5":b%=8:gosub 3290:gosub 3292:gosub 3294:&"{f6:2} {rvrs on}RETURN{rvrs off} {pound}g1":goto 3006
+3276 print# 14,"s" t1$c$:goto 3138
+3278 if ve>1.2 then:&,59,1,a:return
+3280 poke 53252,a:return
+3282 &"{pound}g1":goto 3288
+3284 &"{pound}i1":goto 3288
+3286 &"{pound}i0"
+3288 on tr%+1 goto 3036:return
+3290 a=2:gosub 3278:&"{cyan}{pound}$d Device {white}(8-29):{pound}{back arrow}22{cyan}":gosub 3284:y=.
+3291 a=val(an$):goto 3352
+3292 on-(y<>.) goto 3300:a=3:gosub 3278:&"{cyan}{pound}$d Drive {white}(0-254):{pound}{back arrow}22{cyan}":gosub 3284
+3293 c%=val(an$):return
+3294 d2%=c%:d1%=b%:dr=.:gosub 61
+3296 lp=1:&"{f6}{cyan} Blocks Free: {white}"+str$(a):tb=a:return
+3298 if x=.then x=2
+3300 return
+3302 &"{f6:2} {white}C{lt. blue}opy  {white}A{lt. blue}bort  {white}R{lt. blue}edo  {white}M{lt. blue}ore  {white}D{lt. blue}elete Some":goto 3320
+3304 &"{pound}f1":f%=t:goto 3086
+3306 &"{pound}f1":gosub 3148:t=.:goto 3088
+3308 a=3:gosub 3278:&"{f6:2} Delete which:  ":gosub 3284:zy=val(an$):if an$="" then 3320
+3310 if zy<1 or zy>tthen 3320
+3312 tt$(zy)="[Deleted]":goto 3128
+3314 for i=1 to t:&"{f6}"+str$(i)+":"+tt$(i)
+3316 if i/20=int(i/20) then gosub 3326
+3318 next:return
+3320 gosub 3282:y$=an$
+3322 on-(y$="A")-(y$="R")*2-(y$="M")*3-(y$="D")*4-(y$="C")*5 goto 3004,3306,3304,3308,3130
+3324 goto 3320
+3326 &"{f6}{pound}{back arrow}16{white}[{rvrs on}{cyan}RETURN{rvrs off}{white}]":goto 3282
+3328 lp=.:&"{clear}{pound}q0{yellow} {$b0}{pound}o{$c0:18}{$ae}{f6:2}"
+3330 &" {$ad}{pound}o{$c0:18}{$bd}{f6}"
+3332 &"{home}{f6}    {lt. blue}{pound}$b{home}{lt. green}{pound}n9{pound}n4":return
+3334 if an$="" then 3338
+3336 b%=val(an$)
+3338 a=b%:gosub 3160:on-(a<>.) goto 3146:return
+3340 gosub 5:close 15:b$=e$:gosub 3216:gosub 3328:goto 3006
+3342 c=len(c$):t$=right$(c$,2):c$=left$(c$,c-2)
+3344 on-(gl=1) goto 3350:&"{f6:2}[N]ew Name   [S]kip   [R]eplace{f6:2}Old:  {pound}$c{pound}{back arrow}38"
+3346 gosub 3282:on-(an$="S")-(an$="R")*2 goto 3142,3350
+3348 close 2:&"{f6}{yellow}New:  ":a=16:gosub 3286:c$=an$+t$:goto 3138
+3350 close 2:c$=c$+t$:goto 3276
+3352 if an$="" then an$=mid$(str$(b%),2)
+3354 b%=a:on-(a>29) goto 3432:if a>.and a<7 then dr=a:gosub 3:b%=dv%:c%=val(dr$):y=1
+3356 ab=.:close 2:open 2,b%,3:close 2:s=st:on-(st>-1) goto 3430:&"{pound}f1{pound}n9Not present!{pound}w3":ab=1:return
+3358 a$="read":a=16:gosub 3278
+3360 gosub 28:if e%then gosub 3524:goto 3368
+3362 a$=f$+",p,r"
+3364 dr=.:gosub 4:if e%then 3368
+3366 gosub 3372:gosub 3380:&,16,x,y:&"{f6:2}{pound}#0{pound}#a Blocks Read{f6:2}"
+3368 gosub 3148:gosub 3326:goto 3006
+3370 gosub 3516:goto 3368
+3372 &,52,16,3:if a%=.then 3378
+3374 &,52,18,3:if a%=.then x=.:return
+3376 &,52,19,3:if a%=.then x=.:return
+3378 &"{f6}Display Control Codes in{f6}Expanded Form (BASIC ONLY)? ":gosub 94:x=a:return
+3380 a%=ll%:a=2:gosub 3278
+3382 &"{f6}Screen Width (RET = {pound}#0{pound}%a): ":gosub 3284:gosub 3442
+3384 if y<22 or y>80 then y=ll%
+3386 return
+3388 a$=f$+",p,r":dr=.:gosub 4:on-(e%=.) goto 3358:gosub 3428:a=3:gosub 3278
+3390 rc=.:&"{f6}Record (A=All): ":gosub 3284:gosub 3442:x=y:on-(an$="")-(an$="A")*2 goto 3368,3414
+3392 if x=.then:&"{f6}":goto 3368
+3394 gosub 1:d=.:gosub 5:if e%=50 then:&"{f6}{pound}$e{f6}":goto 3390
+3396 &"{clear}{f6}{rvrs on}{lt. blue}    Record #"+str$(x)+"{rvrs on}    {rvrs off}{f6:2}":e=1
+3398 d=d+1:&,2,2:tt$(d)=a$
+3400 &"{lt. red}Field #{white}"+str$(d)+"{cyan}{f6:2}"+tt$(d)+"{f6}":if st=.then 3398
+3402 &"{f6} Edit?":gosub 94:if a=.then 3390
+3404 a=3:gosub 3278:on-(d=1) goto 3406:&"{f6} Which Field? ":gosub 3284:gosub 3442:e=y:if e>dthen 3390
+3406 a=254:gosub 3278:pl=.:w$=tt$(e):p$="Data: ":&,1,41:if an$="" then 3390
+3408 tt$(e)=an$:gosub 1:on-(d=1) goto 3412:w$=tt$(1):for a=2 to d:w$=w$+r$+tt$(a):next
+3410 print# 2,w$:goto 3390
+3412 w$=tt$(1):print# 2,w$:goto 3390
+3414 x=1
+3416 gosub 1
+3418 d=.:&"{f6}{rvrs on}{lt. blue}    Record #"+str$(x)+"{rvrs on}    {rvrs off}{f6:2}"
+3420 d=d+1:&,2,2:tt$(d)=a$
+3422 &"{lt. red}Field #{white}"+str$(d)+"{cyan}{f6}"+tt$(d)+"{f6}":if rcthen 3368
+3424 on-(st=.) goto 3420:x=x+1:gosub 1:gosub 5:if e%=50 then close 2:goto 3368
+3426 goto 3418
+3428 a$=f$:dr=.:gosub 4:if e%then 3368
+3430 return
+3432 a=8:return
+3434 if cm=.or a=.then 3430
+3436 close 15:close 2:open 15,dn,15:open 2,dn,2,"#":print# 15,"g-p" chr$(a)
+3438 get#15,pt$:ab=.:pt=asc(pt$+chr$(0)):if pt>.and pt<5 then return
+3440 &"{home}{pound}n9{pound}n9{pound}n3{pound}{back arrow}13{white}[ {rvrs on}{cyan} Illegal P. {rvrs off}{white} ]{pound}w4":a$="":ab=1:return
+3442 y=int(abs(val(an$))):return
+3444 a$="2":gosub 28:gosub 3536:f2=1:gosub 3148:c$="":b$=""
+3446 gosub 3536:gosub 3540:on-(t=.) goto 3460:open 1,o,0,"$"+o$+"*":get#1,a$,a$:&,8,1,1
+3448 &,8,1,1:f1=f1+1:c$=mid$(a$,8):s=st:on sgoto 3460:if mid$(a$,7,1)="b" then 3460
+3450 z$=mid$(a$,26,1):on-(f1<f2) goto 3448:for i=2 to 17:if mid$(c$,i,1)=qt$then c$=left$(c$,i-1):i=17
+3452 next:l=val(a$):on-(t-l<.) goto 3464:if z$="r" then 3466
+3454 a=o:gosub 3462:on agoto 3460:a=p:gosub 3462:on agoto 3460:gosub 3506
+3456 open 15,o,15:open 14,p,15:c$=c$+","+z$:open 3,o,3,o$+c$+",r"
+3458 open 2,p,2,p$+c$+",w":input# 14,e,e$:on-(e$<>"ok") goto 3464:sys {sym:protostart}:goto 3464
+3460 gosub 3148:gosub 3514:on tngosub 3064:goto 3006
+3462 close 15:open 15,a,15:print# 15,"i":poke {sym:sxreg},15:sys 65481:sys 65484:close 15:a=st:return
+3464 gosub 3148:f2=f2+1:goto 3446
+3466 close 15:open 15,o,15:l=.:gosub 3468:goto 3464
+3468 gosub 3504:open 3,o,3,o$+c$:input# 15,e%,b$:if e%then return
+3470 &"{f6}Rec.Len. {cyan}[{rvrs on}{lt. blue}000":for u1=7 to 0 step-1:l=l+2^u1:a%=l:&"{pound}h3{pound}#3{pound}%a"
+3472 print# 15,"p"+chr$(3)+chr$(1)+chr$(0)+chr$(l):input# 15,e%,b$
+3474 if e%then l=l-2^u1
+3476 next:a%=l:&"{pound}h3{pound}#3{pound}%a{rvrs off}{cyan}]{white}":rl=l:l=.
+3478 &"{f6}Ttl.Rec. {cyan}[{rvrs on}{lt. blue}00000":for u1=15 to 0 step-1:l=l+2^u1
+3480 a$=str$(l):a$=right$(a$,len(a$)-1):&"{pound}h5"+right$("00000"+a$,5)
+3482 u2=l/256:u3=int((u2-int(u2))*256):u2=int(u2)
+3484 print# 15,"p"+chr$(3)+chr$(u3)+chr$(u2)+chr$(0):input# 15,e%,e$
+3486 if e%then l=l-2^u1:a$=str$(l):a$=right$(a$,len(a$)-1)
+3488 next:&"{pound}h5"+right$("00000"+a$,5):rn=l:w$="":close 2:open 14,p,14
+3490 gosub 3508:open 2,p,2,p$+c$+",l,"+chr$(rl)
+3492 u2=rn/256:u3=int((u2-int(u2))*256):u2=int(u2)
+3494 print# 14,"p"+chr$(2)+chr$(u3)+chr$(u2)+chr$(0):print# 2,chr$(255)
+3496 print# 15,"p"+chr$(3)+chr$(1)+chr$(0)+chr$(0)
+3498 print# 14,"p"+chr$(2)+chr$(1)+chr$(0)+chr$(0)
+3500 gosub 3506:on-(rn=1) goto 3502:sys {sym:protostart}
+3502 for u1=2 to rn:sys {sym:protostart}+28:next:return
+3504 b$="Scanning":goto 3512
+3506 b$="P Copying":goto 3512
+3508 b$="Creating":goto 3512
+3510 b$="Copying"
+3512 b$=b$+" {f5}{white}"+c$+"{lt. blue}{f5}":goto 3328
+3514 b$="Done":goto 3534
+3516 b$="{lt. red}Device not present!{lt. blue}":goto 3534
+3518 b$="{lt. red}Aborted!{lt. blue}":goto 3534
+3520 b$="{lt. red}Scratching{lt. blue}":goto 3512
+3522 b$="{lt. red}Scratch{lt. blue} from source?":goto 3328
+3524 b$="{lt. red}Error{lt. blue} loading {f5}++ read{f5}":goto 3328
+3526 b$="[U]pper or [L]ower Case?":goto 3328
+3528 b$="{lt. red}No Room!":goto 3328
+3530 b$="Total Scratched:{white}"+str$(u2):goto 3328
+3532 b$="Screen or Printer?":goto 3328
+3534 gosub 3328:&"{pound}w1":return
+3536 o=s1:o$=s1$:p=t9:p$=t1$
+3538 f1=.:lp=1:return
+3540 dr=.:d1%=p:d2%=val(p$):gosub 61
+3542 t=a:return
+3544 &,40
+3546 z%=(peek({sym:fretop}+1)-peek({sym:strend}+1))*256+peek({sym:fretop})-peek({sym:strend}):return
+3548 poke 144,sand 255:a=rc:gosub 12:rc=a:return
+3550 goto 3554
+3552 &,8,1,1:if mid$(a$,7,1)<>"b" then b%=b%+1:&"{pound}h4{pound}#4{pound}%b":goto 3552
+3553 &"{pound}h4Total Files: {pound}#0{pound}%b{f6}":close 1
+3554 p$="{f6}{green}Device, Drive{lt. blue}":gosub 6:on-(an$="Q" or an$="") goto 3006:an$="xx"+an$:gosub 350
+3555 if athen:&"{f6}{orange}Device Not Present{f6}":goto 3554
+3556 &"{f6}{green}Pattern (RETURN=*){lt. blue}:":gosub 289:if an$="" then an$="*"
+3557 b%=-1:open 1,dv%,0,"$"+dr$+an$:get#1,a$,a$:&"{f6}{white}0000":goto 3552
+3590 "Der Deutscher 950301"
+3592 rem:"converted for Image 2.0 190604 x-tec"
+3594 rem:"i.CP.v3.1 (c)nissa 200805 lh"

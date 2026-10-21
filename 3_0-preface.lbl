@@ -82,6 +82,7 @@
 {assign:216	=216	} '
 {assign:220	=220	} '
 {assign:234	=234	} '
+{assign:250	=250	} ' im.250 (i.NF, i/lo-news2); 10/21/2026
 {assign:289	=289	} ' input an$, fall through:
 {assign:290	=290	} ' convert special characters in an$
 {assign:300	=300	} ' im.main_prompt
@@ -95,6 +96,7 @@
 {assign:350	=350	} ' im.set_drive
 {assign:330	=330	} ' im: open e.macros
 {assign:304	=304	}
+{assign:353	=353	} ' im.353 (i.RF, i.lo.rf); 10/21/2026
 {assign:370	=370	}
 {assign:375	=375	} '
 
@@ -123,6 +125,8 @@
 {assign:450	=450	} ' im.stack
 
 {assign:505	=505	} ' im.find_id
+{assign:514	=514	} ' im.514 (i.DX); 10/21/2026
+{assign:540	=540	} ' im.540 (i.t); 10/21/2026
 {assign:542	=542	} ' im: im=1, then line 440 (sub.editor)
 ' 10/14/2026: 557 for i/SM.lk util, which jumps to it
 {assign:557	=557	} ' im: im=9, then line 448 (sub.local)

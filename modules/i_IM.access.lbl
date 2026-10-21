@@ -1,0 +1,68 @@
+' imported from i_IM.access.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+
+4000 rem access module
+4002 &"{clear}{white}{f6:2}Loading Access Group Data...":gosub4072
+4004 dr=3:a$="e.access":gosub4:fori=0to9:x=i+1:gosub1:&,2,2:tt$(i)=a$
+4006 &,2,2:tt$(i+10)=a$:next
+4008 &"{clear}{f6}#  Group Name{pound}{back arrow}19Flags{f6}{pound}vj":fori=0to9:a$=tt$(i):b$=tt$(i+10):a%=i
+4010 &"{pound}%a> {pound}$a{pound}{back arrow}19{pound}$b{f6}":ifrctheni=9
+4012 next:&"{white}{pound}vj{cyan}{f6} Edit (0-9): {pound}g1{pound}v7{f6}":iftr%<1then4024
+4014 on-(an$="L")goto4008:on-(an$<"0"oran$>"9")goto4020:t=val(an$):&"{f6}"
+4016 poke53252,20:w$=tt$(t):p$="Group Name":pl=.:&,1,32:ifan$<>""thentt$(t)=an$
+4018 q$=tt$(t+10):f$=q$:gosub4026:tt$(t+10)=q$:goto4008
+4020 &" Save Changes?: ":gosub94:ifa=.then4024
+4022 &"{f6}Saving...":fori=.to9:x=i+1:gosub1:print#2,tt$(i)r$tt$(i+10):next
+4024 close2:return
+4026 &"{clear}":poke53252,38:fori=1to20:b$=mid$(q$,i,1)
+4028 ifi=2thenb$=b$+" to 1":goto4042
+4030 ifi=16ori=17ori=20then4042
+4032 ifi=6thenb$=mid$(str$((val(b$)+1)*10),2):goto4042
+4034 ifi=18thenb$=mid$(q$,i,2):goto4042
+4036 ifi=19then4044
+4038 ifb$="1"thenb$="Yes"
+4040 ifb$="0"thenb$="No"
+4042 a%=i:c$=dt$(i):&"{pound}#2{pound}# {pound}%a--{pound}$c{pound}{back arrow}20: {pound}$b{f6}"
+4044 next:&"Change?: {pound}i1"
+4046 a=val(an$):iftr%<1ora<1ora>20thenreturn
+4048 on-(a=16ora=17ora=20)-2*(a=18)-3*(a=19)goto4062,4066,4026
+4050 on-(a=2ora=6)goto4052:b$=mid$(str$(1-val(mid$(q$,a,1))),2):goto4060
+4052 ifa=2thenb$=mid$(q$,2,1)+"/1"
+4054 ifa=6thenb$=mid$(str$((val(mid$(q$,6,1))+1)*10),2)
+4056 p$=dt$(a):w$=b$:&,1,32:ifan$=""then4026
+4058 b$=left$(an$,1):ifa=6thenb$=mid$(str$(int(val(an$)/10)-1),2,1)
+4060 q$=left$(q$,a-1)+b$+mid$(q$,a+1):&"{f6}":goto4026
+4062 p$=dt$(a):b$=mid$(q$,a,1):w$=b$:poke53252,1:pl=1:&,1,32:ifan$<>""thenb$=an$
+4064 goto4060
+4066 p$=dt$(a):b$=mid$(q$,a,2):w$=b$:poke53252,2:pl=1:&,1,32:ifan$<>""thenb$=an$
+4068 iflen(b$)=1thenb$="0"+b$
+4070 q$=left$(q$,a-1)+b$+mid$(q$,a+2):&"{f6}":goto4026
+4072 dt$(1)="Non-Weed Status"
+4074 dt$(2)="Credit Ratio"
+4076 dt$(3)="Local Maint"
+4078 dt$(4)="Post/Respond"
+4080 dt$(5)="U/D Access"
+4082 dt$(6)="Max.Editor Lines"
+4084 dt$(7)="Unlimited D/Ls"
+4086 dt$(8)="Remote Maint"
+4088 dt$(9)="EMail"
+4090 dt$(10)="User List"
+4092 dt$(11)="B.A.R./Log View"
+4094 dt$(12)="Submaint"
+4096 dt$(13)="Files Maint"
+4098 dt$(14)="MCI Access"
+4100 dt$(15)="UDs At Primetime"
+4102 dt$(16)="Max Idle Time"
+4104 dt$(17)="Calls/Day"
+4106 dt$(18)="Time/Call"
+4108 dt$(19)="Time/Call"
+4110 dt$(20)="Download/Call*10"
+4112 return
+4114 copr.1988 new image
+4116 rem:"i/IM.access (c)nissa 190515 lh"

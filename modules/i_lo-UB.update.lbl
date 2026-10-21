@@ -1,0 +1,31 @@
+' imported from i_lo-UB.update.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+
+4500 rem add biographies
+4502 ifac%<1then4540
+4504 dr=6:a$="u.biographies":gosub4:ife%then4540
+4506 x=id:gosub1:&,2,2:ifa$=na$then4540
+4508 &"{f6}{purple}       {$b0}{$c0:20}{$ae}"
+4510 &"{f6}{purple}       {$dd}{cyan}{rvrs on}  Our Database does {purple}{rvrs off}{$dd}"
+4512 &"{f6}{purple}       {$dd}{cyan}{rvrs on} not hold your bio- {purple}{rvrs off}{$dd}"
+4514 &"{f6}{purple}       {$dd}{cyan}{rvrs on} graphy. Please add {purple}{rvrs off}{$dd}"
+4516 &"{f6}{purple}       {$dd}{cyan}{rvrs on} your city{f1} state   {purple}{rvrs off}{$dd}"
+4518 &"{f6}{purple}       {$dd}{cyan}{rvrs on} and{f1} a short quote {purple}{rvrs off}{$dd}"
+4520 &"{f6}{purple}       {$dd}{cyan}{rvrs on} or saying about    {purple}{rvrs off}{$dd}"
+4522 &"{f6}{purple}       {$dd}{cyan}{rvrs on} yourself for our   {purple}{rvrs off}{$dd}"
+4524 &"{f6}{purple}       {$dd}{cyan}{rvrs on} other users to see.{purple}{rvrs off}{$dd}"
+4526 &"{f6}{purple}       {$ad}{$c0:20}{$bd}{f6}"
+4528 poke53252,20:&"{f6}{cyan}Enter Your City:{lt. green} {pound}i1":ontr%+1goto4540:on-(an$="")goto4528:b$=an$+r$
+4530 poke53252,2:&"{f6}{cyan}Enter Your State {white}(Two Letters):{lt. green} {pound}i1":ontr%+1goto4540
+4532 on-(an$="")goto4530:b$=b$+an$+r$
+4534 poke53252,79:pl=.:&"{f6}{cyan}Enter Your Biography {white}(80 Chars Max){lt. green}{f6}":p$="":&,1,9
+4536 ontr%+1goto4540:on-(an$="")goto4534:b$=na$+r$+b$+an$
+4538 dr=6:a$="u.biographies":gosub4:x=id:gosub1:print#2,b$:close2:goto4540
+4540 goto12
+4542 copr. 1994 new image 9/14/94

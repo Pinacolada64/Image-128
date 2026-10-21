@@ -1,0 +1,122 @@
+' imported from i_IM.lightbar.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{crunch:on}
+
+4000 on lmgoto 4100,4200,4300
+4002 return
+4004 if b<0 then a$="--:--":return
+4006 a%=b/60:b%=b-a%*60:a$="A":if a%>11 then a$="P":a%=a%-12
+4008 a%=a%-12*(a%=0):a$=right$(str$(a%),2)+":"+right$(str$(100+b%),2)+a$:return
+4100 gosub 4128:p%=1
+4102 p%=p%+zz%*(p%>zz%)-zz%*(p%<1)
+4104 &"{clear}{lt. blue}Page{white} {pound}%p{f6}":gosub 4140
+4106 &"{f6:2}{white}L{lt. blue}oad{blue}/{white}S{lt. blue}ave{blue}/{white}N{lt. blue}ext{blue}/{white}P{lt. blue}rev{blue}/{white}#{blue}/{white}Q{lt. blue}uit{blue}:{white} {pound}i1"
+4108 if an$="N" or an$="P" then p%=p%+(an$="P")-(an$="N"):goto 4102
+4110 if an$="L" then gosub 4128:goto 4102
+4112 if an$="S" then gosub 4134:goto 4102
+4114 if val(an$) then gosub 4120:goto 4102
+4116 if tzthen:&"Save Changes? ":gosub 94:if athen gosub 4134
+4118 &,11:return
+4120 a=val(an$):if a<1 or a>16 then return
+4122 a$=mid$(c$(p%),a,1):if a$="-" then return
+4124 a$=chr$(48-(a$="0")):c$(p%)=left$(c$(p%),a-1)+a$+mid$(c$(p%),a+1)
+4126 tz=1:return
+4128 tz=0:&"Loading Checkmark Defaults{f6}":gosub 4146
+4130 dr=3:a$="e.lightdefs,s,r":gosub 4:if e%then close 2:return
+4132 for x=1 to zz%:&,2,2:gosub 4164:c$(x)=a$:x=x-(st<>0)*zz%:next:close 2:return
+4134 dr=3:gosub 3:print# 15,"s" dr$"e.lightdefs"
+4136 dr=3:a$="e.lightdefs,s,w":gosub 4
+4138 for x=1 to zz%:print# 2,c$(x):next:close 2:tz=0:return
+4140 for i=1 to 16:a$=mid$(c$(p%),i,1):if a$<>"-" then a$=mid$(" {$ba}",val(a$)+1,1)
+4142 a%=i:b%=(p%-1)*16+i-1:b$=b$(b%):&"{white}{pound}#2{pound}# {pound}%a {pound}$a {pound}$b{f6}"
+4144 next:return
+4146 c$(1)="00-0---0--00-000"
+4148 c$(2)="-----0000-000-00"
+4150 c$(3)="00-000000000-000"
+4152 c$(4)="00000-0000--0000"
+4154 c$(5)="0000000000000000"
+4156 c$(6)="0000000000000000"
+4158 c$(7)="0000000000000000"
+4160 c$(8)="0000000000000000"
+4162 return
+4164 for i=1 to len(a$):xx$=mid$(a$,i,1):yy$=mid$(c$(x),i,1)
+4166 if yy$="0" and xx$="-" then xx$="0"
+4168 if yy$="-" then xx$="-"
+4170 a$=left$(a$,i-1)+xx$+mid$(a$,i+1):next:return
+4200 gosub 4212:on-(e%=0) goto 4218:for i=8 to 15:am%(0,i)=256:next
+4202 for i=0 to 7:am%(0,i)=112+i*2:am%(3,i)=113+i*2:next:gosub 4214:goto 4218
+4204 tz=0:dr=3:gosub 3:a$=dr$+"e.alarms":return
+4206 &"{clear}Alarm Time/Checkmark Editor 1.3{f6}{pound}$k":return
+4208 a%=b/60:b%=b-a%*60:a$="A":if a%>11 then a$="P":a%=a%-12
+4210 a%=a%-12*(a%=0):a$=right$(str$(a%),2)+":"+right$(str$(100+b%),2)+a$:return
+4212 gosub 4204:&,60,2,0,am%(0,0),a$,dv%:goto 5
+4214 gosub 4204:print# 15,"s" a$:&,60,3,0,am%(0,0),128,a$,dv%:goto 5
+4216 gosub 4204:&,7,dv%,9:return
+4218 for i=0 to 15:gosub 4282:next:k$=" {$c0:38}{f6}"
+4220 gosub 4206:&" ##  OnTime OffTime Check Active?{f6:2}"
+4222 for i=0 to 15:a%=i+1:a$=c$(i):&" {pound}#2{pound}# {pound}%a) {pound}$a{f6}":next
+4224 &"{pound}$kEdit Which (RETURN to Quit)? {pound}i1":if an$="" then 4276
+4226 a=val(an$):on-(a<1 or a>16) goto 4220:a=a-1
+4228 gosub 4206:a%=a+1:&"Alarm #{pound}%a:{f6:2}"
+4230 b=am%(1,a):gosub 4004:&" 1) On Time:  {pound}$a{f6}"
+4232 b=am%(2,a):gosub 4004:&" 2) Off Time: {pound}$a{f6}":a%=am%(0,a)
+4234 if a%=256 then:&" 3) Disabled{f6}"
+4236 if a%>256 then:&" 3) Enabled{f6}"
+4238 if a%<256 then:&" 3) Enabled By Checkmark {pound}%a{f6}"
+4240 a%=am%(3,a):&" 4) Checkmark {pound}%a is Triggered{f6}"
+4242 &"{pound}$kChange Which (RETURN to Abort)? {pound}i1":if an$="" then i=a:gosub 4282:goto 4220
+4244 &"{f6}":x=val(an$):on xgosub 4246,4250,4258,4270:goto 4228
+4246 p$="Turn On Time":goto 4250
+4248 p$="Turn Off Time"
+4250 b=am%(x,a):gosub 4004:w$=a$:poke 53252,6:&,1,32:if an$="" then return
+4252 b=val(left$(an$,2)):if b=12 then b=0
+4254 b=b*60+val(mid$(an$,4,2))-(right$(an$,1)="P")*720:if b=am%(x,a) then return
+4256 am%(x,a)=b:tz=1:return
+4258 &"Forced [E]nabled, Forced [D]isabled,or{f6}[C]heckmark? {pound}g1":b=am%(0,a)
+4260 if an$="E" then b=257
+4262 if an$="D" then b=256
+4264 if an$="C" then:&"Which One? {pound}i1":b=val(an$)
+4266 if am%(0,a)=bthen return
+4268 am%(0,a)=b:tz=1:return
+4270 &"Which Check do you want triggered? {pound}i1":if an$="" then return
+4272 b=val(an$):if am%(3,a)=bthen return
+4274 am%(3,a)=b:tz=1:return
+4276 a=0:if tzthen:&"Changes Made! Save? ":gosub 94
+4278 if athen gosub 4214:&"Activate Saved Table? ":gosub 96:on agosub 4216
+4280 return
+4282 a=am%(0,i):b=am%(1,i):gosub 4004:b$=a$:b=am%(2,i):gosub 4004:c$=a$:a%=am%(3,i)
+4284 a$=b$+" "+c$+"  "+left$(b$(am%(3,i) and 127),5)+"  "
+4286 if a=256 then a$=a$+"No":goto 4292
+4288 if a>256 then a$=a$+"Yes":goto 4292
+4290 a$=a$+"if "+left$(b$(aand 127),5)
+4292 c$(i)=a$:return
+4294 rem
+4300 &"Loading NetMail Alarm Table..."
+4302 for i=0 to 23:a%(i)=i*60:next:gosub 4308:tz=-(e%<>0)
+4304 for i=0 to 23:b=a%(i):gosub 4004:c$(i)=a$:next:goto 4314
+4306 gosub 4310:print# 15,"s" a$:&,60,3,0,a%(0),48,a$,dv%:goto 5
+4308 gosub 4310:&,60,2,0,a%(0),a$,dv%:goto 5
+4310 dr=2:gosub 3:a$=dr$+"nm.times":return
+4312 gosub 4310:&,7,dv%,12:goto 5
+4314 &"{clear}{f6}NetMail Trigger Times:{f6:2}"
+4316 for i=0 to 11:a%=i+1:a$=c$(i):b%=i+13:b$=c$(i+12)
+4318 &"{pound}#2{pound}# {pound}%a) {pound}$a{pound}{back arrow}20{pound}%b) {pound}$b{f6}"
+4320 next:&"{f6}Change Which? {pound}i1":a=val(an$):if a<1 or a>24 then 4336
+4322 p$="NetMail Alarm #"+str$(a)
+4324 a=a-1:b=a%(a):gosub 4004:w$=a$:poke 53252,6:&,1,32:if an$="" then 4314
+4326 if an$="-" or an$="{f8}" then b=-1:goto 4332
+4328 b=val(left$(an$,2)):if b=12 then b=0
+4330 b=b*60+val(mid$(an$,4,2))-(right$(an$,1)="P")*720
+4332 if b=a%(a) then 4314
+4334 a%(a)=b:gosub 4004:c$(a)=a$:tz=1:goto 4314
+4336 if tz=0 then return
+4338 &"{f6}Save Changes? ":gosub 94:if athen gosub 4306
+4340 &"{f6}Activate Saved Table? ":gosub 96:if athen gosub 4312
+4342 return
+4344 rem:"i/IM.lightbar (c)nissa 201031 lh"

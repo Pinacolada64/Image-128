@@ -1,0 +1,36 @@
+' imported from i_lo.instant.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+' Image BBS 128 (10/21/2026): C64 addresses in peek/poke/sys are the 128's,
+' as {sym:...} names from asm/equates.asm (included below).
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{include:"..\asm\equates.asm"}
+{crunch:on}
+
+4000 rem" 'i.lo.instant'  10Apr95  JLF           Instant Login Module         "
+4002 &,27,2:dim fb%(29,15),ff%(15):dr=3:gosub 3
+4004 &" {f6:2}{blue}{pound}vj {rvrs on}{cyan}{pound}{back arrow}05{pound}$qSysOp Instant Login{pound}{back arrow}39{f6}{blue}{pound}vj"
+4005 &,60,2,.,fb%(.,.),dr$+"e.sysoplist",dv%:gosub 5:if e%then 4028
+4006 &,52,4,3:&,60,8,fb%(.,.),60,2^(a%+3),fb%(11,1),ff%(1),1:if a%=.then 4028
+4008 for i=1 to a%:x=ff%(i):&,60,1,20,fb%(1,x),an$:&,15,1:b%=fb%(.,x)
+4010 &"{f6} {cyan}{pound}!i{blue}. {yellow}{pound}v7 {blue}{pound}{back arrow}28({cyan}ID# {white}{pound}#0{pound}%b{blue})":next:poke 53252,4
+4012 &"{f6:2}{cyan} Logon Which Account?{white}: {pound}i1":a=val(an$):on-(a<1 or a>a%or tr%<1) goto 4024
+4014 a=ff%(a):id=fb%(.,a):i%=1:&,28,2:on i%and zzgoto 4043:goto 4030
+4020 &,28,2
+4022 mm=9:goto 3000
+4024 &,28,2
+4026 mm=.:f1=3:goto 3000
+4028 &,28,2:id=1:i%=1:goto 4030
+4030 &"{f6}{gray3} Please Enter Your Password{white}:{f6:2}{pound}b1: ":poke 53252,14:&,6:if tr%<1 then 4026
+4032 z$=an$:on-(z$="") goto 4050
+4040 im=2:gosub 445:if na$="{^}" or na$="RES" then 4052
+4042 on-(pw$<>z$) goto 4050
+4043 im=2:gosub 445:&"{f6}{lt. red}Login Complete!{f6}":ll%=l9%:poke {sym:modclmn},ll%:gosub 90:if zz=.then k%=i%:i%=.
+4044 x%=1:mm=10:goto 3000
+4050 &"{f6}{lt. red}Login is not valid.{f6}":goto 4022
+4052 lp=1:&"{f6}{lt. red}That account has been deleted or is not active.{f6}":goto 4022
+4062 rem:"i/lo.instant (c)nissa 201007 lh-ad"

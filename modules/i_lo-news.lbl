@@ -1,0 +1,26 @@
+' imported from i_lo-news.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+
+4500 rem - news module -
+4502 &,27,2:gosub306:kk=.:b=.:t=.:dr=4:a$="d.n.Main,s,r":gosub4
+4504 onsgn(e%)goto4526:input#2,b:ifb<1then4526
+4506 t=.:forx=1tob:input#2,ed$(x),nn$(x),d%(x):d%(x)=d%(x)*-((d%(x)and2^ac%)<>.)
+4508 ifd%(x)thent=t+1:ed$(t)=ed$(x):nn$(t)=nn$(x):c%(t)=d%(x)
+4510 next:close2:ift=.then4526
+4512 fori=1tot:sh=.:c$="New News":f2=-(mid$(nn$(i),2)<mid$(d5$,2))*-(tc%>1)
+4514 iff2thenc$="Reminder":ifleft$(ed$(i),1)<>"$"then4524
+4516 b$=ed$(i):ifleft$(b$,1)="$"thenb$=mid$(b$,2)
+4518 &"{f6}{yellow}{pound}$c:{white} {pound}$b{f6}{cyan}({$04}"+nn$(i):&"){pound}q0{f6:2}":kk=1:dr=1:b$=a$
+4520 a$="n."+left$(ed$(i),14)+",s,r":gosub4:on-(e%<>.)goto4522:&,3-9*(f2=.),2
+4522 close2:gosub12:iftr%<1theni=t
+4524 next:&,28,2:return
+4526 close2:ifkk=.then:&"{f6}No New News.{f6}"
+4528 &,28,2:return
+4530 copr 1990 new image  12-26-90
+4532 rem:"i/lo-news (c)nissa 200323 lh"

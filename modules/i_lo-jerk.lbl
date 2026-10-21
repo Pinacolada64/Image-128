@@ -1,0 +1,62 @@
+' imported from i_lo-jerk.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+
+4500 &"{f6}{gray3}Vote for Jerk Award? ":gosub96:ona+1goto999
+4502 a=8:gosub11:q=a:gosub90:a$="n.$Jerk Award":dr=1:gosub13
+4504 &"{f6:2}{pound}{back arrow}12{lt. red}{rvrs on} Port Commodore {rvrs off}{f6}{pound}{back arrow}13{green}Presents....{f6:2}{pound}{back arrow}10{white}The {rvrs on}{purple}JERK{green}{rvrs off} Award!!{f6}"
+4506 a$="e.jerks":dr=3:gosub4:ife%then:&"{f6}Not configured{pound}w2":goto4600
+4508 x=17:gosub1:&,2,2:d=val(a$):x=1:gosub1:&,2,2:ifa$="{^}"then4550
+4510 ifa$="{$ff}"then4550
+4512 n$=a$:&"{f6:3}{lt. blue}The {white}NOMINEES{lt. blue} Are: {f6}":c=.
+4514 c%=val(n$):n$=mid$(n$,4)
+4516 b%=x:&"{f6}{white}<{gray1}{pound}%b{white}>{green} {pound}$n{lt. red}{pound}{back arrow}26{pound}#3{pound}# {pound}%c{yellow} Vote!":ifc%<>1then:&"{pound}h1s"
+4518 &"!":x=x+1:kk=x:gosub1:&,2,2:n$=a$:ifmid$(n$,4)="DELETED"thenc=c+1
+4520 ifn$<>"{^}"then4514
+4522 &"{f6:2}{gray3}V)ote, A)dd A New Nominee Or Q)uit?{f6}15 Name Maximum.{f6}> {pound}g1{lt. green}{pound}v7{f6}"
+4524 iftr%<1then4600
+4526 on-(an$="V")-(an$="A")*2-(an$="Q")*3goto4528,4554,4600:goto4522
+4528 c=1:a$="e.jvoters,s,r":dr=3:gosub4:ife%then4600
+4530 onqgoto4534:forx=1tod:&,2,2:ifna$=a$thenx=d:c=.
+4532 next:on-(c<>.)goto4534:&"{f6:2}Sorry, You've Already Voted{pound}w2":goto4600
+4534 &"{f6:2}{yellow}Vote For Which Number?{cyan} {pound}i1":on-(an$=""oran$="Q")goto4600
+4536 ontr%+1goto4600:x=int(val(an$)):ifx<1orx>kkthen4530
+4538 a$="e.jerks":dr=3:gosub4:ife%then4600
+4540 gosub1:&,2,2:n$=a$:c%=val(n$):n$=mid$(n$,4)
+4542 c%=c%+1:n$=right$(str$(1000+c%),3)+n$
+4544 gosub1:print#2,n$:close2:a$="e.jvoters,s,a":dr=3:gosub4:ife%then4600
+4546 ifq=.thenprint#2,na$:d=d+1:a$="e.jerks":gosub4:x=17:gosub1:print#2,d
+4548 &"{f6:2}Your Vote Has Been Recorded, Thanks!{f6}{pound}w2":goto4600
+4550 &"{f6:2}{cyan}There Are NO Nominees, Would You Like To{f6}Nominate Someone? "
+4552 gosub94:ifa=.then4600
+4554 ifkk>15andc=.then:&"{f6:2}{purple}No NOMINEES Being Accepted At This Time!{f6}":goto4522
+4556 &"{f6:2}{cyan}And {rvrs on}{white} WHO {rvrs off}{cyan} Is Your Nominee?{f6:2}> {pound}i1":a=len(an$):iftr%<1then4600
+4558 ifa<5ora>20then4562
+4560 gosub505:ifithen4564
+4562 &"{f6:2}Sorry, {pound}v7 Doesn't Exist!{f6}":goto4568
+4564 ifi=1then:&"{f6:2}It's Not NICE To Fool With The Sysop!{pound}w2{f6}":goto4600
+4566 goto4570
+4568 &"{f6:2}Would You Like To Try Again? ":gosub94:onagoto4554:goto4600
+4570 nn$=an$:dr=3:a$="e.jerks":gosub4:ife%then4600
+4572 x=.:tt$=""
+4574 x=x+1:gosub1:&,2,2:tt$=a$:ifmid$(tt$,4)="DELETED"then4582
+4576 ifmid$(tt$,4)=nn$then:&"{f6:2}{white}That NOMINEE Already Exists!{f6}{pound}w2{lt. green}":goto4600
+4578 iftt$<>"{^}"then4574
+4580 gosub1:print#2,"000"nn$:x=x+1:gosub1:print#2,"{^}":goto4584
+4582 gosub1:print#2,"000"nn$
+4584 close2:&"{f6:2}{orange}Your Nominee Has Been Added!{f6}"
+4586 &"Nominee now being notifed via Email"
+4588 w=1:a$="w":tt$=nn$:gosub32:ife%thena$="a":w=.:gosub32
+4590 print#2,"JERK{shft space}AWARD{f6}NOMINATION{shft space}COMMITTEE"r$"(UID#0)"r$;d1$
+4592 print#2,"[CONGRATULATIONS]":print#2,na$+" Has Nominated YOU"
+4594 print#2,"for the {white}{rvrs on}JERK{shft space}AWARD":print#2,"{f6}{lt. green}Your very well deserved nomination"
+4596 print#2,"has been accepted!!":print#2,"{^}":close2
+4598 &"{f6:2}Tidings sent!{pound}w2":goto4504
+4600 d=.:x=.:c=.:close2:return
+4602 copr. 1994 new image 9/18/94
+4604 rem:"i/lo-jerk (c)nissa 190514 lh"

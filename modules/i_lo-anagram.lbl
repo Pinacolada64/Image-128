@@ -1,0 +1,51 @@
+' imported from i_lo-anagram.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{crunch:on}
+
+4500 poke 53252,30:&,27,2
+4502 c%=25:d%=c%+5:if cr<d%then:&"{f6:2}You have insufficient credits to play."
+4504 if cr<d%then:&"{f6}You must have {pound}%d credits.{pound}w2":goto 4576
+4506 gosub 4554:j=len(z$)
+4508 for i=1 to j:tt$(i)=mid$(z$,i,1):next
+4510 for i=1 to j:d%(i)=.:c%(i)=.:next:for i=1 to j
+4512 k=int(rnd(1)*j)+1:if c%(k)<>.then 4512
+4514 if d%(i)=.then d%(i)=k:c%(k)=1
+4516 next:t$="":for i=1 to j:t$=t$+tt$(d%(i)):next:if t$=z$then 4510
+4518 rem:gosub4040
+4520 &"{clear}{f6:2}{pound}$q{gray3}    {rvrs on}Anagrams      {f6}{pound}$q{white}By: {gray3}{rvrs on}Port Commodore{f6}{pound}$q    {rvrs on}(The Chief)   "
+4522 &"{f6:2}{pound}$q{yellow}{rvrs on}":for i=1 to j:&tt$(d%(i)):&" ":next
+4524 dr=1:a$="s.anagram":gosub 14
+4526 &"{f6:2}{pound}$qSolve? ":gosub 96:if a=.then 4576
+4528 t=.:n%=n%+1
+4530 &"{f6}{pound}$q{yellow}{rvrs on}":for i=1 to j:&tt$(d%(i)):&" ":next
+4532 &"{f6:2}{pound}$q{lt. green}Solution? {pound}i1":on tr%+1 goto 4544:if an$=z$then 4546
+4534 if tthen:&"{f6:2}{pound}$qSorry, better luck next time":goto 4544
+4536 if an$="{f2}" then 4542
+4538 if an$="" or an$="Q" then 4544
+4540 &"{f6:2}{pound}$qSorry, try again? ":gosub 94:on a+1 goto 4544:t=1:goto 4530
+4542 &"{f6:2}{pound}$q":&z$:cr=cr-d%:goto 4562
+4544 cr=cr-c%:goto 4562
+4546 p%=100:if tthen:p%=25:w%=w%+1
+4548 if t<1 then r%=r%+1
+4550 &"{f6:2}{pound}$qCongratulations, you win {pound}%p credits!":cr=cr+p%
+4552 a$=" {yellow}Anagram winner {pound}%p credits{lt. green}":gosub 50:goto 4562
+4554 a$="e.anagram":dr=3:gosub 4:if e%then 4566
+4556 x=1:gosub 1:&,2,2:a=val(a$):x=int(rnd(1)*a)+2:fd=x
+4558 gosub 1:input# 2,z$,n%,r%,w%:if len(z$)<2 then 4556
+4560 close 2:return
+4562 w$="":w$=z$+r$+str$(n%)+r$+str$(r%)+r$+str$(w%)
+4564 a$="e.anagram":dr=3:gosub 4:x=fd:gosub 1:print# 2,w$:close 2:goto 4576
+4566 a=10
+4568 tt$(1)="CHALLENGER":tt$(2)="HERCULES":tt$(3)="CROATIA"
+4570 tt$(4)="TELEPHONE":tt$(5)="DISCOVERY":tt$(6)="ELEPHANT":tt$(7)="DICTIONARY"
+4572 tt$(8)="CROISANT":tt$(9)="ENTERPRISE":tt$(10)="BATTLESHIP"
+4574 i=int(rnd(1)*a)+1:z$=tt$(i):return
+4576 &,28,2:return
+4578 rem on.anagram by port commodore
+4580 rem:"i/lo-anagram (c)nissa 210327 lh"

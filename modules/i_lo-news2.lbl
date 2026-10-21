@@ -1,0 +1,73 @@
+' imported from the 2023-12-31 master release's i/lo-news2 with C64List 4.04
+' (-txt -keycase -varcase -alpha:alt); tools/detok.sh wouldn't write it (it
+' doesn't rebuild byte for byte): see the notes below for what changed.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+
+4500 &,27,2:gosub306:goto4526
+4502 dr=4:a$="d.n.Main,s,"+a$:goto4
+4504 an$=mid$(an$,2)
+4506 rn=int(val(an$)):d=-(rn<1orrn>br):return
+4508 tt$="n."+left$(ed$(c),14):return
+4510 p$=b$:w$=an$:pl=.:&,1,32:return
+4512 &"{f6:2}{pound}$bFiling:{f6}{f5}{pound}v7{f5}{f6}":return
+4514 dr=1:a$=tt$+",s,"+a$:goto4
+4516 a$="d.n.Main":dr=4:gosub19:ifbr=.thenreturn
+4518 a$="w":gosub4502:print#2,br
+4520 forx=1tobr:print#2,ed$(x)r$nn$(x)r$c%(x):next:close2:goto62
+4522 a$=tt$:dr=1:goto19
+4524 b=.:fori=.to9:a%=i:&"Group #{pound}%a?: ":gosub96:b=b+2^i*a:next:a=b:return
+4526 q=.:&"{clear}{f6}{purple}News Subsystem:{f6}":a=13:gosub11:b=a:a=8:gosub11:&,52,5,3:c=a%
+4528 ifaandbandcthenq=1
+4530 m$=left$("-Maint",q*6)+""
+4532 br=.:t=.:a$="r":gosub4502:onsgn(e%)goto4542:input#2,br
+4534 onbr+1goto4542:forx=1tobr:input#2,ed$(x),nn$(x),d%(x):onqgoto4538
+4536 d%(x)=d%(x)*-((d%(x)and2^ac%)<>.)
+4538 ifd%(x)thent=t+1:ed$(t)=ed$(x):nn$(t)=nn$(x):c%(t)=d%(x)
+4540 next:br=t
+4542 close2
+4544 ifbr=.then:&"{f6}Currently No System News Files.{f6}":goto4560
+4546 v=int(val(mid$(an$,2))):ifv<1orv>brthenv=1
+4548 sh=.:forx=vtobr:b$=ed$(x):onqgoto4552
+4550 a$=left$(b$,1):ifa$="{f7}"ora$="$"thenb$=mid$(b$,2)
+4552 a%=x:&"{f6:2}{white}#{pound}# {pound}#2{pound}%a Subj: {pound}$b{f6}{cyan}    Date: {$04}"+nn$(x)
+4554 ifqthens=rc:a%=c%(x):&"{f6}{yellow}    Accs: {pound}%a"
+4556 ifs+rcthensh=.:x=br
+4558 next:a%=4
+4560 lc=7:p$="{f6:2}News"+m$:im=6:gosub429:ontr%+1goto300
+4562 gosub220:onf4goto216:onrsgoto4560:gosub4506:on-(d=.)goto4568
+4564 onq+1goto4566:on-(a$="A")-(a$="K")*2-(a$="E")*3goto4570,4614,4588
+4566 x=3:on-(a$="L")-(a$="Q")*2-(a$="{f2}")*3goto4544,4628,4622:goto4
+4568 c=rn:gosub4508:a$=tt$:dr=1:gosub13:goto4560
+4570 dr=1:gosub61:ifa<35thenx=2:gosub390:goto4560
+4572 &"{f6}":b$="Title ":an$="":pl=.:gosub4510:le=len(p$):ifan$=""then4560
+4574 br=br+1:ed$(br)=an$:c=br:gosub4508:nn$(br)=d1$
+4576 b$="Access":an$="":pl=1:gosub4510:a=val(an$):iftr%<1then300
+4578 on-(an$="{f2}")gosub4524:ifa=.thena=1023
+4580 on-(a>1023)goto4576:c%(br)=a:gosub542:ifkk=.thenbr=br-1:goto4560
+4582 an$=ed$(br):b$="":gosub4512:a$="w":gosub4514
+4584 fori=1tokk-1:print#2,tt$(i):&".":next:print#2,"{^}":close2:&,11,.:gosub62
+4586 gosub4516:goto4560
+4588 gosub4504:ondgoto4560:b$=ed$(rn):&"{f6}Loading {f5}{pound}$b{f5}..."
+4590 c=rn:gosub4508:a$="r":gosub4514:kk=1
+4592 &,2,2:ifa$<>"{^}"andkk<101thentt$(kk)=a$:kk=kk+1:goto4592
+4594 close2:&"{f6:2}(RETURN To Keep Original Values){f6:2}"
+4596 b$="Title ":an$=ed$(rn):pl=.:gosub4510:ifan$<>""thened$(rn)=an$
+4598 &"{f6}":an$=mid$(str$(c%(rn)),2)
+4600 b$="Access":pl=1:gosub4510:a=val(an$):iftr%<1then300
+4602 on-(an$="{f2}")gosub4524:ifa=.then4606
+4604 on-(a>1023)goto4598:c%(rn)=a
+4606 im=2:gosub440:ifkk=.then4560
+4608 &"{f6:2}Up-Date Date Of News?: ":gosub96:ifathennn$(rn)=d1$
+4610 an$=ed$(rn):b$="Re-":gosub4512:gosub4522
+4612 a$="n."+left$(an$,14)+",s,w":dr=1:gosub4:goto4584
+4614 gosub4504:ondgoto4560:c=rn:gosub4508:an$=mid$(tt$,3)
+4616 &"{f6}Removing {f5}{pound}v7{f5} News...{f6:2}":gosub4522
+4618 forx=rntobr:ed$(x)=ed$(x+1):nn$(x)=nn$(x+1):c%(x)=c%(x+1):next
+4620 br=br-1:gosub4516:goto4560
+4622 gosub250:goto4560
+4626 goto216
+4628 &,28,2:return
+4648 copr.1989 new image 3/24/89
+4650 rem:"i/lo-news2 (c)nissa 210307 lh"

@@ -1,0 +1,69 @@
+' Image BBS 128 (10/21/2026): jumps to lines in other modules, or to lines
+' that don't exist (as in the original), are written {$3d}ddd so that
+' C64List leaves the number as it is (it wrote [n] otherwise): 77
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{step:2}
+' original: 863 bytes
+' modified: 851 bytes
+{number:3000}
+{:3000}
+	pr$="i."+"main":on mm goto {:3010},{:3004},{:3006}
+{:3002}
+	&,28,1:&,11:lc=1:&,27,1:sy$="":goto 200
+{:3004}
+'	p$=po$:return
+	p$=po$:cm$=p$+"":gosub 9
+{:3006}
+	return
+{:3010}
+	if zz then on -(an$="R")-2*(an$="RL") goto {:3030},{:reload_module}
+	if val(an$) then gosub {:3020}:if a$<>"" then uu$=a$:goto {:3002}
+'	rem if an$="NORM"then mm=.:goto 2006
+	&"{f6}{lt. red}{pound}vj{pound}$q{lt. blue} {rvrs on} Unknown Command. Enter {f5}?{f5} For Help. {f6}{lt. red}{pound}vj":goto {:3002}
+{:3020}
+'	a%=val(an$):a$="{^}":if a%<1ora%>4then return
+	a%=val(an$):if a%<1 or a%>4 then return
+	dr=3:a$="e.macs":gosub 4:a$="{^}":if e%=0 then x=id*4-4+a%:gosub 1:&,2,2
+	close 2:return
+{:3030}
+'	&,52,$30,3:on a%+1 goto {:3032}
+	&,52,$30,3:if a%=. then {:3034}
+	poke 53252,14:gosub 304:&"{f6}Run: +.{pound}i0":a$=an$:on -(a$="") goto {:3002}:goto 70
+{:3034}
+	poke 53252,ll%:if em=. then:&"[3=i.  4=i/  5=sub.  6=i/lo-]{f6}"
+	&"{lt. blue}Which Class {cyan}(3-6): {white}{pound}i1":a=val(an$):if a<3 or a>6 then {:3002}
+' string: extract module prefix based on index 'c' into a$:
+    an$=mid$("i.   i/   sub. i/lo-",a*5-4,5):&,15,6,32
+	c=a-2:poke 53252,16-len(a$):&"{lt. blue}Run{cyan}: {white}"+a$+"{pound}i0":poke 53252,ll%:c$=an$:on -(c$="")-2*(c=3) goto {:3002},{:3046}
+' ask for device,drive, a=device not present
+	gosub 349:gosub 350:if a then x=6:gosub 390:goto {:3002}
+{:3046}
+	&"{f6}{lt. blue}Enter Value for {cyan}"+mid$("mmlmimlm",c*2-1,2)+"{lt. blue}: {white}{pound}i1"
+' a:  variable value to save repeated xx=val(an$)
+' a$: module to load (minus prefix, im's 7x lines add those, with the exception of "i/lo-", there is no line for that)
+	a$=c$:a=val(an$):on c-1 goto {:3050},{:3052},{:3054}:mm=a:goto 71
+{:3050}
+' class 4: i/
+	lm=a:gosub 73:goto {:3002}
+{:3052}
+' class 5: sub.
+	im=a:gosub 74:goto {:3002}
+' 10/16/2026: class 6: i/lo- (im line 77 adds "i/" prefix)
+{:3054}
+    lm=a:a$="lo-"+an$:gosub {$37}7:goto {:3002}
+{nice:10}
+{:reload_module}
+'	if an$="RL" then a%=-3000*(pr$<>"")-4000*(p1$<>"")-60000*(p2$<>""):&,66,1:goto {:3000}
+	a=-(pr$<>"")-2*(p1$<>"")-3*(p2$<>""):on a goto {:i.module}, {:i/module}, {:sub.module}
+	&"RL: Undefined module name.{f6}":goto 300
+{:i.module}
+' strip "i." prefix:
+	a$=mid$(pr$,3):goto 70
+{:i/module}
+' strip "i/" prefix:
+	a$=mid$(p1$,3):goto 72
+{:sub.module}
+' strip "sub." prefix:
+	a$=mid$(p2$,5):goto 74
+	rem i.main (c)nissa 2020-08-02 lh, 2024-07-24 rs

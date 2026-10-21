@@ -1,0 +1,89 @@
+' imported from the 2023-12-31 master release's i/MM.ud-download with C64List 4.04
+' (-txt -keycase -varcase -alpha:alt); tools/detok.sh wouldn't write it (it
+' doesn't rebuild byte for byte): see the notes below for what changed.
+
+' Image BBS 128 (10/21/2026): jumps to lines in other modules, or to lines
+' that don't exist (as in the original), are written {$3d}ddd so that
+' C64List leaves the number as it is (it wrote [n] otherwise): 3002, 3004, 3010, 3012, 3016, 3028, 3030, 3040, 3058, 3060, 3062, 3064, 3066, 3068, 3094, 3124, 3134, 3150, 3174, 3214, 3264, 3296, 3440, 3444, 3448, 3495
+' Image BBS 128 (10/21/2026): C64 addresses in peek/poke/sys are the 128's,
+' as {sym:...} names from asm/equates.asm (included below).
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{include:"..\asm\equates.asm"}
+
+4000 rem "i/ออ.ud-download"
+4001 kk=a:onblgoto4004:gosub{$33}010:&"{f6} - {pound}$k From {pound}v8{f6}":on-(a<>0orz$="DM")goto4004
+4002 a%=rn:&"{f6} {lt. blue}Which #{white} (1-{pound}#0{pound}%a{f1} {f7} = Batch):{lt. green} {pound}i1":gosub{$33}012:ontr%+1goto4004
+4003 ifan$="{f7}"thenz$="DM"
+4004 l=cr:v=.:on-(z$="DM")goto4032:ifa<1ora>rnthenonblgoto4108:goto{$33}214
+4006 gosub{$33}058:ifa$<>nn$(a)andq<1andf%(a)<1thenonblgoto4108:goto{$33}214
+4008 gosub{$33}002:kk=a
+4010 &"{f6}":f%=1:gosub4080:&"{f6}":ifflthenonblgoto4108:goto{$33}214
+4012 gosub{$33}060:gosub{$33}062:an$="{f5}"+b$+"{f5}":gosub{$33}002
+4013 ifd%(kk)=co%ord%(kk)=.orl%or(co%=2andd%(kk)=1)then4016
+4014 &"{f6}{white}{pound}v7 Is For A Different{f6}Computer. Do You Still Wish To ":an$="It"
+4016 &"{f6}{pound}$k {pound}v7?: ":gosub94:ifa=.thenonblgoto4108:goto{$33}214
+4018 gosub{$33}002:gosub{$33}444:an$="Receive":gosub{$33}030:a$=dt$(kk):gosub{$33}028:poke{sym:filetyp},1-(right$(a$,1)="s")
+4020 gosub{$33}060:gosub{$33}064:a$=b$:gosub{$33}004:x=1:an$=b$:gosub4:on-(e%<>.)goto4098
+4021 x=1:im=4:gosub443:gosub{$33}495:&,16:close2:gosub{$33}124:ifb=.thengosub92:onblgoto4108:goto{$33}214
+4022 i=1:gosub4074:dc%=dc%+1:gosub{$33}040:gosub{$33}060:a%=1:c$=k$:tt$(1)=b$:gosub{$33}068
+4024 &"{f6}":iff%(kk)<1thenonblgoto4108:goto{$33}214
+4026 a=7:gosub11:ifa+(f2and2)=.thencr=cr-c%(kk)
+4028 f%(kk)=f%(kk)+1:dc=dc+1:bd=bd+c%(kk):gosub{$33}094
+4030 gosub{$33}150:gosub{$33}066:onxgoto{$33}264:onjmgoto{$33}448:onblgoto4108:goto{$33}214
+4032 onnbgoto4134:bl=.:v=.:f%=1:l=cr
+4034 &"{f6}Start At #: {pound}i1":gosub{$33}012:ifa<1ora>rnthenonblgoto4050:goto{$33}214
+4036 gosub4094:fori=atorn:a=i:on-(f%(a)<1andq=.)goto4048:kk=i:gosub{$33}174:i=kk:&"{f6}":onrkgoto4040:&" {pound}$k?:{lt. blue} ":gosub7
+4038 rk=-(an$="E"):on-(an$="A"oran$="S")-2*(an$="E")goto4044,4042:a=-(a$="Y"):gosub97:ifa=.then:&"{f6}":goto4048
+4040 kk=i:&"{f6}":gosub4080:i=kk:onflgoto4048,4044:gosub{$33}060:gosub{$33}064:tt$(f%)=b$:a%(f%)=i:f%=f%+1:a=7:gosub11:on-(a+(f2and2)=.)goto4110:goto4048
+4042 &"Every{f6}":goto4040
+4044 a$="Start":i=rn:on-(fl=2)goto4048:ifan$="A"thena$="Abort":f%=1
+4046 lp=1:&
+4048 &"{f6}":next:a%=f%-1:on-(a%=.)goto{$33}214
+4050 c%=.:fori=1toa%:b$=tt$(i):c%=c%+c%(a%(i)):b%=i:&"{f6}{lt. blue}{pound}#2{pound}# {pound}%b-{pound}$b":next
+4051 on-(co%>2)goto4078:&"{f6:2}{lt. blue}{pound}#0{pound}%c Total Blocks, ":kk=.:c%(.)=c%:gosub{$33}134:a%=i-1
+4052 rk=.:&"{f6:2}{lt. green}S)can C)lear D)load K)ill A)dd Q)uit:{lt. blue} {pound}g1{pound}v7{f6}":bl=-(an$="A"):ifan$="Q"then{$33}214
+4054 on-(an$="C")-2*(an$="A")-3*(an$="D")-4*(an$="K")goto4032,4034,4056,4076:ontr%+1goto{$33}214:goto4050
+4056 gosub{$33}444:f%=a%:&"{f6:2}{purple}You Now Have 20 Seconds To":an$=m$+"Receive":gosub{$33}030
+4058 close2:close3:gosub{$33}004:gosub3:&,22,200:gosub4114:&,22,20
+4060 onbb%gosub92
+4062 i=a%:gosub4074:dc%=dc%+a%:gosub4096:gosub{$33}040:a$="  "+m$+k$:gosub51
+4064 c$=k$:oni+1goto4130:a%=i:gosub{$33}068:i=a%:ifbb%thengosub4132
+4066 dc=dc+a%:a=7:gosub11:a=-((f2and2)=2)ora:fori=1toa%
+4068 iff%(a%(i))>0thenb=c%(a%(i)):bd=bd+b:cr=cr+b*(a=.):f%(a%(i))=f%(a%(i))+1
+4070 iff%(a%(i))=>1thenkk=a%(i):gosub{$33}094
+4072 next:gosub{$33}066:onxgoto{$33}264:gosub{$33}150:onjmgoto{$33}448:goto{$33}214
+4074 gosub30:x=7:gosub16:x=18:gosub16:x=36:gosub16:close2:return
+4076 gosub{$33}440:goto4050
+4078 c%=(c%*254)/1024:&"{f6:2}{lt. blue}{pound}#0 {pound}%cK Total, ":kk=.:gosub{$33}134:a%=i-1:goto4052
+4080 fl=1:gosub{$33}058:if(f%(kk)<1andq=1)or(f%(kk)<1anda$=nn$(kk))thenfl=.:return
+4082 ifrcorshthenrk=.
+4084 gosub{$33}134:v=v+a%
+4086 v$="{f6:2}Sorry, Not Enough ":ifv>tr%andtr%<100thenv=v-a%:&"{pound}$vTime!{f6}":return
+4088 a=7:gosub11:ifa+(f2and2)=.andc%(kk)>lthen:&"{pound}$vCredits!{f6}":fl=1:return
+4090 ifdc%+f%<=da%orda%=.thenfl=.:return
+4092 &"{f6:2}Sorry, You Have {pound}$ked Your Limit.{f6}":fl=2:rk=.:return
+4094 &"{f6}{yellow} [Y]es [N]o [E]very [S]tart [A]bort{pound}q0{f6}{pound}vj":return
+4096 on-(da%<1orda%>99)goto{$33}016:b%=da%-dc%:&"{f6}{lt. blue}{pound}$k's Left This Call:{lt. green} {pound}%b{lt. blue}{f6}":return
+4098 c$=b$:&"{f6:2}{lt. blue}File Not Found!{f6}":a$="a":b$="errlog":gosub36
+4100 ife%thena$="w":b$="errlog":gosub36
+4102 print#2,na$r$id;r$d1$r$ac%;r$ph$r$rn$r$co$(co%):a$=r$+r$+"Plus File: "+pr$
+4104 print#2,a$r$"Area:      "cm$r$"Prompt:    U/D#"mid$(str$(bn),2)": "bb$(bn)
+4106 print#2,j$"name:  "c$r$"{^}":close2:onbl+1goto{$33}214
+4108 a=kk:goto{$33}296
+4110 l=l-c%(i):an$=str$(l):&"  {lt. green}Credits Left:{white}{pound}v7{lt. blue}":ifl<1thenfl=2:goto4044
+4112 goto4048
+4114 f=1:bb%=0
+4116 an$=tt$(f):&,15,2:a$=an$+",r":gosub{$33}004:gosub4:ife%then4122
+4118 x=1:im=4:gosub443:gosub{$33}495:&,16,2:&,22,10:&,16:gosub{$33}066
+4119 onxgoto4126:gosub{$33}124:ifb=.then4126
+4120 &,22,10:on-(f>=f%)goto4128:f=f+1:goto4116
+4122 close2:on-(f=f%)goto4124:forx=ftof%-1:a%(x)=a%(x+1):tt$(x)=tt$(x+1):next
+4124 f%=f%-1:f=f-1:goto4120
+4126 bb%=1:b=0:jm=0:f=f-1
+4128 an$="":x=1:im=4:gosub443:gosub{$33}495:&,16,2:a%=f:return
+4130 gosub4132:goto{$33}214
+4132 a$=" {white} Transfer Aborted{yellow}":goto50
+4134 lp=1:&"{f6}Sorry, Batch {pound}$ks Using {pound}vl Are Not Currently Supported.":goto{$33}214
+4136 copr.1990 new image 12/19/90 12:00p
+4138 rem:"i/ออ.ud-download (c)nissa 210307 lh"

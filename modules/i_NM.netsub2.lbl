@@ -1,0 +1,52 @@
+' imported from the 2023-12-31 master release's i/NM.netsub2 with C64List 4.04
+' (-txt -keycase -varcase -alpha:alt); tools/detok.sh wouldn't write it (it
+' doesn't rebuild byte for byte): see the notes below for what changed.
+
+' Image BBS 128 (10/21/2026): jumps to lines in other modules, or to lines
+' that don't exist (as in the original), are written {$3d}ddd so that
+' C64List leaves the number as it is (it wrote [n] otherwise): 3488, 3641
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+
+4000 rem "+.ÎÍ.netsub2"
+4002 tt$="sttofridtrmt":a$="netsub":gosub28:gosub4056
+4004 cc=0:dr=2:a$=tt$(tt):gosub4:ife%thenclose2:tt=tt-1:ontt+1goto4076:goto4004
+4006 c=len(tt$)/2-1:&,11,1:close3
+4008 &,2,2:a=-(st=0):gosub4062:onb+1goto4010:on-(c=30)goto4044:goto4008
+4010 fori=1ton:ifmid$(bb$(1),5)=mid$(dt$(i),bn+1)thenb=i:fori=1to1:next:goto4014
+4012 next:&"{f6:2}{yellow}--> Unknown NetSub ID":goto4022
+4014 fori=1tolen(tt$)/2-1:ifbb$(i)=""then:&"{f6:2}{green}--> Error Reading File":goto4022
+4016 next:r=0:b$=mid$(tt$(tt),10,3)
+4018 fori=1tobnstep3:ifb$=mid$(dt$(b),i,3)thenfori=1to1:next:goto4024
+4020 next:&"{f6:2}{orange}--> Unauthorized Message{f6}      NetSub ID: "+mid$(dt$(b),bn+1):goto4030
+4022 b$=mid$(tt$(tt),10,3):goto4030
+4024 b$=mid$(bb$(3),5):an$=b$:qe=0:r=0:on-(bb$(6)="sd: CONVERTED")goto4034:gosub4046
+4026 on-(qe<val(mid$(bb$(4),5)))goto4032:ifval(mid$(bb$(4),5))>rcthen4034
+4028 &"{f6:2}{cyan}--> Repeat Rejected!{f6}      NetSub ID: "+mid$(dt$(b),bn+1)
+4030 fori=1to1:next:&"{f6}       Board ID: {pound}$b":goto4044
+4032 qe=val(mid$(bb$(4),5)):&,16,1:gosub4050
+4034 b$="temp"+str$(b)
+4036 a$="a":gosub4068:ife%thena$="w":gosub4068
+4038 fs=7andfs+1:&mid$("{green}{purple}{cyan}{brown}{gray1}{lt. red}{gray3}{orange}",fs+1,1):cc=1:fori=1toc:print#3,bb$(i):next:print#3,bb$(0)
+4040 &,2,2:a=-(st=0):print#3,a$:on-(a$<>"{^}"anda=1)goto4040:close3:onagoto4006
+4042 close2:a$=left$(tt$(tt),len(tt$(tt))-4):dr=2:gosub19:goto4074
+4044 b$="rejects":on2goto4070,4036
+4046 gosub4054:&,16:ifqe=-1thenr=r+1:goto4046
+4048 return
+4050 print#15,"s"dr$"nm.P.track"+str$(b)+str$(r)
+4052 a$=dr$+"nm.P.track"+str$(b)+str$(r):&,16,3,dv%:return
+4054 dr=2:gosub2:a$=dr$+"nm.P.track"+str$(b)+str$(r):&,16,2,dv%:return
+4056 &"{f6:2} {lt. blue}{rvrs on} Sorting NetSub Messages From "+mid$(tt$(tt),10,3)+"... ":fs=0:return
+4058 &"{f6:2}{orange} {rvrs on} No Valid Messages Received from "+mid$(tt$(tt),10,3)+" "
+4060 tt=tt-1:on-(tt>0)goto4002:goto4076
+4062 fori=0tolen(tt$)/2-1:ifleft$(a$,3)=mid$(tt$,i*2+1,2)+":"then4066
+4064 next:on-(a$="{^}")goto4072:c=c+1:bb$(c)=a$:b=c:return
+4066 bb$(i)=a$:b=i:fori=1to1:next:return
+4068 close3:open3,dv%,3,dr$+"nm.P."+b$+",s,"+a$:goto5
+4070 &,2,2:a=-(st=0):ifaanda$<>"{^}"then4070
+4072 return
+4074 oncc+1goto4058:a$="netsub3":gosub{$33}641:goto{$33}488
+4076 a$="netsub4":gosub{$33}641:goto{$33}488
+4078 copr.1990 new image 12/06/90 11:55p
+4080 rem:"i/ÎÍ.netsub2 (c)nissa 190216 lh"
+4082 rem check lines 4074 4076

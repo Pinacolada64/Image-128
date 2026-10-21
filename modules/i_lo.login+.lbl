@@ -1,0 +1,84 @@
+' imported from i_lo.login+.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+' Image BBS 128 (10/21/2026): C64 addresses in peek/poke/sys are the 128's,
+' as {sym:...} names from asm/equates.asm (included below).
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{include:"..\asm\equates.asm"}
+{crunch:on}
+
+4000 rem"** i.lo.login **  6/08/95 JLF           User Login Routine           "
+4002 goto 4100
+4004 dr=5:b$="i/lo!"+a$:a$=b$:gosub 4:close 2:if e%then:&"{f6}{white}[Module {pound}$b Failed]{f6}":return
+4006 new 4500:load dr$+b$,dv%:goto 4500
+4010 p$="FIRST Name":t$=ff$:return
+4012 p$="LAST Name":t$=ll$:return
+4014 p$="Email Address ":t$=ph$:p=1:return
+4020 mm=.:f1=3:goto 3000
+4022 im=2:gosub 445:a=-(an$="RES" or an$="{^}"):on agoto 999:a$="                  "
+4024 &,69,.,17,"User",$8 f:an$=na$:&,15,1:&,69,5,17,left$(an$+a$,22),$8 c
+4025 &,69,.,18,"Name",$8 f
+4026 an$=left$(ff$+" "+ll$+a$,22):&,15,1:&,69,5,18,an$,$8 c
+4028 &,69,.,19,"Mail",$8 f:&,69,5,19,left$(ph$+a$,22),$8 c:return
+4030 &"{clear}Logoff!{f6:2}":tr%=.:im=3:gosub 446:return
+4032 &"{clear}ASCII Re-Detect{f6:2}":c=2:return
+4034 &"{clear}Xpress Login{f6}":x%=1:return
+4040 &"{clear}Mail-Check{f6:2}{gray3}  Enter the HANDLE of the user you want to check for.{f6:2}"
+4042 c=1:&"{white}> {pound}i1":on-(tr%<1 or an$="") goto 999:a$="r":tt$=an$:gosub 32:close 2
+4044 a$=mid$(" no",3*-(e%=.)+1,3):&"{f6} {cyan}{pound}v7 {lt. blue}has{pound}$a mail.{f6}{pound}w3":return
+4050 &,52,10,3:if a%=.then 4056
+4052 &"{f6:2} Sorry, no new users are being accepted at this time.{f6:2}":goto 4102
+4056 a$="lo."+"new":goto 72
+4060 a$="help":gosub 4004:if a=2 then 4200
+4100 pw$="":k=.
+4102 poke 53252,20:ac%=16:id=.:x%=.:i%=.:k%=.:&,52,32,3:gosub 90
+4104 gosub 4300:x=lm:a$=an$
+4114 if x=6 then mm=11:goto 3000
+4116 if x=1 then:&"{clear}Continue Login{f6:2}":goto 4150
+4118 c=.:on x-1 gosub 4032,4034,4040,4030:on-(tr%<1) goto 4020:mm=14:on cgoto 4102,3000
+4150 &"{f6}{cyan}Enter Your {white}Handle {cyan}Or {white}Login {cyan}ID#{f6:2}{pound}b1: {white}{pound}i1":on-(tr%<1) goto 4020:dd$=an$
+4151 if dd$="VISITOR" then:&"{f6}Sorry, that handle is reserved.":goto 4150
+4152 a=-(left$(dd$,3)="RES")-2*(dd$="NEW")-3*(dd$="HELP" or dd$="{f2}")
+4154 on agoto 4056,4050,4060:if val(an$) then dd$=cc$+an$:goto 4180
+4156 if left$(dd$,len(cc$))=cc$and val(mid$(dd$,len(cc$)+1))>.then 4180
+4158 i=len(dd$):b$=left$(dd$,1):if i<4 or i>20 or b$<"A" or b$>"Z" then id=.:goto 4194
+4160 im=1:gosub 441
+4162 if ithen id=i:lp=1:&"{f6}{cyan} Your ID# Is {white}{pound}!i.  {cyan}Use It For A Faster Login.{f6}":goto 4182
+4164 &"{f6:2} {f5}{pound}v7{f5} Not Found!{f6:2}":&,52,10,3:if a%then 4052
+4166 lp=1:&" Would You Like To Apply For An Account Using That Handle?: "
+4168 gosub 94:if athen f1=1:g$=dd$:dd$="NE"+"W":goto 4056
+4170 ac%=16:k=k+1:on-(k>4) goto 4020:lp=1:&"{f6:2}Enter {f5}NEW{f5} if you have no Login"
+4172 lp=1:&" ID, or {f5}HELP{f5} if you are having trouble logging on. {pound}w9{f6}":goto 4102
+4180 id=val(mid$(dd$,len(cc$)+1)):if id<.or id>urthen id=.:goto 4194
+4182 gosub 4022:if athen:&"{f6:2}That account has been deleted.{f6}":goto 4170
+4184 &"{f6}{cyan}Please Enter Your {white}Password{cyan}.{f6:2}{pound}b1:{white} ":&,6:on-(tr%<1) goto 4020
+4186 z$=an$:if z$="" then id=.:goto 4194
+4187 &,52,$32,3:on a%goto 4193
+4188 &"{f6}Additional Information:{f6}":a=int(rnd(1)*3)+1:p=.:on agosub 4010,4012,4014
+4190 if pthen pl=.:poke 53252,78:&,1,32:c$=an$
+4191 if pthen on-(pw$=z$and t$=c$and c$<>"" and z$<>"")+1 goto 4194,4200
+4192 &"{f6:2}":gosub 6:c$=an$:on-(pw$=z$and t$=c$and c$<>"" and z$<>"")+1 goto 4194,4200
+4193 if pw$=z$then 4200
+4194 &"{f6:2}Login is not valid.":a$="telecheck":gosub 4004:goto 4170
+4200 &"{f6}{cyan}Login {white}Successful{cyan}!{f6:2}":ll%=l9%:poke {sym:modclmn},ll%:mm=10:goto 3000
+4300 rem login menu
+4302 &,52,45,1
+4304 a$="menu2":gosub 28
+4306 &,27,2
+4308 n=6
+4310 dim m%(16,n)
+4312 &,16,.,34,m%(.,1),"L","","Log In"
+4314 &,16,.,34,m%(.,2),"{f7}","","ASCII Redetect"
+4316 &,16,.,34,m%(.,3),"X","","XPress Login"
+4318 &,16,.,34,m%(.,4),"M","","Mail Check"
+4320 &,16,.,34,m%(.,5),"!","","Log Off"
+4322 &,16,.,34,m%(.,6),"I","","Instant"
+4334 &"{clear}{blue}{rvrs on}{pound}{back arrow}39{f6}{rvrs on} {cyan}     Image BBS V3.0 Login Menu{pound}{back arrow}37{blue}  {f6}"
+4336 &"{rvrs on} {cyan} Instant Login Restricted to Sysops{pound}{back arrow}37{rvrs off} {rvrs on}{blue} {f6}{rvrs on}  {rvrs off}{pound}{back arrow}38{rvrs on} {f6}"
+4338 &,16,2,34,m%(.,1),n,17,2,n/2+.5,2,6,.:lm=a%+1:&,70,.,n/2+8.5:&"{white}"
+4344 &,28,2:return
+4399 rem:"i/lo.login+ (c)nissa 220712 lh"

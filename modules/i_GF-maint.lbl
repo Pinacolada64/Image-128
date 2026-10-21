@@ -1,0 +1,118 @@
+' imported from the 2023-12-31 master release's i/GF-maint with C64List 4.04
+' (-txt -keycase -varcase -alpha:alt); tools/detok.sh wouldn't write it (it
+' doesn't rebuild byte for byte): see the notes below for what changed.
+
+' Image BBS 128 (10/21/2026): jumps to lines in other modules, or to lines
+' that don't exist (as in the original), are written {$3d}ddd so that
+' C64List leaves the number as it is (it wrote [n] otherwise): 3004, 3050, 3090, 3130
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+
+4000 &,52,34,1:onrkgoto4002,4100
+4002 n=0
+4004 p$="Maintenance Options":gosub4030
+4006 a$="A":b$="Add Item":gosub4022
+4008 a$="E":b$="Edit Item":gosub4022
+4010 a$="K":b$="Kill Item":gosub4022
+4012 a$="Z":b$="Misc Info":gosub4022
+4014 a$="Q":b$="Return to Menu":gosub4022
+4016 ifmmthen:&"{right:9}{rvrs on}{yellow}{pound}{back arrow}32{rvrs off} {f6}"
+4018 ifmmthen:&"{right:10}{pound}{back arrow}33{f6}"
+4020 fd=2:return
+4022 n=n+1:m%(3,n)=asc(a$+chr$(0)):m%(2,n)=-1:m%(1,n)=(n-1)*256+n+1
+4024 m%(0,n)=14*256+5+n
+4026 ifmmthen:&"{right:9}{rvrs on}{yellow} {f5}{pound}$a{f5} {white}{$a4}{yellow} {pound}$b{pound}{back arrow}32{rvrs off} {f6}":return
+4028 &"{pound}$a) {pound}$b{f6}":return
+4030 ifmm=0then:&"{clear}{pound}$p{f6:2}":return
+4032 &"{home}{down:4}{right:9}{rvrs on}{yellow} {pound}$p{pound}{back arrow}32{f6}"
+4034 &"{right:9}{rvrs on}{yellow}     {$a4}{pound}{back arrow}32{rvrs off} {f6}"
+4036 return
+4100 rs=1:tz=0:&"{up}Which Option?: ":gosub7:&"{pound}v7{f6}"
+4102 on-(a$="A")-2*(a$="E")-3*(a$="K")-4*(a$="Z")goto4200,4300,4400,4500:goto4666
+4104 rs=0:return
+4200 ifs%(0,0)=60then:&"This {pound}$h is Full{f6}":return
+4202 br=s%(0,0)+1:s%(1,br)=1023:s%(2,br)=0:s%(3,br)=dv%(1):s%(4,br)=dr%(1)
+4204 s%(5,br)=0:s%(6,br)=0:&,60,4,0,s%(7,br),d1$:&,60,4,0,s%(10,br),d1$
+4206 &,60,0,16,s%(27,br),"":&,60,0,28,s%(13,br),""
+4208 s%(36,br)=0:s%(37,br)=0:s%(38,br)=0:s%(39,br)=0
+4210 gosub4600:&,60,1,16,s%(27,br),a$:&,60,1,28,s%(13,br),b$:a=s%(1,br)
+4212 ifa<1ora$=""orb$=""thenreturn
+4214 s%(0,0)=s%(0,0)+1:tz=1:return
+4300 &"Which Item?: {pound}i1":an$=" "+an$
+4302 gosub{$33}004:ifa>0anda<=rnthenbr=e%(a):tz=1:goto4600
+4304 return
+4400 &"Which: {pound}i1":an$=" "+an$
+4402 a$="":gosub{$33}004:ifa<1ora>rnthenreturn
+4404 br=e%(a):&"{f6}{purple} {$b0}{pound}$y{$ae}{f6}":gosub{$33}130:&"{purple} {$ad}{pound}$y{$bd}{f6:2}{pound}q0Kill This? ":gosub94
+4406 ifa=0thenreturn
+4408 &"{f6}Scratch {pound}$j? ":gosub94:ifa=0then4414
+4410 a=s%(2,br):gosub{$33}050:&,60,1,16,s%(13,br),c$:a$=b$+c$
+4412 dr=0:d1%=s%(3,br):d2%=s%(4,br):gosub3:print#15,"s"dr$a$
+4414 ifbr<>s%(0,0)thenfora=brtos%(0,0)-1:&,60,10,80,s%(0,a+1),s%(0,a):next
+4416 s%(0,0)=s%(0,0)-1:tz=1:return
+4500 &"{clear}{f6}{pound}q0{pound}$i Options:{f6:2}"
+4502 &"1. Edit Entry Text{f6}":&,60,1,30,s%(25,0),a$
+4504 &"2. Prompt: {f5}{pound}$a{f5}{f6}":&,60,1,20,s%(15,0),a$
+4506 &"3. Name:   {f5}{pound}$a{f5}{f6}":a%=s%(2,0)
+4508 &"4. {pound}$i:    {pound}%a{f6}":a%=s%(3,0)
+4510 &"5. Device: {pound}%a{f6}":a%=s%(4,0)
+4512 &"6. Drive:  {pound}%a{f6}"
+4514 &"{f6}> {pound}g1":a=val(an$)
+4516 ifathen:&"{pound}v7{f6:2}":onagosub4520,4532,4556,4538,4544,4550:goto4500
+4518 return
+4520 dr=1:o$="s."+pf$(pf):a$=o$+",s,r":gosub4:kk=1:ife%then:&:goto4526
+4522 &"{f6}Loading Text...{f6:2}"
+4524 &,2,2:ifa$<>"{^}"andkk<101thentt$(kk)=a$:kk=kk+1:&".":goto4524
+4526 close2:im=2:gosub440:ifkk=0thenreturn
+4528 &"{f6:2}Saving...":a$=o$:dr=1:gosub18:&,14,2,kk-1:print#2,"{^}":close2:&,11
+4530 goto62
+4532 p$="Prompt":&,60,1,30,s%(25,0),w$:poke53252,30:pl=0
+4534 &,1,33:ifan$=""thenreturn
+4536 tz=1:&,60,0,30,s%(25,0),an$:return
+4538 p$=i$:w$=mid$(str$(s%(2,0)),2):poke53252,4:pl=1
+4540 &,1,32:ifan$=""thenreturn
+4542 tz=1:s%(2,0)=val(an$):return
+4544 p$="Device":w$=mid$(str$(s%(3,0)),2):poke53252,4:pl=1
+4546 &,1,32:ifan$=""thenreturn
+4548 tz=1:s%(3,0)=val(an$):return
+4550 p$="Drive":w$=mid$(str$(s%(4,0)),2):poke53252,4:pl=1
+4552 &,1,32:ifan$=""thenreturn
+4554 tz=1:s%(4,0)=val(an$):return
+4556 p$="Name":&,60,1,20,s%(15,0),w$:poke53252,20:pl=0
+4558 &,1,32:ifan$=""thenreturn
+4560 tz=1:&,60,0,20,s%(15,0),an$:return
+4600 &"{clear}{f6}":&,60,1,28,s%(13,br),a$
+4602 &"{blue}({white}1{blue}) {cyan}Title{blue}:  {white}{pound}$a{f6}":a=s%(2,br):gosub{$33}050
+4604 &"{blue}({white}2{blue}) {cyan}Type{blue}:   {white}{pound}$a{f6}":a%=s%(1,br)
+4606 &"{blue}({white}3{blue}) {cyan}Access{blue}: {white}{pound}%a{f6}":a%=s%(5,br)
+4608 &"{blue}({white}4{blue}) {cyan}Credit{blue}: {white}{pound}%a{f6}":&,60,1,16,s%(27,br),a$
+4610 &"{blue}({white}5{blue}) {cyan}{pound}$j{blue}:   {cyan}{pound}$b{white}{pound}$a{f6}":n=5:on-(dr=4)goto4616:n=7:a%=s%(3,br)
+4612 &"{blue}({white}6{blue}) {cyan}Device{blue}: {white}{pound}%a{f6}":a%=s%(4,br)
+4614 &"{blue}({white}7{blue}) {cyan}Drive{blue}:  {white}{pound}%a{f6}"
+4616 &"{f6}> {pound}g1":a=val(an$):a=val(an$):ifa<1ora>nthenreturn
+4618 &"{pound}v7{f6:2}":onagosub4620,4626,4658,4652,4634,4640,4646:goto4600
+4620 p$="Title":&,60,1,28,s%(13,br),w$:poke53252,28:pl=0
+4622 &,1,33:ifan$=""thenreturn
+4624 &,60,0,28,s%(13,br),an$:return
+4626 &"Type:{f6:2}":fora=1to9:gosub{$33}050:a$=mid$(a$,2):lp=1:&"{pound}!a-{pound}$a ":next
+4628 &"{f6:2}{pound}q0> {pound}g1"
+4630 a=val(an$):ifa<1ora>7thenreturn
+4632 gosub{$33}050:&"{pound}$a{f6}":s%(2,br)=a:return
+4634 a=s%(2,br):gosub{$33}050:p$=j$:&,60,1,16,s%(27,br),w$:pl=0
+4636 poke53252,16-len(b$):&,1,32:ifan$=""thenreturn
+4638 &,60,0,16,s%(27,br),an$:return
+4640 p$="Device":w$=mid$(str$(s%(3,br)),2):poke53252,4
+4642 &,1,32:ifan$=""thenreturn
+4644 s%(3,br)=val(an$):return
+4646 p$="Drive":w$=mid$(str$(s%(4,br)),2):poke53252,4
+4648 &,1,32:ifan$=""thenreturn
+4650 s%(4,br)=val(an$):return
+4652 p$="Credit":w$=mid$(str$(s%(5,br)),2):poke53252,4
+4654 &,1,32:ifan$=""thenreturn
+4656 s%(5,br)=val(an$):return
+4658 p$="Access":w$=mid$(str$(s%(1,br)),2):poke53252,4
+4660 &,1,32:ifan$=""thenreturn
+4662 a=val(an$):ifan$="{f2}"thengosub{$33}090
+4664 s%(1,br)=a:return
+4666 return
+4700 rem:"i/ÇÆ-maint (c)nissa 190523 lh"

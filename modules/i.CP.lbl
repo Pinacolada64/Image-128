@@ -1,0 +1,126 @@
+' imported from the 2023-12-31 master release's i.CP with C64List 4.04
+' (-txt -keycase -varcase -alpha:alt); tools/detok.sh wouldn't write it (it
+' doesn't rebuild byte for byte): see the notes below for what changed.
+
+' Image BBS 128 (10/21/2026): C64 addresses in peek/poke/sys are the 128's,
+' as {sym:...} names from asm/equates.asm (included below).
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{include:"..\asm\equates.asm"}
+
+3000 &,18,0:&"{clear}{f6}{cyan} *IMAGE Copy-All 3.0*{f6:2} Special Thanks To Jim Butterfield!"
+3002 &"{f6} Mods by {blue}Wa{lt. blue}nd{cyan}er{white}er{f6}":a$="2":gosub28
+3003 &,5:v=1.2
+3004 gosub3118:&"{f6:2} {white}[C]{cyan}opy Files{f6} {white}[D]{cyan}irectory"
+3006 &"{f6} {white}[M]{cyan}ulti-Scratch{f6} {white}[S]{cyan}end Disk Command{f6} {white}[Q]{cyan}uit{f6:2}"
+3008 p$="Copy":gosub6:on-(an$="C")-(an$="D")*2-(an$="S")*3goto3024,3012,3120
+3010 on-(an$="M")-(an$="Q"oran$="")*2goto3140,3221:goto3004
+3012 f=8:d$="":b%=8:gosub3134:ifb%>6andb%<33thenf=b%
+3014 f$="0:":gosub3136:a=val(an$):ifa>.thenf$=mid$(str$(a),2)+":"
+3016 a=f:gosub3132:ifathen3116
+3018 gosub3138:&,15,2:ifan$=""thenan$="*"
+3020 &"{f6}":open2,f,0,"$"+f$+an$:&,8,2:close2
+3022 &"{f6}{pound}{back arrow}12{rvrs on} Press A Key: {rvrs off}{pound}g1":goto3004
+3024 a9$="":s1=.:c1=.:s8=.:c8=.:d$="Source":b%=8:f=8:gosub3134:ifb%>6andb%<33thenf=b%
+3026 f$="0:":gosub3136:a=val(an$):ifa>.thenf$=mid$(str$(a),2)+":"
+3028 d$="Target":b%=8-(f=8):g=b%:gosub3134:ifb%>6andb%<33theng=b%
+3030 g$="0:":gosub3136:a=val(an$):ifa>.theng$=mid$(str$(a),2)+":"
+3032 d1%=g:d2%=val(g$):dr=.:gosub61:lp=1:&"{f6}Blocks Free: "+str$(a):kk=a
+3034 ifa<3thengosub92:goto3004
+3036 gosub3138:&,15,2:ifan$=""thenan$="*"
+3038 t$=an$:iftr%<1then200
+3040 t=.
+3042 &"{f6}{cyan}Reading Directory...{f6:2} [Y]es [N]o [S]tart [A]bort":tz=2
+3044 &"{f6} [1] Skip 143 Files
+3046 &"{f6} [8] Skip Eight Files{f6} [R]emaining Files Same As Last{f6:2}"
+3048 open1,f,0,"$"+f$+t$:get#1,a$,a$:&,8,1,1:lp=1:&:&"{f6}"
+3050 &,8,1,1:s=st:ifmid$(a$,7,1)="b"thenb$=a$:&"{f6}{pound}$b{f6}":goto3090
+3052 a=val(a$):c$=mid$(a$,8):a$=mid$(a$,26,1)
+3054 fori=2to17:ifmid$(c$,i,1)=qt$thenc$=left$(c$,i-1)
+3056 next:tt$=c$+","+a$:b$=a$:ifsthen3090
+3058 ifs8thenc8=c8+1:ifc8<>8thena%=a:&"{pound}#4{pound}# {pound}%a {f5}{pound}$c{f5},{pound}$b{pound}{back arrow}25Skip":goto3050
+3060 ifs1thenc1=c1+1:ifc1<>143thena%=a:&"{pound}#4{pound}# {pound}%a {f5}{pound}$c{f5},{pound}$b{pound}{back arrow}25Skip":goto3050
+3062 s1=.:c1=.:c8=.:s8=.:a%=a:&"{pound}#4{pound}# {pound}%a {f5}{pound}$c{f5},{pound}$b{pound}{back arrow}25"
+3064 iftz+a>kkthen:&"Too Big!{f6}":goto3086
+3066 ifb$="r"then:&"(Rel File){f6}":goto3086
+3068 ifa9$="R"thenx=x9:goto3072
+3070 &"?: {pound}g1":x=-(an$="Y")-(an$="N")*2-(an$="S")*3-(an$="A")*4-(an$="8")*5:gosub3188
+3072 ifx=.thenx=2
+3074 lp=1:&mid$("Yes  No   StartAbortSkip Skip ",(x-1)*5+1,5):&"{f6}"
+3076 ifx=1thent=t+1:tz=tz+a%:tt$(t)=tt$:ift>143then:&"Limit Reached!{f6}":x=3:goto3090
+3078 ifx=3then3090
+3080 ifx=4thent=.:goto3090
+3082 ifkk-tz<3then:&"No More Room!{f6}":goto3090
+3084 ifx=5thens1=1:x9=.
+3086 ifx=6thens8=1:x9=.
+3088 ifs=.then3050
+3090 close1:a9$="":ift=.thengosub92:goto3004
+3092 &"{f6}":a=f:gosub3132:on-(a<>.)goto3116:a=g:gosub3132:on-(a<>.)goto3116
+3094 gosub3202
+3096 &"{f6}[C]opy  [A]bort  [R]e-Select{f6}[S]elect More Files{f6}[D]elete Some Files :"
+3098 &"{pound}g1{pound}v7":on-(an$="C")-(an$="A")*2-(an$="R")*3goto3100,3184,3186:goto3192
+3100 close15:open15,f,15:open14,g,15
+3102 fori=1tot:c$=tt$(i):ifc$="[Deleted]"then3112
+3104 &"{f6}Copying:{f5}{pound}$c{f5}..."
+3106 open3,f,3,f$+c$+",r":input#15,a$,b$:ifa$<>"00"then:&"{pound}{back arrow}32{pound}$b!":goto3112
+3108 open2,g,2,g$+c$+",w":input#14,a$,b$:ifa$<>"00"then:&"{pound}{back arrow}32{pound}$b!":goto3114
+3110 sys{sym:protostart}:input#14,a$,b$:&"{pound}{back arrow}32{pound}$b!"
+3112 close2:close3:next:&"{f6:2}Done!":goto3004
+3114 on-(a$<>"63")goto3112:close2:&"{f6}[S]kip [R]eplace [A]bort :{pound}g1":goto3180
+3116 &"{f6}ERROR : Device Not Present!{f6}":goto3004
+3118 close1:close2:close3:close14:close15:return
+3120 f=8:d$="":b%=8:gosub3134:ifb%>6andb%<16thenf=b%
+3122 a=f:gosub3132:ifathen3116
+3124 &"{f6:2}Disk Command: ":gosub3220:c$=an$:a$=left$(c$,1):ifa$=""then3004
+3126 ifa$="n"ora$="s"thengosub93:ifa=.then3004
+3128 close15:open15,f,15:print#15,c$:gosub5
+3130 close15:&:&"{f6} (Hit A Key) {pound}g1":goto3004
+3132 close15:open15,a,15:poke{sym:sxreg},15:sys65481:sys65484:close15:a=st:return
+3134 a=2:gosub3216:&"{f6}{cyan}{pound}$d Device {white}({pound}%b): {pound}i1":b%=val(an$):a=38:goto3216
+3136 a=4:gosub3216:&"{cyan}{pound}$d Drive  {white}(0): {pound}i1":a=38:goto3216
+3138 &"{f6}{cyan} Pattern{white}(*): {pound}i0":return
+3140 gosub349:gosub350:ontr%+1goto3221:f%=.:l=.:gosub3:close15:ifstthen3004
+3142 &"{lt. blue}{f6}Pattern: ":gosub3220:b$="*"
+3144 fori=1tolen(an$):ifmid$(an$,i,1)="*"thenb$=""
+3146 next:an$=an$+b$
+3148 close1:open1,dv%,0,"$"+dr$+an$:get#1,a$,a$
+3150 &"{f6}{yellow} [Y]es [N]o [S]tart [A]bort{pound}q0{f6}{pound}vj"
+3152 &,8,1,1:lp=1:&a$+"{f6}"
+3154 &,8,1,1:s=st:ifmid$(a$,7,1)="b"thenb$=a$:&"{f6}{pound}$b{f6}":goto3168
+3156 b%=val(a$):f$=mid$(a$,8):t$=mid$(a$,26,1):g$=t$
+3158 fori=2to17:ifmid$(f$,i,1)=qt$thenf$=left$(f$,i-1)
+3160 next:&" {pound}#4{pound}# {pound}%b: {f5}{pound}$f,{pound}$g{f5} {pound}{back arrow}30?: {pound}g1":a$=an$
+3162 x=-(a$="Y")-2*(a$="S")-3*(a$="A"):lp=1:&mid$("No   Yes  StartAbort",x*5+1,5)
+3164 &"{f6}":onx+1goto3170,3166,3168,3168
+3166 f%=f%+1:a%(f%)=b%:tt$(f%)=f$:a%(f%)=b%:l=l+b%:goto3170
+3168 s=1:ifx=3thenf%=.:gosub92
+3170 on-(s=.andf%<100)goto3154:close1:on-(f%=.)goto3004
+3172 fori=1tof%:b$=tt$(i):b%=i:&"{lt. blue}{f6}{pound}#2{pound}# {pound}%b-{pound}$b":next
+3174 &"{f6:2}Correct?: ":gosub96:ona+1goto3004:fori=1tof%:b$=tt$(i):close15
+3176 &"{f6}Scratching {f5}{pound}$b{f5}....":close15:open15,dv%,15,"s"+dr$+b$:gosub5:&
+3178 next:&"{f6}":goto3022
+3180 on-(an$="S")-(an$="A")*2goto3112,3182:goto3214
+3182 i=t:goto3112
+3184 &"{f6}Copying Aborted.":goto3004
+3186 gosub3118:goto3040
+3188 a9$=an$:ifan$<>"R"thenx9=x:return
+3190 x=x9:return
+3192 ifan$="S"then3208
+3194 ifan$<>"D"then3100
+3196 &"{f6}Delete Which Number: {pound}i1"
+3198 zq=val(an$):ifzq<1orzq>tthen3096
+3200 tt$(zq)="[Deleted]":goto3094
+3202 fori=1tot:&"{f6}"+str$(i)+":"+tt$(i)
+3204 ifi/20=int(i/20)then:&"{f6}Press a key: {pound}g1"
+3206 next:return
+3208 gosub3138:&,15,2:ifan$=""thenan$="*"
+3210 t$=an$:iftr%<1then200
+3212 goto3042
+3214 print#14,"s"g$c$:goto3108
+3216 ifv>1.2then:&,59,1,a:return
+3218 poke53252,a:return
+3220 &"{pound}i0":on-(an$="")goto999:&,15,2:return
+3221 &,18,1:goto300
+3222 copr.1995 new image 01/05/95
+3224 rem:"i.ระ (c)nissa 200815 lh"
+

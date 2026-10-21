@@ -1,0 +1,75 @@
+' imported from i_MM.subop.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+
+4000 onlmgoto4016,4024,4042,4070,4106
+4002 return
+4004 z=1:a$="w":gosub32:ife%thenz=.:a$="a":gosub32
+4006 print#2,na$r$id;r$d1$r$c$
+4008 forx=1tokk-1:print#2,tt$(x):next:print#2,"{^}":close2
+4010 gosub30:i=1:x=3:gosub16:x=14:gosub16:x=32:gosub16:x=25:onzgosub16
+4012 ify=1thenforx=2to24step11:gosub16:next:x=31:gosub16
+4014 close2:return
+4016 ifso%(bn)>1then:&"{f6}Sorry, This "+sy$+" Board Has A SubOp.{f6}":return
+4018 &"{f6}Please leave a few words explaining why{f6}you think you should be the SubOp"
+4020 &" of{f6}this "+sy$+" Board{f6:2}"
+4022 c$="[SubOp Application]"+r$+r$+"RE: "+bb$(bn)+r$+r$:goto4032
+4024 on-(sg=.)goto4002:x=so%:gosub4112:tt$=a$
+4026 ifa$="{^}"ora$="RES"then:&"{f6:2}Account deleted!{f6}":return
+4028 an$=tt$:&,15,1:&"{f6:2}Send Mail To {pound}v7?: ":gosub94:ifa=0thenreturn
+4030 &"{f6:2}SigOp Feedback:{f6}":c$="[SigOp Fbck: "+bb$(bn)+"]"
+4032 on-(sg=.)goto4036:x=so%:gosub4112:tt$=a$
+4034 ifa$="{^}"ora$="RES"then:&"{f6:2}Account Deleted!{f6}":goto4040
+4036 gosub542:onkk+1goto4002:an$=tt$:&,15,1:o$="Feedback To "+an$+"...."
+4038 &"{f6:2}Filing {pound}$o":gosub4004:&"{f6:2}":iflm<>1thenreturn
+4040 c$="Feedback to "+mid$(i1$,2):gosub4110:gosub4114:return
+4042 ifq<1thenreturn
+4044 p$="":&"{f6:2}Enter Handle Or ID# Of User{f6:2}":gosub6:x=abs(val(an$)):ifxthen4050
+4046 gosub505:x=i:ifxthennn$=an$:goto4056
+4048 &"{f6:2}{f5}{pound}v7{f5} Not Found.{f6}":return
+4050 ifx<1orx>urorx=idthen4054
+4052 gosub35:gosub1:input#2,nn$:ifnn$<>"{^}"andnn$<>"RES"then4056
+4054 &"{f6:2}Invalid Account!{f6}":return
+4056 &"{f6}Handle: ":&nn$:&"{f6:2}Is That Correct?: ":gosub94:ifa=.thenreturn
+4058 &"{f6}Add How Many Credits (500 Max)?: {pound}i1":iftr%<1thenreturn
+4060 a=abs(int(val(left$(mid$(an$,1),3)))):ifa<1ora>500thenreturn
+4062 gosub35:gosub1:forkk=1to24:&,2,2:tt$(kk)=a$:next
+4064 tt$(19)=str$(val(tt$(19))+a):gosub1
+4066 a$=tt$(1):forkk=2to24:a$=a$+r$+tt$(kk):next:print#2,a$:close2
+4068 a=.:&,11:x=.:return
+4070 a%=abs(int(val(mid$(an$,3)))):ifa%<1ora%>urthenreturn
+4072 gosub35:x=a%:gosub1:&,2,2:ifa$="{^}"ora$="RES"thenclose2:return
+4074 &"{f6:2}{lt. green}Handle   : {pound}$a (UID#{pound}%a)"
+4076 &,2,2:&,2,2:b$=a$:&,2,2:b$=b$+" "+a$:&,2,2:c$=a$
+4078 a=8:gosub11:ifathen:&"{f6}Real Name: {pound}$b"
+4080 a$="{f6}Email    : {pound}$c":a=8:gosub11
+4082 ifa=0thenc$=mid$(c$,2,3):a$="{f6}Area Code: {pound}$c"
+4084 &:forkk=6to10:&,2,2:next:b$=co$(val(a$)):&"{f6}Computer : {pound}$b"
+4086 forkk=11to15:&,2,2:next:a%=val(a$):&,2,2:b%=val(a$)
+4088 &,2,2:c%=val(a$):&,2,2:d%=val(a$):&,2,2:b$=a$
+4090 &,2,2:f%=val(a$):&,2,2:g%=val(a$):&,2,2:c$=a$:&,2,2:d$=a$:close2
+4092 &"{f6}Last Call: {$04}"+c$
+4094 a=8:gosub11:ifa=0andso%<>idthenifq<1orleft$(sy$,1)<>"U"then:&"{f6}":goto4100
+4096 a$="{f6}Credits  :{pound}$b":ifmid$(d$,7)="1"thena$="{f6}Credits  : Unlimited ({pound}$b)"
+4098 &:&"{f6:2} {pound}%b Uploads{f1} {pound}%a Downloads{f6} {pound}%d Blks UL'ed{f1} {pound}%c Blks DL'ed"
+4100 a=8:gosub11:on-(a=1orso%=id)goto4102:ifq<1orsy$<>"Sub"then4104
+4102 &"{f6} {pound}%f Posts{f1} {pound}%g Responses"
+4104 &"{f6:2}":return
+4106 on-(sg=.)goto4002:x=so%:gosub4112:ifa$="{^}"ora$="RES"thenclose2:return
+4108 an$=a$:&,15,1:b%=x:lp=1:&"{f6:2}User ID#{pound}%b{f1} {pound}v7 Is Your SIG Host":return
+4110 forx=kk-1to1step-1:tt$(x+1)=tt$(x):next:kk=kk+1:tt$(1)=c$:return
+4112 gosub35:gosub1:&,2,2:close2:return
+4114 &"{f6:2}Filing {pound}$o...{f6:2}"
+4116 b$="e.fback":a$=b$+",s,a":gosub4:ife%thena$=b$+",s,w":gosub4
+4118 print#2,na$r$id;r$d1$r$ac%;r$ph$r$rn$r$co$(co%)
+4120 forx=1tokk-1:print#2,tt$(x):next:print#2,"{^}":close2:&,11
+4122 gosub30:i=1:x=1:gosub16:x=12:gosub16:x=23:gosub16:x=30:gosub16:close2
+4124 return
+4126 a=abs(int(val(left$(mid$(an$,2),4)))):return
+4128 copyright 1991 new image 08/15/91
+4130 rem:"i/MM.subop (c)nissa 210714 lh"

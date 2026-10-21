@@ -1,0 +1,25 @@
+' imported from i_lo.mail.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+
+4000 a=9:gosub11:on-(a=.)goto4026:b%=.:a%=.:mm=.
+4002 a$="r":tt$=na$:gosub32:ife%then:&"{pound}f1{f6}Sorry, No Mail Today.{f6}":goto4026
+4004 ifi%ork%thenclose2:&"{pound}f1{f6:2}{gray3}You have Mail":goto4024
+4006 &".":ifrcthenclose2:&"{f6:2}{gray3}You have Mail":goto4024
+4008 b%=b%+1:input#2,a$,a$,a$:ifmid$(a$,2)>mid$(ld$,2)thena%=a%+1
+4010 &,2,2:s=st:ontr%+1goto4026:on-(a$<>"{^}")goto4010:on-(s=.)goto4006:close2
+4012 &"{f6}":a$="s.mail":dr=1:gosub14:b$="":ifb%>1thenb$="s"
+4014 c$="It Is":ifa%>1thenc$="Are"
+4016 mm=1:&"{f6}{green}You Have {white}{pound}%b{green} Piece{pound}$b Of Mail":ifa%=1then:&"{f1}{green} {pound}$c New":goto4024
+4018 ifb%>1thenifa%=1then:&"{f1}{white}{pound}%a {green}Is New":goto4024
+4020 ifb%>1thenifa%=b%then:&"{f1} {green}All {pound}$c New":goto4024
+4022 &"{f1}{white} {pound}%a {green}{pound}$c New"
+4024 &"!{f6:2}Read Now?: ":goto96
+4026 close2:a=.:return
+4028 copr. 1994 new image 11/27/94
+4030 rem"i/lo.mail (c)nissa 200524 lh"

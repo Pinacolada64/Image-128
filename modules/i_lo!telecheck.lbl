@@ -1,0 +1,29 @@
+' imported from i_lo!telecheck.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{crunch:on}
+
+4500 rem"i/lo!telecheck  - Rask v2.0 -           Date Stamp: 05 Jan 95 10:22pm
+4502 rem
+4504 b$="telecheck":gosub 37:gosub 4522
+4506 print# 2,"{^}":close 2:poke 53280,14
+4508 kk=.:a$="s.tchkmail,s,r":dr=1:gosub 4:if e%then close 2:return
+4510 kk=kk+1:&,2,2:s=(64 and st):tt$(kk)=a$:if s=.then 4510
+4512 close 2:tt$=na$:a$="a":gosub 32:if e%then a$="w":gosub 32
+4514 a$="[Login Verification Error]":a=.:print# 2,"Auto-Message" r$0;r$d1$r$a$r$
+4516 gosub 4522:print# 2,"{lt. blue}{pound}vj{pound}q0":for x=1 to kk:print# 2,tt$(x):next:print# 2,"{^}":close 2
+4518 close 15:gosub 30:i=1:x=14:gosub 16:x=25:gosub 16:x=32:gosub 16
+4519 if id=1 then x=2:gosub 16:x=13:gosub 16:x=24:gosub 16:x=31:gosub 16
+4520 return
+4522 tt$=pw$:if id=1 then pw$="Private"
+4524 print# 2,"{lt. green}Failed Security Check. (Attempt" str$(k+1) ")" r$
+4526 if z$<>tt$then print# 2,"{lt. green}Password:{yellow}" pw$" {cyan}({f5}" z$"{f5} Was Entered)" r$
+4527 &,52,50,3:on a%goto 4530
+4528 if c$<>t$then print# 2,p$:print# 2,"{lt. green}" t$" {cyan}({f5}" an$"{f5} Was Entered)" r$
+4530 return
+4532 rem:"i/lo!telecheck (c)nissa 200928 lh"

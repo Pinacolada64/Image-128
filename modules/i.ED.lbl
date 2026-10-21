@@ -1,0 +1,113 @@
+' imported from i.ED.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{crunch:on}
+
+3000 r=int(val(mid$(an$,3,3)))
+3102 restore:for i=1 to 23:read ed$(i):next:for i=1 to 20:read dt$(i):next
+3104 gosub 31:for i=0 to 9:x=i+1:gosub 1:&,2,2:&,2,2:bb$(i)=a$:next:close 2
+3106 if rthen an$="":x=r:goto 3114
+3108 &"{clear}{f6}{blue}{pound}vj {white}{rvrs on}{pound}{back arrow}07 IMAGE User Account Editor {pound}{back arrow}39{rvrs off}{f6}{blue}{pound}vj{f6}{cyan}":p$="User Edit"
+3110 a%=ur:&"{f6} Users: {pound}%a{f6:2}Enter Handle Or ID# Of User To Edit.{f6:2}":gosub 6
+3112 on-(an$="") goto 300:x=abs(int(val(left$(an$,4))))
+3114 tz=1:p=0:if (x<=ur) and x>.then 3118
+3116 i=0:if an$<>"" then im=10:gosub 445
+3117 x=i:if i=0 then:&"{f6}{f5}{pound}v7{f5} Not Found.{f6}{pound}w2":goto 3108
+3118 gosub 35:gosub 1:for i=1 to 23:&,2,2:if asc(a$+nl$)=32 then a$=mid$(a$,2)
+3120 tt$(i)=a$:next:tt$=tt$(1)
+3122 a=val(left$(tt$(7),1)):a$=tt$(23)
+3124 if len(a$)<len(bb$(a)) then tt$(23)=a$+mid$(bb$(a),len(a$)):tz=0
+3126 close 2:a%=x:&"{clear}{f6} {pound}vn#{pound}%a    (Type {f5}N{f5} For Next Page) {cyan}{f6:2}"
+3128 if l1=xthen:&" (This is the lowest deleted account.){f6:2}"
+3130 for i=1 to 23:a%=i:b$=ed$(i):c$=tt$(i):a$="{pound}#2{pound}# {pound}%a>-{pound}$b{pound}{back arrow}16: {pound}$c{f6}"
+3132 if i=2 and id<>1 then c$="Not Available"
+3134 if i=10 then c$=co$(val(tt$(i)))
+3136 if (p=1 and (i>9 and i<22)) or (p=.and (i<10 or i>21)) then:&
+3138 next:&"{f6} # To Change?: {pound}i1{f6}":on tr%+1 goto 300:a=abs(int(val(an$)))
+3139 if a=5 then pl=.
+3140 if an$="N" then p=1-p:goto 3126
+3142 if a=2 and id<>1 then x=3:gosub 390:&"{f6}{pound}w2":goto 3126
+3144 if a=10 then gosub 3162:goto 3126
+3146 on-(a<1 or a>23) goto 3152:if a=23 then q$=tt$(23):gosub 3196:tt$(23)=q$:tz=0:goto 3126
+3148 p$=ed$(a):w$=tt$(a):&,1,32:pl=1:if an$="" or an$=tt$(a) then 3126
+3150 tt$(a)=an$:tz=.:on-(a=1)-(a=7)*2 goto 3168,3172:goto 3126
+3152 on tzgoto 3108:&"{f6}Save Changes?: ":gosub 94:on-(a=.) goto 3108
+3154 &"{clear}{f6}Writing To User Data Files..."
+3156 if tt$(1)<>"{^}" and tt$(1)<>"RES" and tt$(1)<>tt$then gosub 3242:gosub 3174:goto 3108
+3158 gosub 3174:if tt$(1)="RES" and tt$<>"{^}" and tt$<>"RES" then 3186
+3160 goto 3108
+3162 &"{f6:2}":for t=1 to 9:b$=co$(t):a%=t:&"{pound}%a>-{pound}$b{f6}":next
+3164 &"{f6}Computer Type?: {pound}g1{pound}v7{f6}":a=val(an$):if tr%<1 then return
+3166 on a+1 goto 3162:tt$(10)=str$(a):tz=.:return
+3168 on-(an$="{f8}")-(an$="RES")*2 goto 3178,3192:g=x:im=10:gosub 445:x=g
+3170 on i+1 goto 3126:a%=i:&"{f6:2}Handle Already Used By {pound}vn{pound}%a{f6}{pound}w2":tt$(1)=tt$:goto 3126
+3172 tt$(23)=bb$(val(tt$(7))):goto 3126
+3174 gosub 35:a$="":for i=1 to 23:a$=a$+tt$(i)+r$:next:gosub 1
+3176 print# 2,a$;:close 2:if x=idthen im=2:gosub 445
+3177 return
+3178 b$=tt$:&"{f6:2}Delete {f5}{pound}$b{f5}{f6}Are You Sure?: ":gosub 94:if a=.then 3108
+3180 an$=tt$:im=7:gosub 445
+3182 tt$(1)="{^}":tt$(2)="d":for i=3 to 23:tt$(i)="0":next:gosub 3174
+3184 if x<l1then l1=x:x=31:gosub 33:gosub 1:print# 2,l1:close 2
+3186 rem
+3188 a$="r":gosub 32:close 2:if e%=.then gosub 30:i=-1:x=25:gosub 16:close 2
+3190 dr=2:b$=left$(tt$,13):a$="f."+b$:gosub 19:a$="m."+b$:gosub 19:goto 3108
+3192 &"{f6}Password?: {pound}i1":if an$="" then an$="PASS"
+3194 for i=3 to 23:tt$(i)="0":next:tt$(2)=an$:goto 3126
+3196 &"{clear}":poke 53252,38:for i=1 to 20:b$=mid$(q$,i,1)
+3198 if i=2 then b$=b$+" to 1":goto 3212
+3200 if i=16 or i=17 or i=20 then 3212
+3202 if i=6 then b$=mid$(str$((val(b$)+1)*10),2):goto 3212
+3204 if i=18 then b$=mid$(q$,i,2):goto 3212
+3206 if i=19 then 3214
+3208 if b$="1" then b$="Yes"
+3210 if b$="0" then b$="No"
+3212 a%=i:c$=dt$(i):&"{pound}#2{pound}# {pound}%a--{pound}$c{pound}{back arrow}20: {pound}$b{f6}"
+3214 next:&"Change?: {pound}i1"
+3216 a=val(an$):if tr%<1 or a<1 or a>20 then return
+3218 on-(a=16 or a=17 or a=20)-2*(a=18)-3*(a=19) goto 3232,3236,3196
+3220 on-(a=2 or a=6) goto 3222:b$=mid$(str$(1-val(mid$(q$,a,1))),2):goto 3230
+3222 if a=2 then b$=mid$(q$,2,1)+"/1"
+3224 if a=6 then b$=mid$(str$((val(mid$(q$,6,1))+1)*10),2)
+3226 p$=dt$(a):w$=b$:&,1,32:if an$="" then 3196
+3228 b$=left$(an$,1):if a=6 then b$=mid$(str$(int(val(an$)/10)-1),2,1)
+3230 q$=left$(q$,a-1)+b$+mid$(q$,a+1):&"{f6}":goto 3196
+3232 p$=dt$(a):b$=mid$(q$,a,1):w$=b$:poke 53252,1:pl=1:&,1,32:if an$<>"" then b$=an$
+3234 goto 3230
+3236 p$=dt$(a):b$=mid$(q$,a,2):w$=b$:poke 53252,2:pl=1:&,1,32:if an$<>"" then b$=an$
+3238 if len(b$)=1 then b$="0"+b$
+3240 q$=left$(q$,a-1)+b$+mid$(q$,a+2):&"{f6}":goto 3196
+3242 dr=2:gosub 3:a$="f.":for i=1 to 2
+3244 print# 15,"r" dr$a$left$(tt$(1),13) "=" dr$a$left$(tt$,13):a$="m.":next
+3246 gosub 5:an$=tt$:kk=id:id=x:im=7:gosub 445:an$=tt$(1):gosub 3250
+3248 an$=tt$(1):if an$<>"{f8}" and an$<>"RES" then im=8:gosub 445
+3249 id=kk:return
+3250 a$="4":gosub 28:dr=6:gosub 3:a$=dr$+"u.weedinfo":&,16,1
+3252 gosub 5:if e%then return
+3254 a%=id:&,16,8:if a%then:&,16,5:goto 3254
+3256 a$=dr$+"u.weedinfo":print# 15,"s" a$:&,16,2:return
+3258 data "Handle","Password"
+3260 data "First Name","Last Name"
+3262 data "Email","Last Date"
+3264 data "Access Group","Calls Today"
+3266 data "Total Calls","Computer"
+3268 data "Line Length","Upper/Lower"
+3270 data "Linefeeds","Expert Mode"
+3272 data "Downloads","Uploads"
+3274 data "Blks Dnld","Blks Upld"
+3276 data "Credit Pts","Posts"
+3278 data "Responses","Last Call"
+3280 data "Flags"
+3282 data "Non-Weed Status","Credit Ratio","Local Maint"
+3284 data "Post/Respond","U/D Access","Max.Editor Lines"
+3286 data "Unlimited D/Ls","Remote Maint","EMail"
+3288 data "User List","B.A.R./Log View","Submaint"
+3290 data "Files Maint","MCI Access","UDs At Primetime"
+3292 data "Max Idle Time","Calls/Day","Time/Call"
+3294 data "Time/Call","Download/Call*10"
+3300 rem:"i.ED (c)nissa 230628 lh"

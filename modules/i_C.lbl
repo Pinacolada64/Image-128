@@ -1,0 +1,18 @@
+' imported from i_C.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+
+4000 onpeek(53256)goto4008 :cc=.:poke53256,1:&"{f6}{lt. green}Reason For Chat?{f6:2}Chat: {pound}i1"
+4002 on-(an$="")goto4014 :a$=" Chat: "+an$:d$=an$:gosub50:an$=d$:&,9
+4004 &,52,1,3:&,25,1,a%*255:&,52,.,3:ona%goto4006:gosub4008:goto85
+4006 &"{f6}Paging Now!{f6}":return
+4008 cc=cc+1:dr=1:a$="s.chat"+str$(cc):gosub14
+4010 ife%then:&,52,33,3:ifa%thentr%=.
+4012 return
+4014 poke53256,.:goto92
+4016 rem:"i/C (c)nissa 190206 lh"

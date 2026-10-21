@@ -1,0 +1,84 @@
+' imported from i_lo_gd.seq.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+
+4000 rem greed reset 12/31/90
+4002 cm$="am.gd":gosub9:bh=.:ad$=""
+4004 rem ifleft$(d1$,1)>"1"thenreturn
+4006 a$="s.g.five":p=1:w$=""
+4008 dr=1:gosub4:ife%then4048
+4010 input#2,w$:close2
+4012 an$=w$:gosub505:ifi=.then4062
+4014 x=i:y=i:gosub35:gosub1:fori=1to24:&,2,2:tt$(i)=a$:next
+4016 a$="":tt$(19)=str$(val(tt$(19))+100)
+4018 gosub1:a$=tt$(1):fori=2to24:a$=a$+r$+tt$(i):next:print#2,a$:close2
+4020 rem **mail them***
+4022 z=1:a$="w":tt$=w$:gosub32:ife%thena$="a":z=.:gosub32
+4024 ifp=1then4028
+4026 print#2,"Single Hand Greed Winner"r$"(UID#0)"r$;d1$:goto4030
+4028 print#2,"Full Game Greed Winner"r$"(UID#0)"r$;d1$
+4030 print#2,"[Congratulations]"r$
+4032 print#2,"You WON 100 Credits"+r$
+4034 print#2,"For Being The TOP GREED"+r$
+4036 print#2,"Player This Week! Congrats "+w$
+4038 print#2,"{^}":close2
+4040 ify=1thengosub30:x=2:i=1:gosub16:x=13:gosub16:x=24:gosub16:x=31
+4042 ify=1then gosub16
+4044 on-(y<>1)gosub30:x=3:i=1:gosub16:x=14:gosub16:x=32:gosub16
+4046 x=25:onzgosub16:close2:gosub62
+4048 ifp=1then4054
+4050 a$="{white}"+w$+" {lt. blue}Greed Single Hand Winner"+r$+"{cyan}({white}100{cyan}) {lt. blue}Credits{cyan}"+r$+ak$:gosub50
+4052 ad$="Single":gosub4080:ad$="":a$="s.g.five-sh":goto4058
+4054 a$="{white}"+w$+" {lt. blue}Greed Full Game Winner"+r$+"{cyan}({white}100{cyan}) {lt. blue}Credits{pound}q0":gosub50
+4056 ad$="Full":gosub4072:bh=1:ad$="":a$="s.g.five"
+4058 dr=1:gosub18:forx=1to5:zp$(x,1)="Nobody":zp$(x,2)=" 0":next
+4060 forx=1to5:fory=1to2:print#2,zp$(x,y):next:next:close2
+4062 p=p+1
+4064 ifp>2thenp=.:goto4068
+4066 a$="s.g.five-sh":goto4008
+4068 a$=" {green}Greed Games Reset"+r$+" {pound}q0{pound}o{$c0}{pound}o{$c0}":gosub50:close2
+4070 gosub4088:p=.:w$="":return
+4072 rem greed winner list
+4074 gosub4078:rem &,52,26,3:ifa%then906
+4076 return
+4078 dr=1:a$="s.greed winner":gosub18
+4080 b$="greed winner":a$="a":gosub4116:ife%thena$="w":gosub4116
+4082 ifbh=.thenprint#2,"{f6}{pound}{back arrow}06{lt. blue}{rvrs on}Greed Winners For this Week {rvrs off}{f6}{pound}{back arrow}07{lt. green}{$04}"+d1$+"{f6}{blue}{pound}vj"
+4084 print#2,"{yellow}"+ad$+" {cyan}Game{pound}{back arrow}24{white}"+w$:close2
+4086 return
+4088 rem news file update
+4090 gosub4094:rem &,52,26,3:ifa%then920
+4092 return
+4094 &"{f6:2} Updating Greed News File...":dr=1:gosub3
+4096 print#15,"s"dr$"s.grd.bak"
+4098 print#15,"s"dr$"n.$Greed Winner"
+4100 print#15,"c"dr$"s.grd.bak="dr$"s.greed winner"
+4102 print#15,"c"dr$"n.$Greed Winner="dr$"s.greed winner"
+4104 close15
+4106 dr=1:a$="n.$Greed Winner,s,a":gosub4
+4108 print#2,"{f6:3}Congratulations to all the Winners..."
+4110 print#2,"{f6:3}Hit A Key{pound}g1"
+4112 print#2,"{^}"
+4114 close2:return
+4116 dr=1:a$="s."+b$+",s,"+a$:goto4
+4118 rem * news routine added by bucko
+4120 rem * to disable news routine
+4122 rem * take checkmark off of left
+4124 rem * side of fn3
+4126 rem ------------------------------
+4128 rem *  works with grunts
+4130 rem *  +.am lmp files
+4132 rem *  resets the game on
+4134 rem *  monday mornings and
+4136 rem *  sends mail w/100 credits
+4138 rem *  for both game winners
+4140 rem *   --------------------
+4142 rem *  written by cregan
+4144 rem *  the codex bbs/nissa
+4146 rem *  an original nissa file
+4150 rem:"i/lo/gd (c)nissa 190530 lh"
