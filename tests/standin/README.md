@@ -20,6 +20,7 @@ They're petcat source (BASIC 7.0), not C64List: `chr$(92)` for `£`, no
 | `mask.bas` | the screen mask on and off (`&,18`), console text scrolling and wrapping underneath |
 | `status-right.bas` | `&,69` on the 80-column status area's right half, with the mask off and on |
 | `lightbar.bas` | the lightbar's labels and default checkmarks, loaded as `im` loads them; the f-keys move the highlight |
+| `gosub.bas` | `&,66,1` (a GOSUB from the ML) 50 times: the frame on BASIC 7's stack, the CPU stack left clean |
 | `fkey-macros.bas` | Ctrl/C= + f1/f3/f5/f7 typing `f1$`-`f8$` into an input line |
 | `swiftlink.bas` | the SwiftLink driver (`ml.rs232`, `&,16,1`): sends a line, then shows and echoes back what arrives on device 2 |
 | `userport.bas` | the same with the user port driver (`&,16,0`) at 1200 baud |

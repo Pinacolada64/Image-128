@@ -170,6 +170,12 @@
 	curlin	= $3b	; c64: ($39). Current BASIC Line Number
 	oldtxt	= $1202	; c64: ($3d). Pointer to the start of current line
 	txtptr	= $3d	; c64: ($7a). Pointer to address of current BASIC statement
+	runmod	= $7f	; [128 BASIC] bit 7: running a program (not direct mode)
+	stksav	= $82	; [128 BASIC] the CPU's stack pointer at the start of the
+			; statement (NEWSTT, $4b00; program mode only)
+	bstkptr	= $7d	; [128 BASIC] ($7d) points at the newest frame on BASIC's
+			; run-time stack, $0800-$09ff ($09ff: empty). FOR $81
+			; (18 bytes), GOSUB $8d and DO $eb (5: token, line, txtptr)
 	form	= $3f	; c128: used by "print using"
 	datlin	= $41	; c64: ($3f). current "data" line #
 	datptr	= $43	; c64: ($41). current "data" item address

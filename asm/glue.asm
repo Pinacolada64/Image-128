@@ -253,9 +253,27 @@ wedge_far:
 ; these leave the ML for BASIC and don't come back, so there's nothing
 ; to restore: switch to cfg_rom and go
 
+; farjmp_newstt (mljump: &,66,1's GOSUB) leaves from the middle of the &
+; statement, the wedge's and farcall's frames still on the CPU stack: put
+; the stack back as BASIC 7's own GOSUB leaves it. NEWSTT keeps the stack
+; pointer from the start of the statement in stksav, and runs a statement
+; with jsr $4b3f from $4af3; GOSUB ends with jmp newstt, leaving that
+; return address ($4af5) there, and RETURN drops its own (pla pla) and
+; returns through it. Each call left the & frames there before, until the
+; stack ran out, and RETURN went back through them. (c64: the same
+; garbage, under the GOSUB frame on its CPU stack.)
 farjmp_newstt:
 	lda #cfg_rom
 	sta mmucr
+	bit runmod
+	bpl farjmp_newstt1	; direct mode: stksav isn't kept
+	ldx stksav
+	txs
+farjmp_newstt1:
+	lda #>(k_newstt-1)
+	pha
+	lda #<(k_newstt-1)
+	pha
 	jmp k_newstt
 
 ; .x: error number

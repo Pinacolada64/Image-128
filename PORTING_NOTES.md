@@ -96,6 +96,23 @@ so adding names doesn't upset it.
 
 `EL` (and `ER`, `DS`, `DS$`) are BASIC 7's own: `el=5` is a syntax error.
 
+### BASIC 7's own stack
+
+FOR, GOSUB and DO frames are on BASIC 7's run-time stack at
+`$0800`-`$09ff`, not on the CPU's: `($7d)` (`bstkptr`) points at the
+newest frame's token, and it's empty at `$09ff`. FOR (`$81`) is 18 bytes,
+GOSUB (`$8d`) and DO (`$eb`) 5: token, line, text pointer. BEGIN/BEND
+puts nothing there. `sub.stack` walks it; the C64 version read the CPU's
+stack pointer, which on the 128 never shows these.
+
+ML that jumps into BASIC from inside an `&` call has to leave both stacks
+as BASIC 7's own statement would: `&,66,1` (`mlgosub`) used to push its
+GOSUB frame onto the CPU stack (RETURN never found it) and leave the `&`
+call's frames there too. NEWSTT saves the stack pointer at each statement
+(`$82`, `stksav`) and runs it with `jsr` from `$4af3`; GOSUB leaves that
+return address (`$4af5`) on the CPU stack, and RETURN returns through it.
+`farjmp_newstt` puts the stack back that way.
+
 ### `on -(…) gosub …: more` is not IF/THEN/ELSE
 
 The C64 idiom `on -(c) gosub 76:goto 3000` calls 76 if `c`, and then

@@ -290,17 +290,48 @@ fpout:
 makeroom:
 	jmp makerm1
 
+; a GOSUB frame on BASIC 7's run-time stack (bstkptr), where its RETURN
+; looks: the c64 pushed it onto the CPU's, which on the 128 left 5 bytes
+; there and made the RETURN a ?return without gosub. Below $0800 the
+; stack is full: ?out of memory, as BASIC's GOSUB says. Keeps .x .y (the
+; line, for mlgoto).
 mlgosub:
-	lda txtptr+1	; c64: $7b
+	txa
 	pha
-	lda txtptr	; c64: $7a
+	tya
 	pha
-	lda curlin+1	; c64: $3a
-	pha
-	lda curlin	; c64: $39
-	pha
+	sec
+	lda bstkptr
+	sbc #5
+	tax
+	lda bstkptr+1
+	sbc #0
+	cmp #$08
+	bcs mlgosub1
+	ldx #16		; out of memory
+	jmp farjmp_error
+mlgosub1:
+	stx bstkptr
+	sta bstkptr+1
+	ldy #0
 	lda #$8d	; 'gosub' token
-	pha
+	sta (bstkptr),y
+	iny
+	lda curlin	; c64: $39
+	sta (bstkptr),y
+	iny
+	lda curlin+1	; c64: $3a
+	sta (bstkptr),y
+	iny
+	lda txtptr	; c64: $7a
+	sta (bstkptr),y
+	iny
+	lda txtptr+1	; c64: $7b
+	sta (bstkptr),y
+	pla
+	tay
+	pla
+	tax
 mlresume:
 mljump:
 	jsr mlgoto
