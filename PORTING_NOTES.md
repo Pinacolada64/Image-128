@@ -180,7 +180,15 @@ Unchanged on the 128: the VIC, SID and CIA registers, Image's flags at
   (`?break error`); the drivers' `ngetin` returns "" for "nothing
   waiting". The 128 KERNAL's `findfn`, `devnum` and "file not open" are
   at `$f202`, `$f212` and `$f682` (C64 `$f30f`, `$f31f`, `$f701`).
+- **`&` calls' results:** the C64's `usetbl0` follows the call with
+  `sta 780` / `lda 780`, so BASIC reads a call's `.a` with `peek(780)`
+  (`sub.modem`: `&,4` then `peek(780)`, 0 for nothing received). Dropping
+  it with the `r6510` save left `sareg` holding the call number: the
+  modem check never saw 0, and the idle loop never came back to `&,16`.
 - **SYS to the overlays:** the C64's `$c000` is `protostart` (`$1c00`).
+- **The `++` overlays** are assembled on their own: they reach the ML
+  only through names in `equates.asm` (`++ clock` carries its own VDC
+  register writes and colour table).
 
 ## C64List
 

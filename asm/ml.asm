@@ -493,6 +493,10 @@ usetbl2:
 
 jump:
 	jsr $ffff
+; the result in sareg, for BASIC's peek (sub.modem: &,4 then
+; peek({sym:sareg})), and the flags from it, as the c64 left them
+	sta sareg	; c64: 780
+	lda sareg	; c64: 780
 nothing:
 	rts
 

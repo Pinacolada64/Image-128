@@ -524,7 +524,7 @@
 	filenum	= cassbuff + 214 ; 6358 / $18df: [1.2] [Logical] file number for read0/dskin
 	tmp5	= cassbuff + 215 ; 6359 / $18e0
 	abtchr	= cassbuff + 216 ; 6360 / $18e1: [1.2] Alternate abort character (works like <space>)
-	clock	= cassbuff + 217 ; 6361 / $18e2: [1.2] 1=Turns on idle screen clock
+	clock	= cassbuff + 217 ; 6361 / $18d9: [1.2] 1=Turns on idle screen clock
 	filetyp	= cassbuff + 218 ; 6362 / $18e3: [1.2] Filetype for Punter transfer protocol (1=PRG, 2=SEQ)
 	tmp1	= cassbuff + 219 ; 6363 / $18e4
 	tmp2	= cassbuff + 220 ; 6364 / $18e5

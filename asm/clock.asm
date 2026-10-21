@@ -1,10 +1,29 @@
+; clock.asm -- "++ clock": the idle screen's big clock. i/lo.idle loads it
+; (a$="clock":gosub 28) and calls it once a pass with &,16; while the clock
+; flag is on, it draws the time from the CIA's time of day in 4 by 4 blocks
+; of quarter-block characters at the top left of the screen (rows 1-5,
+; columns 0-17), in the current color.
+;
+; From ImageBBS3's source/clock.s, which (assembled at $c000 with the C64's
+; addresses) is the 3.0 release's "++ clock" byte for byte. Ported on
+; 2026-10-21 (the C64's addresses are in the comments):
+; - runs at protostart ($1c00; c64 $c000)
+; - the clock flag is clock ($18d9; c64 $07fa), the color color ($f1;
+;   c64 646); the VIC screen, color RAM and CIA are where they were
+; - a, x, y and w, which C64List takes for registers, are q_a ... q_w
+; - in 80 columns (mode bit 7) it copies the cells it drew to the same
+;   place on the VDC (vdcclk), the VIC screen being out of sight there; the
+;   mask keeps its rows in vdcsave then, so the VIC's rows 1-5 are free. It's
+;   assembled on its own, so it has its own copy of the VDC register writes
+;   and of vdccolor (vdc.asm).
+
 {include:"equates.asm"}
 
-* = protostart "clock.prg"
+	orig protostart	; c64: $c000
 
-screen= $0428
-colorm= $d828
-c1= 646
+screen= $0400 + 40	; c64: $0428
+colorm= colorram + 40	; c64: $d828
+c1= color		; c64: 646
 
 ml:
 	jmp doclock
@@ -68,7 +87,7 @@ ck2:
 	sta colorm+160,y
 	dey
 	bne ck2
-	rts
+	jmp vdcclk
 
 bcdtob:
 	pha
@@ -91,13 +110,13 @@ m1:
 	byte 0
 clockscs:
 	byte 0
-a:
+q_a:
 	byte 0
-x:
+q_x:
 	byte 0
-y:
+q_y:
 	byte 0
-w:
+q_w:
 	byte 0
 c2:
 	byte 11
@@ -109,8 +128,8 @@ quadchr:
 	byte 160,236,251,226,252,97,127,126,254,255,225,124,98,123,108,32
 
 quad:
-	sta a
-	sty y
+	sta q_a
+	sty q_y
 	sta quad0+1
 	lda #0
 	asl quad0+1
@@ -134,17 +153,17 @@ quad0:
 	dex
 	bpl quad0
 	lda #0
-	sta x
+	sta q_x
 quad1:
 	lda #4
-	sta w
-	lda a
+	sta q_w
+	lda q_a
 	cmp #10
 	bcc quad2
 	lda #1
-	sta w
+	sta q_w
 quad2:
-	ldx x
+	ldx q_x
 	lda #0
 	asl charbuf,x
 	rol
@@ -158,19 +177,19 @@ quad2:
 	lda quadchr,x
 	sta screen,y
 	lda c1
-	sta screen+$d400,y
+	sta colorm,y
 	iny
-	dec w
+	dec q_w
 	bne quad2
-	inc x
-	inc x
-	lda x
+	inc q_x
+	inc q_x
+	lda q_x
 	cmp #8
 	bcs quad3
-	lda y
+	lda q_y
 	clc
 	adc #40
-	sta y
+	sta q_y
 	tay
 	jmp quad1
 quad3:
@@ -178,7 +197,7 @@ quad3:
 	clc
 	adc #136
 	tay
-	lda a
+	lda q_a
 	rts
 
 chrset:
@@ -289,3 +308,125 @@ chrset:
 	byte %01000000
 	byte %00000000
 	byte %00000000
+
+; 80 columns: copy what doclock drew (rows 1-5, columns clk_first to
+; clk_end) from the VIC screen to the VDC's, the colors as attributes (as
+; shdlr.asm's vdcsrow: vdccolor, with the editor's charset bit from color).
+; The cells around it are the idle screen's, on the VDC only.
+vdcclk:
+	bit mode
+	bmi vdcclk0	; (vdcclk9 is too far for a branch)
+	rts
+vdcclk0:
+	lda #<screen
+	sta vdcclk_c+1
+	sta vdcclk_d+1
+	lda #80		; row 1
+	sta clk_vdc
+	lda #0
+	sta clk_vdc+1
+	sta clk_row
+	lda color
+	and #$80
+	sta clk_alt
+vdcclk1:
+	ldx clk_row
+	lda clk_vdc
+	clc
+	adc clk_first,x
+	sta clk_upd_lo
+	tay
+	lda clk_vdc+1
+	adc #0
+	sta clk_upd_hi
+	ora vdcscrn
+	jsr clk_upd
+	ldx clk_row
+	ldy clk_first,x
+vdcclk2:
+vdcclk_c:
+	lda screen,y
+	jsr clk_put
+	iny
+	ldx clk_row
+	tya
+	cmp clk_end,x
+	bcc vdcclk2
+	ldy clk_upd_lo
+	lda clk_upd_hi
+	ora vdcattr
+	jsr clk_upd
+	ldx clk_row
+	ldy clk_first,x
+vdcclk3:
+vdcclk_d:
+	lda colorm,y
+	and #$0f
+	tax
+	lda clk_color,x
+	ora clk_alt
+	jsr clk_put
+	iny
+	ldx clk_row
+	tya
+	cmp clk_end,x
+	bcc vdcclk3
+	lda vdcclk_c+1	; the next row
+	clc
+	adc #40
+	sta vdcclk_c+1
+	sta vdcclk_d+1
+	lda clk_vdc
+	clc
+	adc #80
+	sta clk_vdc
+	bcc vdcclk4
+	inc clk_vdc+1
+vdcclk4:
+	inc clk_row
+	lda clk_row
+	cmp #5
+	bcs vdcclk9
+	jmp vdcclk1	; (too far for a branch)
+vdcclk9:
+	rts
+
+; the columns doclock draws on rows 1-5: the digits (0-16), the shadow
+; down the right (17, rows 2-4) and along the bottom (1-17, row 5)
+clk_first:
+	byte 0,0,0,0,1
+clk_end:
+	byte 17,18,18,18,18
+
+; the VDC's update address (R18/R19) to .a (high) .y (low); keeps .y
+clk_upd:
+	ldx #$12
+	jsr clk_reg
+	inx
+	tya
+; .a to VDC register .x; keeps .x .y
+clk_reg:
+	stx $d600
+clk_reg1:
+	bit $d600
+	bpl clk_reg1
+	sta $d601
+	rts
+; .a to the update address, which moves on (R31)
+clk_put:
+	ldx #$1f
+	jmp clk_reg
+
+clk_vdc:
+	word 0
+clk_upd_lo:
+	byte 0
+clk_upd_hi:
+	byte 0
+clk_row:
+	byte 0
+clk_alt:
+	byte 0
+; VDC RGBI for each VIC color: vdc.asm's vdccolor
+clk_color:
+	byte $00,$0f,$08,$07,$0b,$04,$02,$0d,$0a,$0c,$09,$06,$01,$05,$03,$0e
