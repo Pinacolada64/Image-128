@@ -1,6 +1,6 @@
 version = "9107098739"
 
-{alpha:normal}	; .encoding "petscii_mixed"
+{alpha:alt}	; .encoding "petscii_mixed"
 
 {include:"equates.asm"}
 

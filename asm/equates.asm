@@ -258,6 +258,11 @@
 			; last column of the screen, 39 or 79, set by the editor
 	rmargin	= $e7	; [128 OS] the editor window's right edge, where its
 			; print wraps (39 or 79 for the whole screen)
+	scbot	= $e4	; [128 OS] the editor window's bottom row: its
+			; scrolls and line inserts stop there
+	scrlflg	= $f8	; [128 OS] bit 7: no scrolling at the window's
+			; bottom; bit 6: no line linking/inserting when a
+			; print wraps (ESC L/M, ESC Q...)
 	colptr	= $e2	; c64: ($f3). Pointer to the address of the current screen color RAM location
 	rvs	= $f3	; c64: $c7. Flag: Print Reverse Characters? 0=No
 	color	= $f1	; c64: $0286/646. Current foreground text color

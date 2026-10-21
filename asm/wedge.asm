@@ -3,6 +3,7 @@
 ; BASIC's own configuration (cfg_rom), so it calls BASIC and the KERNAL
 ; directly: direct_rom gives it their real addresses.
 {def:direct_rom}
+{alpha:alt}	; c64: KickAss's petscii_mixed: capitals $c1-$da, lowercase $41-$5a
 {include:"equates.asm"}
 orig wedge_exec_address
 ; jump table

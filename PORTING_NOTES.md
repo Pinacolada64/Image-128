@@ -173,6 +173,15 @@ Unchanged on the 128: the VIC, SID and CIA registers, Image's flags at
 - **The editor's zero page:** `$ee` is the last column (39 or 79), set
   by the editor (C64 code wrote 39 into `$d5`); `$e7` is where its print
   wraps.
+- **The split screen:** the C64 keeps console text off the screen mask
+  with its own scroll (up to `botline`), but the 128 editor's print
+  (`$c72d`, Image's `prtscn`) also scrolls at the bottom of its window
+  and, when a line wraps, inserts a line by moving every row below it
+  down, the mask's too. `setwin` (`shdlr.asm`, from `setmode`) makes the
+  editor's window end at `botline` (`$e4`: 15 with the mask on, 23 off)
+  and turns line inserting off (`$f8` bit 6). The C64's other half, the
+  raster split that gives the mask its own character set, isn't done yet
+  (`ml.asm`'s `newirq`).
 - **Function keys:** the KERNAL expands f-keys into their KEY texts
   (`$1000`: ten lengths, then the text). `intro` zeroes the lengths;
   Image's `fkeybuf` is at `$100a`, where the text began.
@@ -192,6 +201,12 @@ Unchanged on the 128: the VIC, SID and CIA registers, Image's flags at
 
 ## C64List
 
+- Text in the ML is `{alpha:alt}`, as the C64's KickAss `petscii_mixed`:
+  capitals `$c1`-`$da`, lowercase `$41`-`$5a`. `{alpha:normal}` folds
+  both to `$41`-`$5a`, which Image shows as lowercase: every capital in
+  the ML's strings (the day and month names, the editor's commands) was
+  lost that way. Each file assembled on its own sets it before including
+  `equates.asm`.
 - 4.04 assembles a branch more than 128 bytes away without an error
   (the offset comes out wrong): use `bxx skip / jmp target` where it
   might be far.

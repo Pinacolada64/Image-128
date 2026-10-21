@@ -17,7 +17,7 @@ They're petcat source (BASIC 7.0), not C64List: `chr$(92)` for `£`, no
 | Program | Tries |
 |---|---|
 | `scroll.bas` | scrolling, and wrapping a long line at the screen's width |
-| `mask.bas` | the screen mask on and off (`&,18`), console text scrolling underneath |
+| `mask.bas` | the screen mask on and off (`&,18`), console text scrolling and wrapping underneath |
 | `status-right.bas` | `&,69` on the 80-column status area's right half, with the mask off and on |
 | `lightbar.bas` | the lightbar's labels and default checkmarks, loaded as `im` loads them; the f-keys move the highlight |
 | `fkey-macros.bas` | Ctrl/C= + f1/f3/f5/f7 typing `f1$`-`f8$` into an input line |

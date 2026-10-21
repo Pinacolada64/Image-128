@@ -5,6 +5,8 @@
 10 for i=1 to 30:&"line"+str$(i)+" of the scroll test"+chr$(13):next
 15 &,18,1
 20 for i=31 to 40:&"masked"+str$(i)+chr$(13):next
+21 rem lines longer than the screen: a wrap mustn't push the mask down
+22 a$="that wraps onto the next row, longer than the screen is wide, 40 or 80 columns. ":for i=1 to 6:&"long"+str$(i)+" "+a$+chr$(13):next
 30 if peek(2816)=0 then 30
 35 &,18,0
 40 for i=41 to 45:&"unmasked"+str$(i)+chr$(13):next

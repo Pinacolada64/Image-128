@@ -17,6 +17,7 @@
 ;   setbnk before LOAD and SAVE
 ; - $fb/$fc stay: farcall puts them back (glue.asm)
 
+{alpha:alt}	; c64: KickAss's petscii_mixed: capitals $c1-$da, lowercase $41-$5a
 {include:"equates.asm"}
 
 	orig protostart	; c64: $c000

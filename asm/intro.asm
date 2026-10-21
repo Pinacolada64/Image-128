@@ -502,7 +502,7 @@ tr2:
 	ascii "-ABCDEFGHIJKLMNOPQRSTUVWXYZ*!!**"
 	ascii " !---!*!-*!****-"
 	ascii "****!!!---******"
-{alpha:normal}	; .encoding "petscii_mixed"
+{alpha:alt}	; .encoding "petscii_mixed"
 
 ; tblcta1
 tr3:

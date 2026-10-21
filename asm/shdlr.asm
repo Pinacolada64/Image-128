@@ -761,6 +761,19 @@ hea24v:
 	tay
 	rts
 
+; the split screen, the 128 editor's side: its window ends at botline
+; (15 with the mask on, 23 off), so a print that wraps or scrolls there
+; leaves the mask's rows alone, and a wrap doesn't insert a line (which
+; pushes every row below it down, the mask's too). Image scrolls the
+; console itself (scroll); the c64's KERNAL has no window to set.
+setwin:
+	lda botline
+	sta scbot
+	lda scrlflg
+	ora #$40
+	sta scrlflg
+	rts
+
 ; toggle full screen
 setmode:
 	cpx scnmode
@@ -775,6 +788,7 @@ setmode1:
 setmode2:
 	sta scnmode
 	stx botline
+	jsr setwin
 	jsr crsroff
 
 ; swap the VIC screen's rows 16-23 with tempscn, as the C64 does (in 80

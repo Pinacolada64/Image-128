@@ -17,6 +17,7 @@
 ;   assembled on its own, so it has its own copy of the VDC register writes
 ;   and of vdccolor (vdc.asm).
 
+{alpha:alt}	; c64: KickAss's petscii_mixed: capitals $c1-$da, lowercase $41-$5a
 {include:"equates.asm"}
 
 	orig protostart	; c64: $c000

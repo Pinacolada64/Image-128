@@ -1,3 +1,4 @@
+{alpha:alt}	; c64: KickAss's petscii_mixed: capitals $c1-$da, lowercase $41-$5a
 {include:"equates.asm"}
 
 orig rs232_exec_address ; "rs232_swift.bin"

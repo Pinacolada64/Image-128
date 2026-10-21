@@ -11,6 +11,7 @@
 ; itself; on the 128 that address is the KERNAL's own bank-switching code.
 
 {def:direct_rom}
+{alpha:alt}	; c64: KickAss's petscii_mixed: capitals $c1-$da, lowercase $41-$5a
 {include:"equates.asm"}
 
 loader_run = $0b00	; cassette buffer

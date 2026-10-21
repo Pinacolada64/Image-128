@@ -1,4 +1,4 @@
-{alpha:normal}	; .encoding "petscii_mixed"
+{alpha:alt}	; .encoding "petscii_mixed"
 
 version = "9107098721"
 

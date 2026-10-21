@@ -1,6 +1,7 @@
 {def:revision = {buildrev:.\revision}}
 {'info:Code revision {usedef:revision}.}
 
+{alpha:alt}	; c64: KickAss's petscii_mixed: capitals $c1-$da, lowercase $41-$5a
 {include:"equates.asm"}
 
 ;;;
