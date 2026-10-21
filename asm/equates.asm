@@ -260,6 +260,10 @@
 			; print wraps (39 or 79 for the whole screen)
 	scbot	= $e4	; [128 OS] the editor window's bottom row: its
 			; scrolls and line inserts stop there
+	graphm	= $d8	; [128 OS] graphic mode: $ff keeps the editor's IRQ off
+			; the VIC's $d018/$d011/$d016/$d012 (irq_far splits
+			; the screen); the editor's init sets it back to 0
+	vm1	= $0a2c	; [128 OS] the editor's $d018 for its text screen
 	scrlflg	= $f8	; [128 OS] bit 7: no scrolling at the window's
 			; bottom; bit 6: no line linking/inserting when a
 			; print wraps (ESC L/M, ESC Q...)

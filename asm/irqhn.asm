@@ -7,7 +7,13 @@ irq:
 	jsr irq9	; cursor stuff
 	jsr irq10
 	inc idlejif
+; caseflag: $7f strips the date's capitals for the uppercase/graphics set
+; (mupcase 1). With the mask on, the status line is in the mask's rows,
+; which irq_far (glue.asm) keeps in the lowercase set: keep them then.
+	lda scnmode	; c64: lda mupcase only (its split put the status
+	beq irqcase	; line in the lowercase set too, with the mask on)
 	lda mupcase
+irqcase:
 	lsr
 	ror
 	eor #$ff

@@ -135,10 +135,46 @@ newout_far:
 ; editor, the jiffy clock, the keyboard, BASIC's sprites and sound. It
 ; exits through $ff33, which puts back the interrupted $ff00.
 ; c64: Image replaced the KERNAL's IRQ and did those itself (irq9).
+;
+; The split screen (c64: ml.s's "raster"): with the screen mask on, the
+; console rows use the character set the output chose (mupcase, set by
+; chr$(14)/chr$(142): 0 lowercase, 1 uppercase/graphics) and the mask's
+; rows the lowercase set. setirq sets graphm to $ff, so the editor's IRQ
+; leaves $d018 and $d012 to Image (it still acks the raster interrupt and
+; scans the keyboard). Two raster interrupts a frame: at line $ff (the
+; frame's: the console's set, Image's IRQ work, the KERNAL's handler) and,
+; with the mask on, at mask_line, two lines above the mask's top row (the
+; KERNAL's entry takes most of a line), which sets the mask's set and
+; returns without the KERNAL, so the clocks and keyboard run once a frame.
+; The c64 split at lines 106 and 234 (rows 7 and 23); the 3.0 mask starts
+; at row 16.
+mask_line = 51 + 8*16 - 2	; text row r starts at line 51 + 8r
+
 irq_far:
 	lda $d019
 	and #$01		; raster? (the editor acknowledges it)
 	beq irq_far1
+	lda irq_phase
+	bne irq_mask
+	lda vm1			; the frame's: the console's set
+	and #$f0		; (the screen's address, from the editor's VM1)
+	sta irq_mset
+	lda mupcase
+	and #1
+	asl
+	eor #$06		; $06: lowercase ($1800), $04: uppercase ($1000)
+	ora irq_mset
+	sta $d018
+	lda irq_mset
+	ora #$06
+	sta irq_mset		; and the mask's, for irq_mask
+	lda #$ff
+	ldx scnmode		; mask on (0): the mask's interrupt next
+	bne irq_far0
+	lda #mask_line
+	inc irq_phase
+irq_far0:
+	sta $d012
 	lda #cfg_ml
 	sta mmucr
 	jsr newirq
@@ -146,6 +182,23 @@ irq_far:
 	sta mmucr
 irq_far1:
 	jmp (oldirq_vec)
+
+; the mask's interrupt: its character set, then the frame's interrupt next
+irq_mask:
+	lda irq_mset
+	sta $d018
+	lda #$01
+	sta $d019		; ack
+	lda #$ff
+	sta $d012
+	lda #0
+	sta irq_phase
+	jmp nmiexit		; $ff33: .y .x .a and $ff00 back, rti
+
+irq_phase:
+	byte 0			; 1: the next raster interrupt is the mask's
+irq_mset:
+	byte $16		; $d018 for the mask's rows
 
 oldirq_vec:
 	word k_irq		; setirq saves the vector here

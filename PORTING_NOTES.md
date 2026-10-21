@@ -179,9 +179,15 @@ Unchanged on the 128: the VIC, SID and CIA registers, Image's flags at
   and, when a line wraps, inserts a line by moving every row below it
   down, the mask's too. `setwin` (`shdlr.asm`, from `setmode`) makes the
   editor's window end at `botline` (`$e4`: 15 with the mask on, 23 off)
-  and turns line inserting off (`$f8` bit 6). The C64's other half, the
-  raster split that gives the mask its own character set, isn't done yet
-  (`ml.asm`'s `newirq`).
+  and turns line inserting off (`$f8` bit 6). The other half, the
+  raster split: with the mask on, the console rows follow the user's case
+  (`mupcase`) and the mask's rows keep the lowercase set. The editor's IRQ
+  rewrites `$d018` and `$d012` every frame unless `graphm` (`$d8`) is
+  `$ff`, so `setirq` sets that and `irq_far` (`glue.asm`) does both: at
+  line `$ff` the console's set, then two lines above row 16 the mask's,
+  returning without the KERNAL so the clocks and keyboard still run once
+  a frame. The C64 split at rows 7 and 23, which don't match 3.0's mask;
+  the date keeps its capitals while the mask is on (`caseflag`).
 - **Function keys:** the KERNAL expands f-keys into their KEY texts
   (`$1000`: ten lengths, then the text). `intro` zeroes the lengths;
   Image's `fkeybuf` is at `$100a`, where the text began.

@@ -291,10 +291,13 @@ iosetup:
 
 ;* setup irq vector
 
-; Image's IRQ work runs ahead of the KERNAL's handler, which keeps the
-; VIC's raster interrupt (glue.asm's irq_far). c64: this took the raster
-; interrupt over (ml.asm's newirq says why that's not done here yet).
+; Image's IRQ work runs ahead of the KERNAL's handler (glue.asm's
+; irq_far), which also splits the screen at the mask: graphm $ff keeps the
+; editor's IRQ off $d018 and $d012. c64: this took the raster interrupt
+; over.
 setirq:
+	lda #$ff
+	sta graphm
 	lda #$1f
 	sta d1icr	; CIA #1 interrupts off (the 128 uses none)
 	lda #$ff

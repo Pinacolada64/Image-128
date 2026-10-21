@@ -519,12 +519,9 @@ oldout_vec:
 ; cfg_ml on the VIC raster interrupt, before the KERNAL's own handler.
 ;
 ; c64: "raster" took over the VIC's raster interrupt and split the screen
-; at lines 106 and 234, switching $d018 so the screen mask (the bottom
-; rows) could use the uppercase/graphics set while the rest followed the
-; user's case (mupcase); its second half ran this. FIXME (128): the
-; screen editor rewrites $d018 from its shadow ($0a2c) every frame, so
-; that split needs doing the editor's way; until then the screen mask
-; uses the same character set as the rest of the screen.
+; at lines 106 and 234, switching $d018 between the user's case (mupcase)
+; and the lowercase set; its second half ran this. The 128's split is in
+; glue.asm's irq_far, at the mask's top row.
 
 newirq:
 	inc jiffy	; c64: rast1, once a frame
