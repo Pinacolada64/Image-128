@@ -84,3 +84,5 @@
 	word struct_swap_address+3	;68-struct
 	word dispstr	;&,69
 	word cursposn	;&,70
+	word putvar2	;&,71 (128): var to the descriptor at varpnt, keeping BASIC 7's
+			; back-links (varbl.asm); for the struct module

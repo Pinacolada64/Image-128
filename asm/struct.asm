@@ -220,7 +220,8 @@ getd0:
 	lda scanfor+5
 	ldx #0
 	ldy #0
-	sta ($62),y
+	sta (var+1),y	; c64: ($62),y. makerm leaves the new string's address
+			; in var+1 ($64/$65 on the 128)
 	iny
 getd2:
 	lda scanfor,x
@@ -231,23 +232,20 @@ getd2:
 	lsr
 	lsr
 	ora #$30
-	sta ($62),y
+	sta (var+1),y	; c64: ($62),y
 	iny
 	pla
 	and #15
 	ora #$30
-	sta ($62),y
+	sta (var+1),y	; c64: ($62),y
 	iny
 	cpx #5
 	bcc getd2
 getd3:
-	ldy #4
-getd4:
-	lda var,y	; $61,y
-	sta (varpnt),y	; ($47),y
-	dey
-	bpl getd4
-	rts
+; 128: putvar2 (&,71) writes the descriptor and gives the new string its
+; back-link (c64: the copy loop here; see varbl.asm's strold/strnew)
+	lda #71
+	jmp usetbl1
 
 opc1:
 	byte opandy,opcmpy
@@ -892,12 +890,9 @@ game1:
 	sta $15
 	dec count
 	bne game1
-	ldy #4
-game3:
-	lda var,y	; $61,y
-	sta (varpnt),y	; ($47),y
-	dey
-	bpl game3
+; 128: putvar2 (&,71), as getd3
+	lda #71
+	jmp usetbl1
 	rts
 
 game2:

@@ -34,8 +34,10 @@ prtln:
 ;* store buffer in memory
 putarr:
 	jsr findarr
+	jsr stroldx	; 128: see strold (an array element: no name)
 	ldy #2
-	jmp putvar1
+	jsr putvar1
+	jmp strnewx
 
 ;* put and store string
 putln:
@@ -155,12 +157,118 @@ putvar:
 putvar0:
 	jsr findvar
 putvar2:
+	jsr strold	; 128: the string it held is garbage now
 	ldy #4
+	jsr putvar1
+	jmp strnew	; 128: and its new one points back to it
 putvar1:
 	lda var,y
 	sta (varpnt),y	; c64: $47
 	dey
 	bpl putvar1
+	rts
+
+; 128: BASIC 7 keeps a back-link after each string in its string area
+; (bank 1, fretop up to memsiz) to the descriptor holding it, marks a
+; string nothing holds with its length and $ff, and its garbage collection
+; goes by those; makeroom's new string comes marked garbage until it's
+; assigned. Writing a descriptor straight in, as the C64 could, left the
+; new string garbage (the next collection gave its room away) and the old
+; one linked to a descriptor holding something else. So, around writing
+; the descriptor at varpnt, as BASIC 7's own assignment does:
+; strold: if it's a string variable whose string is in the string area
+;	and points back to it, mark that string garbage;
+; strnew: if its new string is in the string area, point it back.
+; The -x entries skip the check that it's a string variable (an array
+; element has no name in front). Uses free_fb/fc (farcall keeps them).
+strold:
+	jsr strvar
+	bcs strnw9
+stroldx:
+	jsr strpas
+	bcs strnw9
+	ldy #0		; its link has to be ours
+	lda (free_fb),y
+	cmp varpnt
+	bne strnw9
+	iny
+	lda (free_fb),y
+	cmp varpnt+1
+	bne strnw9
+	lda #$ff	; the length, $ff
+	sta (free_fb),y
+	dey
+	txa
+	sta (free_fb),y
+	rts
+strnew:
+	jsr strvar
+	bcs strnw9
+strnewx:
+	jsr strpas
+	bcs strnw9
+	ldy #0
+	lda varpnt
+	sta (free_fb),y
+	iny
+	lda varpnt+1
+	sta (free_fb),y
+strnw9:
+	rts
+
+; carry clear if the variable at varpnt is a string: its name, just
+; before, has bit 7 clear in the first byte and set in the second
+strvar:
+	sec
+	lda varpnt
+	sbc #2
+	sta free_fb
+	lda varpnt+1
+	sbc #0
+	sta free_fc
+	ldy #0
+	lda (free_fb),y
+	bmi strpas9
+	iny
+	lda (free_fb),y
+	bpl strpas9
+	clc
+	rts
+
+; the descriptor at varpnt: if its string is in the string area, free_fb
+; points just past it (its link), .x is its length and carry is clear
+strpas:
+	ldy #0
+	lda (varpnt),y
+	beq strpas9	; empty
+	tax
+	iny
+	lda (varpnt),y
+	sta free_fb
+	iny
+	lda (varpnt),y
+	sta free_fc
+	lda free_fb	; below fretop?
+	cmp fretop
+	lda free_fc
+	sbc fretop+1
+	bcc strpas9
+	lda free_fb	; at or past memsiz?
+	cmp memsiz
+	lda free_fc
+	sbc memsiz+1
+	bcs strpas9
+	txa
+	clc
+	adc free_fb
+	sta free_fb
+	bcc strpas1
+	inc free_fc
+strpas1:
+	clc
+	rts
+strpas9:
+	sec
 	rts
 
 zero:

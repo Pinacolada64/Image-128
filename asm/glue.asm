@@ -29,6 +29,8 @@
 
 gate_ptr = free_fb		; zero page pointer to the inline bytes
 
+; farcall has to stay the first thing here: the wedge, assembled on its
+; own, calls it as "jsr glue" (collect, in wedge.asm)
 farcall:
 	php
 	sei

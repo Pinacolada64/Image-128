@@ -593,7 +593,7 @@
 ; TODO: $1a00-$1bff: $1ff / 511 bytes. room for IRQ/& jump tables?
 
 ; Image '&' jump table:
-	jmptbl	= $1a00	; 71 * 2 = 142 bytes => 6798 / $1A8E
+	jmptbl	= $1a00	; 72 * 2 = 144 bytes => 6800 / $1A90
 
 ; 369 bytes free
 
@@ -751,6 +751,8 @@
 	k_gotol		= $59e2	; c64: $a8a3 (goto+3): go to the line in linnum,
 				; setting txtptr -- GOTO past its linget and its
 				; "was there a number" check ($59de); returns
+	k_garbag	= $92ea	; BASIC 7's string garbage collection (FRE(1) calls it at
+				; $803a); keeps its back-links. c64: Image's own, gc.asm
 	k_syscll	= $5885	; c64: $e130. FIXME: re-evaluates its argument
 	k_exitint	= $ff33	; c64: $ea81. exit IRQ: restore $ff00, .y, .x, .a, rti
 	k_irq		= $fa65	; c64: $ea31. the KERNAL's IRQ handler (CINV's default):
