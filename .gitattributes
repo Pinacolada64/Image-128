@@ -1,1 +1,2 @@
-disk/* binary
+disk/*.prg binary
+disk/*.seq binary
