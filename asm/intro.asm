@@ -100,6 +100,21 @@ bartbl_loop:
 	cpy #192
 	bne bartbl_loop
 
+; 10/20/2026: the KERNAL's function key definitions (KEY): zero their ten
+; lengths, so an f-key types nothing (the editor's $cf00 copies that many
+; characters into the input) and Image's IRQ (irq4) reads the keys
+; itself, as on the C64; then f1 no longer typed "graphic" into Image's
+; input. fkeybuf, Image's macro buffer, starts where their text did
+; ($100a): zero its index too, or getkbd takes the leftover "g" for a
+; macro being typed and feeds the KERNAL's text into the first input.
+
+	lda #0
+	ldy #pkybuf_lens	; $1000-$1009, and fkeybuf's index at $100a
+pkybuf_loop:
+	sta pkybuf,y
+	dey
+	bpl pkybuf_loop
+
 ; the wedge: &, $hex and the rest in BASIC (wedge.asm's install)
 
 	jsr wedge_exec_address

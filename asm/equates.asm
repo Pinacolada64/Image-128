@@ -286,7 +286,10 @@
 	buf	= $0200	; c128: $0200-$02a0, 160/$a0 bytes)
 	keyd	= $034a	; c64: $0277. keyboard buffer (both 10 bytes)
 	keyrept	= $0a22 ; c64: 650. 128 = most keys repeat, 0=no keys repeat
-	fkeybuf	= $100a ; c64: 679. c128: $100a-$10ff (4106-4351), $f5 (245) bytes
+	pkybuf	= $1000	; [128 OS] the KERNAL's function key definitions: ten
+	pkybuf_lens = 10 ; lengths, then the text (intro zeroes the lengths)
+	fkeybuf	= $100a ; c64: 679. c128: $100a-$10ff (4106-4351), $f5 (245) bytes,
+			; where the KERNAL's key text was
 
 ;
 ; system vectors
