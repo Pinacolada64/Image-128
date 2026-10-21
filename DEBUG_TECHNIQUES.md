@@ -1,6 +1,7 @@
 # Debugging techniques
 
 Ways of finding bugs in Image BBS 128 under VICE's x128 that have worked.
+What they found is in `PORTING_NOTES.md`.
 The monitor commands work the same typed into the monitor (Alt+H) or sent
 through the remote monitor (`-remotemonitor`).
 
