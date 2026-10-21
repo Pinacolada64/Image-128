@@ -6,12 +6,28 @@
 # 128 KERNAL loads in burst mode too.
 #
 #   asm/build.sh            (from anywhere)
+#   asm/build.sh ml [disk.d81 ...]
+#
+# "ml" builds only the ML, boot 128, ml.rs232 and the "++" overlays, and
+# replaces those files on build/image128.d81 (from a full build) and on
+# each disk named after it (e.g. build/setup-test.d81, a configured system:
+# its other files stay as they are). im and the modules don't change with
+# the ML: they reach it through the fixed addresses in equates.asm.
 #
 # C64List runs under wine: 4.04 for the assembly (as make.bat), 4.06 for
 # "im 128.bas" (4.04 ignores {tokenizer}, so BASIC 7.0 keywords wouldn't be
 # tokenized). Override where they are with C64LIST and C64LIST_406.
 
 set -e
+mode=all
+if [ "$1" = ml ]; then
+	mode=ml
+	shift
+fi
+mldisks=()
+for d in "$@"; do
+	mldisks+=("$(cd "$(dirname "$d")" && pwd)/$(basename "$d")")
+done
 C64LIST=${C64LIST:-$HOME/bin/c64list4_04.exe}
 C64LIST_406=${C64LIST_406:-$HOME/bin/C64List4.06/c64List.exe}
 here=$(cd "$(dirname "$0")" && pwd)
@@ -59,6 +75,26 @@ done
 c64list boot.asm -prg:boot.prg -ovr
 python3 "$repo/tools/split-ml.py" ml.prg ml.sym "$build"
 cp boot.prg "$build/boot 128.prg"
+
+if [ $mode = ml ]; then
+	[ -f "$build/image128.d81" ] || { echo "build.sh: no build/image128.d81: run asm/build.sh first" >&2; exit 1; }
+	# each file by name: delete it (if it's there), then write it
+	mlfiles=("boot 128.prg:boot 128" ml.buf:ml.buf ml.low:ml.low ml.mod:ml.mod
+		ml.res1:ml.res1 ml.res2:ml.res2 ml.rs232.prg:ml.rs232)
+	for ((i = 1; i < ${#ovlwrites[@]}; i += 3)); do
+		mlfiles+=("$(basename "${ovlwrites[i]}"):${ovlwrites[i+1]}")
+	done
+	args=()
+	for f in "${mlfiles[@]}"; do
+		args+=(-delete "${f#*:}" -write "$build/${f%%:*}" "${f#*:}")
+	done
+	for d in "$build/image128.d81" "${mldisks[@]}"; do
+		c1541 "$d" "${args[@]}" >/dev/null 2>&1
+		echo "$d:"
+		c1541 "$d" -list | grep -E '"(boot 128|ml\.[a-z0-9]+|\+\+ [^"]+)"'
+	done
+	exit 0
+fi
 
 cd "$repo"
 # imdate: the build's date and time as im's clock strings have it (z$,

@@ -40,6 +40,12 @@ drive 8:
 (or attach the disk and `RUN "BOOT 128"`). The memory map is at the
 top of `asm/memory 128.txt`.
 
+When only the ML has changed, `asm/build.sh ml` builds just the ML,
+`boot 128`, `ml.rs232` and the `++` overlays (about half a minute, not
+three) and replaces those files on `build/image128.d81` and on any disks
+named after it, keeping the rest of each: `asm/build.sh ml
+build/setup-test.d81` updates a configured system as well.
+
 `PORTING_NOTES.md` has what differs between the C64 and the 128 and
 how the port deals with it; `PROGRAMMING.md`, writing BASIC for Image
 128 (errors and TRAP, BASIC 7.0's stack, `&` output);
