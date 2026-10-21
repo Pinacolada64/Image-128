@@ -62,7 +62,11 @@
 4209 &,52,25,3:ona%gosub4500
 4210 ifpeek({sym:timeset})>.andmid$(am$,2,6)<>mid$(d1$,2,6)thenmm=7:goto3000
 4211 &,52,29,3:ifpeek({sym:timeset})>.anda%thenmm=3:goto3000
-4212 poke{sym:color},df%:&,16:a$="":ifpeek({sym:ndx})thengeta$
+' Image BBS 128 (10/21/2026): the color by MCI ({pound}q, as im 97), not poke
+' color: in 80 columns color is the editor's VDC attribute, and a VIC color
+' number poked there clears its charset bit, so the text after it (? and
+' the rest) came out in the uppercase/graphics set
+4212 &"{pound}q"+chr$(df%+48):&,16:a$="":ifpeek({sym:ndx})thengeta$
 4214 on-(a$="")goto4230:poke{sym:ndx},.:onwc+1goto4222
 4216 b=.:lm=1:fori=1towc%(0,0):ifasc(a$)=wc%(0,i)thenb=i:i=wc%(0,0)+1
 4218 next:on-(b=.)goto4224:&,60,1,16,wc%(8,b),cm$:gosub9:&,60,1,11,wc%(2,b),a$
@@ -133,7 +137,7 @@
 4481 &,52,$34,3:on-(a%=.)goto4482:poke53370,0:&,52,$35,0
 4482 return
 4484 gosub33:x=40:gosub1:&,2,2:n=val(a$):close2:return
-4486 gosub33:x=40:gosub1:print#2,n:close2:df%=n:poke{sym:color},df%:&,16:return
+4486 gosub33:x=40:gosub1:print#2,n:close2:df%=n:&"{pound}q"+chr$(df%+48):&,16:return
 4487 gosub4480:print#131,"ath1":tr%=101:poke{sym:clock},.:poke53248,1:a$="lo."+"cp":goto70
 4488 gosub4480:c=a:a=.:lt$=d1$:poke{sym:carrst},.:&,52,16,1:&,52,4,1:zz=1
 4489 &,52,17,1:&,52,5,1

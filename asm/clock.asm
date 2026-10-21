@@ -24,7 +24,7 @@
 
 screen= $0400 + 40	; c64: $0428
 colorm= colorram + 40	; c64: $d828
-c1= color		; c64: 646
+c1= color		; c64: 646 (doclock makes clk_c1 from it)
 
 ml:
 	jmp doclock
@@ -38,6 +38,24 @@ doclock:
 	cmp clockscs
 	beq doclock0
 	sta clockscs
+; the digits' color, as a VIC color: in 80 columns color is the editor's
+; VDC attribute (the idle screen sets it by MCI), so find the VIC
+; color that vdcclk turns into it (white if none)
+	lda color
+	bit mode
+	bpl ck0b
+	and #$0f
+	ldx #15
+ck0a:
+	cmp clk_color,x
+	beq ck0c
+	dex
+	bpl ck0a
+	ldx #1
+ck0c:
+	txa
+ck0b:
+	sta clk_c1
 	lda hrs
 	jsr bcdtob
 	and #1
@@ -177,7 +195,7 @@ quad2:
 	tax
 	lda quadchr,x
 	sta screen,y
-	lda c1
+	lda clk_c1	; c64: lda 646
 	sta colorm,y
 	iny
 	dec q_w
@@ -428,6 +446,8 @@ clk_row:
 	byte 0
 clk_alt:
 	byte 0
+clk_c1:
+	byte 1
 ; VDC RGBI for each VIC color: vdc.asm's vdccolor
 clk_color:
 	byte $00,$0f,$08,$07,$0b,$04,$02,$0d,$0a,$0c,$09,$06,$01,$05,$03,$0e
