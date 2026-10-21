@@ -151,6 +151,22 @@ Found 2026-10-20: swapscn's `bmi vdcmask` stopped reaching vdcmask once
 vdcrinit and vdcrcopy went in between, and the mask toggle silently
 skipped the VDC side.
 
+## Scripting x128: tools/vmon.py and tools/setup_test.py
+
+`tools/vmon.py` starts x128 with its remote monitor on port 6537 and
+drives it: `cmd()` sends monitor commands, `mem()` reads memory,
+`screen()` reads the 40- or 80-column screen as text, `type()` fills
+the keyboard buffer. Each call takes a fraction of a second: it reads
+each answer until the monitor's prompt comes back (and goes quiet, since
+VICE can print a prompt twice) instead of waiting out a timeout.
+
+`tools/setup_test.py` runs the new-system setup on a copy of the boot
+disk (`build/setup-test.d71`): 1 at the start-up menu, Return at every
+prompt (each takes its default) and 1 at the clock menu, logging each
+part as the setup's frame shows it; then it watches `im` boot from the
+new configuration and prints where it stopped. About a minute for the
+setup in warp mode.
+
 ## RS-232 in VICE
 
 The ACIA (`-acia1 ...`) and the user port modem (`-userportdevice 2`)
