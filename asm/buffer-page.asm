@@ -19,13 +19,13 @@
 bootdate:
 
 dateday:
-	byte $01
+	byte $04		; Wednesday (daytbl: 1 = Sunday), 9 Dec 2026
 datemon:
 	byte $12
 datedate:
 	byte $09
 dateyear:
-	byte $16		; 2016 (with the $20 below: century); was $90
+	byte $26		; 2026 (with the $20 below: century); was $90
 	byte $20,$00
 
 ; storage for conversion routines
