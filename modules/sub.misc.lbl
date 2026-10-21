@@ -1,0 +1,77 @@
+' imported from sub.misc.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+' Image BBS 128 (10/20/2026): C64 addresses in peek/poke are the 128's,
+' as {sym:...} names from asm/equates.asm (included below).
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{include:"..\asm\equates.asm"}
+
+60000 onimgoto60006,60026,60004,60046,60062,60068,60074,60078,60082,60088
+60002 onim-10goto60086,60004,60092,60200,60222
+60004 return
+60006 &,40:on-(id=.)goto60024:gosub35:uf$=mid$(str$(lf),2,1)+mid$(uf$,2)
+60008 a$=na$+r$+pw$+r$+ff$+r$+ll$+r$+ph$+r$+ld$+r$
+60010 a$=a$+mid$(hx$,ac%+1,1)+mid$(str$(af%),2)+r$+mid$(str$(ct%),2)+r$
+60012 a$=a$+mid$(str$(tc%),2)+r$+mid$(str$(co%),2)+r$
+60014 a$=a$+mid$(str$(ll%+mp%*256),2)+r$+mid$(str$(ul),2)+r$+uf$+r$
+60016 a$=a$+mid$(str$(em),2)+r$+mid$(str$(dc),2)+r$+mid$(str$(uc),2)+r$
+60018 a$=a$+mid$(str$(bd),2)+r$+mid$(str$(bu),2)+r$+mid$(str$(cr),2)+r$
+60020 a$=a$+mid$(str$(ps),2)+r$+mid$(str$(rp),2)+r$+lt$+chr$(48+cd%)+r$+fl$
+60022 x=id:gosub1:print#2,a$:gosub1:close2
+60024 return
+60026 gosub35:x=id:gosub1:input#2,na$,pw$,ff$,ll$,ph$,ld$,a$
+60028 dd$=cc$+mid$(str$(id),2):rn$=ff$+" "+ll$
+60030 ifleft$(a$,1)=" "thena$=mid$(a$,2)
+60032 ac%=asc(a$)-48:ac%=ac%+135*(ac%>9):af%=val(mid$(a$,2))
+60034 input#2,ct%,tc%,co%,ll%,ul,uf$,em,dc,uc,bd,bu,cr,ps,rp,d5$,fl$:close2
+60036 cd%=.:iflen(d5$)>11thencd%=val(mid$(d5$,12,1)):d5$=left$(d5$,11)
+60038 mp%=int(ll%/256):ll%=ll%-256*mp%:co$=co$(co%)
+60040 iflen(uf$)<5thenuf$=mid$(str$(val(uf$)),2,1)+"1000"
+60041 &,52,16,3:ifa%=1then:&,52,17,1:uf$="1"+mid$(uf$,2)
+60042 lf=val(left$(uf$,1)):&,52,44,val(mid$(uf$,3,1)):&,52,34,val(mid$(uf$,2,1))
+60044 &,52,17,lf:&,52,20,em:poke{sym:modclmn},ll%:poke{sym:usrlin},mp%:poke{sym:ptrlinm},.:return
+60046 onpeek(53256)goto60054:cc=.:poke53256,1:&"{f6}{lt. green}Reason For Chat?{f6:2}Chat: {pound}i1"
+60048 on-(an$="")goto60060:a$=" Chat: "+an$:d$=an$:gosub50:an$=d$:&,9
+60050 &,52,1,3:&,25,1,a%*5:&,52,.,3:ona%goto60052:gosub60054:goto85
+60052 &"{f6}Paging Now!{f6}":return
+60054 cc=cc+1:dr=1:a$="s.chat"+str$(cc):gosub14
+60056 ife%then:&,52,33,3:ifa%thentr%=.
+60058 return
+60060 poke53256,.:goto92
+60062 &"{f6}Time And Date:{f6:2}Logon: {$04}"+lt$:&"{f6}Now:   {pound}v0{f6:2}Minutes Left: "
+60064 a%=tr%:a$="{pound}%a":ifa%>99thena$="Infinite"
+60066 &:return
+60068 gosub37:gosub39:&,11
+60070 gosub30:i=1:x=1:gosub16:x=12:gosub16:x=23:gosub16:x=30:gosub16
+60072 close2:return
+60074 gosub60088:ifi=.thenreturn
+60076 a=5:goto60080
+60078 gosub60088:a=4:ifithenreturn
+60080 a%=id:&,16,a:dr=6:gosub3:a$=dr$+"u.index":print#15,"s"a$:&,16,2:return
+60082 ifpr<>4thengosub60086:b%=.
+60084 &,16,6:return
+60086 a$="index":gosub28:dr=6:gosub3:a$=dr$+"u.index":&,16,1:uh=a%:return
+60088 gosub60086:gosub35:&,16:close2
+60090 i=a%:return
+60092 ifi%=.then:&"{f6}Sorry, Instant Mode Only...{f6:2}":return
+60094 lp=1:&"{f6}Enter the Handle or ID you wish to switch to (RETURN to Abort){f6}"
+60096 p$="Handle":poke53252,20:gosub6:ifan$=""thenreturn
+60098 i=val(an$):ifi<1ori>urthengosub60088:ifi=.then:&"{f6}Not found!{f6:2}":goto60094
+60100 gosub35:x=i:gosub1:&,2,2:ifa$="{^}"then:&"{f6}Deleted ID!{f6:2}":goto60094
+60102 id=i:gosub60026:im=1:goto443
+60104 copr. 1994 new image 9/20/94
+60200 rem:replaces line 1634
+60202 gosub31:x=ac%+1:gosub1:&,2,2:ag$=a$:&,2,2:close2
+60204 iflen(fl$)<len(a$)thenfl$=fl$+mid$(a$,len(fl$)+1)
+60206 iflen(fl$)>len(a$)thenfl$=a$
+60208 ifac%<>ao%thenfl$=a$:ao%=ac%
+60210 a=6:gosub11:le=(a+1)*10:a=16:gosub11:poke{sym:idlemax},a:a=20:gosub11:da%=a
+60212 return
+60218 rem:below replaces 1370 and 1374
+60220 &,69,c,22,right$(str$(a+1e5),b),$81:return
+60222 a=ca:b=5:c=2:gosub60220:a=cn:b=3:c=10:goto60220
+60224 rem:"sub.misc (c)nissa 200918 lh"

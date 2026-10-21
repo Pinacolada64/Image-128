@@ -1,0 +1,48 @@
+' imported from the 2023-12-31 master release's sub.stats.prg with C64List 4.04
+' (-txt -keycase -varcase -alpha:alt), as tools/detok.sh --keep-spaces in
+' ImageBBS3 does; detok.sh wouldn't write it: the original jumps to a line
+' C64List can't find (see below), so the rebuild wasn't byte-identical.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+
+60000 onimgoto60002:return
+60002 gosub320:&"{clear}{f6}{cyan}{rvrs on} Current Status: {f6}"
+60004 an$=na$:&,15,1: &"{f6}{white}{rvrs on} Name       :{rvrs off}{yellow} {pound}v7"
+60006 &"{pound}{back arrow}39 {white}{rvrs on} Email Addr.:{rvrs off}{lt. green} {pound}v4"
+60008 an$=rn$:&,15,1:&"{f6}{white}{rvrs on} Real Name  :{rvrs off}{yellow} {pound}v7"
+60010 &"{pound}{back arrow}39 {white}{rvrs on} Last Call  :{rvrs off}{lt. green} {pound}v1"
+60012 b$=dd$:ifid=.thenb$="None."
+60014 &"{f6}{white}{rvrs on} Login ID   :{rvrs off}{yellow} {pound}$b"
+60016 &"{pound}{back arrow}39 {white}{rvrs on} Access     :{rvrs off}{lt. green} {pound}vm"
+60018 a%=le:&"{f6}{white}{rvrs on} Editor Lns :{rvrs off}{yellow} {pound}%a"
+60020 a%=ct%:&"{pound}{back arrow}39 {white}{rvrs on} Calls Today:{rvrs off}{lt. green} {pound}%a"
+60022 a%=tc%:&"{f6}{white}{rvrs on} Total Calls:{rvrs off}{yellow} {pound}%a"
+60024 a$=str$(ca):&"{pound}{back arrow}39 {white}{rvrs on} Caller#    :{rvrs off}{lt. green}{pound}$a":gosub60076:ifa=.then60074
+60026 a%=da%:&"{f6}{white}{rvrs on} DL's Allowed:{rvrs off}{yellow} {pound}%a {lt. red}(0)=Unlimited"
+60028 a%=dc:&"{pound}{back arrow}39 {white}{rvrs on} Total DL's  :{rvrs off}{lt. green} {pound}%a"
+60030 a%=uc:&"{f6}{white}{rvrs on} Total UL's  :{rvrs off}{yellow} {pound}%a"
+60032 an$=str$(bd):&"{pound}{back arrow}39 {white}{rvrs on} Ttl Blks DL :{rvrs off}{lt. green}{pound}v7"
+60034 an$=str$(bu):&"{f6}{white}{rvrs on} Ttl Blks UL :{rvrs off}{yellow}{pound}v7"
+60036 an$=str$(cr):&"{pound}{back arrow}39 {white}{rvrs on} Credit Pts  :{rvrs off}{lt. green}{pound}v7"
+60038 a=2:gosub11:a%=a:&"{f6}{white}{rvrs on} Credit Ratio:{rvrs off}{yellow} {pound}%a To 1"
+60040 a%=ps:&"{pound}{back arrow}39 {white}{rvrs on} Total Posts :{rvrs off}{lt. green} {pound}%a"
+60042 a%=rp:&"{f6}{white}{rvrs on} Total Resp. :{rvrs off}{yellow} {pound}%a{f6}":gosub60076:ifa=.then60074
+60044 &"{f6}{lt. red}{rvrs on}You Have:{f6}":f=0
+60046 a=1:gosub11:ifathen:&"{f6}{yellow}Non-Weed Status":f=1
+60048 a=3:gosub11:ifathen:&"{f6}{lt. green}Full Maintenance":f=1
+60050 a=4:gosub11:ifathen:&"{f6}{yellow}Post/Respond Capability":f=1
+60052 a=5:gosub11:ifathen:&"{f6}{lt. green}Normal U/D Access":f=1
+60054 a=7:gosub11:ifathen:&"{f6}{yellow}Unlimited Credits":f=1
+60056 a=8:gosub11:ifathen:&"{f6}{lt. green}Remote Maintenance Access":f=1
+60058 a=9:gosub11:ifathen:&"{f6}{yellow}E-Mail Access":f=1
+60060 a=10:gosub11:ifathen:&"{f6}{lt. green}User List Access":f=1
+60062 a=11:gosub11:ifathen:&"{f6}{yellow}B.A.R. And Log Access":f=1
+60064 a=12:gosub11:ifathen:&"{f6}{lt. green}Sub Maintenance Access":f=1
+60066 a=13:gosub11:ifathen:&"{f6}{yellow}File Maintenance Access":f=1
+60068 a=14:gosub11:ifathen:&"{f6}{lt. green}MCI Access":f=1
+60070 a=15:gosub11:ifathen:&"{f6}{yellow}Prime Time Download Capability":f=1
+60072 iff=0then:&"{f6}{white}Minimal Access"
+60074 &"{f6}":return
+60076 &"{f6:2}{white} More?: ":gosub96:&"{clear}{cyan}":return
+60078 rem:"sub.stats (c)nissa 200615 lh"

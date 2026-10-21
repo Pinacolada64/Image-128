@@ -1,0 +1,93 @@
+' imported from sub.editor.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+' Image BBS 128 (10/20/2026): C64 addresses in peek/poke are the 128's,
+' as {sym:...} names from asm/equates.asm (included below).
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{include:"..\asm\equates.asm"}
+
+60000 onimgoto60082,60088:return
+60002 close6:open6,dv%,6,dr$+v$+",s,"+a$:goto5
+60004 p$="Filename":b$=b$+" File"
+60006 &"{pound}$b {pound}g1":fl=0:ifan$<>r$then:&"{pound}h"+chr$(65+len(b$)):fl=1:return
+60008 &"{f6}":return
+60010 ifll%=80then60160
+60011 a%=peek({sym:lines})-1:c%=a%-b%:&"{pound}q0{f6}{pound}$q{white} {rvrs on}Total Lines:{f6} {pound}$q{gray3}Available  : {yellow}{pound}%a"
+60012 &"{pound}$q{pound}{back arrow}20{gray3} In Memory  : {yellow}{pound}%b{f6} {pound}$q{gray3}Remaining  : {yellow}{pound}%c"
+60013 ifzzthen:&"{pound}$q{pound}{back arrow}20{gray3} Free Memory: {yellow}{pound}%z"
+60014 &"{f6}{blue}{pound}vj{lt. green}":return
+60016 p$=pu$:goto12
+60018 pu$=p$:v$="":le=10+val(mid$(fl$,6,1))*10:poke{sym:lines},le:return
+60020 poke53249,0:poke{sym:mline},kk:poke{sym:flags},4:poke{sym:cline},kk
+60022 poke{sym:modes},87:a=14:gosub11:&,52,31,3:ifa%=0thenpoke1023,87+a*8
+60024 pl=.:poke{sym:lines},le+1:gosub60122:a=int((z%-300)/79)+1:ifle>athenpoke1022,a+1
+60026 poke53252,ll%-2:ifzzthenpoke1022,254
+60028 return
+60030 b$="Get":gosub60004:onflgoto60108:&"{f6:2}":gosub60126:v$=an$:ifv$=""then60110
+60032 gosub349:gosub350:ifathen:gosub60134:goto60032
+60034 gosub3:a$="r":gosub60002:gosub60122:ife%thenclose6:&:goto60110
+60036 &,2,6:tt$(kk)=a$:kk=kk+1:gosub60124:on-(z%>100andkk<254andst=0)goto60036
+60038 close6:goto60110
+60040 onkkgoto60108:b$="Put":gosub60004:onflgoto60108:&"{f6:2}"
+60042 ifv$<>""thenpoke53252,16:w$=v$:&,1,32:goto60046
+60044 gosub60126:ifan$=""then60110
+60046 ifan$<>""thenv$=an$
+60048 gosub349:gosub350:ifathengosub60134:goto60048
+60050 gosub3
+60052 a$="w":gosub60002:ife%=.then60062
+60054 close6:&:ife%<>63then60066
+60056 &"{f6} [A]ppend [R]eplace [Q]uit: {pound}i1":ifan$="Q"ortr%<1then60066
+60058 ifan$="R"thena$=v$:gosub19:goto60052
+60060 on-(an$<>"A")goto60054:a$="a":gosub60002:ife%then60066
+60062 fori=1tokk-1:iftt$(i)="{f8}"thentt$(i)="{^}"
+60064 next:&,14,6,kk-1
+60066 close6:gosub62:goto60110
+60068 b$="View Directory":gosub60006:onflgoto60108:gosub349:gosub60130:goto60110
+60070 &"Query{f6}":goto60110
+60072 b$="Disk Command":gosub60006:onflgoto60108:&"{f6:2}":gosub60136:goto60110
+60074 b$="Read":gosub60004:onflgoto60108:&"{f6:2}":gosub60126:v$=an$:ifv$=""then60110
+60076 gosub349:gosub350:ifathengosub60134:goto60110
+60078 gosub3:a$="r":gosub60002:ife%thenclose6:&:goto60110
+60080 &,3,6:close6:goto60110
+60082 gosub60018:kk=1:ifle<1thenp$=pu$:kk=.:return
+60084 gosub60020:dr=1:a$="s.editor"+str$(int(rnd(.)*3)+1):gosub14
+60086 b%=.:gosub60010:a=0:goto60100
+60088 gosub60018:ifle<1thenp$=pu$:kk=.:return
+60090 goto60110
+60092 kk=peek({sym:mline}):onagoto60094,60102,60098:&"{f6:2}":b%=kk-1:kk=.:goto60016
+60094 poke{sym:mci},0:b%=kk-1:&"{f6}{pound}%b Lines Used.{f6}":ifkk=1thena=0:goto60092
+60096 b%=kk:goto60016
+60098 poke{sym:mci},0:dr=1:a$="s.menu 3":gosub13:goto60088
+60100 &,54,a:a=peek({sym:sxreg}):an$=chr$(peek({sym:sareg})and127):goto60092
+60102 b%=kk-1:on-(an$="u")goto60112:ifan$="q"then60070
+60104 ifzzthenon-(an$="g")-(an$="p")*2-(an$="$")*3goto60030,60040,60068
+60106 ifzzthenon-(an$="@")-(an$="&")*2goto60072,60074
+60108 a=2:goto60100
+60110 b%=kk-1:gosub60020:gosub60010:poke{sym:mci},1:a=1:goto60100
+60112 b$="Signature":gosub60004:onflgoto60100:&"{lt. green}Which signature? (0-9) {pound}g1"
+60114 &"{f6:2}":v$="ps."+an$+na$:dr=3:a$="r":gosub3:gosub60002:gosub60122
+60116 a=1948:ife%thenclose6:&:goto60110
+60118 &,2,6:tt$(kk)=a$:kk=kk+1:gosub60124:on-(z%>100andkk<254andst=.)goto60118
+60120 close6:goto60110
+60122 &,40
+60124 z%=(peek({sym:fretop}+1)-peek({sym:strend}+1))*256+peek({sym:fretop})-peek({sym:strend}):return
+60126 pl=.:poke53249,pl:lp=.:&,1:return
+60128 &"{f6}Sorry, {pound}$b Limit Exceeded.{f6}":return
+60130 gosub350:onagoto60134:&"{f6}Pattern: ":gosub289:b$="*"
+60132 fori=1tolen(an$):ifmid$(an$,i,1)="*"thenb$=""
+60133 next:close1:open1,dv%,.,"$"+dr$+an$+b$:&"{f6}":&,8,1:close1:return
+60134 x=6:goto390
+60136 gosub350:onagoto60134:&"{f6}Disk Command?: ":poke53252,58
+60138 gosub289:z$=an$:ifz$=""orz$="@"thengosub3:gosub5:&:return
+60140 b$=left$(z$,1):ifb$="n"orb$="s"thengosub93:ifa=.thenreturn
+60142 gosub3:print#15,z$:gosub5:&:return
+60160 a%=peek({sym:lines})-1:c%=a%-b%:&"{pound}q0{f6}{pound}{back arrow}15{white}{rvrs on}Total Lines:{f6} {pound}{back arrow}15{gray3}Available  : {yellow}{pound}%a"
+60162 &"{pound}{back arrow}39   {gray3} In Memory  : {yellow}{pound}%b{f6} {pound}{back arrow}15{gray3}Remaining  : {yellow}{pound}%c{pound}{back arrow}39   "
+60164 ifzzthen:&"{gray3} Free Memory: {yellow}{pound}%z"
+60166 &"{f6}{blue}{pound}vj{lt. green}":return
+60198 copr. 1994 new image 9/9/94
+60199 rem:"sub.editor (c)nissa 200927 lh-ad"

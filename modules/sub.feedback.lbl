@@ -1,0 +1,43 @@
+' imported from sub.feedback.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+
+60000 &,27,2:dimfb%(29,15),ff%(15)
+60002 &"{f6}{pound}q0Feedback:{f6:2}":dr=3:gosub3:a$=dr$+"e.sysoplist":tt=.
+60004 &,60,2,.,fb%(.,.),a$,dv%:gosub5:on-(e%<>.)goto60026
+60006 a%=.:iffb%(.,.)>.then:&,60,8,fb%(.,.),60,1,fb%(11,1),ff%(1),1
+60008 ifa%=.then60026
+60010 ifa%=1thena=1:goto60024
+60012 forx=1toa%:a=ff%(x):&,60,1,20,fb%(1,a),an$:&,15,1:&,60,1,36,fb%(12,a),d$
+60014 x%=x:lp=1:&"{blue}{pound}#2{pound}# [{yellow}{pound}%x {blue}]  {white}{pound}v7 {blue}- {pound}{back arrow}20{yellow}{pound}$d"
+60016 next:ifa%>1then:&"{f6}{blue}[ {yellow}A {blue}]  {white}All"
+60018 &"{f6:2} {pound}q0Feedback To Whom: {lt. green}{pound}g1"
+60020 a=val(an$):ifan$="A"thentt$="ALL":goto60026
+60022 ifa<1ora>a%thentt=-1:goto60026
+60024 a=ff%(a):&,60,1,20,fb%(1,a),tt$:tt=fb%(.,a):iffb%(11,a)and2thentt=.
+60026 on-(tt=-1)goto60056:gosub60060:gosub542:on-(kk=.)goto60056:poke53280,6
+60028 &"{f6:2}Filing Feedback...{f6:2}":iftt=.then60044
+60030 y=tt:tt$(.)="[Feedback]":nn$=tt$
+60032 z=1:a$="w":tt$=nn$:gosub32:ife%thena$="a":z=.:gosub32
+60034 print#2,na$r$id;r$d1$r$"[Feedback]":&,14,2,kk-1:print#2,"{^}":close2
+60036 gosub61:gosub30
+60038 ify=1thenx=2:i=1:gosub16:x=13:gosub16:x=24:gosub16:x=31:gosub16
+60040 x=3:i=1:gosub16:x=14:gosub16:x=32:gosub16:x=25:onzgosub16
+60042 goto60054
+60044 b$="fback":gosub37
+60046 print#2,"Feedback to "tt$r$
+60048 &,14,2,kk-1:print#2,"{^}":close2
+60050 gosub61:gosub30:i=1
+60052 x=1:gosub16:x=12:gosub16:x=23:gosub16:x=30:gosub16
+60054 close2:&,28,2:&,11:return
+60056 &"{f6}Aborted!":goto60054
+60060 poke53252,25:p$="{f6} {gray3}Subject{blue}: {white}":pl=.:poke53249,pl:lp=.:&,1
+60062 ifan$=""thenan$="Feedback"
+60064 ad$=an$:return
+60090 copr. 1994 new image 9/15/94
+60092 rem:"sub.feedback (c)nissa 200927 lh - ad "

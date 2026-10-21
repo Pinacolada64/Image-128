@@ -1,0 +1,83 @@
+' imported from sub.param2.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+
+60000 onimgoto60002,60200:return
+60002 &"{f6}{cyan}Change Scan Date{white}:{f6} 1. {lt. green}Add/Subtract Days{f6} {white}2. {lt. green}Enter New Date{f6}"
+60004 &"{lt. blue}LD{cyan}: {white}{pound}g1{pound}v7{f6}":onval(an$)goto60006,60070:return
+60006 nr=1:&"{f6}{cyan}Last Call: {$04}"+ld$+"{f6:2}Add Or Subtract How Many Days? {f6:2}Last: {pound}i1"
+60008 ifleft$(an$,1)="@"thengosub60056:goto60002
+60010 a=int(val(an$)):iftr%<1thenreturn
+60012 on-(a=.)goto60038:ifa<-999ora>999then:&"{f6}Out Of Range!{f6}":goto60002
+60014 b=val(left$(ld$,1))+a:c=val(mid$(ld$,2,2)):d=val(mid$(ld$,4,2))
+60016 e=val(mid$(ld$,6,2))+a:a$="{blue}{red}{blue}{green}{blue}{green}{blue:2}{green}{blue}{green}{blue}"
+60018 ife<=asc(mid$(a$,d))then60024
+60020 e=e-asc(mid$(a$,d)):d=d+1:ifd<13then60018
+60022 d=1:c=c+1:goto60018
+60024 ife>.then60030
+60026 d=d-1:e=e+asc(mid$(a$,d-12*(d=.))):ifd>.then60024
+60028 d=12:c=c-1:goto60024
+60030 ifb>7thenb=b-7:goto60030
+60032 ifb<1thenb=b+7:goto60032
+60034 a$=right$("0"+mid$(str$(c),2),2)+right$("0"+mid$(str$(d),2),2)
+60036 ld$=chr$(48+b)+a$+right$("0"+mid$(str$(e),2),2)+right$(ld$,4)
+60038 &"{f6}Change Time?: ":gosub94:onagosub60042
+60040 &"{f6}Last Date: {$04}"+ld$:&"{f6:2}":return
+60042 &"{f6}Enter Time In This Format:{f6:2}Example:  9:20 AM--920A{f6}"
+60044 &"{pound}{back arrow}0911:23 PM--1123P{f6:2}Last: {pound}i1"
+60046 a$=right$(an$,1):ifan$=""thenreturn
+60048 an$=left$(an$,len(an$)-1):if(a$<>"A"anda$<>"P")orval(right$(an$,2))>59then60042
+60050 ifval(an$)>1259orval(an$)<100then60042
+60052 t=-(a$="P")*8000
+60054 ld$=left$(ld$,7)+right$("0"+mid$(str$(val(an$)+t),2),4):return
+60056 iflen(an$)<>7thenreturn
+60058 a=val(mid$(an$,2,2))
+60060 b=val(mid$(an$,4,2)):ifb<1orb>12thenreturn
+60062 c=val(mid$(an$,6,2)):ifc<1orc>31thenreturn
+60064 c=c+a*365:ifb>1thenfori=1tob-1:c=c+asc(mid$("{blue}{red}{blue}{green}{blue}{green}{blue:2}{green}{blue}{green}{blue}",i,1)):next
+60066 ifa>0thenl=int(a/4):if(int(a/4)=a/4)andb<3thenl=l-1
+60068 c=c+l:c=.5+7*(c/7-int(c/7)):ld$=chr$(49+c)+mid$(an$,2)+mid$(ld$,8):return
+60070 &"{f6}{cyan}Last Call: {$04}"+ld$+"{f6:2}{white}Enter Date {lt. blue}(MM-DD-YY){cyan}: {white}":c$="":fori=1to6
+60072 &"{pound}g1":a=val(an$):iftr%<1theni=7:next:return
+60074 ifa>.oran$="0"thenonigoto60088,60088,60096,60096,60104,60104
+60076 ifan$=chr$(13)then:i=7+1:next:&"{f6}Aborted{f6}":goto60002
+60078 on-(an$=chr$(8)oran$=chr$(20)andi>1)goto60080:on-(i=2ori=4)goto60084:goto60072
+60080 b=-(i=2ori=4ori=6)-2*(i=3ori=5):&"{pound}h"+mid$(str$(b),2,1):i=i-1
+60082 c$=left$(c$,len(c$)-1):goto60072
+60084 c$=left$(c$,len(c$)-1)+"0"+right$(c$,1):&"{pound}h10"+right$(c$,1)+"{lt. blue}-{white}"
+60086 a%=val(left$(c$,2)):b%=val(right$(c$,2)):next
+60088 on-(i=2)goto60092:ifa>1then:c$="0"+an$:&c$+"{lt. blue}-{white}":i=2:a%=a:next
+60090 &an$:c$=an$:next
+60092 if(val(c$)=.anda<>.)or(a>=.anda<3)thenc$=c$+an$:&an$+"{lt. blue}-{white}":a%=val(c$):next
+60094 goto60072
+60096 on-(i=4)goto60100:ifa>3thenc$=c$+"0"+an$:&"0"+an$+"{lt. blue}-{white}":i=4:b%=a:next
+60098 on-(a%=2anda>2)goto60072:c$=c$+an$:&an$:next
+60100 on-(val(mid$(c$,3,1))=.anda=.)goto60072:c$=c$+an$:&an$+"{lt. blue}-{white}"
+60102 b%=val(mid$(c$,3,2)):next
+60104 c$=c$+an$:&an$:next:c%=val(right$(c$,2))
+60106 on-(a%<1ora%>12orb%<1orb%>31orc%<.orc%>99)goto60118
+60108 on-(b%>30and(a%=4ora%=6ora%=9ora%=11))goto60118:ifa%<>2then60112
+60110 on-(b%>29)-2*(b%<29)goto60118,60112:ifc%-(int(c%/4)*4)<>.then60118
+60112 d%=((c%/4)+c%)+val(mid$("144025036146",a%,1))+b%:d%=d%-(int(d%/7)*7)
+60114 ld$=mid$(str$(d%),2,1)+right$(c$,2)+left$(c$,4)+right$(ld$,4)
+60116 &"{f6}":goto60038
+60118 &"{f6:2}{lt. red}Invalid Date!{f6}{pound}$c-{pound}%a/{pound}%b/{pound}%c{f6}":goto60002
+60200 poke53252,62:dr=3:a$="e.macs":gosub4:ife%=.then60206
+60202 &"{f6}{cyan}Please Wait, Setting files...{f6}":dr=3:a$="e.macs,l,"+chr$(64):gosub4
+60204 x=ur*4:gosub1:print#2,"{^}":close2:goto60200
+60206 x=id*4-4:fora=.to3:x=x+1:gosub1:&,2,2:on-(a$="{^}")gosub60208:tt$(a+1)=a$:next:gosub60210
+60208 a$="Use 'MX' Command To Configure":return
+60210 &"{f6} {rvrs on}{cyan} System Macro Editor {f6:3}"
+60212 fora=1to4:a%=a:an$=tt$(a):&"{white}{pound}%a> {lt. blue}{pound}v7{f6}":next
+60214 &"{f6}{lt. blue}Edit Which:{white} {pound}i1":on-(tr%<1)goto60222:a=val(an$):ifa<1ora>4then60220
+60216 w$=tt$(a):a%=a:&"{lt. blue}Return Alone = Old{f6:3}":p$="{lt. blue}Edit {pound}#0{pound}%a{white}":&,1,32:ifan$=""then60210
+60218 on-(tr%<1)goto60222:tt$(a)=an$:goto60210
+60220 x=id*4-4:fora=.to3:x=x+1:gosub1:print#2,tt$(a+1):next
+60222 close2:return
+63998 copr. 1996 new image 5/7/96 - jlf
+63999 rem:"sub.param2 (c)nissa 230318 lh"

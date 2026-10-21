@@ -1,0 +1,364 @@
+' Image BBS 128 (10/20/2026): C64 addresses in peek/poke are the 128's,
+' as {sym:...} names from asm/equates.asm (included below).
+{uses:..\3_0-preface.lbl}
+' sub.clocks: read the date and time from a clock, and set the BBS clock
+'
+' Call it from any module with:  im=<entry>:a$="clocks":gosub 74
+'
+' im=0: use the method saved in e.data record 37 (see below)
+' im=1: ask the sysop for the date and time (manual). If a question isn't
+'       answered in 5 minutes, it gives up and returns e%=2
+' im=2: read a CMD device's real-time clock      (cp = device number)
+' im=3: read a Lt. Kernal's clock with swr.ml    (cp = port: 1 or 2)
+' im=4: read a DS12C887 RTC chip                 (cp = base address, e.g. 54528 = $d500)
+'       VICE: x64sc -ds12c887rtc -ds12c887rtcbase 0xd500 (not $de00, the SwiftLink)
+' im=5: read a 1541 Ultimate/Ultimate 64 clock through its Command Interface
+'       (enable "Command Interface" in the Ultimate's settings)
+' im=6: read a TeensyROM's clock: the time only; the date is the last saved
+'       date (e.data record 19). The TR's "TR BASIC" I/O handler must be active.
+' im=7: use the last AutoMaint date and time (e.data record 35)
+' im=8: save the method ck and parameter cp to e.data record 37
+' im=9: write the BBS clock to the clock saved in e.data record 37: a CMD
+'       device or a DS12C887 (the others can't be written from here)
+' im=10: as im=0, but without a word, for im at boot: nothing (e%=1) if the
+'       saved method is manual, and no messages
+' im=11: the same, for the idle screen's periodic re-read (lightbar Trc
+'       right, Time: Reset Clock): also nothing for the last AutoMaint date,
+'       which would set the clock back every time
+'
+' After im=1 sets the BBS clock, if record 37 names a CMD device or a
+' DS12C887, it offers to write the time to that clock too (as im=9 does).
+'
+' On return from im=0-7:
+'   e%=0: the BBS clock was set from z$ (an 11-digit Image date string)
+'   e%<>0: it was not; the BBS clock is unchanged (im=1: e%=2, timed out)
+' After im=0, ck and cp hold the method and parameter that were used.
+'
+' e.data record 37 (clock setting method). Image BBS 3.0's im reads it with
+' val(), and treats 4 like 0 (manual), so new methods are stored after "4,":
+'   "0"          manual             ck=1
+'   "2", "3"     Lt. Kernal port 1, 2   ck=3, cp=1 or 2
+'   "8"-"30"     CMD device             ck=2, cp=device
+'   "4,d,54528"  DS12C887 at $d500      ck=4, cp=base address
+'   "4,u"        Ultimate               ck=5
+'   "4,t"        TeensyROM              ck=6
+'   "4,a"        last AutoMaint date    ck=7
+'
+' Called with im=1 by i.IM (K: Set Time) and i/lo.misc (idle screen 1: Set
+'   Time). TODO (see TODO.md): call it from im at boot, and from the Trc right
+'   lightbar function (Time: Reset Clock), which re-reads the CMD RTC itself
+'   every few hours (alarm trigger At1)
+'
+' Variables: ck, cp; temporary: a b c d f h i j k m n s u v w y, a$ b$ c$ z$ an$
+' z$ is changed: a module run through im line 80 (gosub 80), which keeps the
+' module to go back to in z$, has to save it around the call (i/lo.misc does)
+
+{alpha:alt}
+{include:"..\asm\equates.asm"}
+{include:quoters.lbl}
+{:60000}
+{step:2}
+	on im+1 goto {:sub.from_record_37},{:sub.manual},{:sub.cmd},{:sub.ltk},{:sub.ds12c887},{:sub.ultimate},{:sub.teensyrom},{:sub.automaint},{:sub.save_method},{:sub.write},{:sub.auto},{:sub.auto}
+	return
+
+{nice:100}
+{:sub.from_record_37}
+	gosub {:sub.read_record_37}
+{:sub.dispatch}
+	on ck goto {:sub.manual},{:sub.cmd},{:sub.ltk},{:sub.ds12c887},{:sub.ultimate},{:sub.teensyrom},{:sub.automaint}
+	e%=1:return
+
+{:sub.auto}
+' 10/14/2026: im=10 (boot) and 11 (Trc); 10/14/2026: the last AutoMaint date
+' only skipped for 11: at boot it's better than nothing
+	gosub {:sub.read_record_37}:if ck=1 or (ck=7 and im=11) then e%=1:return
+	goto {:sub.dispatch}
+
+{:sub.read_record_37}
+' e.data record 37 -> ck (the method) and cp (its setting)
+	gosub 33:x=37:gosub 1:&,2,2:close 2:b$=a$:v=val(b$):ck=1:cp=.
+	if v=2 or v=3 then ck=3:cp=v-1
+	if v>4 then ck=2:cp=v
+	if v<>4 then return
+	c$=mid$(b$,3,1):ck=4-(c$="u")-2*(c$="t")-3*(c$="a"):cp=val(mid$(b$,5))
+	if ck=4 and cp=. then cp=54528
+	return
+
+' --- 1: manual ---
+
+{nice:100}
+{:sub.manual}
+' 10/13/2026: a 5-minute timeout, so an unanswered question doesn't leave the
+' BBS waiting (at the idle screen, say). &,1 ends input when tr% runs out, but
+' only for a remote caller: local input (poke 53248,1, as at the idle screen,
+' or the Loc lightbar check) never times out. So local (f), each question
+' waits for a key itself (sub.manual_key); remote, tr% is 5 for the questions.
+' u keeps tr%, which is put back afterwards.
+	&,52,4,3:f=peek(53248) or a%:u=tr%:if f=. then tr%=5
+{:sub.manual_again}
+' start from the BBS's current date and time (d1$). &,1 (edit mode) shows
+' w$ as the default, and Return gives an$="": w$ itself doesn't survive &,1,
+' so each default is kept in v (or c$) first
+	&"{f6}{lt. blue}Set the BBS clock:{f6:2}":b$=d1$
+	h=val(mid$(b$,8,2)):c$="A":if h>79 then h=h-80:c$="P"
+{:sub.manual_year}
+	poke 53252,2:w$=mid$(b$,2,2):v=val(w$):p$="Year (00-99)"+"":gosub {:sub.manual_ask}:on -(e%>.) goto {:sub.manual_timeout}:y=val(an$):if an$="" then y=v
+	if y<. or y>99 then {:sub.manual_year}
+{:sub.manual_month}
+	poke 53252,2:w$=mid$(str$(val(mid$(b$,4,2))),2):v=val(w$):p$="Month (1-12)"+"":gosub {:sub.manual_ask}:on -(e%>.) goto {:sub.manual_timeout}:n=val(an$):if an$="" then n=v
+	if n<1 or n>12 then {:sub.manual_month}
+{:sub.manual_date}
+	poke 53252,2:w$=mid$(str$(val(mid$(b$,6,2))),2):v=val(w$):p$="Date (1-31)"+"":gosub {:sub.manual_ask}:on -(e%>.) goto {:sub.manual_timeout}:d=val(an$):if an$="" then d=v
+	if d<1 or d>31 then {:sub.manual_date}
+{:sub.manual_hour}
+	poke 53252,2:w$=mid$(str$(h),2):v=val(w$):p$="Hour (1-12)"+"":gosub {:sub.manual_ask}:on -(e%>.) goto {:sub.manual_timeout}:h=val(an$):if an$="" then h=v
+	if h<1 or h>12 then {:sub.manual_hour}
+{:sub.manual_minute}
+	poke 53252,2:w$=mid$(b$,10,2):v=val(w$):p$="Minute (0-59)"+"":gosub {:sub.manual_ask}:on -(e%>.) goto {:sub.manual_timeout}:m=val(an$):if an$="" then m=v
+	if m<. or m>59 then {:sub.manual_minute}
+{:sub.manual_ampm}
+	poke 53252,1:w$=c$:p$="A/P"+"":gosub {:sub.manual_ask}:on -(e%>.) goto {:sub.manual_timeout}:if an$="" then an$=c$
+	if an$<>"A" and an$<>"P" then {:sub.manual_ampm}
+' 12-hour to 24-hour
+	h=h+12*(h=12)-12*(an$="P"):gosub {:sub.build_z$}
+' the Yes/No wait (im 96, a key from im 7) would also wait for ever locally;
+' remote, when tr% runs out it returns Return, which 96 takes as Yes
+	an$=z$:&,15:&"{f6}{cyan}Set the clock to {white}"+an$+"M{cyan}? ":gosub {:sub.manual_key}:on -(e%>.) goto {:sub.manual_timeout}
+	gosub 96:on -(f=. and tr%<1) goto {:sub.manual_timeout}:if a=. then {:sub.manual_again}
+' as i/lo.misc and i.IM did: save the date as the last known one (record 19)
+	tr%=u:gosub {:sub.set_clock}:gosub 33:x=19:gosub 1:print# 2,d1$:close 2
+' 10/13/2026: if record 37 names a clock that can be written, offer to set it
+' too, so it's right at the next boot. The BBS clock is set either way (e%=0)
+	gosub {:sub.read_record_37}:if ck<>2 and ck<>4 then e%=.:return
+	b$="DS12C887 clock":if ck=2 then b$="CMD clock (device"+str$(cp)+")"
+	&"{f6}{cyan}Also set the "+b$+"? ":gosub {:sub.manual_key}:if e% then e%=.:return
+	gosub 96:if a then gosub {:sub.write_clock}
+	e%=.:return
+
+{:sub.manual_timeout}
+	tr%=u:&"{f6}{lt. red}No answer in 5 minutes{colon} the clock is unchanged.{f6}":e%=2:return
+
+{:sub.manual_ask}
+' print the prompt as &,1 does (p$ and ": "), wait for a key, then &,1,36:
+' edit mode (32), without printing the prompt again (4)
+	&p$+"{colon} ":gosub {:sub.manual_key}:if e% then return
+	pl=1:&,1,36:if f=. then if tr%<1 then e%=2
+	return
+
+{:sub.manual_key}
+' local: wait up to 5 minutes (18000 jiffies) for a key, e%=2 if none comes.
+' ti goes back to 0 at midnight (5184000). Remote: nothing to wait for here
+	e%=.:s=ti:if f=. then return
+{:sub.manual_wait}
+	if peek({sym:ndx}) then return
+	if ti-s-5184000*(ti<s)<18000 then {:sub.manual_wait}
+	e%=2:return
+
+' --- 2: CMD device (cp = device number) ---
+
+{nice:100}
+{:sub.cmd}
+' "t-ra" returns e.g. "fri. 08/16/24 01:04:15 p"
+'                     123456789012345678901234
+' first check that the device is there (as im line 353 does for a drive):
+' opening and closing its command channel sets st if nothing answers
+	close 15:open 15,cp,15:close 15:if st then e%=1:on -(im>9) goto {:sub.return}:&"{f6}{lt. red}No device "+mid$(str$(cp),2)+".{f6}":return
+	open 15,cp,15:print# 15,"t-ra":&,2,15:close 15
+	if len(a$)<24 then e%=1:on -(im>9) goto {:sub.return}:&"{f6}{lt. red}No CMD clock on device "+mid$(str$(cp),2)+".{f6}":return
+	z$=left$(a$,2):a=-(z$="su")-2*(z$="mo")-3*(z$="tu")-4*(z$="we")-5*(z$="th")
+	a=a-6*(z$="fr")-7*(z$="sa"):z$=mid$(str$(a),2,1)+mid$(a$,12,2)+mid$(a$,6,2)
+	a=-80*(mid$(a$,24,1)="p")+val(mid$(a$,15,2))
+	z$=z$+mid$(a$,9,2)+right$("0"+mid$(str$(a),2),2)+mid$(a$,18,2)
+	goto {:sub.set_clock}
+
+' --- 3: Lt. Kernal (cp = port 1 or 2) ---
+
+{nice:100}
+{:sub.ltk}
+' Image BBS 128 (10/20/2026): swr.ml is C64 code built for $c000 (sys 49152,
+' 49155, the date at 49159-49169); &,7 would load it at protostart ($1c00),
+' where it can't run. Not on the 128 until there's a 128 version.
+	e%=1:on -(im>9) goto {:sub.return}:&"{f6}{lt. red}Lt. Kernal clock: not on the 128 yet.{f6}":return
+' swr.ml (on Image drive 5) reads the Lt. Kernal clock into memory at
+' 49159-49169 as an 11-digit date string; port 2 calls 49152 first
+	dr=5:gosub 3:a$=dr$+"swr.ml":&,7,dv%,2:gosub 5:if e% then on -(im>9) goto {:sub.return}:&"{f6}{lt. red}swr.ml not loaded.{f6}":return
+	if cp=2 then sys 49152
+	sys 49155:z$="":for i=49159 to 49169:z$=z$+chr$(peek(i)):next
+	goto {:sub.set_clock}
+
+' --- 4: DS12C887 RTC chip (cp = base address) ---
+
+{nice:100}
+{:sub.ds12c887}
+' write a register number to base+0, then read its value from base+1.
+' Register 11 (B): bit 2 set = binary values (else BCD), bit 1 set = 24-hour
+' time (else 12-hour, with bit 7 of the hour = PM)
+	poke cp,11:f=peek(cp+1)
+	a=9:gosub {:sub.ds_read}:y=b
+	a=8:gosub {:sub.ds_read}:n=b
+	a=7:gosub {:sub.ds_read}:d=b
+	a=2:gosub {:sub.ds_read}:m=b
+	poke cp,4:b=peek(cp+1):k=b and 128:if f and 2 then k=.
+	b=b and 127:gosub {:sub.ds_value}:h=b
+	if (f and 2)=. then h=h+12*(h=12)-12*(k>.)
+	if y>99 or n<1 or n>12 or d<1 or d>31 or h>23 or m>59 then e%=1:on -(im>9) goto {:sub.return}:&"{f6}{lt. red}No DS12C887 clock at "+mid$(str$(cp),2)+".{f6}":return
+	gosub {:sub.build_z$}:goto {:sub.set_clock}
+
+{:sub.ds_read}
+' a = register number; returns its value in b
+	poke cp,a:b=peek(cp+1)
+{:sub.ds_value}
+	if (f and 4)=. then b=int(b/16)*10+(b and 15)
+	return
+
+' --- 5: 1541 Ultimate / Ultimate 64 (Command Interface, $df1c-$df1f) ---
+
+{nice:100}
+{:sub.ultimate}
+' $df1d reads $c9 (or $49) when the Command Interface is enabled
+	u=57116:a=peek(57117):if a<>201 and a<>73 then e%=1:on -(im>9) goto {:sub.return}:&"{f6}{lt. red}No Ultimate Command Interface.{f6}":return
+	if peek(u) and 8 then poke u,8
+' DOS target ($01), GET_TIME ($26), format 0: "yyyy/mm/dd hh:mm:ss"
+	poke 57117,1:poke 57117,38:poke 57117,.:poke u,1:i=.
+{:sub.ultimate_wait}
+	i=i+1:if (peek(u) and 48)<32 and i<2000 then {:sub.ultimate_wait}
+	a$=""
+{:sub.ultimate_data}
+	if peek(u) and 128 then a$=a$+chr$(peek(57118)):goto {:sub.ultimate_data}
+{:sub.ultimate_status}
+	if peek(u) and 64 then a=peek(57119):goto {:sub.ultimate_status}
+	poke u,2:if len(a$)<19 then e%=1:on -(im>9) goto {:sub.return}:&"{f6}{lt. red}The Ultimate didn't send the time.{f6}":return
+	y=val(mid$(a$,3,2)):n=val(mid$(a$,6,2)):d=val(mid$(a$,9,2))
+	h=val(mid$(a$,12,2)):m=val(mid$(a$,15,2))
+	gosub {:sub.build_z$}:goto {:sub.set_clock}
+
+' --- 6: TeensyROM (time only) ---
+
+{nice:100}
+{:sub.teensyrom}
+' TR BASIC I/O handler: write $0c (TISet) to $deb4, wait for $55 ready in
+' $deb6, then read 3 bytes from $deba: jiffies since midnight (the TR applies
+' its time zone setting)
+	poke 57012,12:i=.
+{:sub.teensyrom_wait}
+	i=i+1:if peek(57014)<>85 and i<500 then {:sub.teensyrom_wait}
+	if i>=500 then e%=1:on -(im>9) goto {:sub.return}:&"{f6}{lt. red}No TeensyROM clock.{f6}":return
+	a=peek(57018):b=peek(57018):c=peek(57018):s=int((a*65536+b*256+c)/60)
+	h=int(s/3600):m=int(s/60)-h*60:if h>23 then e%=1:return
+' the date: the last saved date
+	gosub 33:x=19:gosub 1:&,2,2:close 2:b$=a$
+	y=val(mid$(b$,2,2)):n=val(mid$(b$,4,2)):d=val(mid$(b$,6,2))
+	gosub {:sub.build_z$}:goto {:sub.set_clock}
+
+' --- 7: last AutoMaint date and time ---
+
+{nice:100}
+{:sub.automaint}
+' the date and time AutoMaint last ran: not a real clock, but the BBS
+' treats it as set (poke 1010,1)
+	gosub 33:x=35:gosub 1:&,2,2:close 2:z$=a$
+	if len(z$)<>11 then e%=1:&"{f6}{lt. red}No AutoMaint date saved.{f6}":return
+	goto {:sub.set_clock}
+
+' --- 8: save the method ---
+
+{nice:100}
+{:sub.save_method}
+	b$="0":if ck=2 then b$=mid$(str$(cp),2)
+	if ck=3 then b$=mid$(str$(cp+1),2)
+	if ck=4 then b$="4,d,"+mid$(str$(cp),2)
+	if ck>4 then b$="4,"+mid$("uta",ck-4,1)
+	gosub 33:x=37:gosub 1:print# 2,b$:close 2:return
+
+' --- 9: write the BBS clock to a CMD device or DS12C887 ---
+
+{nice:100}
+{:sub.write}
+	gosub {:sub.read_record_37}
+{:sub.write_clock}
+' ck, cp as read from record 37
+	if ck=2 then {:sub.cmd_write}
+	if ck=4 then {:sub.ds_write}
+	e%=1:&"{f6}{lt. red}The saved clock can't be written from here.{f6}":return
+
+{:sub.bbs_time}
+' the BBS clock (d1$) -> w (weekday 1-7, 1=Sun), y, n (month), d, m (minute),
+' h (hour 1-12), k (1=PM) and j (hour 0-23). In d1$, hours 80-91 are PM, and
+' 12 and 92 are 12 AM and 12 PM
+	w=val(left$(d1$,1)):y=val(mid$(d1$,2,2)):n=val(mid$(d1$,4,2)):d=val(mid$(d1$,6,2))
+	a=val(mid$(d1$,8,2)):k=-(a>79):h=a-80*k:m=val(mid$(d1$,10,2)):j=h+12*(h=12)+12*k
+	return
+
+{:sub.cmd_write}
+' T-WD and 8 bytes: weekday (0-6, 0=Sun), year, month, date, hour (1-12),
+' minute, second, AM/PM (0=AM, 1=PM), from CMD's documentation. Untested on
+' a real device here: it reads the clock back afterwards, to show what it says
+	close 15:open 15,cp,15:close 15:if st then e%=1:&"{f6}{lt. red}No device "+mid$(str$(cp),2)+".{f6}":return
+	gosub {:sub.bbs_time}
+	open 15,cp,15:print# 15,"t-wd"chr$(w-1)chr$(y)chr$(n)chr$(d)chr$(h)chr$(m)chr$(.)chr$(k)
+	print# 15,"t-ra":&,2,15:close 15
+	e%=.:&"{f6}{lt. blue}CMD clock{colon} {white}"+a$+"{f6}":return
+
+{:sub.ds_write}
+' register B (11): bit 7 stops the clock updating while it's set; bit 2 =
+' binary (else BCD), bit 1 = 24-hour (else 12-hour, bit 7 of the hour = PM).
+' Register 50 is the century (DS12C887). First check there's a chip at cp
+' (nothing there, $d500 is a mirror of the SID): its month must be 1-12
+	poke cp,11:f=peek(cp+1):a=8:gosub {:sub.ds_read}
+	if b<1 or b>12 then e%=1:&"{f6}{lt. red}No DS12C887 clock at "+mid$(str$(cp),2)+".{f6}":return
+	gosub {:sub.bbs_time}:poke cp,11:poke cp+1,f or 128
+	a=.:b=.:gosub {:sub.ds_put}:a=2:b=m:gosub {:sub.ds_put}
+	a=6:b=w:gosub {:sub.ds_put}:a=7:b=d:gosub {:sub.ds_put}
+	a=8:b=n:gosub {:sub.ds_put}:a=9:b=y:gosub {:sub.ds_put}
+	a=50:b=20+(y>79):gosub {:sub.ds_put}
+	b=j:if (f and 2)=. then b=h
+	gosub {:sub.ds_value_out}:if (f and 2)=. then b=b+128*k
+	poke cp,4:poke cp+1,b:poke cp,11:poke cp+1,f and 127
+	e%=.:&"{f6}{lt. blue}DS12C887 clock set.{f6}":return
+
+{:sub.ds_put}
+' a = register number, b = value
+	gosub {:sub.ds_value_out}:poke cp,a:poke cp+1,b:return
+{:sub.ds_value_out}
+' b to the chip's format: BCD unless register B's bit 2 is set
+	if (f and 4)=. then b=int(b/10)*16+b-int(b/10)*10
+	return
+
+' --- setting the BBS clock ---
+
+{nice:100}
+{:sub.build_z$}
+' y (0-99), n (month), d (date), h (0-23), m (minute) -> z$ (w yr mo dt hr mi)
+' weekday (1=Sun...7=Sat) by Zeller's congruence
+	j=n:k=y+2000:if y>79 then k=y+1900
+	if j<3 then j=j+12:k=k-1
+	w=d+int(13*(j+1)/5)+(k-int(k/100)*100)+int((k-int(k/100)*100)/4)+int(k/400)+5*int(k/100)
+	w=w-int(w/7)*7:if w=. then w=7
+' hour: 12 = 12 AM, 1-11 AM, 92 = 12 PM, 81-91 PM
+	c=h-12*(h=.):if h=12 then c=92
+	if h>12 then c=h+68
+	z$=mid$(str$(w),2)+right$(str$(100+y),2)+right$(str$(100+n),2)+right$(str$(100+d),2)
+	z$=z$+right$(str$(100+c),2)+right$(str$(100+m),2):return
+
+{nice:100}
+{:sub.set_clock}
+	gosub {:sub.set_bbs_clock}:poke {sym:timeset},1:e%=.:return
+
+{:sub.set_bbs_clock}
+' z$ -> the BBS date ($cec7-$ceca) and time (&,62), as im does at boot
+	a=val(left$(z$,1)):gosub {:sub.to_bcd}:poke {sym:bootdate_at},a
+	a=val(mid$(z$,2,2)):gosub {:sub.to_bcd}:poke {sym:bootdate_at}+3,a
+	a=val(mid$(z$,4,2)):gosub {:sub.to_bcd}:poke {sym:bootdate_at}+1,a
+	a=val(mid$(z$,6,2)):gosub {:sub.to_bcd}:poke {sym:bootdate_at}+2,a
+	b=val(mid$(z$,8,2)):c=val(mid$(z$,10,2))
+	&,62,b,c:b=b+80*((b=92)-(b=12))+12*((b=93) or (b=13)):&,58,b,.
+	an$=z$:&,15:on -(im>9) goto {:sub.return}:&"{f6}{lt. blue}BBS clock: {white}"+an$+"M{f6}":return
+
+{:sub.return}
+' im=10 and 11 jump here past a message
+	return
+
+{:sub.to_bcd}
+	a=16*int(a/10)+a-int(a/10)*10:return
+
+	rem "sub.clocks (c)nissa 2026-10-09 rs"

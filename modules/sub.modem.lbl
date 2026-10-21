@@ -1,0 +1,88 @@
+' imported from sub.modem.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+' Image BBS 128 (10/20/2026): C64 addresses in peek/poke are the 128's,
+' as {sym:...} names from asm/equates.asm (included below).
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{include:"..\asm\equates.asm"}
+
+60000 onimgoto60005,60055,60075,60100,60135,60205,60180,60325,60395,60070:goto60110
+60005 ifval(mt$)=0thenreturn
+60010 get#131,a$:gosub60070:gosub60395:m$="z":t=50:gosub60325
+60015 m$="e0v0":ifmid$(mt$,7,1)="H"thenm$=m$+"h":ifmid$(mt$,6,1)="0"thenm$=m$+"0"
+60020 m$=m$+"x"+mid$(mt$,8,1)+"m"+chr$(mf+48)+"b"+mid$(mt$,10,1)
+60025 gosub60045:on-(t=0)goto60010:&,52,43,3:a=49:ifa%ormid$(mt$,3,1)<>"A"thena=48
+60030 m$="s0="+chr$(a)+"s2=27s7=25":gosub60045:on-(t=0)goto60010:&,22,10
+60035 an$=in$:&,15,2:m$=an$:gosub60045
+60040 on-(t=0)goto60010:&,22,10:goto60395
+60045 x=1
+60050 a$=m$:t=50:&,22,10:gosub60325:x=x-1:on-(a<>0andx>0)goto60050:return
+60055 z=val(mt$):gosub60075:gosub60185:ifa=.then60070
+60060 fory=1toz:onygosub60355,60360,60365,60370,60375,60380,60385:gosub60075:gosub60185:ifa=.theny=z
+60065 next
+60070 onval(mt$)goto60355,60360,60365,60370,60375,60380,60385:return
+60075 ifmid$(mt$,2,1)="D"then60295
+60080 &,22,15:forx=1to3:print#131,chr$(27);:&,22,5:next
+60081 &,22,15:forx=1to3:print#131,chr$(43);:&,22,5:next:&,22,10
+60085 ifmid$(mt$,6,1)="0"thena$="h0":gosub60325:goto60095
+60090 ifmid$(mt$,4,1)="H"thena$="h":gosub60325
+60095 &,22,5:goto60395
+60100 ifleft$(mt$,1)<>"0"andmid$(mt$,5,1)="H"thena$="h1":gosub60325
+60105 return
+60110 dr=3:a$="e.i.modem":p=.:mt$="0":iflk%thenp=(peek(57092)and15)
+60115 gosub4:on-(e%>0)goto999:x=p+1:gosub1
+60120 &,2,2:mt$=a$:&,2,2:in$=a$:close2:return
+60135 t=0:a$="":&,4:a=peek({sym:sareg})and127:ifa=0thenreturn
+60140 a$=right$(a$+chr$(a),3):t=0:ifa=13thenb=val(a$):goto60150
+60145 &,4:a=peek({sym:sareg})and127:on-(a<>0)goto60140:t=t+1:on-(t<100)goto60145:return
+60150 a=.:fori=1tomr%(0,0):ifmr%(1,i)=bthena=i:i=mr%(0,0)+1
+60155 next:b=.:on-(a=.)goto60160:&,60,1,26,mr%(3,a),a$:qb$=qb$+"{f6}-"+a$:b=mr%(2,a)
+60160 a=1:onval(mt$)goto60355,60360,60365,60370,60375,60380,60385:goto60170
+60165 &,52,43,3:on-(mid$(mt$,3,1)="M"anda%=0)gosub60180:a=2:qb$="-":return
+60170 a=.:return
+60175 qb$="":a=3:return
+60180 onntgoto999:print#131,"ata":return
+60185 a=sgn(peek({sym:carrst})and128):return
+60205 &,52,16,1:x=b:gosub60390:&"{f6}{lt. blue}Dialing {pound}$b: {pound}$c{f6}":a$="dt"+c$:t=250:gosub60325
+60210 ifpeek(653)and2then60290
+60215 onagoto60275:x=-(b=1)-2*(b=5)-3*(b=10):ifxthenx=val(mt$):goto60280
+60220 onbgoto60065,60245,60250,60255,60270,60265,60270,60265,60255,60285,60245
+60240 gosub60330:goto60210
+60245 &"Ring...":goto60240
+60250 &"No Carrier{f6}":goto60285
+60255 &"Error{f6}":goto60285
+60260 &"Error (RC#{pound}!b){f6}":goto60285
+60265 &"No DialTone{f6}":&,22,100:goto60285
+60270 &"Busy{f6}":goto60285
+60275 &"No Connection{f6}":goto60285
+60280 &,22,10:gosub60390:an$=qb$:&,15,1:&"{f6}"+an$+"{f6}Connect"+str$(qb):&,22,10:a=1:return
+60285 gosub60075:&,22,30:a=0:qb$="":return
+60290 &"Aborted{f6}":a=2:qb$="":return
+60295 a=254:b=255:ifmid$(mt$,9,1)="R"thena=255:b=254
+60300 &,41,a:&,22,7:&,41,b:&,22,3:goto60395
+60305 if(peek({sym:carrst})and128)=0thenprint#131,"at"
+60310 &,69,31,20,str$(qb),$8c:qb$=mid$(qb$,2)
+60315 &,22,5:goto60395
+60320 return:z=peek(53248):poke53248,1:&"{pound}$c: {pound}$a{f6}":poke53248,z:return
+60325 poke{sym:ridbe},.:poke{sym:ridbs},.:c$="{f6}Sent":a$="at"+a$:print#131,a$:gosub60320
+60330 a$="":t=10
+60335 &,4:a=peek({sym:sareg})and127:&,22,1:ifathent=100:a$=right$(a$+chr$(a),32)
+60336 ifa=49thenb=1:a=0:return
+60340 ifpeek(653)=2then60350
+60345 t=t-1:on-(t<1)goto60350:on-(a<>13andt>0)goto60335:b=val(a$):a=0:return
+60350 print#131,"at":b=0:a=1:return
+60355 qb=300:&,41,0:goto60305
+60360 qb=1200:&,41,2:goto60305
+60365 qb=2400:&,41,3:goto60305
+60370 qb=4800:&,41,4:goto60305
+60375 qb=9600:&,41,5:goto60305
+60380 qb=19200:&,41,6:goto60305
+60385 qb=38400:&,41,7:goto60305
+60390 onxgoto60355,60360,60365,60370,60375,60380,60385:goto60355
+60395 &,4:on-(peek({sym:ridbs})<>peek({sym:ridbe}))goto60395:a$="":return
+60400 copyright 1995 new image 1/24/95
+60405 rem:"sub.modem (c)nissa 210501 lh"

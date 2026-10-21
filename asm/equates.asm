@@ -581,6 +581,9 @@
 	d1str	= bufpage + $00	; 11 bytes
 	spchars	= bufpage + $0b	; 8 bytes: what the encoded f-keys print as
 	fbuf	= bufpage + $13	; 20 bytes: filename buffer. c64: $ce13
+	bootdate_at = bufpage + $c7 ; the clock's date, 6 bytes BCD (buffer-page.asm's
+			; bootdate): day of week, month, date, year. c64: $cec7
+			; (52935), which sub.clocks pokes
 	buf2	= bufpage + $27	; 80 bytes. c64: $ce27
 	buffer	= bufpage + $77	; 80 bytes. c64: $ce77
 ;	longdate= buffer+ ?	; starts at $cec7? im 3170 $ce77 + $50 = $cf17

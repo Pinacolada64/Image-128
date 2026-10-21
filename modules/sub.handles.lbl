@@ -1,0 +1,16 @@
+' imported from sub.handles.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{crunch:on}
+
+60000 gosub 60005:on imgoto 60015:return
+60001 rem im=1-finds id from handle in an$
+60005 a$="index":gosub 28
+60010 dr=6:gosub 3:a$=dr$+"u.index":&,16,1:uh=a%:return
+60015 gosub 35:&,16:close 2:i=a%:return
+60020 rem:"sub.handles (c)nissa 200304 lh"

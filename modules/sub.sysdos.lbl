@@ -1,0 +1,17 @@
+' imported from sub.sysdos.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{crunch:on}
+
+60000 on imgoto 60004:return
+60004 gosub 350:on agoto 60012:&"{f6}Disk Command?: ":poke 53252,58
+60006 gosub 289:z$=an$:if z$="" or z$="@" then gosub 3:gosub 5:&:return
+60008 b$=left$(z$,1):if b$="n" or b$="s" then:gosub 93:if a=.then return
+60010 gosub 3:print# 15,z$:gosub 5:&:return
+60012 x=6:goto 390
+60100 rem:"sub.sysdos (c)nissa 190104 lh"

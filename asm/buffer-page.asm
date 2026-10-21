@@ -14,8 +14,9 @@
 	orig buffer
 	area 80, $20
 
-; date in 6 byte bcd format
+; date in 6 byte bcd format (at bootdate_at, where sub.clocks pokes it)
 
+	orig bootdate_at
 bootdate:
 
 dateday:

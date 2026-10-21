@@ -78,7 +78,10 @@
 72 dr=5
 73 if p1$<>"i/"+a$ then gosub 77:else goto 4000
 74 if a$<>"modem" then 100:else dr=5:if p2$<>"sub."+a$ then gosub 78:else is=is+1:im$(is)=p2$
-75 gosub 60000:is=is-1:if is<1 then return:else a$=mid$(im$(is),5):goto 78
+' 10/20/2026: {$36}0000 is 60000, where im loads the sub.* modules. im has no
+' line 60000 of its own, so C64List 4.06 wrote "gosub 60000" as "gosub [60000]"
+' (?SYNTAX ERROR when a module returned); the {$36} hides it from C64List
+75 gosub {$36}0000:is=is-1:if is<1 then return:else a$=mid$(im$(is),5):goto 78
 'TODO: maybe?
 '76 a$="i."+a$:pr$=a$+"":p1$="":p2$="":delete 3000-3999:goto 79
 '77 a$="i/"+a$:p1$=a$+"":p2$="":delete 4000-59999:goto 79
@@ -122,7 +125,8 @@
 
 100 p2$="sub."+a$:gosub 110:is=is+1:im$(is)=im$
 ' FIXME: "new 60000": replace with delete 60000- ?
-102 gosub 60000:new 60000:is=is-1:if is then a$=im$(is):p2$="sub."+a$:gosub 110
+' 10/20/2026: {$36}0000: see line 75
+102 gosub {$36}0000:new 60000:is=is-1:if is then a$=im$(is):p2$="sub."+a$:gosub 110
 104 return
 110 dr=5:gosub 2:im$=a$:cm$="sub."+a$:gosub 9:a$=dr$+"sub."+a$:load a$,dv%
 112 return
@@ -223,7 +227,8 @@
 444 a$="feedback":goto 74
 445 a$="misc":goto 74
 ' 446 on-(lc=.andp2$="sub.modem")goto 60000:a$="modem":goto 74
-446 if lc=. and p2$="sub.modem" then 60000:else a$="modem":goto 74
+' 10/20/2026: {$36}0000: see line 75
+446 if lc=. and p2$="sub.modem" then {$36}0000:else a$="modem":goto 74
 447 a$="info":goto 74
 448 a$="local":goto 74
 449 a$="misc2":goto 74

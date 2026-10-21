@@ -90,6 +90,7 @@
 {assign:306	=306	} ' dimension Image 1.2 arrays
 {assign:308	=308	} ' im: dimension the rest of the Image 1.2 arrays
 {assign:310	=310	} ' im: command stack/history
+{assign:320	=320	} ' im.read_access_group (sub.stats; 10/20/2026)
 {assign:349	=349	} ' im.prompt_device_drive
 {assign:350	=350	} ' im.set_drive
 {assign:330	=330	} ' im: open e.macros

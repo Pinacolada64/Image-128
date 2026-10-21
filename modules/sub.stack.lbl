@@ -1,0 +1,24 @@
+' imported from sub.stack.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+' Image BBS 128 (10/20/2026): C64 addresses in peek/poke are the 128's,
+' as {sym:...} names from asm/equates.asm (included below).
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{include:"..\asm\equates.asm"}
+{crunch:on}
+
+60000 rem:stack checker
+63000 &"{clear}{f6:2}STACK Investigator 3.0:{f6:2}":poke$c000,$ba:poke$c001,$60:pr=-1:sys$c000
+63002 x=peek({sym:sxreg})+256:if x>=502 then:&"Stack Has No Garbage.{f6:2}":goto 63016
+63004 a=502-x:&"Stack Has {pound}!a Bytes of Garbage:{f6:2}"
+63006 for a=x+5 to 511:b=peek(a):x=peek(a+1)+peek(a+2)*256
+63008 if b=141 then:&"GOSUB on Line {pound}!x{f6}":a=a+4:goto 63014
+63010 on-(b<>129) goto 63014:&"FOR "+chr$(peek(x-2))+chr$(peek(x-1))
+63012 n=peek(a+14)+peek(a+15)*256:&" On Line {pound}!n{f6}":a=a+17
+63014 next:return
+63016 &"{f6:2} Press A Key: {pound}g1":return
+63018 rem:"sub.stack (c)nissa 200224 lh"

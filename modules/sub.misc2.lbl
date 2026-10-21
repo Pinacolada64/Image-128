@@ -1,0 +1,106 @@
+' imported from sub.misc2.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+' Image BBS 128 (10/20/2026): C64 addresses in peek/poke are the 128's,
+' as {sym:...} names from asm/equates.asm (included below).
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{include:"..\asm\equates.asm"}
+
+60000 lg=1:onimgoto60100,60200,60342:return
+60100 fl=.:a=9:gosub11:ifa=.thenx=4:goto390
+60102 x=abs(val(mid$(an$,3))):ifxthen:&"{f6:2}":goto60112
+60104 &"{f6}{pound}v5 NotePad.{f6:2}"
+60106 p$="":&"{f6:2}{lt. red}Enter User Handle Or ID#.{f6:2}":gosub6:x=abs(val(an$)):ifxthen60112
+60108 ontr%+1goto60146:on-(an$="")goto60146:gosub505:x=i:ifxthennn$=an$:goto60120
+60110 &"{f6:2}{white}{f5}{gray3}{pound}v7{white}{f5} {gray3}Not Found.{f6}":goto60106
+60112 i=x:ifx<1orx>urthen60116
+60114 gosub35:gosub1:input#2,nn$:ifnn$<>"{^}"andnn$<>"RES"then60118
+60116 &"{f6}{yellow}Invalid Account Number.{f6}":x=.:goto60146
+60118 &"{f6}{lt. green}Handle: {rvrs on}":&nn$:&"{f6}{yellow}Is That Correct?: ":gosub96:ifa=.then60100
+60120 y=i:dr=2:gosub61:on-(a<20)goto60142:gosub60:ifathengosub390:goto60146
+60122 onflgoto60128
+60124 poke53252,30:&"{f6}":&"Subject: ":pl=.:&,1,5:ifan$=""thenan$="Note":&"{up}{pound}{back arrow}12{pound}v7{f6}"
+60126 tt$(.)="["+an$+"]":gosub542:a=1:iftr%<1orkk=.then60146
+60128 &"{f6}Filing Mail For "+nn$+"..."
+60130 iflgthenfd$="Local QuickMail":gosub60148
+60132 z=1:a$="w":tt$=nn$:gosub32:ife%thena$="a":z=.:gosub32
+60134 print#2,na$r$id;r$d1$r$tt$(0):gosub39
+60136 ify=1thengosub30:x=2:i=1:gosub16:x=13:gosub16:x=24:gosub16:x=31:gosub16
+60138 on-(y<>1)gosub30:x=3:i=1:gosub16:x=14:gosub16:x=32:gosub16
+60140 x=25:gosub16:close2:gosub62:goto60144
+60142 x=2:gosub390
+60144 &"{f6:2}Send to another user? ":gosub94:ifathenfl=1:goto60106
+60146 return
+60148 a$="a":b$="em log":gosub36:ife%thena$="w":gosub36
+60149 print#2,"{blue}{pound}o{$c0}{pound}o{$c0}{f6}{cyan}{pound}{back arrow}14E-Mail Log{f6}{blue}{pound}o{$c0}{pound}o{$c0}"
+60150 hr$=d1$:&,15
+60152 print#2,"{cyan}Type:{white} "+fd$
+60154 print#2,"{cyan}From:{white} "+na$
+60156 print#2,"{cyan}To  :{white} "+nn$
+60158 print#2,"{cyan}On  :{white} {$04}"+hr$
+60160 print#2,"{blue}{pound}o{$c0}{pound}o{$c0}{f6}"
+60162 close2:return
+60200 cm$="Personal Signatures":gosub9:dr=1:a$="s.ps":gosub13:s$="Signature"
+60202 &,52,34,3:ts=a%:iftsthen:&,52,34,.
+60204 ifnl=.then60234
+60206 &"{clear}":gosub60222:&"{home}{lt. red}{$ba}":a=1
+60208 gosub7:on-(tr%<1)-2*(an$="{down}")-3*(an$="{up}")-4*(an$=r$)goto60228,60212,60214,60246
+60210 goto60208
+60212 &"{left}{white}.{left}{down}{lt. red}{$ba}":a=a+1:goto60216
+60214 &"{left}{white}.{left}{up}{lt. red}{$ba}":a=a-1
+60216 ifa<1then:&"{home}{white}.{left}{down:3}{lt. red}{$ba}":a=4
+60218 ifa>4then:&"{left} {home}{lt. red}{$ba}":a=1
+60220 goto60208
+60222 &"{white}. {yellow}{rvrs on}List One {pound}$s{pound}{back arrow}37{f6}{white}. {yellow}{rvrs on}List ALL {pound}$ss{pound}{back arrow}37{gray3} {f6}"
+60224 &"{white}. {yellow}{rvrs on}Create/Edit {pound}$s{pound}{back arrow}37{gray3} {f6}{white}. {yellow}{rvrs on}Quit{pound}{back arrow}37{gray3} {f6}   {gray3}{rvrs on}{pound}{back arrow}38"
+60226 gosub60310:return
+60228 iftsthen:&,52,34,1
+60230 ifnlthen:&"{pound}n4"
+60232 return
+60234 &"{white}1) {yellow}List One {pound}$s{f6}"
+60236 &"{white}2) {yellow}List ALL {pound}$ss{f6}"
+60238 &"{white}3) {yellow}Create/Edit {pound}$s{f6}"
+60240 &"{white}4) {yellow}Quit"
+60242 gosub60310:&"{white}  Your Selection -=> {pound}i1":a=val(an$)
+60244 ifa<1ora>4then60234
+60246 onagoto60248,60256,60268,60228
+60248 &"{clear}{f6:2}{green}View Which One? {f6:2}{lt. green}Enter (0-9) -=> {white}{pound}i1":iftr%<1then60228
+60250 b=val(an$):ifb<0andb>9then60248
+60252 gosub60330:gosub14:ife%thenclose2:gosub60320
+60254 &"{f6:2}{green}View Another One? ":gosub96:ontr%+1goto60228:ona+1goto60204:goto60248
+60256 &"{clear}{f6:3}":b=.
+60258 &"{green}{pound}$s #{pound}!b:{f6:2}":gosub60330
+60260 gosub4:ife%thenclose2:gosub60320:goto60264
+60262 &,12,2:close2:gosub60300:iftr%<1then60228
+60264 b=b+1:ifb<10then60258
+60266 &"{f6:2}{lt. green}View Them Again? ":gosub94:ona+1goto60204:goto60256
+60268 nn$="{f6}{gray3}The Personal Multi-{pound}$s Maker{f6:2}"
+60270 &"{clear}{f6:3}{lt. green}Enter Number To Change{gray2} -=> {white}{pound}i1":iftr%<1then60228
+60272 b=int(val(an$)):ifb<0andb>9then60270
+60274 gosub60330:gosub4
+60276 ife%thenclose2:&"empty buffer{f6}":im=1:gosub440:goto60284
+60278 kk=1:&"{f6}Loading..."
+60280 &".":&,2,2
+60281 tt$(kk)=a$:kk=kk+1:gosub60350:if(z%>100andkk<254andst=0)then60280
+60282 close2:gosub60340:im=2:gosub440
+60284 ifkk=.thengosub92:goto60204
+60286 &"{f6}{white}Filing {pound}$s #{pound}!b...":gosub60330:gosub60332
+60288 &"{lt. green}Saved!{f6:2}"
+60290 gosub60300:goto60204
+60300 &"{yellow}Press A Key {pound}g1{f6:2}":return
+60310 &"{f6:2}  {lt. green}Create Up To 10 {pound}$ss.{white}{f6}":return
+60320 &"{lt. green}{pound}$s #{pound}!b Not Configured!{f6:2}":return
+60330 dr=3:a$=left$("ps."+mid$(str$(b),2,1)+na$,16):return
+60332 gosub18:forx=1tokk-1:print#2,tt$(x):next:close2:gosub62:return
+60340 &"{f6}{green}Get Ready To Enter Your {pound}$s:{f6}":return
+60342 dr=3:gosub3:open2,dv%,2,dr$+"e.top ten,s,r":gosub60344:close2:return
+60344 sh=.:rc=.:poke{sym:readmode},.:poke{sym:mjump},-(qe=.andrq=1)*255
+60346 &,3,sr:s=st
+60348 poke144,sand255:a=rc:gosub12:rc=a:return
+60350 z%=(peek({sym:fretop}+1)-peek({sym:strend}+1))*256+peek({sym:fretop})-peek({sym:strend}):return
+60370 copr. 1994 new image 9/28/94
+60399 rem:"sub.misc2 (c)nissa 211215 lh"

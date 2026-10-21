@@ -1241,13 +1241,15 @@ trace1:
 	dec scnlock
 	jmp vdcstat	; 80 columns: the status lines to the VDC
 
+; free memory: fretop - strend (c64: lda 51 / sbc 49 ..., where the C64
+; keeps them; the 128's are two bytes on)
 trace2:
 	sec
-	lda 51
-	sbc 49
+	lda fretop
+	sbc strend
 	tay
-	lda 52
-	sbc 50
+	lda fretop+1
+	sbc strend+1
 	tax
 	cpy oldmem
 	bne trace3

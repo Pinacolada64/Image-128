@@ -1,0 +1,20 @@
+' imported from sub.menus.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+
+60000 &,27,7:dimfd%(60),jm%(29,59)
+60002 x=lc:onimgosub60004,60006,60010:&,28,7:return
+60004 gosub60006:x=1:iflc=1orrcthenreturn
+60006 b$="e.menu"+str$(x):gosub60010:ife%=.thenreturn
+60008 dr=1:a$="s.menu"+str$(x):goto14
+60010 dr=3:gosub3:a$=dr$+b$
+60012 &,60,2,.,jm%(.,.),a$,dv%:gosub5:ife%thenreturn
+60014 &,60,8,60,60,2^ac%+zz*32768,jm%(1,.),fd%(1),.:ifa%=.thenreturn
+60016 &"{f6}":fori=1toa%:&,60,1,50,jm%(5,fd%(i)),a$:lp=1:&"{pound}$q"+a$:i=i+a%*rc:next:return
+60018 copr. 1994 new image 9/27/94
+60020 rem:"sub.menus (c)nissa 190424 lh"

@@ -1,0 +1,105 @@
+' imported from the 2023-12-31 master release's sub.comm2.prg with C64List 4.04
+' (-txt -keycase -varcase -alpha:alt), as tools/detok.sh --keep-spaces in
+' ImageBBS3 does; detok.sh wouldn't write it: the original jumps to a line
+' C64List can't find (see below), so the rebuild wasn't byte-identical.
+
+' Image BBS 128 (10/20/2026): C64 addresses in peek/poke are the 128's,
+' as {sym:...} names from asm/equates.asm (included below).
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{include:"..\asm\equates.asm"}
+
+60000 onimgoto60002,61850,61842,61990,61372,61098,61694:return
+60002 &,52,4,3:ifa%=.thenx=3:gosub390:return
+60003 &,18,0:gosub12:ifpeek(1063)<>250thenprint#131,"ate1v1m1"
+60004 &,52,16,3:a$="C/G":ifa%thena$="ASCII"
+60006 a=qb:&"{f6:2}{white}Image Mini-Term, {white}{pound}!a {lt. blue}BPS, {white}{pound}$a {lt. blue}Mode{f6}"
+60008 &"{white}B{lt. blue}aud{blue}, {white}T{lt. blue}erm{blue}, {white}M{lt. blue}ode{blue}, {white}Q{lt. blue}uit{blue}: {white}"
+60010 &"{pound}g1":iftr%<1oran$="Q"then:&"Quit{f6:2}":a$="e0v0":goto60026
+60012 ifan$="T"then:&"Term{f6:2}(Press {f5}C= CTRL{f5} to Exit){f6:2}":&,10:goto60004
+60014 ifan$="M"then:&"Mode{f6}":&,52,16,2:goto60004
+60016 ifan$="B"then:&"Baud{f6}":gosub60020:goto60004
+60018 goto60010
+60020 lp=1:&"1-300 2-600 3-1200 4-2400 5-4800 6-9600 7-19200 8-38400: "
+60022 &"{pound}g1":a=val(an$)-1:ifa<0ora>7thenreturn
+60024 qb=300*2^a:&,41,a:a=qb:&"{pound}v7-{pound}!a{f6}"
+60026 ifpeek(1063)<>250thenprint#131,"at"
+60028 return
+60030 rem:"sub.comm2 (c)nissa 181231 lh"
+61014 cm$=a$+"":gosub9:gosub3:ifa$=pr$thene%=.:return
+61015 a$=dr$+"i."+a$:loada$,dv%:pr$=cm$:lm$="":goto5
+61098 cm$=p$:gosub9:gosub61100
+61099 cm$=left$(p$,11)+":"+left$(an$,4):gosub9:cm$=p$:return
+61100 s=.:sh=.:gosub12:poke53252,38:gosub61908:&"{f6:2}":goto6
+61200 dr$=mid$(str$(dr%(5)),2)+":":dv%=dv%(5):pr$="":loaddr$+"image",dv%
+61260 on-(an$="{f8}{f2}")goto61265
+61261 ifleft$(an$,1)="{f8}"thenan$=hs$(10-val(mid$(an$,2,1))):goto61264
+61262 &,15,6,140:uu$=an$:an$=a$
+61263 forct=1to9:hs$(ct)=hs$(ct+1):next:hs$(10)=an$:return
+61264 &p$+": {pound}v7{f6}":return
+61265 forct=1to10:a%=10-ct:a$=hs$(ct):&"{f8}{pound}%a: {pound}$a{f6}":next:an$="":uu$="":return
+61301 a$=z$:is=.:goto70
+61345 im=1:gosub436:goto300
+61372 &,40
+61373 z%=(peek({sym:fretop}+1)-peek({sym:strend}+1))*256+peek({sym:fretop})-peek({sym:strend}):return
+61634 gosub31:x=ac%+1:gosub1:&,2,2:ag$=a$:&,2,2:close2
+61635 iflen(fl$)<len(a$)thenfl$=fl$+mid$(a$,len(fl$)+1)
+61636 iflen(fl$)>len(a$)thenfl$=a$
+61637 ifac%<>ao%thenfl$=a$:ao%=ac%
+61638 a=6:gosub11:le=(a+1)*10:a=16:gosub11:poke{sym:idlemax},a:a=20:gosub11:da%=a*10
+61639 return
+61690 f4=.:ifright$(an$,1)<>"!"then:&"{f6:2}{green}Leaving? ":gosub96:ifa=.thenreturn
+61692 f4=1.3:return
+61694 bl=.:ifmid$(an$,2,1)="%"thenbl=1
+61695 ifright$(an$,1)="!"thenf1=2:ld$=lt$:goto61700
+61696 cd%=.:ifmid$(z$,2,1)<>"%"thenld$=lt$
+61697 ifright$(an$,1)="!"thenf1=2:goto61700
+61698 f1=1:iftr%<1thenb$="Time":gosub61985:f1=2
+61700 is=.:a$="lo":goto70
+61800 f4=.:gosub61805:onecgoto61801,61802,61803,61804:x=5:goto390
+61801 z$=ef$:f4=1.1:&,28,1:return
+61802 f4=1.2:&,28,1:return
+' 10/20/2026: the original jumped to 61300, which doesn't exist (?UNDEF'D
+' STATEMENT); 61301 is the line that goes on with z$
+61803 z$=ef$:goto61301
+61804 a%=asc(ef$+nl$)+256*asc(mid$(ef$,2,1)+nl$):&,42,1
+61805 on-(ec%=.)goto61806:b%=ec%:ifec%>crthen:&"{red}Not Enough Credits!{f6}":ec=.:return
+61806 ifep$=""orid=1thenreturn
+61807 cr=cr-ec%:&"{f6}{white}Password{blue}:{white}":&,6:ifan$=ep$thenreturn
+61808 &"{f6}{red}Incorrect Password.{f6}":ec=.:return
+61810 return
+61814 &,28,1:gosub61930:p$=po$:gosub61098:ontr%+1goto61698:ifan$=""then61345
+61815 gosub61850:onf4goto61842:onrsgoto300
+61820 ifzzandan$="R"thengosub304:goto61890
+61840 x=1:on-(a$="Q")-(a$="{f2}")*2goto61694,61345
+61842 iff4thengosub304:on-(f4=1.1)-2*(f4=1.2)-3*(f4=1.3)goto61301,61804,61696
+61844 ifrcorval(an$)=.then61848
+61845 a%=val(an$):ifa%<1ora%>4thenan$="":goto61848
+61846 dr=3:a$="e.macs":gosub4:one%goto61848:x=id*4-4+a%:gosub1:&,2,2:an$=a$
+61847 ifa$<>"{^}"thenuu$=a$:goto61814
+61848 close2:gosub61989:goto300
+61850 on-(ac%<>ao%)gosub61634:an$=an$+"":rs=1:a$=left$(an$,1):z$=left$(an$,2)
+61851 &,52,20,3:em=a%:&,52,5,3:zz=a%
+61852 x=1:rq=.:rs=1
+61860 f4=.:a%=zz:b%=2^ac%:&,42:ifa%thenef$=b$:ep$=a$:ec=a%:ec%=b%:goto61800
+61861 ifa$="O"then61690
+61869 rs=.:return
+61890 poke53252,14:&"{f6:2}Run: +.{pound}i0":b$=an$:on-(b$="")goto300:gosub349:gosub350
+61900 cm$=b$:gosub9:a$=cm$:gosub61014:on1-(e%=.)goto61906,3000
+61906 pr$="":&:goto300
+61908 poke{sym:ptrlinm},.:&,52,30,3:an$=d1$:&,15:b$=right$(an$,7)
+61909 goto61915
+61915 &"{f6:2} - {pound}$bM":a%=tr%:ifa%<100then:&" - {pound}%a Min. Left"
+61916 ifzzthena%=usr(0):&"{f6} - Stack Free: {pound}%a"
+61917 return
+61930 &,52,30,3:ifa%=.thenreturn
+61931 dr=3:a$="e.macros":gosub4
+61932 ife%=.then:&,2,2:a=val(a$):&"{f6:2}":x=int(rnd(1)*a)+2:gosub1:&,3,2
+61933 close2:return
+61985 poke{sym:ptrlinm},mp%:&"{f6}":return
+61989 &"{f6:2}Unknown Command. Enter {f5}?{f5} For Help.":return
+61990 ni=val(an$):n1$=cc$+mid$(str$(ni),2):b$="-"+n1$:n2$=""
+61991 ifleft$(an$,1)="!"thenni=-1:n1$=mid$(an$,2,3):b$=" @ "+n1$
+61992 an$=mid$(an$,5):&,15,6,94:ifan$<>""andni=-1thenn2$=an$:b$=b$+"/"+n2$
+61993 an$=a$:n0$=a$:&,15,1:an$=an$+b$:return
+62000 rem:"sub.comm2 (c)nissa 201111 lh"

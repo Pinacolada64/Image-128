@@ -1,0 +1,27 @@
+' imported from sub.protos.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{crunch:on}
+
+60000 gosub 60035:if e%=0 then on imgoto 60010,60015
+60005 return
+60010 on a%goto 60005:gosub 60055:goto 60020
+60015 a=ul+1:if a%and b%then a=x
+60020 if a=0 then return
+60025 a$=tt$(a):f=val(mid$(a$,7,1)):nb=val(mid$(a$,8,1)):d4$=mid$(a$,10):pr=-1
+60030 a$=left$(a$,6):pm$=a$:gosub 28:&,16,4,f:return
+60035 &,11:dr=1:a$="s.m.protos,s,r":gosub 4:x=0:if e%then:&:return
+60040 &,2,2:if a$<>"{^}" and x<20 then x=x+1:tt$(x)=a$:if st=0 then 60040
+60045 close 2:&,52,4,3:b%=0:if zz=1 or a%=1 then x=x+1:tt$(x)="copier00 Copier":b%=1
+60050 return
+60055 a=val(mid$(an$,3,3)):if a>0 then 60070
+60060 &"{f6}Available Protocols:{f6:2}":for i=1 to x:a%=i:a$=mid$(tt$(i),10)
+60065 lp=1:&"{pound}%a) {pound}$a{pound}{back arrow}39 ":next:&"{f6:2}--> {pound}g1":a=val(an$)
+60070 if a>0 and a<=xthen lp=1:&mid$(tt$(a),10):if a<xor b%=0 then ul=a-1
+60075 if an$="{f2}" then a$="s.protos":dr=1:gosub 13:goto 60060
+60080 a=-a*(a>0):return

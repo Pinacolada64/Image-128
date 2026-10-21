@@ -60,6 +60,22 @@ if ! grep -q "^0 Errors" <<<"$log"; then
 	exit 1
 fi
 
+# the sub.* modules (modules/: im loads them at line 60000), the same way;
+# a jump to a line C64List can't find stops the build too
+modwrites=()
+cd "$repo/modules"
+for f in sub.*.lbl; do
+	m=${f%.lbl}
+	crunch=; grep -q '{crunch:on}' "$f" && crunch=-crunch
+	log=$(WINEDEBUG=-all wine "$C64LIST" "$f" "-prg:..\\build\\$m.prg" $crunch -ovr 2>&1) || true
+	if ! grep -q "^0 Errors" <<<"$log" || grep -q "Can't locate target line" <<<"$log"; then
+		grep -E "^Error|Errors;|Can't locate" <<<"$log" | sed 's/.*\\//' >&2
+		echo "build.sh: modules/$f failed" >&2
+		exit 1
+	fi
+	modwrites+=(-write "$m.prg" "$m")
+done
+
 cd "$build"
 rm -f image128.d64 image128.d71
 c1541 -format "image bbs 128,ib" d71 image128.d71 \
@@ -70,5 +86,6 @@ c1541 -format "image bbs 128,ib" d71 image128.d71 \
 	-write "im 128.prg" "im 128" \
 	-write i_su.config.prg "i/su.config" \
 	-write "$repo/disk/e.lightbar.prg" e.lightbar \
-	-write "$repo/disk/e.lightdefs.seq" "e.lightdefs,s" >/dev/null
+	-write "$repo/disk/e.lightdefs.seq" "e.lightdefs,s" \
+	"${modwrites[@]}" >/dev/null
 c1541 image128.d71 -list
