@@ -21,7 +21,11 @@
 4 close 2:gosub 3:open 2,dv%,2,dr$+a$
 5 input#15,e%,e$,t%,s%:a$="{f6}Status:{pound}#2{pound}%e:{pound}$e:{pound}%t:{pound}%s{f6}":return
 ' 6 an$=uu$:on-(an$<>"")gosub 310:on-(an$<>"")goto 314:pl=1:&,1:goto 310
-6 an$=uu$:if an$<>"" then gosub 310:else if an$<>"" then 314:else pl=1:&,1:goto 310
+' 10/21/2026: lines 6, 71, 73, 74 as the C64's again (on -(...) gosub ...:
+' more): the statements after the gosub run either way. As IF/THEN/ELSE they
+' became the ELSE, so a module that had just loaded was never run (71: no
+' goto 3000; 73 then loaded "i/i.lo"), and 74 skipped is=is+1 after a load
+6 an$=uu$:on -(an$<>"") gosub 310:on -(an$<>"") goto 314:pl=1:&,1:goto 310
 7 &"{pound}g1":a$=an$:return
 ' i take it peek(17138) <c64 screen mask mode> is checked within &,69
 ' therefore eliminating it here:
@@ -74,10 +78,13 @@
 65 a=val(a$)*a:bf=a:for a=1 to 6:if dv%(a)=dv% and dr%(a)=val(dr$) then bf(a)=bf
 66 next:a=bf:return
 70 dr=5
-71 if pr$<>"i."+a$ then gosub 76:else goto 3000
+' 10/21/2026: the C64's on -(...) form (see line 6)
+71 on -(pr$<>"i."+a$) gosub 76:goto 3000
 72 dr=5
-73 if p1$<>"i/"+a$ then gosub 77:else goto 4000
-74 if a$<>"modem" then 100:else dr=5:if p2$<>"sub."+a$ then gosub 78:else is=is+1:im$(is)=p2$
+' 10/21/2026: the C64's on -(...) form (see line 6)
+73 on -(p1$<>"i/"+a$) gosub 77:goto 4000
+' 10/21/2026: the C64's on -(...) form (see line 6)
+74 on -(a$<>"modem") goto 100:dr=5:on -(p2$<>"sub."+a$) gosub 78:is=is+1:im$(is)=p2$
 ' 10/20/2026: {$36}0000 is 60000, where im loads the sub.* modules. im has no
 ' line 60000 of its own, so C64List 4.06 wrote "gosub 60000" as "gosub [60000]"
 ' (?SYNTAX ERROR when a module returned); the {$36} hides it from C64List
@@ -89,8 +96,7 @@
 77 a$="i/"+a$:p1$=a$+"":p2$="":new 4000:goto 79
 ' 78 a$="sub."+a$:p2$=a$+"":delete 60000-
 78 a$="sub."+a$:p2$=a$+"":new 60000
-' 10/20/2026: lz=. after a load that worked (see 2003)
-79 cm$=a$:gosub 9:gosub 2:load dr$+a$,dv%:lz=.:return
+79 cm$=a$:gosub 9:gosub 2:load dr$+a$,dv%:return
 80 a$=z$:z$=mid$(p1$,3):gosub 72:a$=z$:dr=5:if lc<>1 then 77:else return
 82 for i=1 to 4:&,11,i:next
 83 &,11,.:return
@@ -300,12 +306,13 @@
 ' and dim el or el=y is a ?syntax error
 ' error number and line from the wedge's trap (c64: 780-782)
 2002 x=peek({sym:sareg}):y=peek({sym:sxreg})+peek({sym:syreg})*256:&"{f6}[Error#{pound}!x, Line#{pound}!y]{f6}":e1=y
-' 10/20/2026: lz counts the module loads (line 79) that fail one after another.
-' The error handler (4000) carries on by loading a module itself (4046: goto
-' 302, i.lo), so when that one is missing too, every pass fails the same way
-' and it loops for ever, until ?out of memory. The second failure in a row
-' stops there instead, saying which module.
-2003 if x<>29 or y<>79 then lz=.:else lz=lz+1:if lz>1 then 2009
+' 10/21/2026: a file that won't load (?load error 29: a module, line 79, or an
+' ML overlay, 29) twice within a minute stops here, saying which. The error
+' handler (4000) carries on from the idle screen (4046: goto 302), which loads
+' what it needs again, so a missing one failed on every pass and the boot
+' looped for ever (until ?out of memory, or the screen filled with garbage).
+' lz$ is the last file that failed, lw the time (ti) it did
+2003 if x<>29 then lz$="":else if cm$=lz$ and ti-lw<3600 then 2009:else lz$=cm$:lw=ti
 ' 2004 &,11:&,28,1:poke 53248,.
 2004 &,11:&,28,1:poke {sym:local},.
 ' reload this program: "im 128" on the 128 disk
@@ -347,9 +354,9 @@
 ' drop jn$ (haven't seen it used except in pre-TurboREL subs for join string)
 3024 dimj$,j% ',jn$
 3026 dimk$,k%,kk,kp%
-' 10/20/2026: lz (2003), DIMmed here with the rest: a variable first made
+' 10/21/2026: lz$ and lw (2003), DIMmed here with the rest: a variable first made
 ' after the boot is lost when Image puts the array pointers back
-3028 diml$,l%,l1,l1$,l2,l2$,l3,l3$,lc,ld$,le,lf,lk%,ll$,ll%,lm$,lp,lt$,lt%,lz
+3028 diml$,l%,l1,l1$,l2,l2$,l3,l3$,lc,ld$,le,lf,lk%,ll$,ll%,lm$,lp,lt$,lt%,lw,lz$
 3030 dimm$,m%,mc,mf,ml$,mp$,mt$,mw,mp%,mn%
 3032 dimn$,n%,na$,nc,nf,nl,nl$,nm,nm$
 3034 dimo$,o%
