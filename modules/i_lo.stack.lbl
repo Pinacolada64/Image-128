@@ -1,0 +1,11 @@
+' i/lo.stack: run sub.stack (BASIC 7.0's stack checker) from the idle
+' screen. An idle command (e.idle cmds, i.edit idlecmds) loads "i/"+its
+' filename and runs it at 4000: give this one the filename "lo.stack".
+' Image BBS 128 (10/21/2026)
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{include:"..\asm\equates.asm"}
+{crunch:on}
+
+4000 rem i/lo.stack
+4002 a$="stack":gosub 74:return
