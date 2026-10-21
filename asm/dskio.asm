@@ -47,6 +47,11 @@ prg1:
 	ldy #0
 	ldx filenum
 	jsr setlfs
+; the filename is a$, in BASIC's variables in bank 1; the segments are
+; all in the shared RAM below $4000, so load into bank 0
+	lda #0
+	ldx #1
+	jsr setbnk
 	ldx varbuf+1
 	ldy varbuf+2
 	lda varbuf

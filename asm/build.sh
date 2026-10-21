@@ -61,5 +61,7 @@ c1541 -format "image bbs 128,ib" d71 image128.d71 \
 	-write ml.buf ml.buf -write ml.low ml.low -write ml.mod ml.mod \
 	-write ml.res1 ml.res1 -write ml.res2 ml.res2 \
 	-write "im 128.prg" "im 128" \
-	-write i_su.config.prg "i/su.config" >/dev/null
+	-write i_su.config.prg "i/su.config" \
+	-write "$repo/disk/e.lightbar.prg" e.lightbar \
+	-write "$repo/disk/e.lightdefs.seq" "e.lightdefs,s" >/dev/null
 c1541 image128.d71 -list
