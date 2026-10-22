@@ -390,7 +390,7 @@
 ' sys protostart+3: intro's "jmp setup" (c64: sys 49155, $c003)
 3074 dv%=peek({sym:bootdev}):z%=dv%:dr$="0"+":":bd$=dr$:sr=2:pr=-1:f3=1:sys {sym:protostart}+3:&,53
 ' NOTE: __BuildDate and __BuildTime are themselves quoted strings, hence the weirdness here:
-3075 &,69,0,1,"im 128 revision: "+{usedef:__BuildDate}+" "+{usedef:__BuildTime},3
+3075 &,69,0,0,"im 128 revision: "+{usedef:__BuildDate}+" "+{usedef:__BuildTime},3
 ' a$="NTSC":if peek(678) then a$="PAL"
 3076 a$="NTSC":if peek({sym:ntscpal})=255 then a$="PAL"
 3078 gosub 3400:z3$=a$+" System Detected.":gosub 3404
@@ -683,7 +683,9 @@
 ' get sysop name:
 4052 gosub 35:x=1:gosub 1:&,2,2:i1$=a$:close 2:kk=.:a$="s.errmail,s,r":dr=1:gosub 4:if e% then close 2:goto 4068
 '    kk=kk+1:&,2,2:s=(64andst):tt$(kk)=a$:ifs=.then4054
-4054 do while (64 and st)=.:kk=kk+1:&,2,2:tt$(kk)=a$:loop
+' 10/22/2026: stop at the end of the file or any error (st<>0), not only at EOF (64):
+' a read error without bit 6 ran on until tt$() gave ?bad subscript
+4054 do while st=.:kk=kk+1:&,2,2:tt$(kk)=a$:loop
 4056 close 2:tt$=na$:a$="a":gosub 32:if e% then a$="w":gosub 32
 4058 a$="[System Error ("+d$+")]":a=.:print#2,i1$r$1;r$d1$r$a$r$
 4060 gosub 39:close 15
