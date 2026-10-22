@@ -311,8 +311,8 @@
 ' handler (4000) carries on from the idle screen (4046: goto 302), which loads
 ' what it needs again, so a missing one failed on every pass and the boot
 ' looped for ever (until ?out of memory, or the screen filled with garbage).
-' lz$ is the last file that failed, lw the time (ti) it did
-2003 if x<>29 then lz$="":else if cm$=lz$ and ti-lw<3600 then 2009:else lz$=cm$:lw=ti
+' lz$ is the last file that failed, an$ the time (d1$) it did
+2003 if x<>29 then lz$="":else if cm$=lz$ and ti-lw<3600 then an$=d1$:&,15:goto 2009:else lz$=cm$:lw=ti
 ' 2004 &,11:&,28,1:poke 53248,.
 2004 &,11:&,28,1:poke {sym:local},.
 ' reload this program: "im 128" on the 128 disk
@@ -320,7 +320,7 @@
 2008 gosub 304:goto 4000
 ' (by then & output may not reach the screen: as 4048, put the KERNAL's
 ' own output back with RESTOR and PRINT)
-2009 sys 65418:print:print"{lt. red}Can't load {white}"cm$"{lt. red}: is it on the disk?":print"Halted.":end
+2009 sys 65418:print:print"{lt. red}"an$:print"Can't load {white}"cm$"{lt. red}: is it on the disk?":print"Halted.":end
 
 ' *** init ***
 
@@ -640,7 +640,7 @@
 ' 3510 rem &"{f6}RS232 Interface Type:{f6}Enter 0 for User Port{f6}Enter 1 for SwiftLink/Turbo232{f6}> {pound}i1"
 ' 3512 rem a=val(an$):ifa<0ora>1then3510
 ' 3514 rem gosub 33:x=32:gosub 1:print#2,an$:close2:return
-3999 rem copr. 2023 new image software {usedef:__BuildDate}
+3999 rem copr. 2023-2026 new image software {usedef:__BuildDate}
 
 ' error trap stuff
 4000 &,38:cm$=cm$+"":p$=p$+"":pr$=pr$+"":p1$=p1$+"":p2$=p2$+""
@@ -663,8 +663,8 @@
 4028 print#2,"Program: "pr$r$"Module: "p1$r$"Sub Module: "p2$
 4030 print#2,"ML File: "ml$r$"Protocol: "d4$r$
 4032 for i=1 to 10:a$=chr$(58-i):if hs$(i)<>"" then print#2," {uparrow}"a$": "hs$(i)
-' FIXME: check right Dbg lightbar flag before color 4,3 to turn border red
-4034 next:print#2,"^":close 2:rem &,52,x,3:if a% then color 4,3
+' check right Dbg lightbar flag *before* color 4,3 to turn vic-ii border red
+4034 next:print#2,"^":close 2:rem &,52,57,3:if a% then color 4,3
 4036 a$="User  : "+na$+r$+"Error :"+d$+r$+"Line  :"+str$(b)+r$+"Time  : {04}"+d1$+r$
 4038 a$=a$+"Pfile : "+pr$+r$+"Area  : "+cm$+r$+".":remgosub 51
 4040 close 2:&,37:for x=1 to 4:&,11,x:next:sy$="":sb$="":sg=.
@@ -678,7 +678,7 @@
 4046 f1=2:goto 302
 ' 65418: RESTOR through the KERNAL jump table ($ff8a), as on the C64
 4048 a$="FATAL ERROR!!":gosub 51:sys 65418:print"{clear}{$0b}{white}{lowercase}{down:2}"a$:end
-' check for local mode, immediate logon mode, or sysop id:
+' check for local mode (a%), immediate logon mode (i%), or sysop id (id=1):
 4050 &,52,4,3:if a% or i% or id=1 then 4068
 ' get sysop name:
 4052 gosub 35:x=1:gosub 1:&,2,2:i1$=a$:close 2:kk=.:a$="s.errmail,s,r":dr=1:gosub 4:if e% then close 2:goto 4068
@@ -690,6 +690,7 @@
 4058 a$="[System Error ("+d$+")]":a=.:print#2,i1$r$1;r$d1$r$a$r$
 4060 gosub 39:close 15
 4062 gosub 30:i=1:x=14:gosub 16:x=25:gosub 16:x=32:gosub 16:close 2
+' backspaces over "Recording Error, Please Wait..." up to the point of "Record":
 4064 &"{pound}ho{pound}h9ed!{f6:2}{white}{$07}You Have New E-Mail Waiting:{f6:2}{green}Read Now? ":gosub 96
 4066 if a then a$="E"+"M":goto 70
 4068 pr$="":goto 300
