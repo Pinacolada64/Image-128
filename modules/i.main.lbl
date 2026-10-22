@@ -33,9 +33,16 @@
 {:3034}
 	poke 53252,ll%:if em=. then:&"[3=i.  4=i/  5=sub.  6=i/lo-]{f6}"
 	&"{lt. blue}Which Class {cyan}(3-6): {white}{pound}i1":a=val(an$):if a<3 or a>6 then {:3002}
-' string: extract module prefix based on index 'c' into a$:
-    an$=mid$("i.   i/   sub. i/lo-",a*5-4,5):&,15,6,32
-	c=a-2:poke 53252,16-len(a$):&"{lt. blue}Run{cyan}: {white}"+a$+"{pound}i0":poke 53252,ll%:c$=an$:on -(c$="")-2*(c=3) goto {:3002},{:3046}
+' 10/21/2026: the class's prefix, from its 5-character slot in the table
+' (c=1-4: classes 3-6; a*5-4 pointed past it), cut at its first space
+' (&,15,6,32 leaves what's before it in a$, the rest in an$), kept in b$:
+' a$ is the name later. The name takes the rest of 16 characters, in upper and
+' lower case ({pound}i0: the 0 is the case flag; {pound}i1 forces uppercase)
+' c$=an$+"": {pound}i puts the input in a buffer and an$ points at it, so a plain
+' c$=an$ shares the buffer and the value typed next (3046) overwrote the
+' name ("sub.0tack"); +"" copies it into the string area
+	c=a-2:an$=mid$("i.   i/   sub. i/lo-",c*5-4,5):&,15,6,32:b$=a$+""
+	poke 53252,16-len(b$):&"{lt. blue}Run{cyan}: {white}"+b$+"{pound}i0":poke 53252,ll%:c$=an$+"":on -(c$="")-2*(c=3) goto {:3002},{:3046}
 ' ask for device,drive, a=device not present
 	gosub 349:gosub 350:if a then x=6:gosub 390:goto {:3002}
 {:3046}
@@ -50,8 +57,11 @@
 ' class 5: sub.
 	im=a:gosub 74:goto {:3002}
 ' 10/16/2026: class 6: i/lo- (im line 77 adds "i/" prefix)
+' 10/21/2026: the name is in a$ (an$ is the value just typed), and gosub 73
+' loads it if it isn't in memory and runs it at 4000, as class 4 (77 only
+' loaded it)
 {:3054}
-    lm=a:a$="lo-"+an$:gosub {$37}7:goto {:3002}
+	lm=a:a$="lo-"+a$:gosub 73:goto {:3002}
 {nice:10}
 {:reload_module}
 '	if an$="RL" then a%=-3000*(pr$<>"")-4000*(p1$<>"")-60000*(p2$<>""):&,66,1:goto {:3000}
