@@ -218,6 +218,19 @@ Unchanged on the 128: the VIC, SID and CIA registers, Image's flags at
   it with the `r6510` save left `sareg` holding the call number: the
   modem check never saw 0, and the idle loop never came back to `&,16`.
 - **SYS to the overlays:** the C64's `$c000` is `protostart` (`$1c00`).
+- **`linnum` moved, and so did the zero page around it.** The C64 code
+  hands addresses around in `$14`/`$15` (its `linnum`): `fnvar1` (`&,60`'s
+  array element) left one there for the struct code. The port wrote it
+  to `curlin` (`$3b`, BASIC's line number) and the struct code went on
+  reading `$14`, which BASIC 7 uses for its operators and its garbage
+  collection: every struct put wrote to a random address (strings, the
+  screen, BASIC's pointers). They meet in `linnum` (`$16`) now, which only
+  line numbers and PEEK/POKE use. Look for `$14`, `$22` (the C64's string
+  pointer after FRESTR; the 128's is `$24`) and `$62` in C64 code.
+- **The 128's vectors at `$0300` aren't all the C64's.** The C64's USR
+  vector is `$0311`; on the 128 that's BASIC 7's escape-token vector
+  (IESCEX), and USR's is `$1219` (`usrpok`). The wedge set `$0311`: `usr()`
+  gave `?illegal quantity` and IESCEX pointed at junk.
 - **The `++` overlays** are assembled on their own: they reach the ML
   only through names in `equates.asm` (`++ clock` carries its own VDC
   register writes and colour table).

@@ -398,8 +398,8 @@ install1:
 	stx IEVAL+1	; $30b
 	lda #<wfunc0
 	ldx #>wfunc0
-	sta USRADD	; $311
-	stx USRADD+1	; $312
+	sta USRADD	; $1219 (c64: $311)
+	stx USRADD+1	; $121a (c64: $312)
 	rts
 
 arrayoff:

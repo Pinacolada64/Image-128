@@ -80,8 +80,8 @@ putstruc:
 	tax
 	beq puts2
 puts1:
-	lda ($22),y
-	sta ($14),y
+	lda (index_24),y	; the string, from evalstr (c64: $22)
+	sta (linnum),y
 	iny
 	cpy stcount
 	bcs puts3
@@ -89,7 +89,7 @@ puts1:
 	bne puts1
 puts2:
 	lda #0
-	sta ($14),y
+	sta (linnum),y
 	iny
 	cpy stcount
 	bcc puts2
@@ -101,7 +101,7 @@ getstruc:
 	jsr fnvar
 	ldy #0
 gets1:
-	lda ($14),y
+	lda (linnum),y
 	beq gets2
 	iny
 	cpy stcount
@@ -114,7 +114,7 @@ gets2:
 gets3:
 	cpy stcount
 	beq gets4
-	lda ($14),y
+	lda (linnum),y
 	sta (var+1),y	; ($62),y
 	iny
 	bne gets3
@@ -134,7 +134,7 @@ putfloat:
 	ldy #4
 putf1:
 	lda (varpnt),y	; ($47),y
-	sta ($14),y
+	sta (linnum),y
 	dey
 	bpl putf1
 	rts
@@ -144,7 +144,7 @@ getfloat:
 	jsr fnvar
 	ldy #4
 getf1:
-	lda ($14),y
+	lda (linnum),y
 	sta (varpnt),y	; ($47),y
 	dey
 	bpl getf1

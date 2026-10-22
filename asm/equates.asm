@@ -316,7 +316,7 @@
 	IEVAL	= $030a	; [$ae86] Indirect vector into evaluating single-term arithmetic
 			;		expression
 
-	USRADD	= $0311	; Vector to USR function address
+	USRADD	= usrpok	; c64: $0311. the USR function's vector ($1219; $0311 is BASIC 7's IESCEX, the escape-token vector)
 	ICHROUT	= $0326	; Indirect vector into BASIC CHROUT
 
 

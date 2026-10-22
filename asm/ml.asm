@@ -422,10 +422,15 @@ fnvar0:
 	ldx varpnt	; c64: $47
 	ldy varpnt+1	; c64: $48
 	rts
+; fnvar1 (&,60's array element): its address in linnum, where the
+; struct code reads it (c64: $14/$15, its linnum). This stored it in
+; curlin ($3b, BASIC's line number) and the readers went through $14/$15,
+; whatever that held: struct puts wrote their bytes to a random address
+; (strings, the screen) and the line number became the element's address
 fnvar2:
 	jsr fnvar
-	stx curlin	; c64: $14
-	sty curlin+1	; c64: $15
+	stx linnum	; c64: $14
+	sty linnum+1	; c64: $15
 	rts
 
 evalstr0:

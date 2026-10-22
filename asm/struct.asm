@@ -191,7 +191,7 @@ putdate:
 	ldy #0
 putd1:
 	lda scanfor,y
-	sta ($14),y
+	sta (linnum),y
 	iny
 	cpy #6
 	bcc putd1
@@ -201,7 +201,7 @@ getdate:
 	jsr fnvar1
 	ldy #5
 getd1:
-	lda ($14),y
+	lda (linnum),y
 	sta scanfor,y
 	dey
 	bpl getd1
@@ -875,7 +875,7 @@ gamescan:
 	sty index
 game1:
 	ldy #1
-	lda ($14),y
+	lda (linnum),y
 	asl
 	tax
 	ldy index
@@ -883,12 +883,12 @@ game1:
 	jsr game2
 	sty index
 	clc
-	lda $14
+	lda linnum	; c64: $14
 	adc <@size
-	sta $14
-	lda $15
+	sta linnum
+	lda linnum+1
 	adc #0
-	sta $15
+	sta linnum+1
 	dec count
 	bne game1
 ; 128: putvar2 (&,71), as getd3
