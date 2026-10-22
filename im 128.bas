@@ -496,14 +496,33 @@
 3192 gosub 5:c$="{lt. green}":if e% then c$="{lt. red}"
 3194 &"{pound}{back arrow}20"+c$+"{pound}$e{f6}{lt. blue}":return
 
-3200 &,27,1:z1$="Insert All System Disks In Correct ":z2$="      Drives, And Press RETURN     "
-3202 &,70,0,6:&"{green}OR: {lt. green}Press {yellow}({white}1{yellow}) {lt. green}to configure a new BBS{f6}"
-3204 &"{pound}{back arrow}10{yellow}({white}2{yellow}) {lt. green}to convert from Image BBS 64 v1.2{f6}"
-3206 &"{pound}{back arrow}10{yellow}({white}3{yellow}) {lt. green}to convert from Image BBS 64 v2.0{f6}"
-3207 &"{pound}{back arrow}10{yellow}({white}4{yellow}) {lt. green}to reset C128{f6}"
+3200 &,27,1:z1$=" Insert All System Disks In Correct ":z2$="       Drives, And Press RETURN     "
+' ----+----+----+----+----+----+----+----+
+'                Or Press:                 (16)
+'
+' (1) to configure a new BBS
+' (2) to convert from Image BBS 64 v1.2
+' (3) to convert from Image BBS 64 v2.0
+' (4) to reset your C128
+
+' ----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+'                                   Or Press:                                      (35)
+'
+' (1) to configure a new BBS               (3) to convert from Image BBS 64 v2.0
+' (2) to convert from Image BBS 64 v1.2    (4) to reset your C128
+' 10/20/2026: lay the options out for the screen width (sw), as above
+' "Or Press:" at column 16 (40 columns) or 35 (80 columns); i counts options
+3202 &,70,16-19*(sw=80),6:&"{green}Or Press{colon}":r=8:c=0:i=0
+3204 a$="to configure a new BBS":gosub 3214:a$="to convert from Image BBS 64 v1.2":gosub 3214
+3206 a$="to convert from Image BBS 64 v2.0":gosub 3214:a$="to reset your C128":gosub 3214
 3208 gosub 3408:lm=val(an$):on lm goto 3220,3222,3224,3226
 3210 if an$=r$ then gosub 3414
 3212 return
+' print option i+1 (text in a$) at column c, row r, then move down a row;
+' on an 80-column screen, options 3 and 4 go in a second column at 41
+3214 i=i+1:&,70,c,r:&"{yellow}({white}{pound}!i{yellow}) {lt. green}"+a$:r=r+1:if sw=80 and i=2 then c=41:r=8
+3216 return
+
 3220 z3$="Configure Image BBS 128 v1.0":goto 3228
 3222 z3$="Convert from Image BBS 64 v1.2":goto 3228
 3224 z3$="Convert from Image BBS 64 v2.0":goto 3228
