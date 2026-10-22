@@ -390,7 +390,7 @@
 ' sys protostart+3: intro's "jmp setup" (c64: sys 49155, $c003)
 3074 dv%=peek({sym:bootdev}):z%=dv%:dr$="0"+":":bd$=dr$:sr=2:pr=-1:f3=1:sys {sym:protostart}+3:&,53
 ' NOTE: __BuildDate and __BuildTime are themselves quoted strings, hence the weirdness here:
-3075 &,69,1,1,"im 128 revision: "+{usedef:__BuildDate}+" "+{usedef:__BuildTime},3
+3075 &,69,0,1,"im 128 revision: "+{usedef:__BuildDate}+" "+{usedef:__BuildTime},3
 ' a$="NTSC":if peek(678) then a$="PAL"
 3076 a$="NTSC":if peek({sym:ntscpal})=255 then a$="PAL"
 3078 gosub 3400:z3$=a$+" System Detected.":gosub 3404
@@ -584,11 +584,11 @@
 ' pass z3$ as new line of info to scroll
 ' scroll z1$ and z2$ up. z3$ is new line to display
 ' pad z2$ out with spaces
-3404 z1$=z2$:c=$8f:z2$=left$(z3$+s$,34)
+3404 z1$=z2$:c=$8f:z2$=left$(z3$+s$,36)
 ' display both z2$ and z3$, don't scroll
 ' then the cursor to row 6, column 0 (as Image BBS 3.0): what's printed
 ' after a message starts under the frame
-3405 &,69,3,3,z1$,c:&,69,3,4,z2$,c:&,70,0,6:return
+3405 &,69,2,3,z1$,c:&,69,2,4,z2$,c:&,70,0,6:return
 
 ' FIX: remove z=z+1 stuff. this does not delay 1/2 second on a SuperCPU system. use timer instead:
 ' 'i=not i' does not work
@@ -620,13 +620,15 @@
 ' 40 get an$:print"key:"an$:lm=val(an$):if lm<1 and lm>3 then 20
 
 ' NOTE: Immutable line number
-' clear screen lines 7-24 (0-based)
+' clear screen lines 5-23 (0-based)
 ' reposition cursor on row 7, col 0
 ' TODO: clear line links?
 ' 3414 for i=6 to 23:&,70,.,i:&"{pound}{back arrow}38":next:&,70,.,6:return
 
 ' rows 6-23, as Image BBS 3.0 (24 is the status line)
-3414 for i=6 to 23:&,70,0,i:&"{pound}{back arrow}38":next:&,70,0,6:return
+' 10/20/2026: on an 80-column screen, also clear columns 39-78 (the MCI
+' tab stops short of column 40)
+3414 for i=6 to 23:&,70,0,i:&"{pound}{back arrow}38"+left$("{space:40}",-40*(sw=80)):next:&,70,0,6:return
 
 
 ' computer types:
@@ -720,5 +722,5 @@
 ' 39-41
 4096 data"UNRESOLVED REFERENCE","UNIMPLEMENTED COMMAND","FILE READ"
 4098 rem copr. 1996 new image 5/6/96-jlf
-4100 rem im (c)nissa 2020-09-29 lh-ad
+4100 rem im (c)nissa 2020-09-29 lh-ad, 2026-10-21 rs
 4102 rem {usedef:__BuildDate} {usedef:__BuildTime} rs
