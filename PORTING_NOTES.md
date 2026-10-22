@@ -58,13 +58,19 @@ string area: wrong text in variables, `?type mismatch`, jams.
   down: `arrmark` marks the dropped variables' strings garbage first,
   and `arrlink` points the moved string arrays' strings back at their
   elements after (`wedge.asm`). String arrays DIMmed after the save and
-  dropped by it aren't covered yet (the wedge is full).
+  dropped by it aren't covered yet (see Open problems: the wedge,
+  $2f00 up to glue at $3600, has about 780 bytes free now).
 
 **When porting more ML** (the `++` overlays, the editor): look for
 `sta (varpnt),y`, for `makeroom`/`makerm` users, and for anything that
 moves memory in bank 1. Copying one variable's descriptor into another
 (two descriptors, one string) can't be linked right either way: copy the
-string instead.
+string instead. Nor can a variable be left pointing into the middle of a
+string in the string area (C64 code shortens a string by moving its
+pointer past the first characters): the collection walks the area string
+by string, reads the skipped characters as a back-link and writes through
+it. `&,15,5` and `&,15,6` did that to `an$`; `strrest` (`miscl.asm`) now
+makes the rest a string of its own (`tests/standin/orphan.bas`).
 
 ### Checking the string area
 
@@ -276,23 +282,54 @@ One test run ended the same way: PC $0000 with bank 1 and the internal
 function ROM in, a configuration Image never uses, on im line 2002 (the
 error handler's `&"[Error#{pound}!x…"`).
 
-**Where it starts.** Logoff runs sub.misc, which runs sub.modem for the
+**How it jams** (caught 10/22 with `-jamaction 1`, which leaves the CPU
+jammed and the remote monitor usable, and `chis`): ML code calls the
+`ptrget1` stub in romtab.asm ($c04d: `jsr farcall`, `byte cfg_rom`,
+`word k_ptrget1`), but its bytes read `a9 87 7b`: `farcall` stores $a9 in
+`$ff00` and jumps to $7b87, the middle of PTRGET, with nothing it needs
+banked in. $87a9 is an address in the string area: BASIC 7's garbage
+collection wrote a moved string's new address through a back-link that
+pointed at $c04f. Everything below has the same cause: **the collection
+writing through bad back-links** (see "BASIC 7's strings" above). One bad
+record is enough: the collection steps from string to string by the
+lengths in their descriptors, so after one wrong step it reads text as
+back-links, and writes wherever those point.
+
+**Fixed:** `&,15,5` and `&,15,6` left `an$` pointing into the middle of
+its old string (see above). Logoff still jams with that fixed.
+
+**Where it shows.** Logoff runs sub.misc, which runs sub.modem for the
 hangup (im line 74, then 100). When sub.modem returns, im line 102 does
 `new 60000` and line 110 reloads sub.misc over itself, while BASIC is
-still inside a gosub from sub.misc's own lines. The 3.0 release does the
-same (line 110 differs only by a debugging `gosub 20` and `"L:"` in the
-status line text). Every failure seen came after that reload:
+still inside a gosub from sub.misc's own lines (the 3.0 release does the
+same; line 110 differs only by a debugging `gosub 20` and `"L:"` in the
+status line text). The loads around it are what make the collection
+run; every failure seen came after that reload:
 
 - `[Error#18, Line#2]` (?bad subscript in im's drive lookup), then
   struct.asm's `clrarr` looping for good: it walks the arrays from
   `arytab` until it lands exactly on `strend`, and met a size of 0
 - the first array's header (`tt$()`) overwritten: `87 d4 88 85 01 00 ff`
-  where `54 d4 04 03 01 00 ff` belongs (name, size; the dimensions were
-  intact)
-- `?undef'd statement error in 79` or `in 2002`, out to `ready.`
-- a BRK into BASIC 7's monitor at about $3020 (bank 1)
+  where `54 d4 04 03 01 00 ff` belongs; `d4 88 85` is a descriptor
+  (212 bytes at $8588) written by the collection
+- `?undef'd statement error in 79` or `in 2002`, out to `ready.`; a BRK
+  into BASIC 7's monitor at about $3020; once, a BRK at $202e during
+  login (with the `&,15` fix, so maybe the same damage, maybe not)
 - stray bytes on the screen: the `y` of the mask's `Sys.` ($0682) and a
   digit of the status line's date
+
+**The string area is already bad at the main prompt**, before logoff:
+walking it (see "Checking the string area") stops at a string i/lo-last
+built during login (`tt$(1)`, the last callers list) whose back-link
+($45f2) is `tt$(1)` as it was then; by the main prompt the arrays had
+moved up 21 bytes (three new variables) and the link wasn't moved with
+them.
+
+**Suspect:** string arrays a module DIMs after `&,27` and drops with
+`&,28` (the gap noted above: `arrmark` only marks the dropped *plain*
+variables' strings). Their strings stay live, linked to memory that is
+other variables or arrays later. Login runs modules that do that (e.g.
+`i.lo.im`: `dt$()`, `ed$()`, `b$()`, `c$()`).
 
 **Ruled out:**
 
@@ -302,13 +339,23 @@ status line text). Every failure seen came after that reload:
   each puts `$ff00` back (the NMI exits through `$ff33`)
 - the ML writing the MMU's preset registers (`$d501`-`$d504`, `$ff01`-
   `$ff04`) or BASIC 7's RAM routines at `$0380`-`$03ff`: nothing does
+- the ML's string writes: every `putvar`/`putarr` (and the overlays'
+  `&,30`) goes through `strold`/`strnew`; `getstruc` too; `irqhn.asm`'s
+  direct writes are integers (`tr%`, `ac%`, `mn%`); `makeroom` and the
+  collection leave `varpnt` alone (they write $24/$25 and $61-$65)
+- BASIC 7 moving the arrays when a new variable is made: it moves the
+  string arrays' back-links with them (a stand-in test: `t$(1)` and the
+  new variables survive a collection)
+- `&,28` moving the arrays *up* (its forward copy would smear them): a
+  debug count in the wedge saw none through login and logoff
 
-**Next:** watch the `tt$()` header in bank 1 from just before line 102's
-`new 60000`, or step through the wedge's `new 60000` and the reload with
-breakpoints. A store watchpoint on the screen cell ($0682) hung x128's
-monitor. To repeat it: a configured disk, `i.lo` with `tr%=10`, the Loc
-checkmark (`> 1300` bit `$10`) at the idle screen, warp off from then on,
-log in, `O`, `Y`, Return, Return; x128 with `-jamaction 2` and
-`-monchislines` stops on a JAM with the CPU history. The two TODOs this
+**Next:** mark the strings of dropped string arrays garbage in
+`arrayrs0` (the wedge ends at about $32f5; glue starts at $3600); then walk the string area after each module load to
+find the first bad record. To repeat it: a configured disk, `i.lo` with
+`tr%=10`, the Loc checkmark (`> 1300` bit `$10`) at the idle screen,
+warp off from then on, log in, `O`, `Y`, Return, Return. With
+`-jamaction 2` x128 opens its own monitor window on the JAM and the
+remote monitor stops answering; breakpoints and store watchpoints set
+over the remote monitor also left it unreachable. The two TODOs this
 left (fixing the nested reload; i/lo-last's time used) are in
 `modules/TODO.md`.

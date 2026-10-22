@@ -378,3 +378,57 @@ dloop:
 	beq dloop
 	rts
 
+
+; 128: an$ without its first .a characters, as a string of its own. The
+; c64 (strio.asm's newdate, strscan) moved an$'s pointer past them, which BASIC 7
+; can't have: its garbage collection walks the string area string by
+; string, each followed by its back-link, so it read the last two skipped
+; characters as a back-link and wrote a string's new address through it,
+; wherever they pointed (tests/standin/orphan.bas). makeroom runs while
+; an$ is still whole (a collection moves it and its descriptor with it),
+; then the rest is copied from wherever an$'s string is now.
+; Here, not in strio.asm: $c000-$cfff is full.
+strrest:
+	sta strr_skip
+	ldx #var_an_string
+	jsr usevar
+	sec
+	lda varbuf
+	sbc strr_skip
+	bcs strr1
+	lda #0		; (more to skip than there is)
+strr1:
+	sta strr_keep
+	bne strr2
+	jsr zero	; nothing left: ""
+	jmp strr4
+strr2:
+	jsr makeroom	; .a bytes: varbuf
+	ldx #var_an_string
+	jsr gvarptr	; x/y: an$'s descriptor
+	stx free_fb
+	sty free_fc
+	ldy #1
+	lda (free_fb),y
+	clc
+	adc strr_skip
+	tax
+	iny
+	lda (free_fb),y
+	adc #0
+	sta free_fc
+	stx free_fb
+	ldy strr_keep
+strr3:
+	dey
+	lda (free_fb),y
+	sta (varbuf+1),y
+	tya
+	bne strr3
+strr4:
+	ldx #var_an_string
+	jmp putvar
+
+strr_len:  byte 0	; strscan: an$'s length
+strr_skip: byte 0
+strr_keep: byte 0

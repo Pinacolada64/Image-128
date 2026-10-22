@@ -319,13 +319,8 @@ newdate:
 	and #'8'	;  check if AM/PM?
 	sta (varbuf+1),y
 newd2:
-	dec varbuf
-	inc varbuf+1
-	bne newd1
-	inc varbuf+2
-newd1:
-	ldx #var_an_string
-	jsr putvar
+	lda #1		; 128: an$ less its first character (strrest).
+	jmp strrest	; c64: moved an$'s pointer past it
 newd0:
 	rts
 
@@ -333,6 +328,8 @@ strscan:
 	sty strsc2+1
 	ldx #var_an_string
 	jsr usevar
+	lda varbuf	; 128: its length, for strrest
+	sta strr_len
 	ldy #0
 	ldx #0
 	lda varbuf
@@ -352,8 +349,10 @@ strsc2:
 	bne strsc1
 strsc3:
 	stx index
-	ldx #var_an_string
-	jsr putvar
+	sec		; 128: an$ less what was scanned (strrest).
+	lda strr_len	; c64: an$ was left pointing past it
+	sbc varbuf
+	jsr strrest
 	lda index
 	sta varbuf
 	lda #<buf2
