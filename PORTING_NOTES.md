@@ -260,3 +260,55 @@ Unchanged on the 128: the VIC, SID and CIA registers, Image's flags at
   part of the ML; `tools/standin.sh` puts one on a test disk.
 - `tools/vmon.py`: driving x128 through its remote monitor (port 6537);
   `tools/ovl_dis.py`: a C64 `++` overlay into C64List source to port.
+
+## Open problems
+
+### Logoff corrupts memory (found 10/22/2026, not fixed)
+
+Logging off (`O` at the main prompt, after a local login) crashes the
+128, a different way on each try. Reported: a CPU JAM at $7b8c with
+sub.misc loaded, on im line 200.
+
+**The JAM is a symptom.** $7b8c is good code in BASIC 7's ROM (`cmp
+#$44`, PTRGET's check for the reserved names TI, ST, ER, EL, DS): a
+JAM there means the CPU ran it with RAM banked in where the ROM was.
+One test run ended the same way: PC $0000 with bank 1 and the internal
+function ROM in, a configuration Image never uses, on im line 2002 (the
+error handler's `&"[Error#{pound}!x…"`).
+
+**Where it starts.** Logoff runs sub.misc, which runs sub.modem for the
+hangup (im line 74, then 100). When sub.modem returns, im line 102 does
+`new 60000` and line 110 reloads sub.misc over itself, while BASIC is
+still inside a gosub from sub.misc's own lines. The 3.0 release does the
+same (line 110 differs only by a debugging `gosub 20` and `"L:"` in the
+status line text). Every failure seen came after that reload:
+
+- `[Error#18, Line#2]` (?bad subscript in im's drive lookup), then
+  struct.asm's `clrarr` looping for good: it walks the arrays from
+  `arytab` until it lands exactly on `strend`, and met a size of 0
+- the first array's header (`tt$()`) overwritten: `87 d4 88 85 01 00 ff`
+  where `54 d4 04 03 01 00 ff` belongs (name, size; the dimensions were
+  intact)
+- `?undef'd statement error in 79` or `in 2002`, out to `ready.`
+- a BRK into BASIC 7's monitor at about $3020 (bank 1)
+- stray bytes on the screen: the `y` of the mask's `Sys.` ($0682) and a
+  digit of the status line's date
+
+**Ruled out:**
+
+- sub.modem's `+++`/`ath` waits (`&,22`, `tenwait`): they run in
+  `cfg_ml` with I/O in, and the TOD clock ticks
+- glue.asm's `irq_far` and `farcall`, and rs232_user.asm's NMI handler:
+  each puts `$ff00` back (the NMI exits through `$ff33`)
+- the ML writing the MMU's preset registers (`$d501`-`$d504`, `$ff01`-
+  `$ff04`) or BASIC 7's RAM routines at `$0380`-`$03ff`: nothing does
+
+**Next:** watch the `tt$()` header in bank 1 from just before line 102's
+`new 60000`, or step through the wedge's `new 60000` and the reload with
+breakpoints. A store watchpoint on the screen cell ($0682) hung x128's
+monitor. To repeat it: a configured disk, `i.lo` with `tr%=10`, the Loc
+checkmark (`> 1300` bit `$10`) at the idle screen, warp off from then on,
+log in, `O`, `Y`, Return, Return; x128 with `-jamaction 2` and
+`-monchislines` stops on a JAM with the CPU history. The two TODOs this
+left (fixing the nested reload; i/lo-last's time used) are in
+`modules/TODO.md`.
