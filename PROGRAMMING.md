@@ -59,8 +59,13 @@ trap:&,37               : rem BASIC's off, Image's on again
 ```
 
 `er` is the error number, `el` its line and `err$(er)` its message
-(BASIC 7.0's: `el` can't be a variable of your own). With both on,
-Image's wins.
+(BASIC 7.0's: `er` and `el` can't be variables of your own). With both
+on, Image's wins.
+
+Each trap sets only its own: after an error Image's trap took, `er` and
+`el` are still -1 and 65535 (BASIC's "no error"), so read `peek(6)` and
+`peek(7)+peek(8)*256`; after one BASIC's `trap` took, those bytes are
+whatever they were. `tests/standin/trap.bas` shows both.
 
 ## BASIC 7.0's stack
 

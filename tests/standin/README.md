@@ -23,6 +23,7 @@ They're petcat source (BASIC 7.0), not C64List: `chr$(92)` for `£`, no
 | `gosub.bas` | `&,66,1` (a GOSUB from the ML) 50 times: the frame on BASIC 7's stack, the CPU stack left clean; then one to a missing line, caught by BASIC 7's `trap` and `resume next` |
 | `struct.bas` | `&,60,3` then `&,60,2`: an array saved as a struct and loaded back (bank 1, the right length) |
 | `usr.bas` | `usr(0)` (the wedge's stack-pointer function, through the 128's USR vector) and a BANK statement |
+| `trap.bas` | BASIC 7's `trap`/`resume` with Image's trap off, then both on (Image's wins); `er`/`el` against what Image's trap saves (`peek(6)`, `peek(7)+256*peek(8)`) |
 | `fkey-macros.bas` | Ctrl/C= + f1/f3/f5/f7 typing `f1$`-`f8$` into an input line |
 | `swiftlink.bas` | the SwiftLink driver (`ml.rs232`, `&,16,1`): sends a line, then shows and echoes back what arrives on device 2 |
 | `userport.bas` | the same with the user port driver (`&,16,0`) at 1200 baud |
