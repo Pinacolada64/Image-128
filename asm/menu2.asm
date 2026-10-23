@@ -1,14 +1,29 @@
-{alpha:alt}	; .encoding "petscii_mixed"
+; menu2.asm -- "++ menu2": the cursor menus of i.IM, i.SM, i.UU, i.lo.im
+; and i/lo.login+. &,16,x,size,element,...: x 0 adds an item, 1 adds items
+; from arrays, 2 draws the menu and runs it, 3 runs it again (the item
+; table: size bytes an item, from the array element given).
+;
+; Ported to the 128 on 2026-10-22 (the C64's addresses in the comments):
+; - runs at protostart ($1c00), called through &,16 in cfg_ml, so the
+;   item table (an array element) and the strings are in bank 1, and
+;   BASIC through the ROM stubs (chkcom, ptrget, frmevl, frestr, chrgot,
+;   getbytc, frmnum, getadr)
+; - the item pointer is $fb/$fc (c64: $14/$15, which BASIC 7 uses for its
+;   operators and garbage collection); farcall keeps it across the ROM
+;   calls, and only putvar (at the end) changes it
+; - BASIC 7: varpnt $49/$4a, linnum $16/$17 (getadr's result), and
+;   frestr leaves the string's address in $24/$25 (c64: $47/$48, $14/$15,
+;   .x/.y and $22/$23)
+; - no 6510 port to set (c64: lda #r6510_normal / sta $01)
 
+{alpha:alt}	; c64: KickAss's petscii_mixed: capitals $c1-$da, lowercase $41-$5a
 {include:"equates.asm"}
 
-* = protostart ; "menu2.prg"
+	orig protostart	; c64: $c000
 
 ml:
 	stx ml1+1
 	sty stsize
-	lda #r6510_normal
-	sta r6510
 	jsr fnvarx1
 	stx menubase
 	sty menubase+1
@@ -34,24 +49,26 @@ ml5:
 fnvarx:
 	jsr chkcom
 	jsr ptrget	; c64: $b08b
-	ldx $47
-	ldy $48
+	ldx varpnt	; c64: $47
+	ldy varpnt+1	; c64: $48
 	rts
 fnvarx1:
 	jsr fnvarx
-	stx $14
-	sty $15
+	stx free_fb	; c64: $14
+	sty free_fc	; c64: $15
 	rts
 
 evalbytx:
 	jsr chkcom
-	jsr $0079
-	jmp $b79e
+	jsr chrgot	; c64: $0079
+	jmp getbytc	; c64: $b79e
 
 evalstrx:
 	jsr chkcom
-	jsr frmeval	; c64: $ad9e
-	jsr $b6a3
+	jsr frmevl	; c64: $ad9e
+	jsr frestr	; c64: $b6a3
+	ldx index_24	; 128: frestr leaves the address here
+	ldy index_24+1	; (c64: in .x/.y)
 	cmp #0
 	rts
 
@@ -59,8 +76,8 @@ getword:
 	jsr chkcom	; c64: $aefd
 	jsr frmnum	; c64: $ad8a
 	jsr getadr	; c64: $b7f7
-	ldx $14
-	ldy $15
+	ldx linnum	; c64: $14
+	ldy linnum+1	; c64: $15
 	rts
 
 putvar:
@@ -86,7 +103,7 @@ xchrout1:
 	jmp usetbl1
 xchrout2:
 	rts
-:
+xgetin:
 	lda #23
 	jmp usetbl1
 
@@ -101,21 +118,21 @@ addstr:
 	ldy #0
 	cmp #1
 	beq addstr1
-	lda ($22),y
+	lda (index_24),y	; c64: ($22),y
 	tax
 	iny
 addstr1:
-	lda ($22),y
+	lda (index_24),y	; c64: ($22),y
 	ldy #7
-	sta ($14),y
+	sta (free_fb),y
 	dey
 	txa
-	sta ($14),y
+	sta (free_fb),y
 	ldy #8
 	lda #0
-	sta ($14),y
+	sta (free_fb),y
 	iny
-	sta ($14),y
+	sta (free_fb),y
 	jsr evalstrx ;type$
 	sta stcount
 	stx addstr2+1
@@ -127,7 +144,7 @@ addstr1:
 addstr2:
 	lda $ffff,x
 	inx
-	sta ($14),y
+	sta (free_fb),y
 	iny
 	cpx #4
 	bcs addstr4
@@ -135,7 +152,7 @@ addstr2:
 	bcc addstr2
 addstr3:
 	lda #0
-	sta ($14),y
+	sta (free_fb),y
 	iny
 	inx
 	cpx #4
@@ -152,7 +169,7 @@ addstr4:
 addstr5:
 	lda $ffff,x
 	inx
-	sta ($14),y
+	sta (free_fb),y
 	iny
 	cpy stsize
 	bcs addstr7
@@ -160,7 +177,7 @@ addstr5:
 	bcc addstr5
 addstr6:
 	lda #0
-	sta ($14),y
+	sta (free_fb),y
 	iny
 	cpy stsize
 	bcc addstr6
@@ -187,13 +204,13 @@ arrvalue:
 	word 0
 
 addarr:
-	lda $14
+	lda free_fb
 	pha
-	lda $15
+	lda free_fc
 	pha
 	jsr evalstrx ;key$
 	ldy #0
-	lda ($22),y
+	lda (index_24),y	; c64: ($22),y
 	sta keyvalue
 	jsr evalstrx ;type$
 	stx addarr6+1
@@ -222,9 +239,9 @@ addarr:
 	stx arrvalue
 	sty arrvalue+1
 	pla
-	sta $15
+	sta free_fc
 	pla
-	sta $14
+	sta free_fb
 	lda #0
 	sta addcount
 	sta chkcount
@@ -243,16 +260,16 @@ addarr2:
 addarr4:
 	lda #0
 	ldy #6
-	sta ($14),y
+	sta (free_fb),y
 	lda keyvalue
 	iny
-	sta ($14),y
+	sta (free_fb),y
 	lda arrvalue+1
 	iny
-	sta ($14),y
+	sta (free_fb),y
 	lda arrvalue
 	iny
-	sta ($14),y
+	sta (free_fb),y
 	ldx #1
 addarr5:
 	lda $ffff,x
@@ -262,7 +279,7 @@ addarr5:
 	ldy #10
 addarr6:
 	lda $ffff,x
-	sta ($14),y
+	sta (free_fb),y
 	iny
 	inx
 	cpy #14
@@ -270,7 +287,7 @@ addarr6:
 	ldx #0
 addarr7:
 	lda $ffff,x
-	sta ($14),y
+	sta (free_fb),y
 	iny
 	inx
 	cpx titlsize
@@ -281,11 +298,11 @@ addarr8:
 	inc keyvalue
 	inc addcount
 	clc
-	lda $14
+	lda free_fb
 	adc stsize
-	sta $14
+	sta free_fb
 	bcc addarr9
-	inc $15
+	inc free_fc
 addarr9:
 	clc
 	lda addarr2+1
@@ -348,8 +365,8 @@ calcb2:
 	dex
 	bne calcb1
 calcb3:
-	sta $14
-	sty $15
+	sta free_fb
+	sty free_fc
 	rts
 
 linkleft:
@@ -414,7 +431,7 @@ putlink:
 	bcc putl1
 	lda #0
 putl1:
-	sta ($14),y
+	sta (free_fb),y
 	iny
 	rts
 
@@ -501,10 +518,10 @@ usem3:
 	jsr calcbase
 	ldy #0
 	lda px
-	sta ($14),y
+	sta (free_fb),y
 	iny
 	lda py
-	sta ($14),y
+	sta (free_fb),y
 	iny
 	jsr linkup
 	jsr linkdown
@@ -654,7 +671,7 @@ putitem:
 	ldx #1
 	ldy #10
 puti3:
-	lda ($14),y
+	lda (free_fb),y
 	beq puti4
 	jsr xchrout0
 	iny
@@ -664,13 +681,13 @@ puti4:
 	lda #cursor_white
 	jsr xchrout
 	ldy #6
-	lda ($14),y
+	lda (free_fb),y
 	beq puti5
 	jsr xchrout
 	inx
 puti5:
 	ldy #7
-	lda ($14),y
+	lda (free_fb),y
 	jsr xchrout0
 	lda #cursor_cyan
 	jsr xchrout
@@ -678,7 +695,7 @@ puti5:
 	jsr xchrout0
 	ldy #14
 puti7:
-	lda ($14),y
+	lda (free_fb),y
 	beq puti8
 	jsr xchrout0
 	iny
@@ -720,7 +737,7 @@ cursm1:
 cursm2:
 	ldx cp
 	jsr calcbase
-	jsr <@xgetin
+	jsr xgetin
 	ldx key1
 	stx key2
 	sta key1
@@ -759,12 +776,12 @@ cursm5:
 	stx findflag
 cursm7:
 	ldy #7
-	lda ($14),y
+	lda (free_fb),y
 	cmp key1
 	bne cursm7c
 cursm7a:
 	dey
-	lda ($14),y
+	lda (free_fb),y
 	beq cursm7b
 	cmp key2
 	bne cursm7c
@@ -775,12 +792,12 @@ cursm7b:
 	inc findflag
 cursm7c:
 	clc
-	lda $14
+	lda free_fb
 	adc stsize
-	sta $14
-	lda $15
+	sta free_fb
+	lda free_fc
 	adc #0
-	sta $15
+	sta free_fc
 	inx
 	cpx n
 	bcc cursm7
@@ -798,7 +815,7 @@ cursm3:
 	ldx #var_a_integer
 	jmp putvar
 cursm4:
-	lda ($14),y
+	lda (free_fb),y
 	cmp #255
 	beq cursm9
 	sta cp
@@ -808,10 +825,10 @@ cursm9:
 curscalc:
 	jsr calcbase
 	ldy #0
-	lda ($14),y
+	lda (free_fb),y
 	tax
 	iny
-	lda ($14),y
+	lda (free_fb),y
 	tay
 
 cursposn:
