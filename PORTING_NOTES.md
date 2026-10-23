@@ -152,6 +152,17 @@ Unchanged on the 128: the VIC, SID and CIA registers, Image's flags at
 `$d000`-`$d010`, the KERNAL jump table (`sys 65418`), `$90` status,
 `$0200`.
 
+### Keep an input with `+""`
+
+`&,1` and `£i` leave `an$` pointing at Image's input buffer (`buffer`,
+$0e77), outside the string area, and BASIC 7's `c$=an$` copies only the
+descriptor for such a string: `c$` points at the buffer too. The next
+input starts by putting a 0 in the buffer's first byte, so `c$` loses its
+first character (Larry's `i.main` R command: "edit idlecmds" loaded as
+"i.?dit idlecmds", `?load error` on line 79; "sub.0tack" before). Copy an
+input that has to outlive the next one with `c$=an$+""`: a concatenation
+always makes a new string in the string area.
+
 ### Other things im relies on
 
 - `llen` (`$d004`) is the longest input line: at 0, `&,1` and `£i`
