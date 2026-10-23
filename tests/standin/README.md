@@ -25,6 +25,7 @@ They're petcat source (BASIC 7.0), not C64List: `chr$(92)` for `£`, no
 | `usr.bas` | `usr(0)` (the wedge's stack-pointer function, through the 128's USR vector) and a BANK statement |
 | `orphan.bas` | `&,15,6` and `&,15,5` shorten `an$`, then a garbage collection: nothing may be written through the dropped characters (they spell a back-link to a fake descriptor at $0b00); the split's edge cases |
 | `menu2.bas` | `++ menu2`, the cursor menu: loaded with `&,7`, four items added with `&,16,0` and drawn with `&,16,2` as `i.IM` does; the script presses cursor down and Return, and `a%` has to be 1 (im's variables are DIMmed first, in its order: the ML finds `a%` by its place) |
+| `copier2.bas` | `++ 2`, Copier 3.0's copier: `sys` protostart copies `++ menu2` to `t.copy` (compared byte for byte, 1514 bytes), protostart+3 counts its bytes into `t.count`; `BLKS:` shows 6 on row 21 |
 | `trap.bas` | BASIC 7's `trap`/`resume` with Image's trap off, then both on (Image's wins); `er`/`el` against what Image's trap saves (`peek(6)`, `peek(7)+256*peek(8)`) |
 | `fkey-macros.bas` | Ctrl/C= + f1/f3/f5/f7 typing `f1$`-`f8$` into an input line |
 | `swiftlink.bas` | the SwiftLink driver (`ml.rs232`, `&,16,1`): sends a line, then shows and echoes back what arrives on device 2 |

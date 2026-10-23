@@ -60,7 +60,7 @@ cp rs232.prg "$build/ml.rs232.prg"
 
 # the "++" overlays: im loads them at protostart (&,7,dv%,2), each on the
 # disk as "++ <name>"; extra disk names for the same file after a ":"
-overlays="index:4 clock menu2"
+overlays="index:4 clock menu2 2"
 ovlwrites=()
 for o in $overlays; do
 	name=${o%%:*}
