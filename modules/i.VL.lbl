@@ -50,6 +50,8 @@
 3022 if t=3 then:&" ?"
 3024 if rc then 3028
 3026 &"{f6}":x=x+7:if x<(peek({sym:arytab})+peek({sym:arytab}+1)*256) then 3008
+' im's yes/no prompt (94: [No] default, a=1 for Yes) reads a key: bank 15
+3027 bank 15:&"{f6}View Arrays{question} ":gosub {$39}4:bank 1:if a then gosub 3074
 3028 &"{f6}Hit Any Key{colon} {pound}g1{clear}{f6}":return
 3046 if peek(x)=65 and peek(x+1)=.then 3056
 3048 if peek(x+2)=. then a=.:goto 3056
@@ -71,4 +73,30 @@
 3068 if rc then exit
 3070 loop:if rc then:&"{f5} Aborted!":return
 3072 &"{f5}":return
+' arrays, arytab up to strend: [name, 2] [offset to the next, 2] [dimensions,
+' 1] [each one's size, 2, high byte first, the last dimension's first] then
+' the elements, the first subscript changing fastest: float 5 bytes, integer
+' 2 (high first), string 3 (its descriptor). w walks the table, p the
+' elements. Every variable used here is made before w is read: making one
+' moves the arrays up 7 bytes.
+3074 &"{f6} Arrays{colon}{f6}":w=.:e=.:n=.:s=.:k=.:j=.:q=.:i=.:p=.:t=.:y=.:b=.:x=.:w=peek({sym:arytab})+peek({sym:arytab}+1)*256
+3076 if rc or w>=peek({sym:strend})+peek({sym:strend}+1)*256 then return
+3078 e=w+peek(w+2)+peek(w+3)*256:n=peek(w+4):t=.:s=5:if peek(w)>127 then t=1:s=2
+3080 if peek(w)<128 and peek(w+1)>127 then t=2:s=3
+' the name, and its dimensions as DIMmed (each size is one more)
+3082 &chr$(peek(w) and 127):if peek(w+1) and 127 then:&chr$(peek(w+1) and 127)
+3084 if t then:&mid$("%$",t,1)
+3086 &"(":for i=1 to n:&mid$(str$(peek(w+5+2*(n-i))*256+peek(w+6+2*(n-i))-1),2):if i<n then:&"{comma}"
+3088 next:&"){f6}":p=w+5+2*n:k=.
+' the elements that aren't 0 or "", with their subscripts; x=p-2 lets the
+' simple variables' float (3048) and string (3058) code read them
+3090 if rc then return
+3091 if p>=e then w=e:goto 3076
+3092 if peek(p)=. and (t<>1 or peek(p+1)=.) then 3098
+3093 &" (":q=k:for i=1 to n:j=peek(w+5+2*(n-i))*256+peek(w+6+2*(n-i)):&mid$(str$(q-int(q/j)*j),2):q=int(q/j):if i<n then:&"{comma}"
+3094 next:&"){equal}":x=p-2:if t=. then gosub 3048
+3095 if t=1 then a=peek(p)*256+peek(p+1):a=a+65536*(a>32767):&str$(a)
+3096 if t=2 then gosub 3058
+3097 &"{f6}"
+3098 p=p+s:k=k+1:goto 3090
 3099 rem "i.VL 128 (c) nissa 2020-10-16 lh, 2026-10-24 rs"
