@@ -289,6 +289,7 @@
 	lstx	= $d5	; c64: 197 / $c5. last key pressed
 	ndx	= $d0	; c64: 198 / $c6. number of characters in keyboard buffer
 	ldtb2	= $035e	; [128 OS] screen line link bitmap, 4 bytes (c64: ldtb1, 217)
+	bnkvar	= $03d5	; [128 OS] BASIC 7's BANK number (0-15), which peek, poke and sys use
 	initstat= $0a04	; [128 OS] bit 0: the KERNAL's IRQ calls BASIC 7's (sprites,
 			; SOUND, PLAY); bits 6-7: screen editor
 	shflag	= $d3	; c64: $028d/653. Shift, C=, Ctrl, Alt keys: 1=pressed

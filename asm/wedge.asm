@@ -369,6 +369,10 @@ wtrap:
 	sta $7d
 	lda #$09
 	sta $7e
+; BASIC's BANK back to 15: a module stopped by an error while it was in
+; bank 1 (i.VL) would leave im's peek, poke and sys there
+	lda #15
+	sta bnkvar
 	lda #$1b	; c64: 25 ($19); the 128's temp string stack starts at $1b
 	sta temppt	; c64: $16/22
 	lda #<trapline

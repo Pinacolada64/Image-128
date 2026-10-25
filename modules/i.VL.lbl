@@ -6,36 +6,69 @@
 
 ' Image BBS 128 (10/21/2026): C64 addresses in peek/poke/sys are the 128's,
 ' as {sym:...} names from asm/equates.asm (included below).
-{uses:..\3_0-preface.lbl}
+
+' Image BBS 128 (10/24/2026): the variables are in bank 1 (from $4000), but
+' peek and poke see bank 15 unless told otherwise, so this listed BASIC ROM
+' as variables, and the poke that copied a string's descriptor into the first
+' variable wrote over im's first line link in bank 0 ($4002): the crash. Now
+' it peeks in bank 1, and reads a string's text through its own descriptor,
+' a character at a time, instead of copying the descriptor (which breaks
+' BASIC 7's back-links, PORTING_NOTES.md). The descriptor is read again for
+' each character: chr$() can start a garbage collection, which moves the
+' string and updates the descriptor. Each character goes out with its own &
+' (no b$ to grow past 255: the c64's ?string too long). A string outside the
+' string area (fretop up to memsiz) is a literal in the program text, in bank 0 at addresses that
+' overlap bank 1's: it's shown as static, not read from bank 1 as garbage.
+' bank only sets the number peek and poke use ($03d5; peek is ldx $03d5,
+' jsr indfet at $80d8). The & calls switch the MMU themselves and don't read
+' it, so the whole listing runs in bank 1, with bank 15 back before the poke
+' to I/O and the return to im (its sys, peek and poke); im's error trap
+' (wtrap, installed by &,37) sets it back to 15 too. Names, values and
+' escapes go out a piece at a time with & instead of building strings up.
+' BASIC 7.0 keyword (bank): C64List 4.06 and Basic70.bas, which can't take
+' the preface's numeric assigns: goto {$33}00 is im's line 300.
 {alpha:alt}
+{include:..\quoters.lbl}
 {include:"..\asm\equates.asm"}
+{include:..\Basic70.bas}
 {crunch:on}
 
-3000 rem:"Display Image 3.0 Variables List"
-3001 h$="Usually contains the 'nm.wall header' but crashes with string too long"
-3002 &,18,0:gosub 3004:poke 53248,0:&,18,1:goto 300
-3004 &"{clear}{f6} Variable List 3.0{f6:2}":x=peek({sym:vartab})+peek({sym:vartab}+1)*256:y=x:kk=.
+3000 rem "display Image 128 Variables List"
+3002 &,18,0:bank 1:gosub 3004:bank 15:poke 53248,0:&,18,1:goto {$33}00
+3004 &"{clear}{f6} Image 128 Variable List 1.0{f6:2}Press any key to abort.{f6}":x=peek({sym:vartab})+peek({sym:vartab}+1)*256:kk=.
 3006 &" Simple Variables:{f6}":sh=.
-3008 a$=chr$(peek(x) and 127):if (peek(x+1) and 127) then a$=a$+chr$(peek(x+1) and 127)
-3010 t=.:if peek(x)>127 and peek(x+1)>127 then a$=a$+"%":t=1
-3012 if peek(x)<128 and peek(x+1)>127 then a$=a$+"$":t=2
-3014 &left$(a$+"   ",4)+"="
+' the name and its type, then MCI's tab to column 4 for the "="
+3008 &chr$(peek(x) and 127):if (peek(x+1) and 127) then:&chr$(peek(x+1) and 127)
+3010 t=.:if peek(x)>127 and peek(x+1)>127 then:&"%":t=1
+3012 if peek(x)<128 and peek(x+1)>127 then:&"$":t=2
+' fn definitions: shown as " ?" (3022), not decoded as floats
+3013 if peek(x)>127 and peek(x+1)<128 then t=3
+3014 &"{pound}{back arrow}04{equal}"
 3016 if t=.then gosub 3046
 3018 if t=1 then a=peek(x+3)+peek(x+2)*256:a=a+65536*(a>32767):&str$(a)
-3020 if t=2 then poke y+2,peek(x+2):poke y+3,peek(x+3):poke y+4,peek(x+4):gosub 3058
+3020 if t=2 then gosub 3058
 3022 if t=3 then:&" ?"
-3024 if rcthen 3028
+3024 if rc then 3028
 3026 &"{f6}":x=x+7:if x<(peek({sym:arytab})+peek({sym:arytab}+1)*256) then 3008
-3028 &"{f6}<Hit Any Key> {pound}g1{clear}{f6}":return
+3028 &"{f6}Hit Any Key{colon} {pound}g1{clear}{f6}":return
 3046 if peek(x)=65 and peek(x+1)=.then 3056
-3048 if peek(x+2)=.then a=.:goto 3056
+3048 if peek(x+2)=. then a=.:goto 3056
 3050 a=(128+(peek(x+3) and 127))*256^3+peek(x+4)*65536+peek(x+5)*256+peek(x+6)
 3052 a=a/256^4*2:if peek(x+3)>127 then a=-a
 3054 a=a*val(str$(2^((peek(x+2) and 127)-1)))
 3056 &str$(a):return
-3058 b$="":if a$="" then 3066
-3060 for a=1 to len(a$):an$=mid$(a$,a,1):b=asc(an$):if an$="{pound}" then an$="{pound:2}"
-3062 if b<32 or (b>127 and b<160) then an$="{pound}r1"+chr$(b+64)+"{pound}r0"
-3064 b$=b$+an$:next
-3066 &"{f5}":&b$:&"{f5}":return
-3099 rem:"i.VL (c)nissa 201016 lh"
+3058 y=peek(x+2):a=peek(x+3)+peek(x+4)*256:if y=. then:&"{f5}{f5}":return
+3059 if a<peek({sym:fretop})+peek({sym:fretop}+1)*256 or a>=peek({sym:memsiz})+peek({sym:memsiz}+1)*256 then:&"(static string in program text)":return
+' the descriptor is read for each character: chr$() can start a garbage
+' collection, which moves the string
+3060 &"{f5}":a=.:do while a<y:b=peek(peek(x+3)+peek(x+4)*256+a):a=a+1
+' printable (letters in both cases, graphics); not the pound sign:
+3062 if b>31 and b<128 and b<>92 or b>159 then:&chr$(b):goto 3068
+' control characters ($00-$1f, $80-$9f), in reverse:
+3064 if b<>92 then:&"{pound}r1":&chr$(b+64):&"{pound}r0":goto 3068
+' escape pound sign:
+3066 &"{pound:2}"
+3068 if rc then exit
+3070 loop:if rc then:&"{f5} Aborted!":return
+3072 &"{f5}":return
+3099 rem "i.VL 128 (c) nissa 2020-10-16 lh, 2026-10-24 rs"
