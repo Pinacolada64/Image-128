@@ -655,10 +655,10 @@
 ' 4008 do until a$="errors":read a$:loop
 ' 4010 &,40:d$="GURU":if x>. and x<42 then for k=1 to x:read d$:next
 4010 &,40:d$="GURU":if x>. and x<42 then d$=err$(x)
-4012 a%=x:&"{f6}{lt. red} SYSTEM ERROR #{pound}%a {white}({pound}$d ERROR){f6}":r$=chr$(13)
+4012 a%=x:&"{f6}{lt. red} SYSTEM ERROR #{pound}%a {white}({pound}$d error){f6}":r$=chr$(13)
 4014 a$="im":if e1=>3000 then a$=pr$:if e1=>4000 then a$=p1$:if e1=>60000 then a$=p2$
 4016 a=e1:&"{lt. blue} In Line:{gray3}{pound}!a {lt. blue}Of {gray3}{pound}$a{f6}"
-4018 &"{f6}{lt. red}Recording Error, Please Wait...":d$=str$(x)+" ("+d$+" ERROR)"
+4018 &"{f6}{lt. red}Recording Error, Please Wait...":d$=str$(x)+" ("+d$+" error)"
 4020 dr=3:a$="e.errlog,s,a":gosub 4:if e%=. then 4024
 4022 a$="e.errlog,s,w":gosub 4
 4024 print#2,na$r$id;r$d1$r$ac%;r$ph$r$rn$r$co$(co%)r$
