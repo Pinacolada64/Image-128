@@ -31,6 +31,7 @@ files, write the names: `{sym:curlin}`, `{sym:txtptr}`, `{sym:bstkptr}`
   `peek(7)+peek(8)*256` (`sareg`, `sxreg`/`syreg`; C64 780-782),
 - empties both stacks, the CPU's and BASIC 7.0's, as CLR does, and the
   temporary string stack,
+- puts BASIC's `bank` back to 15 (see [Reading the variables: `bank`](#reading-the-variables-bank)),
 - turns itself off (it puts BASIC's own error vector back), and
 - goes to line 2000 (`trapline`).
 
@@ -110,6 +111,97 @@ them by forcing a `?syntax error` on its own line (63022), which Image's
 trap logs and recovers from. Frames from further out (a check run from
 inside a module's own FOR loop) look the same as garbage: they're listed,
 and cleared too.
+
+## Reading the variables: `bank`
+
+BASIC 7.0 keeps its variables, arrays and strings in bank 1; here they
+start at `$4000` (`vartab`). `peek` and `poke` see bank 15 unless told
+otherwise, and from `$4000` up bank 15 is BASIC's ROM; a `poke` there goes
+to bank 0's RAM, under the ROM, which is where `im`'s program text is.
+
+`bank 1` makes `peek` and `poke` read and write bank 1; `bank 15` sets them
+back. The statement only stores the number at `$03d5` (`bnkvar`): `peek`
+does `ldx $03d5` and calls the KERNAL's INDFET with it (`$80d8`), and
+`poke` and `sys` use it the same way. It doesn't switch any memory itself,
+and Image's `&` calls set the MMU for themselves and never read it, so `&`
+output works the same in bank 1. A module can set `bank 1` once and stay
+there while it looks around.
+
+Go back to `bank 15` before:
+
+- a `poke` to the I/O chips (`poke 53248,...`),
+- a `gosub` into `im` (line 94's yes/no prompt reads a key), and
+- returning to `im`, whose `peek`, `poke` and `sys` expect bank 15.
+
+If an error stops a module while it's in bank 1, Image's trap sets it
+back to 15 (`wtrap`), so `im`'s error handler starts there.
+
+`bank` is a BASIC 7.0 keyword: a module that uses it includes
+`Basic70.bas` and is built with C64List 4.06, which can't take
+`3_0-preface.lbl`'s numeric assigns, so a jump into `im` is written as
+`gosub {$39}4` and `goto {$33}00` (`sub.stack` and `i.VL` do).
+
+### `i.VL`: the variable list
+
+`VL` loads `i.VL` (`im` line 70 with `a$="VL"`), which lists every simple
+variable and its value, then asks "View Arrays?" (line 94). It runs the
+whole listing in bank 1: `bank 1:gosub 3004:bank 15` on line 3002.
+
+**Simple variables** are 7 bytes each, from `vartab` up to `arytab`: two
+name bytes, then five of value. The name bytes' high bits give the type:
+
+| Name bytes | Type | Value |
+|---|---|---|
+| both under 128 | float | 5 bytes: exponent, mantissa (sign in its top bit) |
+| both 128 or more | integer (`%`) | 2 bytes, high byte first |
+| first under 128, second 128 or more | string (`$`) | descriptor: length, address low, high |
+| first 128 or more, second under 128 | `fn` definition | shown as ` ?` |
+
+The name goes out a character at a time with `&chr$()`, then MCI's tab
+(`{pound}{back arrow}04`) lines up the `=`.
+
+**Strings** are read through their own descriptor, one character at a
+time, not copied:
+
+- The C64 version poked the descriptor into another variable to print it.
+  In BASIC 7.0 that's two descriptors for one string, which its
+  back-links can't describe (`PORTING_NOTES.md`), and it was poking bank
+  0's program text here.
+- The descriptor is read again for each character: `chr$()` makes a
+  temporary string, which can start a garbage collection, which moves the
+  string and updates the descriptor.
+- A string whose address is outside the string area (`fretop` up to
+  `memsiz`) was assigned from a literal and points into the program text,
+  in bank 0. Bank 0's program and bank 1's strings share addresses, so
+  the address alone doesn't say which bank; outside the string area it's
+  shown as `(static string in program text)` instead of bank 1's bytes.
+- Each character goes out with its own `&`, nothing is added to a
+  string, so there's no `?string too long`. Printable characters go out
+  as they are, control codes in reverse as `{pound}r1`, the character plus 64,
+  `{pound}r0`, and `£` as `{pound:2}` so MCI doesn't take it.
+
+**Arrays** follow, from `arytab` up to `strend`, each one:
+
+| Bytes | |
+|---|---|
+| 2 | name, typed as above |
+| 2 | offset to the next array, low byte first |
+| 1 | number of dimensions |
+| 2 each | each dimension's size, one more than DIMmed, high byte first, **the last dimension's first** |
+| the rest | the elements: float 5 bytes, integer 2, string 3 (its descriptor) |
+
+The first subscript changes fastest. Read from x128 after `dim
+q(2,3),r%(4),s$(1)`: `q`'s header is `51 00 45 00 02 00 04 00 03`, and
+`q(1,2)` is element 7 (1 + 2×3). `i.VL` shows each array as DIMmed
+(`TT$(254)`), then only the elements that aren't 0 or `""`, with their
+subscripts. It points `x` 2 bytes before an element so the simple
+variables' float and string code reads it.
+
+Making a simple variable moves every array up 7 bytes, so the array walk
+makes all the variables it uses (`w=.:e=.:...`) before it reads `arytab`.
+A pointer into the arrays is only good until the next new variable.
+
+The abort key (`rc`) stops it between characters, elements and arrays.
 
 ## GOSUB and GOTO from the ML: `&,66`
 
