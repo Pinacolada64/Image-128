@@ -4,16 +4,26 @@
 ' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
 ' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
 
+' Image BBS 128 (10/24/2026): BASIC 7.0 keeps the program in bank 0 and the
+' variables, arrays and strings in bank 1, with its pointers two bytes on from
+' the c64's. The c64's subtractions (45-43 and so on) read the wrong pointers
+' here ("Variables: -1"). Now each bank's room is shown on its own: bank 0's
+' program (txttab up to txtend, $1210) and what's free above it (up to
+' maxmem0, $1212: textop); bank 1's variables (vartab to arytab), arrays (to
+' strend), free (to fretop) and strings (to memsiz). Free in bank 1 is before
+' a garbage collection: strings nothing uses any more still count as strings.
+' All the pointers are in common RAM, so peek reads them in bank 15.
 {uses:..\3_0-preface.lbl}
 {alpha:alt}
+{include:"..\asm\equates.asm"}
 {crunch:on}
 
 3000 rem:memory management
-3002 a=45:b=43:a$="{f6}Program":gosub 3020
-3004 a=47:b=45:a$="Variables":gosub 3020
-3006 a=49:b=47:a$="Arrays":gosub 3020
-3008 a=51:b=49:a$="Free RAM":gosub 3020
-3010 a=55:b=51:a$="Strings":gosub 3020
-3012 goto 300
+3002 &"{f6} Bank 0 (Program){f6}":a={sym:txtend}:b={sym:txttab}:a$="Program":gosub 3020
+3004 a={sym:maxmem0}:b={sym:txtend}:a$="Free RAM":gosub 3020
+3006 &"{f6} Bank 1 (Variables){f6}":a={sym:arytab}:b={sym:vartab}:a$="Variables":gosub 3020
+3008 a={sym:strend}:b={sym:arytab}:a$="Arrays":gosub 3020
+3010 a={sym:fretop}:b={sym:strend}:a$="Free RAM":gosub 3020
+3012 a={sym:memsiz}:b={sym:fretop}:a$="Strings":gosub 3020:goto 300
 3020 c=peek(a)-peek(b)+(peek(a+1)-peek(b+1))*256:&"{pound}$a:{pound}{back arrow}10{pound}!c{f6}":return
-3022 rem:"i.MM (c)nissa 181227 lh
+3022 rem:"i.MM (c)nissa 181227 lh

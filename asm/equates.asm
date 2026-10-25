@@ -167,6 +167,8 @@
 	fretop	= $35	; c64: ($33). pointer to bottom of dynamic string storage in bank 1
 	frespc	= $37	; c64: ($35). pointer to most recently used string in bank 1
 	memsiz	= $39	; c64: ($37). pointer to top of BASIC [default: $feff]
+	txtend	= $1210	; [128 OS] TEXT_TOP: end of BASIC text in bank 0, just past its 00 00 end link
+	maxmem0	= $1212	; [128 OS] MAX_MEM_0: top of the room for BASIC text in bank 0 (Image: textop)
 	curlin	= $3b	; c64: ($39). Current BASIC Line Number
 	oldtxt	= $1202	; c64: ($3d). Pointer to the start of current line
 	txtptr	= $3d	; c64: ($7a). Pointer to address of current BASIC statement
