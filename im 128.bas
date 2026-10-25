@@ -648,10 +648,13 @@
 ' FIXME: mostly copy of 4048
 4002 if x<128 then 4006:else a$="FATAL ERROR!!":gosub 51:sys 65418:print"{clear}{$0b}{white}{lowercase}{down:2}"a$:end
 4004 &,38:&,61,.,8:print"&,37:goto 300:":end
-4006 restore 4072
+' 10/24/2026: just get error string from reserved err$() array
+' 4006 restore 4072
+4006 rem
 ' 4008 read a$:if a$<>"errors" then 4008
 ' 4008 do until a$="errors":read a$:loop
-4010 &,40:d$="GURU":if x>. and x<42 then for k=1 to x:read d$:next
+' 4010 &,40:d$="GURU":if x>. and x<42 then for k=1 to x:read d$:next
+4010 &,40:d$="GURU":if x>. and x<42 then d$=err$(x)
 4012 a%=x:&"{f6}{lt. red} SYSTEM ERROR #{pound}%a {white}({pound}$d ERROR){f6}":r$=chr$(13)
 4014 a$="im":if e1=>3000 then a$=pr$:if e1=>4000 then a$=p1$:if e1=>60000 then a$=p2$
 4016 a=e1:&"{lt. blue} In Line:{gray3}{pound}!a {lt. blue}Of {gray3}{pound}$a{f6}"
@@ -694,36 +697,37 @@
 4064 &"{pound}ho{pound}h9ed!{f6:2}{white}{$07}You Have New E-Mail Waiting:{f6:2}{green}Read Now? ":gosub 96
 4066 if a then a$="E"+"M":goto 70
 4068 pr$="":goto 300
+' 10/24/2026: just read strings from reserved array err$()
 ' 30 errors in BASIC 2.0
 ' 41 errors in BASIC 7.0
 ' error strings also used in another module...
 ' 4070 data"errors"
 ' 1-3
-4072 data"TOO MANY FILES","FILE OPEN","FILE NOT OPEN"
+' 4072 data"TOO MANY FILES","FILE OPEN","FILE NOT OPEN"
 ' 4-6
-4074 data"FILE NOT FOUND","DEVICE NOT PRESENT","NOT INPUT FILE"
+' 4074 data"FILE NOT FOUND","DEVICE NOT PRESENT","NOT INPUT FILE"
 ' 7-9
-4076 data"NOT OUTPUT FILE","MISSING FILE NAME","ILLEGAL DEVICE NUMBER"
+' 4076 data"NOT OUTPUT FILE","MISSING FILE NAME","ILLEGAL DEVICE NUMBER"
 ' 10-12
-4078 data"NEXT WITHOUT FOR","SYNTAX","RETURN WITHOUT GOSUB"
+' 4078 data"NEXT WITHOUT FOR","SYNTAX","RETURN WITHOUT GOSUB"
 ' 13-15
-4080 data"OUT OF DATA","ILLEGAL QUANTITY","OVERFLOW"
+' 4080 data"OUT OF DATA","ILLEGAL QUANTITY","OVERFLOW"
 ' 16-18
-4082 data"OUT OF MEMORY","UNDEF'D STATEMENT","BAD SUBSCRIPT"
+' 4082 data"OUT OF MEMORY","UNDEF'D STATEMENT","BAD SUBSCRIPT"
 ' 19-21
-4084 data"REDIM'D ARRAY","DIVISION BY ZERO","ILLEGAL DIRECT"
+' 4084 data"REDIM'D ARRAY","DIVISION BY ZERO","ILLEGAL DIRECT"
 ' 22-24
-4086 data"TYPE MISMATCH","STRING TOO LONG","FILE DATA"
+' 4086 data"TYPE MISMATCH","STRING TOO LONG","FILE DATA"
 ' 25-27
-4088 data"FORMULA TOO COMPLEX","CAN'T CONTINUE","UNDEFINED FUNCTION"
+' 4088 data"FORMULA TOO COMPLEX","CAN'T CONTINUE","UNDEFINED FUNCTION"
 ' 28-32
-4090 data"VERIFY","LOAD","BREAK ","CAN'T RESUME","LOOP NOT FOUND"
+' 4090 data"VERIFY","LOAD","BREAK ","CAN'T RESUME","LOOP NOT FOUND"
 ' 33-35
-4092 data"LOOP WITHOUT DO","DIRECT MODE ONLY","NO GRAPHICS AREA"
+' 4092 data"LOOP WITHOUT DO","DIRECT MODE ONLY","NO GRAPHICS AREA"
 ' 36-38
-4094 data"BAD DISK","BEND NOT FOUND","LINE # TOO LARGE"
+' 4094 data"BAD DISK","BEND NOT FOUND","LINE # TOO LARGE"
 ' 39-41
-4096 data"UNRESOLVED REFERENCE","UNIMPLEMENTED COMMAND","FILE READ"
+' 4096 data"UNRESOLVED REFERENCE","UNIMPLEMENTED COMMAND","FILE READ"
 4098 rem copr. 1996 new image 5/6/96-jlf
 4100 rem im (c)nissa 2020-09-29 lh-ad, 2026-10-21 rs
 4102 rem {usedef:__BuildDate} {usedef:__BuildTime} rs
