@@ -70,7 +70,8 @@ class Session:
             count = lines[i + 1][0] - ad if i + 1 < len(lines) else n - len(data)
             data += [int(x, 16) for x in words[:count]]
         if len(data) < n:
-            sys.exit('strcheck: read %d of %d bytes at $%04x' % (len(data), n, a))
+            sys.exit('strcheck: read %d of %d bytes at $%04x: is another client (telnet)\n'
+                     'connected to the monitor? VICE serves one at a time.' % (len(data), n, a))
         return bytes(data[:n])
 
     def close(self):
@@ -88,7 +89,12 @@ def main():
     ap.add_argument('--dump', type=int, default=64, help='bytes to show before a bad record')
     args = ap.parse_args()
 
-    ses = Session(args.port)
+    try:
+        ses = Session(args.port)
+    except OSError as e:
+        sys.exit('strcheck: no monitor on port %d (%s). VICE serves one client at a time:\n'
+                 'close any telnet to it; if connections still time out, open and close\n'
+                 "the monitor window (Alt+H, then x) or restart x128." % (args.port, e))
     try:
         zp = ses.mem('cpu', 0, 0xff)
         w = lambda a: zp[a] | zp[a + 1] << 8
@@ -120,6 +126,29 @@ def main():
             for k, e in enumerate(range(data, a + size, 3)):
                 desc[e] = '%s(%d)' % (nm, k)
         a += size
+
+    def where(x):
+        """what's at bank 1 address x, in words"""
+        if vartab <= x < arytab:
+            v = vartab + (x - vartab) // 7 * 7
+            return 'byte %d of variable %s (entry $%04x)' % (x - v, name(B(v), B(v + 1)), v)
+        a = arytab
+        while a < strend:
+            size = W(a + 2)
+            if size < 5:
+                break
+            if a <= x < a + size:
+                n = B(a + 4); data = a + 5 + 2 * n; nm = name(B(a), B(a + 1))
+                if x < data:
+                    return 'in the header of array %s() ($%04x)' % (nm, a)
+                es = 3 if B(a) < 0x80 and B(a + 1) >= 0x80 else 2 if B(a) >= 0x80 else 5
+                return 'byte %d of %s(%d) (array at $%04x)' % ((x - data) % es, nm, (x - data) // es, a)
+            a += size
+        if strend <= x < fretop:
+            return 'in free memory'
+        if fretop <= x < memsiz:
+            return 'in the string area'
+        return 'outside the variables (shared RAM or the program)'
 
     bad = 0
 
@@ -153,6 +182,12 @@ def main():
                 print('  $%04x  %-48s %s' % (r, ' '.join('%02x' % c for c in row),
                       ''.join(chr(c & 0x7f) if 32 <= (c & 0x7f) < 127 else '.' for c in row)))
             print('  (the collection would write a new address through $%04x+1)' % link)
+            print('  $%04x is %s' % (link, where(link)))
+            for d, h in sorted(desc.items()):
+                ln, ad = B(d), W(d + 1)
+                if ln and ad + ln == p - 2:
+                    print('  this string is held by %s, descriptor $%04x: the link is off by %+d'
+                          % (h, d, link - d))
             break
         held[start] = link; strings += 1; p = start
     print('string area: %d strings held, %d garbage%s' % (strings, garbage, '' if bad else ', all links good'))
