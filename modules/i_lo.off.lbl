@@ -16,7 +16,13 @@
 4016 b$="":c$="":return
 4100 im=5:gosub 447:o$=d1$:o%=mn%:gosub 30:for x=1 to 11:gosub 17:next:close 2
 4102 &,27,3:dim l%(30,9):dr=3:gosub 3:&,60,2,.,l%(.,.),dr$+"e.last",dv%
-4104 l%(7,.)=o%-l%(7,.):&,60,4,.,l%(4,.),o$:f=.
+' 10/25/2026: the minutes used were o%-lt% (mn% at logoff and at connect, i/lo.idle
+' 4008), with no wrap at midnight, and e.last showed calls of 917-931 minutes that
+' began and ended in the same minute: lt% was 0 and the result was the logoff's
+' minute of the day. Now they're worked out from the times in lt$ (set on the same
+' line, and right in those records) and o$, plus 1440 when the call crossed
+' midnight. 4177 gives a$'s minute of the day.
+4104 a$=lt$:gosub 4177:c=a:a$=o$:gosub 4177:a=a-c:l%(7,.)=a-1440*(a<.):&,60,4,.,l%(4,.),o$:f=.
 4110 b$="":c$="":d$=""
 4112 a=st(4):if athen b$="{white}"+str$(a)+" {lt. green}Post":f=(f) or 2:if a<>1 then b$=b$+"s"
 4114 a=st(5):if athen c$="{white}"+str$(a)+" {green}Response":f=(f) or 2:if a<>1 then c$=c$+"s"
@@ -36,4 +42,7 @@
 4172 gosub 33:x=17:gosub 1:print# 2,d3$
 4174 x=19:gosub 1:print# 2,o$:close 2:close 15
 4176 &,28,3:return
+' a$'s minute of the day, in a: d1$'s hour at 8-9 (1-12, plus 80 after noon: midnight
+' is 12, noon 92), b true after noon; the minute at 10-11
+4177 a=val(mid$(a$,8,2)):b=(a>80):a=a+80*b:a=a+12*(a=12):a=a*60-720*b+val(mid$(a$,10,2)):return
 4178 rem:"i/lo.off (c)nissa 220714 lh"
