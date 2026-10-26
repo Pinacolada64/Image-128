@@ -35,7 +35,10 @@
 60105 return
 60110 dr=3:a$="e.i.modem":p=.:mt$="0":iflk%thenp=(peek(57092)and15)
 60115 gosub4:on-(e%>0)goto999:x=p+1:gosub1
-60120 &,2,2:mt$=a$:&,2,2:in$=a$:close2:return
+' 10/26/2026: &,2,2 leaves a$ pointing at its line buffer (buf2), and BASIC 7's
+' mt$=a$ copies only that pointer, so mt$ became whatever line was read next
+' (i/lo.on's val(mt$) then overflowed); +"" makes them strings of their own
+60120 &,2,2:mt$=a$+"":&,2,2:in$=a$+"":close2:return
 60135 t=0:a$="":&,4:a=peek({sym:sareg})and127:ifa=0thenreturn
 60140 a$=right$(a$+chr$(a),3):t=0:ifa=13thenb=val(a$):goto60150
 60145 &,4:a=peek({sym:sareg})and127:on-(a<>0)goto60140:t=t+1:on-(t<100)goto60145:return

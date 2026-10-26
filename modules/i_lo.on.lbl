@@ -33,7 +33,9 @@
 4107 c$=right$("00"+mid$(str$(int((39-len(b$))/2)),2,2),2)
 4108 &"{clear}{f6}{blue}{pound}vj {cyan}{rvrs on}{pound}{back arrow}"+c$+q$+b$+"!{pound}{back arrow}39{f6}{blue}{pound}vj"
 4110 gosub33:x=1:gosub1:&,2,2:ca=val(a$):close2:&,52,20,em:poke{sym:ptrlinm},.
-4112 &,52,34,val(mid$(uf$,2,1)):ifzzthena=val(mt$):qb=300*2^(a+(a=1)):goto4120
+' 10/26/2026: the modem type is mt$'s first character; val(mt$) of a line of
+' digits (mt$ left pointing at &,2,2's buffer) overflowed 2^a: ?overflow here
+4112 &,52,34,val(mid$(uf$,2,1)):ifzzthena=val(left$(mt$,1)):qb=300*2^(a+(a=1)):goto4120
 4113 ca=ca+1:gosub33:x=1:gosub1:print#2,ca:close2:close15
 4114 &,52,21,3:ona%+1goto4120:a=3:gosub11:on-(na$<>d3$ora<>.)goto4120
 4116 &"{pound}$q {cyan}Sorry, no back-to-back calls allowed.{f6}{pound}{back arrow}11{pound}$qTry Again Later!{f6}{blue}{pound}vj"
@@ -55,7 +57,7 @@
 4146 &,52,16,3:b$="C/G":ifa%thenb$="ASCII":&,52,18,3:ifa%thenb$="ANSI"
 4148 a$=" {purple}Call  {white}:"+str$(ca)+"   {gray1}({gray3}"+b$+" Mode{gray1})"+r$+" {lt. blue}Logon {white}: {$04}"+d1$+r$
 4150 a$=a$+" {lt. green}User  {white}: "+na$+" {gray1}({gray3}"+dd$+"{gray1})":gosub50
-4151 a=val(mt$):qb=300*2^(a+(a=1)):qb$=str$(qb):ifzzthenqb$=" {white}Local Console"
+4151 a=val(left$(mt$,1)):qb=300*2^(a+(a=1)):qb$=str$(qb):ifzzthenqb$=" {white}Local Console"
 4152 a$=" {lt. red}BPS   {white}:"+qb$+r$+" {yellow}Stats {white}:"+str$(cr)+" {gray3}Credits"
 4154 on-(tc%>1)goto4160:b$="New User":ifid=.thenb$="Visitor"
 4156 &"{clear}{red}{pound}vj{pound}{back arrow}12{pound}$q{lt. red}Welcome {pound}$b{red}{f6}{pound}vj"
