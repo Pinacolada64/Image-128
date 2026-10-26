@@ -152,27 +152,16 @@ Unchanged on the 128: the VIC, SID and CIA registers, Image's flags at
 `$d000`-`$d010`, the KERNAL jump table (`sys 65418`), `$90` status,
 `$0200`.
 
-### Strings the ML hands to BASIC are copied (`strcopy`)
+### Keep an input with `+""`
 
-`&,1` and `£i` used to leave `an$` pointing at Image's input buffer
-(`buffer`, $0e77), and `&,2,2` left `a$` pointing at `buf2` ($0e27): both
-outside the string area. BASIC 7's `c$=an$` copies only the descriptor for
-such a string, so `c$` pointed at the buffer too and changed with the next
-input or line read. `c$` lost its first character (Larry's `i.main` R
-command: "edit idlecmds" loaded as "i.?dit idlecmds", `?load error` on line
-79; "sub.0tack" before), and every `x$=a$` after `&,2,2` showed the last
-line read: im's `d3$` (the status line's "Last" showed an `e.data` date),
-and `mt$` from `sub.modem`, whose `val()` overflowed `300*2^a` at logon.
-
-Now `putvar` and `putarr` (`varbl.asm`) call `strcopy` (`miscl.asm`)
-first: a string whose text is below `$4000` or from `$c000` up (Image's
-buffers, in RAM every configuration shares) is copied into a new string in
-the string area, which `strnew` links back. `tests/standin/dskin.bas` reads
-three lines into `g$`, `h$`, `u$` and checks them through garbage
-collections. The `c$=an$+""` copies in the modules aren't needed any more,
-and do no harm. A string in `$4000`-`$bfff` outside the string area is a
-literal in the program text (bank 0, not mapped while the ML runs) and
-isn't copied, as BASIC 7 doesn't copy one either.
+`&,1` and `£i` leave `an$` pointing at Image's input buffer (`buffer`,
+$0e77), outside the string area, and BASIC 7's `c$=an$` copies only the
+descriptor for such a string: `c$` points at the buffer too. The next
+input starts by putting a 0 in the buffer's first byte, so `c$` loses its
+first character (Larry's `i.main` R command: "edit idlecmds" loaded as
+"i.?dit idlecmds", `?load error` on line 79; "sub.0tack" before). Copy an
+input that has to outlive the next one with `c$=an$+""`: a concatenation
+always makes a new string in the string area.
 
 ### Other things im relies on
 
@@ -290,6 +279,37 @@ isn't copied, as BASIC 7 doesn't copy one either.
   `tools/ovl_dis.py`: a C64 `++` overlay into C64List source to port.
 
 ## Open problems
+
+### `&,2,2`'s `a$` and the garbage collection (found 10/26/2026, not fixed)
+
+`&,2` (`dskin`) leaves `a$` pointing at `buf2`, outside the string area,
+and BASIC 7's `x$=a$` copies only the descriptor: every `x$=a$` after
+`&,2,2` (76 places in im and the modules) changes with the next line
+read. im's `d3$` (the status line's "Last" shows an `e.data` line), and
+`sub.modem`'s `mt$`, whose `val()` then overflowed `300*2^a` at logon
+(i/lo.on 4112) once the buffer held a date. `tests/standin/dskin.bas`
+shows it. Same as `&,1`/`£i` and `an$` (see "Keep an input with `+""`").
+
+Two fixes were tried, and both crashed logons; they're reverted:
+
+- `putvar`/`putarr` copying any string in shared RAM into a new string
+  (`makeroom`) first (commit 2f022ff, reverted). A garbage collection could
+  then start inside any ML that stores a string, and the collection uses
+  zero page as scratch (`$11`, `$14`, `$24`/`$25`, `$50`-`$5f`, `$61`/`$62`,
+  `$68`, `$70`, from GETSPA and `$92ea`) that such code may be holding:
+  `?syntax error` in i/lo-last's `&,60,1`, `?type mismatch` in im's error
+  report, a JAM.
+- `&,2` through a wrapper (`dskina`: `dskin`, then copy `a$` as the `&`
+  call ends, as `putln` does). The stand-ins passed; a logon hung with the
+  stack nearly full of nested BRKs, interrupts masked, in the VDC wait.
+  Memory against the build: `getmdm+3` ($cb41, `&,4`) was `$40` (RTI)
+  instead of `$38` (SEC), and nothing in the ML writes there. That's the
+  high byte of a string address written through a back-link of `$cb3f`:
+  the collection walked into a bad record in the string area. The copies
+  make collections frequent (every `&,2,2` makes a string), so damage
+  already in the string area gets written through: the same cause as
+  "Logoff corrupts memory" below. The wrapper (miscl.asm `dskina` and
+  `strfix`, `jmptb.asm`'s `&,2`) can come back once that's found.
 
 ### Logoff corrupts memory (found 10/22/2026, not fixed)
 

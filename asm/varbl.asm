@@ -34,7 +34,6 @@ prtln:
 ;* store buffer in memory
 putarr:
 	jsr findarr
-	jsr strcopyx	; 128: a buffer's text, copied into a string (miscl.asm)
 	jsr stroldx	; 128: see strold (an array element: no name)
 	ldy #2
 	jsr putvar1
@@ -158,7 +157,6 @@ putvar:
 putvar0:
 	jsr findvar
 putvar2:
-	jsr strcopy	; 128: a buffer's text, copied into a string (miscl.asm)
 	jsr strold	; 128: the string it held is garbage now
 	ldy #4
 	jsr putvar1
