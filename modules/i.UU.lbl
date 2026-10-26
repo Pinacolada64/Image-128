@@ -21,17 +21,22 @@
 '          8 editor lines
 ' l%(i)    longest input for field i
 ' fp%(i), fx%(i): menu page and position of field i; f%(x,p): the reverse
-' m%(.,x,p) menu items of page p: 1 to m%(0,0,p) are fields, then the
-'          other pages and "Quit"
+' pc%(p)   the number of fields on page p
+' m%(.,x)  menu items of the page shown: 1 to pc%(pg) are its fields, then
+'          the other pages and "Quit"
+' 10/26/2026: m% held all the pages' items at once, m%(22,25,6): 8372 bytes
+'          of bank 1 for 15 items at most on one page shown at a time. Now
+'          {:page} builds the page it draws in m%(22,15) (736 bytes; 10
+'          fields, 4 other pages and Quit), and f% is f%(15,5)
 {alpha:alt}
 {include:..\quoters.lbl}
 {:3000}
 	pr$="i."+"UU":rem "i.UU" {usedef:__BuildDate} {usedef:__BuildTime}
 	r=int(val(mid$(an$,3,3))):dr=5:gosub 3:a$="menu2":gosub 28:if e% then:&:goto {:quit}
-	&,18,0:&,28,1:dim m%(22,25,6),u$(50,3),ac$(15,1),yn$(1),t%(50),l%(50),fp%(50),fx%(50),f%(25,6),pn$(5)
+	&,18,0:&,28,1:dim m%(22,15),u$(50,3),ac$(15,1),yn$(1),t%(50),l%(50),fp%(50),fx%(50),f%(15,5),pn$(5),pc%(5)
 	yn$(0)="No":yn$(1)="Yes"
 	restore:for i=1 to 50:read t%(i),fp%(i),fx%(i),l%(i),u$(i,3):p=fp%(i):px=fx%(i)
-	if p then f%(px,p)=i:if m%(0,0,p)<px then m%(0,0,p)=px
+	if p then f%(px,p)=i:if pc%(p)<px then pc%(p)=px
 	next:for i=1 to 5:read pn$(i):next:sp$="{space:37}"
 ' access group names and flags from e.access
 	gosub 31:for i=0 to 9:x=i+1:gosub 1:&,2,2:ac$(i,0)=a$:&,2,2:ac$(i,1)=a$:next
@@ -62,25 +67,25 @@
 	u$(13,0)=left$(a$,1):for i=2 to 5:u$(22+i,0)=mid$(a$,i,1):next:u$(28,0)=mid$(a$,6)
 	a=val(u$(11,0)):u$(30,0)=mid$(str$(int(a/256)),2):u$(29,0)=mid$(str$(a and 255),2)
 	gosub {:split_flags}
-	for i=1 to 50:u$(i,1)=u$(i,0):next:gosub {:items}:pg=1:cp=.
+	for i=1 to 50:u$(i,1)=u$(i,0):next:pg=1:cp=.
 
 {:page}
 ' draw page pg and act on the item chosen
 	if tr%<1 then return
-	gosub {:header}:kk=m%(0,0,pg):n=kk
+	gosub {:header}:gosub {:items}:kk=pc%(pg):n=kk
 	for j=1 to 5:if j<>pg then b$="/"+mid$("ISTFM",j,1):a$=pn$(j):gosub {:nav}
 	next
 	b$="/Q":a$="Quit":gosub {:nav}
-	&,16,2,46,m%(0,1,pg),n,36,1,n,3,5,cp:lm=a%+1:&,70,0,23
+	&,16,2,46,m%(0,1),n,36,1,n,3,5,cp:lm=a%+1:&,70,0,23
 	if tr%<1 then return
 	if lm=n then {:done}
 	if lm>kk then a=lm-kk:pg=a-(a>=pg):cp=.:goto {:page}
-	cp=lm-1:i=f%(lm,pg):if i then gosub {:edit}:gosub {:items}
+	cp=lm-1:i=f%(lm,pg):if i then gosub {:edit}
 	goto {:page}
 
 ' add page-change or quit item n+1 (b$ = hotkey, a$ = title)
 {:nav}
-	n=n+1:&,16,0,46,m%(0,n,pg),b$,"",a$:return
+	n=n+1:&,16,0,46,m%(0,n),b$,"",a$:return
 
 {:header}
 ' 39 columns, as wide as menu2's frame: a blue border around reverse cyan
@@ -91,17 +96,17 @@
 	a$=left$(a$,37):a=int((37-len(a$))/2)
 	&"{blue}{rvrs on} {cyan}"+left$(sp$,a)+a$+left$(sp$,37-a-len(a$))+"{blue} {f6}":return
 
-' (re)make the menu items of all fields shown
+' (re)make the menu items of page pg's fields
 {:items}
-	for i=1 to 50:if t%(i) then gosub {:item}
+	for i=1 to 50:if fp%(i)=pg then gosub {:item}
 	next:return
 
 ' make field i's menu item: label, then its value as shown
 {:item}
 	c$=u$(i,0):k=t%(i):on k-1 gosub {:show_group},{:show_computer},{:show_yesno},{:show_number},{:show_date},{:show_password},{:show_lines}
-	u$(i,2)=mid$(" *",1-(u$(i,0)<>u$(i,1)),1):p=fp%(i):px=fx%(i):a$=chr$(192+px)
+	u$(i,2)=mid$(" *",1-(u$(i,0)<>u$(i,1)),1):px=fx%(i):a$=chr$(192+px)
 	b$=left$(u$(i,3)+":              ",15)+c$
-	&,16,0,46,m%(0,px,p),a$,u$(i,2),b$:return
+	&,16,0,46,m%(0,px),a$,u$(i,2),b$:return
 {:show_group}
 	c$=left$(c$,1)+" "+ac$(g,0):return
 {:show_computer}
@@ -112,7 +117,8 @@
 {:show_number}
 	return
 {:show_date}
-' DYYMMDDHHMM (hour 80-91 = PM) as MM/DD/YY HH:MMa
+' DYYMMDDHHMM (hour 01-12 AM, 81-92 PM, as the clock writes it; an older 00
+' or 80 still reads as 12) as MM/DD/YY HH:MMa
 	b$=c$:if len(b$)<11 then return
 	a=val(mid$(b$,8,2)):a$="a":if a>79 then a=a-80:a$="p"
 	if a=. then a=12
@@ -158,7 +164,9 @@
 	return
 {:edit_date}
 ' asks for each part; Return keeps it. The record holds DYYMMDDHHMM:
-' D = day of the week (1 = Sunday, worked out here), hour 00-11 AM, 80-91 PM
+' D = day of the week (1 = Sunday, worked out here), hour 01-12 AM, 81-92 PM
+' (midnight 12, noon 92: the clock chip's BCD hour, PM in bit 7, which d1$ copies;
+' 10/26/2026: this wrote 00 and 80 for the 12 o'clocks)
 	b$=u$(i,0):if len(b$)<11 then b$=d1$
 	mo=val(mid$(b$,4,2)):dy=val(mid$(b$,6,2)):yr=val(mid$(b$,2,2)):mn=val(mid$(b$,10,2))
 	hr=val(mid$(b$,8,2)):ap=-(hr>79):hr=hr-80*ap:if hr=. then hr=12
@@ -192,7 +200,7 @@
 ' day of the week (Sakamoto's method), then the new value
 	y=2000+yr+(mo<3):a=y+int(y/4)-int(y/100)+int(y/400)+val(mid$("032503514624",mo,1))+dy
 	b$=chr$(49+a-int(a/7)*7):a=yr:gosub {:date_digits}:a=mo:gosub {:date_digits}:a=dy:gosub {:date_digits}
-	a=hr+80*ap:if hr=12 then a=80*ap
+	a=hr+80*ap
 	gosub {:date_digits}:a=mn:gosub {:date_digits}
 	u$(i,0)=b$+mid$(u$(i,0),12):return
 
