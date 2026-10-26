@@ -432,3 +432,235 @@ strr4:
 strr_len:  byte 0	; strscan: an$'s length
 strr_skip: byte 0
 strr_keep: byte 0
+
+; 128: &,2 (dskin) leaves a$ pointing at the line in buf2, outside the
+; string area. On the c64 x$=a$ copied such a string; BASIC 7's assignment
+; copies only the descriptor, so every x$=a$ after &,2,2 changed with the
+; next line read: im's d3$ (the status line's "Last"), sub.modem's mt$
+; (whose val() then overflowed 300*2^a at logon) and others. &,2 now runs
+; dskina: dskin, then strfix makes a$ a string of its own, as putln does
+; for tt$(). This happens as the & call ends, like BASIC's own string
+; making: makeroom can start a garbage collection, which uses zero page
+; ($11, $14, $24/$25, $50-$5f, $61/$62...) that ML in the middle of its own
+; work may be holding, so it isn't done inside putvar (tried: ?syntax and
+; ?type mismatch errors in struct and MCI calls). swap3's reader calls
+; dskin itself and keeps it as it was.
+dskina:
+	jsr dskin
+	ldx #var_a_string
+; strfix: if string variable .x points at text in RAM every configuration
+; shares (below $4000, or $c000 up: Image's buffers), copy it into a new
+; string and put that in the variable (putvar links it back). A string in
+; $4000-$bfff is in the string area, or a literal in the program text (bank
+; 0, not mapped here), and stays as it is.
+strfix:
+	stx strc_var
+	jsr usevar	; varbuf: its descriptor
+	lda varbuf
+	beq strc9	; ""
+	ldx varbuf+2
+	cpx #$40
+	bcc strc1
+	cpx #$c0
+	bcc strc9
+strc1:
+	sta strc_len
+	stx free_fc	; the text (farcall keeps $fb/$fc)
+	lda varbuf+1
+	sta free_fb
+	lda strc_len
+	jsr makeroom	; .a bytes: varbuf
+	ldy strc_len
+strc2:
+	dey
+	lda (free_fb),y
+	sta (varbuf+1),y
+	tya
+	bne strc2
+	ldx strc_var
+	jmp putvar
+strc9:
+	rts
+
+strc_len: byte 0
+strc_var: byte 0
+
+arrays1:
+; 0: tt$()	6: c%()
+; 1: bb$()	7: d%()
+; 2: dt$()	8: e%()
+; 3: ed$()	9: f%()
+; 4: nn$()	10: ac%()
+; 5: a%()	11: so%()
+	ascii "tbdenACDEFAS"
+arrays2:
+	ascii "TBTDN"
+	byte $80, $80, $80, $80, $80
+	ascii "CO"
+
+; clear an array: &,11,x (x: arrays1/arrays2's numbering above)
+; 128: was in the struct module (struct.asm); resident since it grew
+; past the module's 6 pages with clrstr
+arrclr:
+	cpx #12
+	bcs clrar7
+	lda arytab	; 47
+	sta varpnt	; 71
+	lda arytab+1	; 48
+	sta varpnt+1	; 72
+clrar0:
+	ldy #3
+	lda (varpnt),y	; (71),y
+	sta 21
+	dey
+	lda (varpnt),y	; (71),y
+	sta 20
+	dey
+	lda (varpnt),y	; (71),y
+	cmp arrays2,x
+	bne clrar1
+	dey
+	lda (varpnt),y	; (71),y
+	cmp arrays1,x
+	beq clrar3
+clrar1:
+	clc
+	lda 20
+	adc varpnt	; 71
+	sta varpnt	; 71
+	lda 21
+	adc varpnt+1	; 72
+	sta varpnt+1	; 72
+	lda varpnt	; 71
+	cmp strend	; 49
+	bne clrar2
+	lda varpnt+1	; 72
+	cmp strend+1	; 50
+	beq clrar7
+clrar2:
+	jmp clrar0
+clrar3:
+	clc
+	lda varpnt	; 71
+	adc #7
+	sta varpnt	; 71
+	lda varpnt+1	; 72
+	adc #0
+	sta varpnt+1	; 72
+	sec
+	lda 20
+	sbc #7
+	sta 20
+	lda 21
+	sbc #0
+	sta 21
+	cpx #5		; 128: tt$() to nn$(), the string arrays:
+	bcs clrar4
+	jsr clrstr	; their strings garbage first
+clrar4:
+	ldy #0
+	tya
+	sta (varpnt),y	; (71),y
+	inc varpnt	; 71
+	bne clrar5
+	inc varpnt+1	; 72
+clrar5:
+	lda 20
+	bne clrar6
+	dec 21
+clrar6:
+	dec 20
+	bne clrar4
+	lda 21
+	bne clrar4
+clrar7:
+	rts
+
+; 128: before clrarr zeros a string array's descriptors (varpnt: the first,
+; 20/21: how many bytes), mark garbage each string in the string area whose
+; back-link is its element: [length][$ff], as BASIC 7's assignment and
+; strold (varbl.asm) do. Zeroed without that, the strings stayed "in use",
+; linked to elements that no longer pointed at them: BASIC 7 then left their
+; links behind when it moved the arrays (a new variable), and its garbage
+; collection wrote a moved string's address through them (i/lo-last's tt$()
+; lines, cleared by im's &,11 at line 82: tools/strcheck.py found one linked
+; into the variable s). Uses free_fb/fc; keeps varpnt and 20/21.
+clrstr:
+	lda varpnt
+	pha
+	lda varpnt+1
+	pha
+	lda 20
+	pha
+	lda 21
+	pha
+clrs1:
+	lda 20
+	ora 21
+	beq clrs8
+	ldy #0
+	lda (varpnt),y	; its length
+	beq clrs5	; ""
+	tax
+	iny
+	lda (varpnt),y
+	sta free_fb
+	iny
+	lda (varpnt),y
+	sta free_fc
+	lda free_fb	; in the string area: fretop up to memsiz?
+	cmp fretop
+	lda free_fc
+	sbc fretop+1
+	bcc clrs5
+	lda free_fb
+	cmp memsiz
+	lda free_fc
+	sbc memsiz+1
+	bcs clrs5
+	txa		; just past the text: its back-link
+	clc
+	adc free_fb
+	sta free_fb
+	bcc clrs2
+	inc free_fc
+clrs2:
+	ldy #0		; ours?
+	lda (free_fb),y
+	cmp varpnt
+	bne clrs5
+	iny
+	lda (free_fb),y
+	cmp varpnt+1
+	bne clrs5
+	lda #$ff	; the length, $ff
+	sta (free_fb),y
+	dey
+	txa
+	sta (free_fb),y
+clrs5:
+	clc		; the next element
+	lda varpnt
+	adc #3
+	sta varpnt
+	bcc clrs6
+	inc varpnt+1
+clrs6:
+	sec
+	lda 20
+	sbc #3
+	sta 20
+	lda 21
+	sbc #0
+	sta 21
+	jmp clrs1
+clrs8:
+	pla
+	sta 21
+	pla
+	sta 20
+	pla
+	sta varpnt+1
+	pla
+	sta varpnt
+	rts

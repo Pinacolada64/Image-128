@@ -4,7 +4,7 @@
 ; jmptbl:
 	word outastr	;&
 	word swap1_swap_address	;1-inline
-	word dskin	;&,2
+	word dskina	;&,2 (128: dskin, then a$ copied: miscl.asm)
 	word swap3_swap_address	;3-read0
 	word getmdm	;&,4
 	word getversn	;&,5
@@ -13,7 +13,7 @@
 	word dskdir	;&,8
 	word swap2_swap_address+6	;9-btmvar
 	word swap2_swap_address	;10-term
-	word struct_swap_address	;11-clrarr
+	word arrclr	;&,11 (128: resident, miscl.asm; was in struct)
 	word swap3_swap_address+3	;12-newuser
 	word arbit	;&,13
 	word dumparr	;&,14

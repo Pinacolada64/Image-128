@@ -284,38 +284,46 @@ always makes a new string in the string area.
 
 ## Open problems
 
-### `&,2,2`'s `a$` and the garbage collection (found 10/26/2026, not fixed)
+### `&,2,2`'s `a$`, and `&,11` leaving strings linked (fixed 10/26/2026)
 
-`&,2` (`dskin`) leaves `a$` pointing at `buf2`, outside the string area,
-and BASIC 7's `x$=a$` copies only the descriptor: every `x$=a$` after
-`&,2,2` (76 places in im and the modules) changes with the next line
-read. im's `d3$` (the status line's "Last" shows an `e.data` line), and
-`sub.modem`'s `mt$`, whose `val()` then overflowed `300*2^a` at logon
-(i/lo.on 4112) once the buffer held a date. `tests/standin/dskin.bas`
-shows it. Same as `&,1`/`£i` and `an$` (see "Keep an input with `+""`").
+`&,2` (`dskin`) left `a$` pointing at `buf2`, outside the string area, and
+BASIC 7's `x$=a$` copies only the descriptor: every `x$=a$` after `&,2,2`
+(76 places in im and the modules) changed with the next line read. im's
+`d3$` (the status line's "Last"), and `sub.modem`'s `mt$`, whose `val()`
+overflowed `300*2^a` at logon (i/lo.on 4112). Now `&,2` goes to `dskina`
+(`miscl.asm`): `dskin`, then `strfix` copies `a$` into a new string as the
+`&` call ends, as `putln` does for `tt$()`. `tests/standin/dskin.bas`.
 
-Two fixes were tried, and both crashed logons; they're reverted:
+Copying inside `putvar` instead (commit 2f022ff, reverted) let a garbage
+collection start in the middle of any ML that stores a string, and the
+collection uses zero page as scratch (`$11`, `$14`, `$24`/`$25`,
+`$50`-`$5f`, `$61`/`$62`, `$68`, `$70`) that such code may be holding:
+`?syntax error` in i/lo-last's `&,60,1`, `?type mismatch` in im's error
+report. Make a string with `makeroom` only where nothing is half done.
 
-- `putvar`/`putarr` copying any string in shared RAM into a new string
-  (`makeroom`) first (commit 2f022ff, reverted). A garbage collection could
-  then start inside any ML that stores a string, and the collection uses
-  zero page as scratch (`$11`, `$14`, `$24`/`$25`, `$50`-`$5f`, `$61`/`$62`,
-  `$68`, `$70`, from GETSPA and `$92ea`) that such code may be holding:
-  `?syntax error` in i/lo-last's `&,60,1`, `?type mismatch` in im's error
-  report, a JAM.
-- `&,2` through a wrapper (`dskina`: `dskin`, then copy `a$` as the `&`
-  call ends, as `putln` does). The stand-ins passed; a logon hung with the
-  stack nearly full of nested BRKs, interrupts masked, in the VDC wait.
-  Memory against the build: `getmdm+3` ($cb41, `&,4`) was `$40` (RTI)
-  instead of `$38` (SEC), and nothing in the ML writes there. That's the
-  high byte of a string address written through a back-link of `$cb3f`:
-  the collection walked into a bad record in the string area. The copies
-  make collections frequent (every `&,2,2` makes a string), so damage
-  already in the string area gets written through: the same cause as
-  "Logoff corrupts memory" below. The wrapper (miscl.asm `dskina` and
-  `strfix`, `jmptb.asm`'s `&,2`) can come back once that's found.
+The first try with `dskina` hung a logon: `getmdm`'s SEC was overwritten
+with `$40` through a bad back-link. The copies make collections frequent,
+and the string area already held bad links: `tools/strcheck.py` found one
+of i/lo-last's `tt$()` lines linked into the variable `s`. `&,11` (clear an
+array, `clrarr`) zeroed `tt$()`'s descriptors the C64 way, leaving their
+strings "in use" and linked to elements that no longer held them; BASIC 7
+corrects a string's link when it moves the arrays (a new variable: im's
+`s=.` at the main prompt) only through the element holding it, so those
+links stayed behind, and the collection wrote through them. Now `&,11`
+marks a string array's strings garbage first (`clrstr`), as BASIC 7's
+assignment does. That no longer fit in the struct module's 6 pages, so
+`clrarr` is resident: `miscl.asm`'s `arrclr`, which `&,11` goes to.
+`tests/standin/clrarr.bas` (with the old ML, strcheck finds its "LINE 1"
+string linked into the new variable `zq`).
+
+`&,1`/`£i` still leave `an$` at `buffer`: see "Keep an input with `+""`".
+And BASIC code that copies `d1$` keeps a pointer to the clock's own string
+at `$0e00`, which the ML rewrites: copy it with `+""` (i/lo.idle's `lt$`).
 
 ### Logoff corrupts memory (found 10/22/2026, not fixed)
+
+Probably `&,11` (see the section above): bad back-links in the string area
+that the collection writes through. Not yet checked with a logoff since.
 
 Logging off (`O` at the main prompt, after a local login) crashes the
 128, a different way on each try. Reported: a CPU JAM at $7b8c with

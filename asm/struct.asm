@@ -75,7 +75,7 @@ makerm	= makerm1	; c64: $b475 (equates.asm's romtab stub)
 defbase	= $c600
 
 @entry1:
-	jmp clrarr
+	jmp strucrts	; 128: &,11 (clrarr) is resident now: miscl.asm's arrclr
 @entry2:
 	sty count
 	stx func
@@ -768,92 +768,6 @@ scanstr5:
 	sta varbuf+1
 	ldx #var_a_integer
 	jmp <@putvar
-
-arrays1:
-; 0: tt$()	6: c%()
-; 1: bb$()	7: d%()
-; 2: dt$()	8: e%()
-; 3: ed$()	9: f%()
-; 4: nn$()	10: ac%()
-; 5: a%()	11: so%()
-	ascii "tbdenACDEFAS"
-arrays2:
-	ascii "TBTDN"
-	byte $80, $80, $80, $80, $80
-	ascii "CO"
-
-; clear an array
-clrarr:
-	cpx #12
-	bcs clrar7
-	lda arytab	; 47
-	sta varpnt	; 71
-	lda arytab+1	; 48
-	sta varpnt+1	; 72
-clrar0:
-	ldy #3
-	lda (varpnt),y	; (71),y
-	sta 21
-	dey
-	lda (varpnt),y	; (71),y
-	sta 20
-	dey
-	lda (varpnt),y	; (71),y
-	cmp arrays2,x
-	bne clrar1
-	dey
-	lda (varpnt),y	; (71),y
-	cmp arrays1,x
-	beq clrar3
-clrar1:
-	clc
-	lda 20
-	adc varpnt	; 71
-	sta varpnt	; 71
-	lda 21
-	adc varpnt+1	; 72
-	sta varpnt+1	; 72
-	lda varpnt	; 71
-	cmp strend	; 49
-	bne clrar2
-	lda varpnt+1	; 72
-	cmp strend+1	; 50
-	beq clrar7
-clrar2:
-	jmp clrar0
-clrar3:
-	clc
-	lda varpnt	; 71
-	adc #7
-	sta varpnt	; 71
-	lda varpnt+1	; 72
-	adc #0
-	sta varpnt+1	; 72
-	sec
-	lda 20
-	sbc #7
-	sta 20
-	lda 21
-	sbc #0
-	sta 21
-clrar4:
-	ldy #0
-	tya
-	sta (varpnt),y	; (71),y
-	inc varpnt	; 71
-	bne clrar5
-	inc varpnt+1	; 72
-clrar5:
-	lda 20
-	bne clrar6
-	dec 21
-clrar6:
-	dec 20
-	bne clrar4
-	lda 21
-	bne clrar4
-clrar7:
-	rts
 
 ; game scan
 ; &,60,12,count,size,a$,a%(a,b),b$

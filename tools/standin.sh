@@ -5,7 +5,8 @@
 #
 # Tokenizes the program (petcat, BASIC 7.0, at $1c01, where intro loads
 # im) and writes it as "im 128" on a copy of build/image128.d81, so the
-# ML loads and RUNs it: build/standin-<name>.d81. Run asm/build.sh first.
+# ML loads and RUNs it: build/standin-<name>.d81. Data files it reads:
+# tests/standin/<name>.<file>.seq. Run asm/build.sh first.
 # See tests/standin/README.md.
 
 set -e
@@ -22,5 +23,14 @@ petcat -w70 -l 1c01 -o "$prg" -- "$src"
 cp "$build/image128.d81" "$disk"
 c1541 "$disk" -delete "im 128" -write "$prg" "im 128" >/dev/null
 rm -f "$prg"
+# data files: tests/standin/<name>.<file>.seq goes on the disk as the SEQ
+# file <file> (PETSCII, Return at the end of each line), for a stand-in that
+# reads one without having to write it first
+for f in "$(dirname "$src")/$name".*.seq; do
+	[ -e "$f" ] || continue
+	file=${f##*/$name.}
+	file=${file%.seq}
+	c1541 "$disk" -delete "$file" -write "$f" "$file,s" >/dev/null
+done
 echo "$disk"
 echo "x128 -80col -drive8type 1581 -autostart-warp -autostart \"$disk:boot 128\""
