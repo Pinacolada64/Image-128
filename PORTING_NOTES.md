@@ -152,16 +152,27 @@ Unchanged on the 128: the VIC, SID and CIA registers, Image's flags at
 `$d000`-`$d010`, the KERNAL jump table (`sys 65418`), `$90` status,
 `$0200`.
 
-### Keep an input with `+""`
+### Strings the ML hands to BASIC are copied (`strcopy`)
 
-`&,1` and `£i` leave `an$` pointing at Image's input buffer (`buffer`,
-$0e77), outside the string area, and BASIC 7's `c$=an$` copies only the
-descriptor for such a string: `c$` points at the buffer too. The next
-input starts by putting a 0 in the buffer's first byte, so `c$` loses its
-first character (Larry's `i.main` R command: "edit idlecmds" loaded as
-"i.?dit idlecmds", `?load error` on line 79; "sub.0tack" before). Copy an
-input that has to outlive the next one with `c$=an$+""`: a concatenation
-always makes a new string in the string area.
+`&,1` and `£i` used to leave `an$` pointing at Image's input buffer
+(`buffer`, $0e77), and `&,2,2` left `a$` pointing at `buf2` ($0e27): both
+outside the string area. BASIC 7's `c$=an$` copies only the descriptor for
+such a string, so `c$` pointed at the buffer too and changed with the next
+input or line read. `c$` lost its first character (Larry's `i.main` R
+command: "edit idlecmds" loaded as "i.?dit idlecmds", `?load error` on line
+79; "sub.0tack" before), and every `x$=a$` after `&,2,2` showed the last
+line read: im's `d3$` (the status line's "Last" showed an `e.data` date),
+and `mt$` from `sub.modem`, whose `val()` overflowed `300*2^a` at logon.
+
+Now `putvar` and `putarr` (`varbl.asm`) call `strcopy` (`miscl.asm`)
+first: a string whose text is below `$4000` or from `$c000` up (Image's
+buffers, in RAM every configuration shares) is copied into a new string in
+the string area, which `strnew` links back. `tests/standin/dskin.bas` reads
+three lines into `g$`, `h$`, `u$` and checks them through garbage
+collections. The `c$=an$+""` copies in the modules aren't needed any more,
+and do no harm. A string in `$4000`-`$bfff` outside the string area is a
+literal in the program text (bank 0, not mapped while the ML runs) and
+isn't copied, as BASIC 7 doesn't copy one either.
 
 ### Other things im relies on
 

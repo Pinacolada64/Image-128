@@ -30,6 +30,8 @@ They're petcat source (BASIC 7.0), not C64List: `chr$(92)` for `£`, no
 | `fkey-macros.bas` | Ctrl/C= + f1/f3/f5/f7 typing `f1$`-`f8$` into an input line |
 | `swiftlink.bas` | the SwiftLink driver (`ml.rs232`, `&,16,1`): sends a line, then shows and echoes back what arrives on device 2 |
 | `userport.bas` | the same with the user port driver (`&,16,0`) at 1200 baud |
+| `dskin.bas` | `&,2,2` into `a$`, then `g$=a$`, `h$=a$`, `u$=a$`: each keeps its own line (`strcopy`), through `fre(1)` and 150 more reads into an array |
+| `errmenu.bas` | an error inside `&,16,0` (`++ menu2`) and a plain `?bad subscript`, caught by Image's trap at line 2000, which reads `peek(6)`-`peek(8)`, closes files as `im` does, and prints them with MCI `\!x` |
 
 ## What a stand-in has to set up
 
