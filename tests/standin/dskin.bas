@@ -1,7 +1,8 @@
 1 rem &,2,2 (dskin) gives a$ as a string of its own: g$=a$, h$=a$, u$=a$
 2 rem after three reads keep three lines (before, a$ pointed at buf2 and
 3 rem they all showed the last line read), through garbage collections
-4 rem and many more reads. im's variables first, in its order.
+4 rem and many more reads. im's variables first, in its order. it writes
+5 rem t.lines on drive 8: boot it from its own disk (standin.sh).
 10 dima$,a%,ac%,am,ag$,ak$,am$,an$,ao%
 11 dimb$,b%,bd,bd$,bn$,bu
 12 dimc$,c%,c1$,c2$,c3$,ca,cc,cc$,cd%,ch$,cm$,cn,co$,co%,cr,ct,ct%
@@ -31,6 +32,7 @@
 60 sys 7171:poke 2794,0:poke 2787,1:poke 53252,60
 70 print chr$(147);"dskin":f=0
 80 open 15,8,15,"s0:t.lines":open 2,8,2,"t.lines,s,w"
+85 if ds>1 then print "drive 8: ";ds$;": needs a writable disk":close 2:close 15:end
 90 print#2,"alpha":print#2,"beta":print#2,"gamma 12345":close 2
 100 open 2,8,2,"t.lines,s,r":&,2,2:g$=a$:&,2,2:h$=a$:&,2,2:u$=a$:close 2
 110 print "read:";g$;"/";h$;"/";u$:gosub 500

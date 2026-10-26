@@ -275,6 +275,10 @@ always makes a new string in the string area.
   x128 (about a minute and a half).
 - `tests/standin/`: small programs that run in place of `im` to try one
   part of the ML; `tools/standin.sh` puts one on a test disk.
+- `tools/strcheck.py`: checks BASIC 7's string area in a running x128
+  (remote monitor, port 6510 by default): every back-link against its
+  descriptor and back; shows the first bad record the garbage collection
+  would write through.
 - `tools/vmon.py`: driving x128 through its remote monitor (port 6537);
   `tools/ovl_dis.py`: a C64 `++` overlay into C64List source to port.
 
