@@ -18,7 +18,7 @@
 {include:"..\asm\equates.asm"}
 {crunch:on}
 
-3000 rem:memory management
+3000 rem memory management
 3002 &"{f6} Bank 0 (Program){f6}":a={sym:txtend}:b={sym:txttab}:a$="Program":gosub 3020
 3004 a={sym:maxmem0}:b={sym:txtend}:a$="Free RAM":gosub 3020
 3006 &"{f6} Bank 1 (Variables){f6}":a={sym:arytab}:b={sym:vartab}:a$="Variables":gosub 3020
@@ -26,4 +26,4 @@
 3010 a={sym:fretop}:b={sym:strend}:a$="Free RAM":gosub 3020
 3012 a={sym:memsiz}:b={sym:fretop}:a$="Strings":gosub 3020:goto 300
 3020 c=peek(a)-peek(b)+(peek(a+1)-peek(b+1))*256:&"{pound}$a:{pound}{back arrow}10{pound}!c{f6}":return
-3022 rem:"i.MM (c)nissa 181227 lh
+3022 rem "i.MM (c)nissa 181227 lh
