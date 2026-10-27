@@ -559,6 +559,8 @@
 	loadprg	= wedgemem + $06 ; 6406 / $1906: load program
 	arraysav= wedgemem + $09 ; 6409 / $1909: array pointer save
 	arrayres= wedgemem + $0c ; 6412 / $190c: array pointer restore
+	arrayres_hi = $fc00	; 128: arrays.asm's arrayrs0, resident (ml.asm): the
+			; wedge's &,28 entry jumps here
 	forcegc	= wedgemem + $0f ; 6415 / $190f: force garbage collection
 ;
 ; RS-232 jump table: 21 bytes

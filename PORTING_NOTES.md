@@ -57,9 +57,15 @@ string area: wrong text in variables, `?type mismatch`, jams.
   drops the variables made since they were saved and moves the arrays
   down: `arrmark` marks the dropped variables' strings garbage first,
   and `arrlink` points the moved string arrays' strings back at their
-  elements after (`wedge.asm`). String arrays DIMmed after the save and
-  dropped by it aren't covered yet (see Open problems: the wedge,
-  $2f00 up to glue at $3600, has about 780 bytes free now).
+  elements after. String arrays DIMmed after the save and dropped by it
+  (im's line 304 drops line 306's `bb$()`, `dt$()`, `ed$()`, `nn$()` at
+  every logon and logoff) get their strings marked garbage too
+  (`arrmarka`, 10/26/2026): before that they stayed linked into memory the
+  arrays moved over, and the collection wrote through those links into
+  `co$()` and `im$()`. `tests/standin/arrayrs.bas`. All this is resident
+  now (`arrays.asm`, at `arrayres_hi`, $fc00), which the wedge's `&,28`
+  entry jumps to: the wedge ends where `tempscn` starts ($3300), and grew
+  past it with `arrmarka` (`ml.asm` checks that now).
 
 **When porting more ML** (the `++` overlays, the editor): look for
 `sta (varpnt),y`, for `makeroom`/`makerm` users, and for anything that
@@ -162,6 +168,13 @@ first character (Larry's `i.main` R command: "edit idlecmds" loaded as
 "i.?dit idlecmds", `?load error` on line 79; "sub.0tack" before). Copy an
 input that has to outlive the next one with `c$=an$+""`: a concatenation
 always makes a new string in the string area.
+
+### C64List and long branches
+
+C64List 4.04 assembled a branch out of range without an error: `arrlink`'s
+`bcs arrm9` became `bcs` to the next byte once `arrmarka` sat between them,
+and the loop never ended. After moving code apart, check that each branch
+still reaches its label (a `$ff` offset is the giveaway).
 
 ### Other things im relies on
 
@@ -322,8 +335,11 @@ at `$0e00`, which the ML rewrites: copy it with `+""` (i/lo.idle's `lt$`).
 
 ### Logoff corrupts memory (found 10/22/2026, not fixed)
 
-Probably `&,11` (see the section above): bad back-links in the string area
-that the collection writes through. Not yet checked with a logoff since.
+The cause found 10/26/2026 with `tools/strwatch.py` during a logoff: the
+string area was clean at line 7 and damaged at im line 304, `&,28,1`, which
+dropped line 306's string arrays without marking their strings garbage
+(fixed: `arrmarka`, see "BASIC 7's strings" above). `&,11` was another
+source (section above). Still to confirm with a few logoffs.
 
 Logging off (`O` at the main prompt, after a local login) crashes the
 128, a different way on each try. Reported: a CPU JAM at $7b8c with

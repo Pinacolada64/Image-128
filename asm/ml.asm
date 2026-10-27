@@ -85,6 +85,7 @@ hcd24:
 
 	orig wedge_exec_address
 	embed "wedge.bin"
+	addrcheck tempscn	; 128: the screen save buffers start at $3300
 	align $100,$00
 wedge_pages = (* - wedge_exec_address) / 256
 
@@ -582,5 +583,11 @@ newirq1:
 
 farerr:
 	jmp farjmp_error
+
+; &,28's array pointer restore, at a fixed address the wedge (assembled
+; before this) jumps to
+	addrcheck arrayres_hi
+	orig arrayres_hi
+{include:"arrays.asm"}
 
 	addrcheck resident_hi_end
