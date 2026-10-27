@@ -10,7 +10,9 @@
 
 3000 &,18,0:&"{clear}{f6}{cyan} *IMAGE Copy-All 3.0*{f6:2} Special Thanks To Jim Butterfield!"
 3002 &"{f6} Mods by {blue}Wa{lt. blue}nd{cyan}er{white}er{f6}":a$="2":gosub28
-3003 &,5:v=1.2
+' 10/27/2026: started from the idle screen (C), as i.lo.cp did, which this
+' replaces: inputs 16 wide, and back to idle on quitting (3223)
+3003 &,5:v=1.2:ifpeek({sym:idletool})thena=16:gosub3218
 3004 gosub3118:&"{f6:2} {white}[C]{cyan}opy Files{f6} {white}[D]{cyan}irectory"
 3006 &"{f6} {white}[M]{cyan}ulti-Scratch{f6} {white}[S]{cyan}end Disk Command{f6} {white}[Q]{cyan}uit{f6:2}"
 3008 p$="Copy":gosub6:on-(an$="C")-(an$="D")*2-(an$="S")*3goto3024,3012,3120
@@ -120,7 +122,8 @@
 3216 ifv>1.2then:&,59,1,a:return
 3218 poke53252,a:return
 3220 &"{pound}i0":on-(an$="")goto999:&,15,2:return
-3221 &,18,1:goto300
+3221 &,18,1:onpeek({sym:idletool})goto3223:goto300
 3222 copr.1995 new image 01/05/95
+3223 &,28,1:f1=3:a$="lo":goto70
 3224 rem "i.ระ (c)nissa 200815 lh"
 

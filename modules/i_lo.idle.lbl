@@ -7,16 +7,19 @@
 ' C64List leaves the number as it is (it wrote [n] otherwise): 3080, 3233
 ' Image BBS 128 (10/21/2026): C64 addresses in peek/poke/sys are the 128's,
 ' as {sym:...} names from asm/equates.asm (included below).
-{uses:..\3_0-preface.lbl}
+' 10/27/2026: built with C64List 4.06 and Basic70.bas, for instr(); 4.06
+' can't take 3_0-preface.lbl's line numbers, so jumps to lines in im are written
+' as {$33} for 3, {$39} for 9 and so on
 {alpha:alt}
+{include:..\Basic70.bas}
 {include:"..\asm\equates.asm"}
 
-4000 gosub4480:onlmgoto4100,4200,4010:mm=.:f1=3:goto3000:rem i/lo.idle
-4006 cm$="Connected":gosub9:&,69,5,21,cm$,$85
+4000 gosub4470:onlmgoto4100,4200,4010:mm=.:f1=3:goto{$33}000:rem i/lo.idle
+4006 cm$="Connected":gosub{$39}:&,69,5,21,cm$,$85
 ' 10/26/2026: d1$ is the clock's own string (the ML rewrites it in place, $0e00),
 ' and BASIC 7's x$=d1$ copies only its pointer: lt$ (and ld$, d5$ below) kept
 ' showing the current time, so the time used at logoff came out 0. +"" copies it
-4008 lt$=d1$+"":lt%=mn%:poke53248,.:mm=.:f1=.:gosub4480:goto3000
+4008 lt$=d1$+"":lt%=mn%:poke53248,.:mm=.:f1=.:gosub4470:goto{$33}000
 4010 &,18,1:an$=d3$:&,15,1:&,69,5,17,an$,$8c:&,69,5,18,d2$,$8c:&,69,5,19,d6$,$8c
 4012 &,69,5,20,l2$,$8c:ifpt%then:&,69,16,20,"*PRIMETIME*",$8c
 4014 &,52,41,3:&,69,31,17," Res O"+mid$("ff n  ",a%*3+1,3),$8c:kk=a%
@@ -30,19 +33,19 @@
 4028 return
 4030 &,52,2,3:a=a%:&,52,4,3:a=a+a%:&,52,6,3:a=a+a%:return
 4040 cm$="System Idle":&,69,5,21,cm$,$8a:return
-4042 cm$="Connected":gosub9:&,69,5,21,cm$,$85:return
-4044 gosub84:&,52,7,3:ifa%thenpt%=1-pt%:ifp1%<1thenp1%=30
+4042 cm$="Connected":gosub{$39}:&,69,5,21,cm$,$85:return
+4044 gosub{$38}4:&,52,7,3:ifa%thenpt%=1-pt%:ifp1%<1thenp1%=30
 4046 b%=val(mid$(fl$,18,2)):b%=b%-101*(b%=.):onpt%+1goto4050
 4048 fory=1to5:&,69,26,y+16,mid$("PRIME",y,1),135:next:goto4052
 4050 fory=1to5:&,69,26,y+16,mid$("     ",y,1),140:next
 4052 return
-4100 a=.:gosub375:b$="logoff":x=10:mm=4:gosub3000:&,52,4:&,52,5:tr%=.
-4102 f1=.:&,28,1:dr=3:b$="e.idle cmds":a$=b$:gosub4:ife%thenwc=.:close2:goto4106
+4100 a=.:gosub{$33}75:b$="logoff":x=10:mm=4:gosub{$33}000:&,52,4:&,52,5:tr%=.
+4102 f1=.:&,28,1:dr=3:b$="e.idle cmds":a$=b$:gosub{$34}:ife%thenwc=.:close2:goto4106
 4104 wc=1:dimwc%(15,30):&,60,2,0,wc%(0,0),b$,dv%
-4106 im=.:gosub446:ifac%=16thenmm=5:gosub3000
+4106 im=.:gosub{$34}46:ifac%=16thenmm=5:gosub{$33}000
 4108 ak$=" {$c0:38}"+"{f6}":pf=.:poke{sym:modclmn},40
-4110 gosub33:x=17:gosub1:&,2,2:d3$=a$:x=19:gosub1:&,2,2:close2
-4112 an$=a$:&,15:d2$=an$+"M":&,52,44,1:uf$="00100"+tz$:im=6:gosub447
+4110 gosub{$33}3:x=17:gosub{$31}:&,2,2:d3$=a$:x=19:gosub{$31}:&,2,2:close2
+4112 an$=a$:&,15:d2$=an$+"M":&,52,44,1:uf$="00100"+tz$:im=6:gosub{$34}47
 4114 lc=.:em=.:zz=.:gs=.:cf=.:cr=.:lf=1:nl=.:ul=.:le=.:pm=1:c9=.
 4116 &,52,2,3:a=a%:&,52,4,3:a=a+a%:&,52,6,3:a=a+a%:ifa=.then:&,52,2,4
 4118 i%=.:ac%=16:dc%=.:ct%=.:tc%=.:u$="":sy$="":ba$="":na$="":ph$="":id=.
@@ -52,65 +55,82 @@
 ' editor's own variables (pnt, the cursor...), and setting bit 7 in them
 ' broke the editor. The 128 keeps the links in a bitmap at ldtb2 ($035e,
 ' 4 bytes; a set bit links a row): clear it
-4122 gosub82:gosub12:forj={sym:ldtb2}to{sym:ldtb2}+3:pokej,.:next:dr=3:gosub61
-4124 gosub33:x=21:gosub1:&,2,2:l2=val(a$):l2$=mid$(a$,3):close2
+4122 gosub{$38}2:gosub{$31}2:forj={sym:ldtb2}to{sym:ldtb2}+3:pokej,.:next:dr=3:gosub{$36}1
+4124 gosub{$33}3:x=21:gosub{$31}:&,2,2:l2=val(a$):l2$=mid$(a$,3):close2
 4126 gosub4010:ifpeek({sym:timeset})thena$=d1$:t1=mn%
-4128 a$="clock":gosub28:goto4200
-4200 q=.:k=1:im=10:gosub446:poke53248,.:poke53252,.:onf3gosub4400,4420,4430
-4202 t1%=mn%:ti$="000000":gosub4481
+4128 a$="clock":gosub{$32}8:goto4200
+' 10/27/2026: back at idle: nothing running was started from here (i.CP, i.RF)
+4200 poke{sym:idletool},.:q=.:k=1:im=10:gosub{$34}46:poke53248,.:poke53252,.:onf3gosub4400,4420,4430
+4202 t1%=mn%:ti$="000000":gosub4472
 4204 on-(ti>36000)gosub4044
-4205 mm=6:on-(ti>36000)gosub3000:ifmn%<>t1%thent1%=mn%
+4205 mm=6:on-(ti>36000)gosub{$33}000:ifmn%<>t1%thent1%=mn%
 4206 &,52,41,3:z%=a%:&,52,40,3:z%=z%+2*a%:on-(z%<>kk)gosub4010
-4208 &,52,4,3:zz=a%:ifzzthenim=4:gosub446:goto4008
+4208 &,52,4,3:zz=a%:ifzzthenim=4:gosub{$34}46:goto4008
 4209 &,52,25,3:ona%gosub4500
-4210 ifpeek({sym:timeset})>.andmid$(am$,2,6)<>mid$(d1$,2,6)thenmm=7:goto3000
-4211 &,52,29,3:ifpeek({sym:timeset})>.anda%thenmm=3:goto3000
+4210 ifpeek({sym:timeset})>.andmid$(am$,2,6)<>mid$(d1$,2,6)thenmm=7:goto{$33}000
+4211 &,52,29,3:ifpeek({sym:timeset})>.anda%thenmm=3:goto{$33}000
 ' Image BBS 128 (10/21/2026): the color by MCI ({pound}q, as im 97), not poke
 ' color: in 80 columns color is the editor's VDC attribute, and a VIC color
 ' number poked there clears its charset bit, so the text after it (? and
 ' the rest) came out in the uppercase/graphics set
 ' FIXME: 10/22/2026: after "fixing" string variables, idle keys are not recognized
 ' 4212 &"{pound}q"+chr$(df%+48):&,16:a$="":ifpeek({sym:ndx})thengeta$
-4212 &"{pound}q"+chr$(df%+48):&,16:a$="":ifpeek({sym:ndx})thengeta$:a$=a$+""
+' 10/27/2026: the key first, then the print: & output reads a key after each
+' character (output: getchr, for pause and abort) and drops any other, so the
+' print here took most keys before the get could (the FIXME above)
+4212 on-(peek({sym:ndx})=.)goto4213:geta$
+4213 &"{pound}q"+chr$(df%+48):&,16
 4214 on-(a$="")goto4230:poke{sym:ndx},.:ifwc=.then4222
 4216 b=.:lm=1:fori=1towc%(0,0):ifasc(a$)=wc%(0,i)thenb=i:i=wc%(0,0)+1
-4218 next:on-(b=.)goto4224:&,60,1,16,wc%(8,b),cm$:gosub9:&,60,1,11,wc%(2,b),a$
-4220 lm=wc%(1,b):mm=8:goto72
-4222 x=val(a$):ifxthenonxgoto4450,4465,4465,4465,4462,4464,4452,4454
-4223 ifa$="R"thenb$="reload":x=11:mm=4:gosub3000:f1=3:pr$="":goto302
-4224 x=.:x=-(a$="+")-2*(a$="-")-3*(a$="{pound}")-4*(a$="T")-5*(a$="A")-6*(a$="{back arrow}")
-4225 on-(a$="F")-(a$="W")*2-(a$="C")*3-(a$="D")*4goto{$33}233,4488,4487,4498
-4226 on-(a$="+")-(a$="-")*2gosub4250,4252:on-(a$="I")goto4499
-4227 onx+1goto4230,,,,4259,4258,4260:onxgosub4250,4252,4254,4256:goto4232
+' 10/27/2026: a key that isn't an idle command goes on to 4222, not 4224:
+' with e.idle cmds on the disk, 1-8 never reached 4222 (as in the release)
+4218 next:on-(b=.)goto4222:&,60,1,16,wc%(8,b),cm$:gosub{$39}:&,60,1,11,wc%(2,b),a$
+4220 lm=wc%(1,b):mm=8:goto{$37}2
+' 10/27/2026: the keys by instr(), not a test for each: x is the key's place
+' in the string, so 1-8 are their own digits (4465 needs x 2-4). + and - step
+' the colour once: 4226 and 4227 each called 4250 or 4252 before, so twice.
+' ? (21) draws the menu (4270), as any other key not here does from 4230
+4222 x=instr("12345678RFWCDITA{back arrow}+-{pound}?",a$):ifx=.then4230
+4223 onxgoto4450,4465,4465,4465,4462,4464,4452,4454,4225,{$33}233,4488,4487,4498,4499,4259,4258,4260
+4224 onx-17gosub4250,4252,4254,4270:goto4232
+4225 b$="reload":x=11:mm=4:gosub{$33}000:f1=3:pr$="":goto{$33}02
 4230 k=k+(k>.):on-(a$=" "ork=1)goto4200:on-(a$<>""and(a$<"{f1}"ora$>"{f8}"))gosub4270
 4231 &,52,43,3:ona%goto4204
-4232 im=5:gosub446:onagoto4006,4264,4266:gosub4040:goto4204
-4250 gosub4484:n=n+1:ifn>15thenn=1
-4251 goto4486
-4252 gosub4484:n=n-1:ifn<1thenn=15
-4253 goto4486
-4254 im=7:goto446
+4232 im=5:gosub{$34}46:onagoto4006,4264,4266:gosub4040:goto4204
+4250 gosub4474:n=n+1:ifn>15thenn=1
+4251 goto4476
+4252 gosub4474:n=n-1:ifn<1thenn=15
+4253 goto4476
+4254 im=7:goto{$34}46
 4256 poke53258,16-peek(53258):return
-4258 mm=7:goto3000
+4258 mm=7:goto{$33}000
 4259 poke53258,16-peek(53258):goto4204
-4260 poke{sym:clock},.:poke53248,1:&"{clear}{f6:2}Loading Image-Term..{f6}":gosub304:b$="term":x=11
-4262 mm=4:gosub3000:a$="t":goto70
-4264 cm$="Ring Detected":gosub9:&,69,5,21,cm$,$83:goto4202
+4260 poke{sym:clock},.:poke53248,1:&"{clear}{f6:2}Loading Image-Term..{f6}":gosub{$33}04:b$="term":x=11
+4262 mm=4:gosub{$33}000:a$="t":goto{$37}0
+4264 cm$="Ring Detected":gosub{$39}:&,69,5,21,cm$,$83:goto4202
 4266 gosub4040:goto4204
-4270 on-(a$="?")goto4300:poke53248,1:poke{sym:usrlin},16:&"{clear}{f6}{cyan}{$ac}{pound}o{$a2}{pound}o{$a2}{pound}h1{blue}{$bb}{f6}"
-4272 &"{cyan}{rvrs on}{$a1}{lt. blue}1)Set Time{pound}{back arrow}202)View BAR{pound}{back arrow}38{blue}{rvrs off}{$a1}{f6}{cyan}{rvrs on}{$a1}{lt. blue}3)View Blocks Free{pound}{back arrow}204)View"
-4273 &" Clock/Calls{blue}{rvrs off}{$a1}{f6}{cyan}{rvrs on}{$a1}{lt. blue}5)Garbage Collect{pound}{back arrow}206)Reset Modem{pound}{back arrow}38{blue}{rvrs off}{$a1}{f6}"
-4274 &"{cyan}{rvrs on}{$a1}{lt. blue}7)Set Password{pound}{back arrow}208)View Logs{pound}{back arrow}38{blue}{rvrs off}{$a1}{f6}{cyan}{rvrs on}{$a1}{lt. blue}+)Color +{pound}{back arrow}20-)Color "
-4275 &"-{pound}{back arrow}38{blue}{rvrs off}{$a1}{f6}{cyan}{rvrs on}{$a1}{lt. blue}{back arrow})Image-Term{pound}{back arrow}20A)Auto-Maint{pound}{back arrow}38{blue}{rvrs off}{$a1}{f6}{cyan}{rvrs on}{$a1}{lt. blue}R)Re-Load LO{pound}{back arrow}20"
-4276 &"F)Feedback/Mail {$ba} {blue}{rvrs off}{$a1}{f6}"
-4277 &"{cyan}{rvrs on}{$a1}{lt. blue}W)WF Editor{pound}{back arrow}20C)Copier{pound}{back arrow}38{blue}{rvrs off}{$a1}{f6}"
-4278 &"{cyan}{rvrs on}{$a1}{lt. blue}D)Display Files{pound}{back arrow}20I)IM Configurator{pound}{back arrow}38{blue}{rvrs off}{$a1}{f6}":ifwc%(.,.)=.then4290
-4282 a=.:fori=1towc%(.,.):a$=mid$("{cyan}{rvrs on}{$a1}{lt. blue}",a*4+1):e$=mid$("{pound}{back arrow}38{blue}{rvrs off}{$a1}{f6}{pound}{back arrow}20",(1-a)*8+1,8)
-4284 on-(wc%(0,i)=0)goto4288:b$=chr$(wc%(.,i)):&,60,1,16,wc%(8,i),c$
-4286 &a$+b$+")"+c$+e$:a=1-a
-4288 next:ifa=1then:&"{pound}{back arrow}38{blue}{rvrs off}{$a1}{f6}"
-4290 &"{cyan}{$bc}{blue}{rvrs on}{pound}o{$a2}{pound}o{$a2}{pound}h1{rvrs off}{$be}{f6}":poke53248,.:poke{sym:clock},.:k=50:return
-4300 a$="":goto4270:rem"ÇÍ ×ill be here"
+' 10/27/2026: ? comes here from 4224 now, so no test for it (and no 4300)
+4270 poke53248,1:poke{sym:usrlin},16:&"{clear}{f6}{cyan}{$ac}{pound}o{$a2}{pound}o{$a2}{pound}h1{blue}{$bb}{f6}"
+' 10/27/2026: the menu, two items to a row: each item ("key)text") through 4292,
+' which puts it in the left column or the right by p. The built-in keys are
+' lists in a$, each item ending in a comma (4288 takes them apart); then the
+' idle commands from e.idle cmds (wc%(0,i): the key, 0 = none; wc%(8,i): the
+' text)
+' also, sorted
+4272 p=.:a$="1 Set Time,5 Garbage Collect,2 View BAR,6 Reset Modem,3 View Blocks Free,7 Set Password,4 View Clock/Calls,8 View Logs,":gosub4288
+4274 a$="A AutoMaintenance,I IM Configurator,C Copy Files,R Reload LO,D Display Files,W WF Editor,F Feedback/Mail {$ba},+ Default Color +,- Default Color -,{back arrow} Image Terminal,Spc Redraw Screen,{pound} Answer Modem,":gosub4288
+4278 i=.:do while i<wc%(.,.):i=i+1:ifwc%(0,i)then:&,60,1,16,wc%(8,i),c$:b$=chr$(wc%(0,i))+" "+c$:gosub4292
+4280 loop
+' an odd number of items: close the row the last one started
+4284 ifpthen:&"{pound}{back arrow}38{blue}{rvrs off}{$a1}{f6}"
+4286 &"{cyan}{$bc}{blue}{rvrs on}{pound}o{$a2}{pound}o{$a2}{pound}h1{rvrs off}{$be}{f6}":poke53248,.:poke{sym:clock},.:k=50:return
+' each item in a$ through 4292
+4288 do:j=instr(a$,","):ifj=.thenreturn
+4290 b$=left$(a$,j-1):a$=mid$(a$,j+1):gosub4292:loop
+' b$ in the left column (p=0: starts the row, on to column 20) or the right
+' (p=1: on to column 38, the box's edge, and ends the row)
+4292 ifp=.then:&"{cyan}{rvrs on}{$a1}{lt. blue}"+b$+"{pound}{back arrow}20":p=1:return
+4294 &b$+"{pound}{back arrow}38{blue}{rvrs off}{$a1}{f6}":p=.:return
 ' 10/27/2026: i/lo.idle2's stats box merged in, as in Image 3.0: lightbar flag
 ' 55 (Alt, right) shows New Messages (4403-4404) instead of Calls/Log
 ' (4401-4402). i.lo used to load i/lo.idle2 for that, a copy of this module
@@ -120,8 +140,8 @@
 4402 &"{pound}{back arrow}22{lt. red}{rvrs on} Calls/Log  {pound}#3{pound}# {pound}%x {gray1} {f6}{pound}{back arrow}22{lt. red}{rvrs on} New Users  {pound}#3{pound}# {pound}%w {gray1} {f6}":goto 4406
 4403 x%=st(15)+st(16):&"{clear}{f6}{pound}{back arrow}20{lt. red}{rvrs on} Feedback     {pound}#3{pound}# {pound}%z {f6}{pound}{back arrow}20{rvrs on} SysOp Mail   {pound}#3{pound}# {pound}%y {gray1} {f6}"
 4404 &"{pound}{back arrow}20{lt. red}{rvrs on} New Messages {pound}#3{pound}# {pound}%x {gray1} {f6}{pound}{back arrow}20{lt. red}{rvrs on} New Users    {pound}#3{pound}# {pound}%w {gray1} {f6}"
-4406 &"{pound}{back arrow}23{rvrs on}                {f6}{up}":&,27,3:diml%(30,9):dr=3:gosub3
-4408 &,60,2,.,l%(.,.),dr$+"e.last",dv%:gosub5:ife%then4416
+4406 &"{pound}{back arrow}23{rvrs on}                {f6}{up}":&,27,3:diml%(30,9):dr=3:gosub{$33}
+4408 &,60,2,.,l%(.,.),dr$+"e.last",dv%:gosub{$35}:ife%then4416
 4409 &,52,$36,3:fori=.to9:m$=" "+right$("  "+str$(l%(7,i)),3)+" Min"
 4410 &,60,1,20,l%(8,i),c$:&,60,5,.,l%(1,i),an$:iflen(c$)<4then4415
 4411 d$=mid$(an$,4,2)+"/"+mid$(an$,6,2):&,15:t$=right$(an$,7)+"M":ifa%then4413
@@ -130,7 +150,7 @@
 4414 c$=left$(c$,13):&"{pound}$c{pound}{back arrow}39{rvrs off}"
 4415 next
 4416 &,28,3:close2:poke53248,.:goto4040
-4420 f3=2:poke53248,1:poke{sym:clock},.:&"{clear}":im=3:a$="bar":gosub74:poke53248,.:goto4040
+4420 f3=2:poke53248,1:poke{sym:clock},.:&"{clear}":im=3:a$="bar":gosub{$37}4:poke53248,.:goto4040
 4430 f3=3:poke53248,1:poke{sym:clock},.:&"{clear}{f6} {rvrs on}{cyan} Blocks Free On System Disks {f6:2}"
 4432 dr=1
 4434 b$="System":d$="Mail":gosub4438:b$="Etc.":d$="Dir.":gosub4438
@@ -140,27 +160,38 @@
 4450 lm=1:goto4460
 4452 lm=2:goto4460
 4454 lm=3:goto4460
-4460 z$="lo."+"misc":gosub80:goto4200
+4460 z$="lo."+"misc":gosub{$38}0:goto4200
 4462 &,40:goto4204
-4464 mm=6:gosub3000:goto4204
+4464 mm=6:gosub{$33}000:goto4204
 4465 onxgosub,4420,4430,4400:goto4204
-4480 &,52,$34,3:on-(a%=.)goto4482:poke53371,0:&,52,$35,1:goto4482
-4481 &,52,$34,3:on-(a%=.)goto4482:poke53370,0:&,52,$35,0
-4482 return
-4484 gosub33:x=40:gosub1:&,2,2:n=val(a$):close2:return
-4486 gosub33:x=40:gosub1:print#2,n:close2:df%=n:&"{pound}q"+chr$(df%+48):&,16:return
-4487 gosub4480:print#131,"ath1":tr%=101:poke{sym:clock},.:poke53248,1:a$="lo."+"cp":goto70
-4488 gosub4480:c=a:a=.:lt$=d1$+"":poke{sym:carrst},.:&,52,16,1:&,52,4,1:zz=1
+' SuperCPU detection / enable / disable:
+' 10/27/2026: as 4480-4482 did: with flag $34 set, 4470 sets flag $35 (and
+' pokes 53371), 4472 clears it (and pokes 53370); with $34 clear, neither
+' does anything
+4470 &,52,$34,3:if a% then poke 53371,0:&,52,$35,1
+4471 return
+4472 &,52,$34,3:if a% then poke 53370,0:&,52,$35,0
+4473 return
+' 4470 &,52,$34,3:on-(a%=.)goto4482:poke53371,0:&,52,$35,1:goto4482
+' 4471 &,52,$34,3:on-(a%=.)goto4482:poke53370,0:&,52,$35,0
+' 4472 return
+' read/set default text color:
+4474 gosub{$33}3:x=40:gosub{$31}:&,2,2:n=val(a$):close2:return
+4476 gosub{$33}3:x=40:gosub{$31}:print#2,n:close2:df%=n:&"{pound}q"+chr$(df%+48):&,16:return
+' 10/27/2026: i.CP and i.RF themselves, not their i.lo.cp and i.lo.rf copies:
+' idletool tells them to go back to idle when they quit
+4487 gosub4470:print#131,"ath1":tr%=101:poke{sym:clock},.:poke53248,1:poke{sym:idletool},1:a$="CP":goto{$37}0
+4488 gosub4470:c=a:a=.:lt$=d1$+"":poke{sym:carrst},.:&,52,16,1:&,52,4,1:zz=1
 4489 &,52,17,1:&,52,5,1
 4490 &,52,10,3:fl=-(a%=1):poke53251,101:poke{sym:clock},.:nl=1
-4491 poke53248,1:&,52,16,1:k=.:i%=1:id=i%:gosub35:x=id:gosub1
-4492 input#2,na$,pw$,ff$,ll$,ph$,ld$,ac%,ct%:close2:co%=1:ll%=40:ul=1:lf=.
+4491 poke53248,1:&,52,16,1:k=.:i%=1:id=i%:gosub{$33}5:x=id:gosub{$31}
+4492 input#2,na$,pw$,ff$,ll$,ph$,ld$,ac%,ct%:close2:co%=1:ll%=sw:ul=1:lf=.
 4493 le=100:em=val(left$(i2$,1)):ld$=d1$+"":d5$=d1$+"":tc%=1:&,52,20,em:poke53252,20
-4495 fl$=fl$(9):co$=str$(co%):im=15:gosub445
-4496 ch$=co$:d5$=lt$:fori=1to10:st(i)=.:next:&,18,0:gosub12
-4497 a$="lo."+"wf":goto70
-4498 gosub4480:print#131,"ath1":tr%=101:poke{sym:clock},.:poke53248,1:a$="lo."+"rf":goto70
-4499 gosub4480:print#131,"ath1":tr%=101:poke{sym:clock},.:poke53248,1:zz=1:a$="lo."+"im":goto70
+4495 fl$=fl$(9):co$=str$(co%):im=15:gosub{$34}45
+4496 ch$=co$:d5$=lt$:fori=1to10:st(i)=.:next:&,18,0:gosub{$31}2
+4497 a$="lo."+"wf":goto{$37}0
+4498 gosub4470:print#131,"ath1":tr%=101:poke{sym:clock},.:poke53248,1:poke{sym:idletool},1:a$="RF":goto{$37}0
+4499 gosub4470:print#131,"ath1":tr%=101:poke{sym:clock},.:poke53248,1:zz=1:a$="lo."+"im":goto{$37}0
 ' 10/27/2026: lightbar Trc right (Time: Reset Clock) re-reads the clock with
 ' sub.clocks im=11, as in Image 3.0 (22c8d09, 4d6018d): whatever the method saved
 ' in e.data record 37 (CMD device, DS12C887, Ultimate, TeensyROM), quietly;
@@ -168,5 +199,5 @@
 ' back). It replaced CMD-only code (4500-4528), which skipped every other
 ' method. sub.clocks takes sub.modem's place at 60000; the idle loop loads it
 ' again
-4500 &,52,25,.:b$="update time":x=11:gosub{$33}080:close2:im=11:a$="clocks":gosub74:return
+4500 &,52,25,.:b$="update time":x=11:gosub{$33}080:close2:im=11:a$="clocks":gosub{$37}4:return
 4530 rem "i/lo.idle (c)nissa 2023-07-11, 2026-10-22 rs"

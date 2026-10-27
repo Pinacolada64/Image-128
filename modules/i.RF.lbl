@@ -4,10 +4,16 @@
 
 {uses:..\3_0-preface.lbl}
 {alpha:alt}
+' 10/27/2026: for {sym:idletool}
+{include:"..\asm\equates.asm"}
 
 3000 rem image file readers - 12/18/2015
 3002 rem original by der deutscher - 03/01/1995
+' 10/27/2026: started from the idle screen (D), as i.lo.rf did, which this
+' replaces: &,18,0, inputs 16 wide, and back to idle on Q (3025)
+3004 ifpeek({sym:idletool})then:&,18,0
 3006 &"{pound}f1{blue}{pound}vj{rvrs off} {rvrs on}{lt. blue} File Reader Utilities{pound}{back arrow}39{rvrs off}{f6}{blue}{pound}vj{f6:2}{green}"
+3007 ifpeek({sym:idletool})thenpoke53252,16
 3008 &"[D]irectory Reader{f6}"
 3010 &"[P]rogram Reader{f6}"
 3012 &"[R]elative Reader{f6}"
@@ -16,7 +22,8 @@
 3018 &"Read: {pound}g1"
 3020 on-(an$="D")-2*(an$="P")-3*(an$="R")-4*(an$="S")gosub3118,3028,3060,3132
 3022 ifan$<>"Q"andtr%>1then3006
-3024 poke53252,ll%:goto300
+3024 poke53252,ll%:onpeek({sym:idletool})goto3025:goto300
+3025 poke53252,40:&,28,1:&,18,1:f1=3:a$="lo":goto70
 3026 rem program reader
 3028 &"{clear}{f6:2}{pound}{back arrow}11{rvrs on}{green}Program Reader{f6}{rvrs off}":a$="read":poke53252,16
 3030 gosub28:ife%then:&"Error Loading {f5}++ read{f5}:":&:goto3024
