@@ -83,31 +83,38 @@ def name(b0, b1):
     return n.lower() + ('%' if b0 & 0x80 and b1 & 0x80 else '$' if b1 & 0x80 else '')
 
 
-def main():
-    ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
-    ap.add_argument('--port', type=int, default=6510, help='remote monitor port (default 6510)')
-    ap.add_argument('--dump', type=int, default=64, help='bytes to show before a bad record')
-    args = ap.parse_args()
-
+def read_state(port):
+    """zero page and bank 1 (vartab up to memsiz), read in one monitor
+    session, the CPU stopped throughout; then the emulation runs on"""
     try:
-        ses = Session(args.port)
+        ses = Session(port)
     except OSError as e:
         sys.exit('strcheck: no monitor on port %d (%s). VICE serves one client at a time:\n'
                  'close any telnet to it; if connections still time out, open and close\n'
-                 "the monitor window (Alt+H, then x) or restart x128." % (args.port, e))
+                 "the monitor window (Alt+H, then x) or restart x128." % (port, e))
     try:
         zp = ses.mem('cpu', 0, 0xff)
         w = lambda a: zp[a] | zp[a + 1] << 8
-        vartab, arytab, strend, fretop, memsiz = (w(a) for a in (VARTAB, ARYTAB, STREND, FRETOP, MEMSIZ))
-        lo = min(vartab, 0x4000)
-        b1 = ses.mem('ram01', lo, memsiz - 1)
+        memsiz = w(MEMSIZ); lo = min(w(VARTAB), 0x4000)
+        b1 = ses.mem('ram01', lo, max(memsiz, lo + 1) - 1)
     finally:
         ses.close()
+    return zp, lo, b1
+
+
+def analyze(zp, lo, b1, dump=64, out=print):
+    """the checks above, written through out(); returns how many bad records"""
+    w = lambda a: zp[a] | zp[a + 1] << 8
+    vartab, arytab, strend, fretop, memsiz = (w(a) for a in (VARTAB, ARYTAB, STREND, FRETOP, MEMSIZ))
+    if not (lo <= vartab <= arytab <= strend <= fretop <= memsiz <= lo + len(b1)):
+        out('BAD pointers: vartab $%04x arytab $%04x strend $%04x fretop $%04x memsiz $%04x'
+            % (vartab, arytab, strend, fretop, memsiz))
+        return 1
     B = lambda a: b1[a - lo]
     W = lambda a: B(a) | B(a + 1) << 8
-    print('vartab $%04x  arytab $%04x  strend $%04x  fretop $%04x  memsiz $%04x'
+    out('vartab $%04x  arytab $%04x  strend $%04x  fretop $%04x  memsiz $%04x'
           % (vartab, arytab, strend, fretop, memsiz))
-    print('variables %d, arrays %d bytes, free %d, string area %d bytes'
+    out('variables %d, arrays %d bytes, free %d, string area %d bytes'
           % ((arytab - vartab) // 7, strend - arytab, fretop - strend, memsiz - fretop))
 
     # every string descriptor: address -> what holds it
@@ -119,7 +126,7 @@ def main():
     while a < strend:
         size = W(a + 2)
         if size < 5 or a + size > strend:
-            print('BAD array table at $%04x (offset %d): stopping there' % (a, size)); break
+            out('BAD array table at $%04x (offset %d): stopping there' % (a, size)); break
         n = B(a + 4); data = a + 5 + 2 * n
         if B(a) < 0x80 and B(a + 1) >= 0x80:
             nm = name(B(a), B(a + 1))
@@ -156,12 +163,12 @@ def main():
     p = memsiz; strings = garbage = 0; held = {}
     while p > fretop:
         if p - 2 < fretop:
-            print('BAD: %d stray byte(s) at $%04x, below the last record' % (p - fretop, fretop)); bad += 1; break
+            out('BAD: %d stray byte(s) at $%04x, below the last record' % (p - fretop, fretop)); bad += 1; break
         l0, l1 = B(p - 2), B(p - 1)
         if l1 == 0xff:
             start = p - 2 - l0
             if start < fretop:
-                print('BAD garbage record ending $%04x: length %d runs past fretop' % (p - 1, l0)); bad += 1; break
+                out('BAD garbage record ending $%04x: length %d runs past fretop' % (p - 1, l0)); bad += 1; break
             garbage += 1; p = start; continue
         link = l0 | l1 << 8
         if link < 0x100:
@@ -175,22 +182,22 @@ def main():
             bad += 1
             why = ('back-link $%04x is no string descriptor' % link if who is None else
                    'back-link to %s ($%04x), which holds %d bytes at $%04x, not this string' % (who, link, dl, da))
-            print('BAD record ending $%04x: %s' % (p - 1, why))
-            d0 = max(fretop, p - args.dump)
+            out('BAD record ending $%04x: %s' % (p - 1, why))
+            d0 = max(fretop, p - dump)
             for r in range(d0, p, 16):
                 row = [B(x) for x in range(r, min(r + 16, p))]
-                print('  $%04x  %-48s %s' % (r, ' '.join('%02x' % c for c in row),
+                out('  $%04x  %-48s %s' % (r, ' '.join('%02x' % c for c in row),
                       ''.join(chr(c & 0x7f) if 32 <= (c & 0x7f) < 127 else '.' for c in row)))
-            print('  (the collection would write a new address through $%04x+1)' % link)
-            print('  $%04x is %s' % (link, where(link)))
+            out('  (the collection would write a new address through $%04x+1)' % link)
+            out('  $%04x is %s' % (link, where(link)))
             for d, h in sorted(desc.items()):
                 ln, ad = B(d), W(d + 1)
                 if ln and ad + ln == p - 2:
-                    print('  this string is held by %s, descriptor $%04x: the link is off by %+d'
+                    out('  this string is held by %s, descriptor $%04x: the link is off by %+d'
                           % (h, d, link - d))
             break
         held[start] = link; strings += 1; p = start
-    print('string area: %d strings held, %d garbage%s' % (strings, garbage, '' if bad else ', all links good'))
+    out('string area: %d strings held, %d garbage%s' % (strings, garbage, '' if bad else ', all links good'))
 
     # 2. and 3. every descriptor against the string it points at
     outside = []
@@ -200,21 +207,29 @@ def main():
             continue
         if fretop <= ad < memsiz:
             if ad + ln + 1 >= memsiz:
-                print('BAD %s ($%04x): %d bytes at $%04x run past memsiz' % (who, d, ln, ad)); bad += 1; continue
+                out('BAD %s ($%04x): %d bytes at $%04x run past memsiz' % (who, d, ln, ad)); bad += 1; continue
             back = W(ad + ln)
             if back != d:
                 bad += 1
-                print('BAD %s ($%04x): its string at $%04x links back to $%04x%s' % (who, d, ad, back,
+                out('BAD %s ($%04x): its string at $%04x links back to $%04x%s' % (who, d, ad, back,
                       ' (%s)' % desc[back] if back in desc else ' (garbage)' if B(ad + ln + 1) == 0xff else ''))
         else:
-            where = 'program text' if 0x4000 <= ad < 0xc000 else 'shared RAM'
-            outside.append('%s -> $%04x (%s, %d bytes)' % (who, ad, where, ln))
+            loc = 'program text' if 0x4000 <= ad < 0xc000 else 'shared RAM'
+            outside.append('%s -> $%04x (%s, %d bytes)' % (who, ad, loc, ln))
     if outside:
-        print('pointing outside the string area (not errors):')
+        out('pointing outside the string area (not errors):')
         for o in outside:
-            print('  ' + o)
-    print('BAD records: %d' % bad if bad else 'no damage found')
-    sys.exit(1 if bad else 0)
+            out('  ' + o)
+    out('BAD records: %d' % bad if bad else 'no damage found')
+    return bad
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
+    ap.add_argument('--port', type=int, default=6510, help='remote monitor port (default 6510)')
+    ap.add_argument('--dump', type=int, default=64, help='bytes to show before a bad record')
+    args = ap.parse_args()
+    sys.exit(1 if analyze(*read_state(args.port), dump=args.dump) else 0)
 
 
 if __name__ == '__main__':
