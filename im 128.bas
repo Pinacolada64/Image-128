@@ -552,7 +552,8 @@
 ' gosub from 3158
 3250 dr=3:a$="e.lightdefs,s,r":gosub 4:if e% then close 2:goto 3300
 3252 z3$="Setting Default Checkmarks...":gosub 3404
-3254 for x=. to 7:&,2,2:if len(a$)<>16 then:&"Lightbar defaults length error, page !x{f6}":goto 3258
+' 10/27/2026: the page number, 1-8 as i/IM.lightbar numbers them (it printed "!x")
+3254 for x=. to 7:&,2,2:if len(a$)<>16 then:&"Lightbar defaults length error, page"+str$(x+1)+"{f6}":goto 3258
 3256 for i=1 to 16:&,52,x*16+i-1,val(mid$(a$,i,1)):next
 3258 next:close 2
 

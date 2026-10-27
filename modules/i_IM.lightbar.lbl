@@ -19,9 +19,11 @@
 4106 &"{f6:2}{white}L{lt. blue}oad{blue}/{white}S{lt. blue}ave{blue}/{white}N{lt. blue}ext{blue}/{white}P{lt. blue}rev{blue}/{white}#{blue}/{white}Q{lt. blue}uit{blue}:{white} {pound}i1"
 4108 if an$="N" or an$="P" then p%=p%+(an$="P")-(an$="N"):goto 4102
 4110 if an$="L" then gosub 4128:goto 4102
-4112 if an$="S" then gosub 4134:goto 4102
+' 10/27/2026: after saving, offer to put the saved defaults into effect now
+' (4172), as the alarm editor does (4278), not only at the next boot
+4112 if an$="S" then gosub 4134:gosub 4172:goto 4102
 4114 if val(an$) then gosub 4120:goto 4102
-4116 if tzthen:&"Save Changes? ":gosub 94:if athen gosub 4134
+4116 if tzthen:&"Save Changes? ":gosub 94:if athen gosub 4134:gosub 4172
 4118 &,11:return
 4120 a=val(an$):if a<1 or a>16 then return
 4122 a$=mid$(c$(p%),a,1):if a$="-" then return
@@ -49,6 +51,12 @@
 4166 if yy$="0" and xx$="-" then xx$="0"
 4168 if yy$="-" then xx$="-"
 4170 a$=left$(a$,i-1)+xx$+mid$(a$,i+1):next:return
+' 10/27/2026: set the checkmarks from c$(), as im does at boot (3250-3258),
+' but leave the ones marked - alone: im sets those to 0 at boot, and now
+' they hold the running system's state
+4172 &"Activate Saved Table? ":gosub 96:if a=. then return
+4174 for x=1 to zz%:for i=1 to 16:a$=mid$(c$(x),i,1):if a$<>"-" then:&,52,(x-1)*16+i-1,val(a$)
+4176 next:next:return
 4200 gosub 4212:on-(e%=0) goto 4218:for i=8 to 15:am%(0,i)=256:next
 4202 for i=0 to 7:am%(0,i)=112+i*2:am%(3,i)=113+i*2:next:gosub 4214:goto 4218
 4204 tz=0:dr=3:gosub 3:a$=dr$+"e.alarms":return
