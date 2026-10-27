@@ -17,4 +17,4 @@
 4010 &,60,0,30,x%(3,i),a$:next:close 2
 4011 dr=3:gosub 3:a$="e.Siglist":print# 15,"s" dr$a$:close 15:dr=3:gosub 3
 4012 &,60,3,0,x%(0,0),36+x%(0,0)*36,dr$+"e.Siglist",dv%:gosub 5:&:return
-4014 rem:"i/SM.consig1 (c)nissa 190124 lh"
+4014 rem "i/SM.consig1 (c)nissa 190124 lh"

@@ -72,4 +72,4 @@
 4124 return
 4126 a=abs(int(val(left$(mid$(an$,2),4)))):return
 4128 copyright 1991 new image 08/15/91
-4130 rem:"i/MM.subop (c)nissa 210714 lh"
+4130 rem "i/MM.subop (c)nissa 210714 lh"

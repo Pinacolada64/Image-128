@@ -68,7 +68,7 @@
 3114 &"{f6:2}":v$="ps."+an$+na$:dr=3:a$="r":gosub3:gosub3002:gosub3122
 3116 a=1948:ife%thenclose6:&:goto3110
 3118 &,2,6:tt$(kk)=a$:kk=kk+1:gosub3124 :on-(z%>100andkk<254andst=.)goto3118
-3119 rem:ifa$="^"thentt$(kk)="":kk=kk-1
+3119 rem ifa$="^"thentt$(kk)="":kk=kk-1
 3120 close6:goto3110
 3122 &,40
 3124 z%=(peek({sym:fretop}+1)-peek({sym:strend}+1))*256+peek({sym:fretop})-peek({sym:strend}):return
@@ -82,4 +82,4 @@
 3138 gosub289:z$=an$:ifz$=""orz$="@"thengosub3:gosub5:&:return
 3140 b$=left$(z$,1):ifb$="n"orb$="s"thengosub93:ifa=.thenreturn
 3142 gosub3:print#15,z$:gosub5:&:return
-3150 rem:"i.×Æ (c)nissa 190308 lh"
+3150 rem "i.×Æ (c)nissa 190308 lh"

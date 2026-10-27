@@ -84,4 +84,4 @@
 4146 tt=tt-1:ifttthena$="netsub2":gosub{$33}641:goto{$33}488
 4148 a$="netsub4":gosub{$33}641:goto{$33}488
 4150 copr.1990 new image 12/01/90  2:34a
-4152 rem:"i/ÎÍ.netsub3 (c)nissa 200101 lh"
+4152 rem "i/ÎÍ.netsub3 (c)nissa 200101 lh"

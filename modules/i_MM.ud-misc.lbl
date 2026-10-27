@@ -74,4 +74,4 @@
 4126 &"{f6:2}Enter %: {pound}i1":gosub{$33}012:ifa=.thena=1:goto4024
 4128 a=a/100:goto4024
 4130 copr.1990 new image 10/28/90
-4132 rem:"i/ออ.ud-misc (c)nissa 190201 lh"
+4132 rem "i/ออ.ud-misc (c)nissa 190201 lh"

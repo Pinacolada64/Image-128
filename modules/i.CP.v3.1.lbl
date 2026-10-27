@@ -300,5 +300,5 @@
 3556 &"{f6}{green}Pattern (RETURN=*){lt. blue}:":gosub 289:if an$="" then an$="*"
 3557 b%=-1:open 1,dv%,0,"$"+dr$+an$:get#1,a$,a$:&"{f6}{white}0000":goto 3552
 3590 "Der Deutscher 950301"
-3592 rem:"converted for Image 2.0 190604 x-tec"
-3594 rem:"i.CP.v3.1 (c)nissa 200805 lh"
+3592 rem "converted for Image 2.0 190604 x-tec"
+3594 rem "i.CP.v3.1 (c)nissa 200805 lh"

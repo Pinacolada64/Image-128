@@ -45,4 +45,4 @@
 60072 iff=0then:&"{f6}{white}Minimal Access"
 60074 &"{f6}":return
 60076 &"{f6:2}{white} More?: ":gosub96:&"{clear}{cyan}":return
-60078 rem:"sub.stats (c)nissa 200615 lh"
+60078 rem "sub.stats (c)nissa 200615 lh"

@@ -35,4 +35,4 @@
 4050 &"{f6}":poke 53252,50:p$="Text":&,60,1,50,jm%(5,x),w$:pl=0:&,1,32
 4052 if an$<>"" or an$<>w$ then:&,60,0,50,jm%(5,x),an$:tz=1
 4054 return
-4056 rem:"i/SM.menuedit (c)nissa 190424 lh"
+4056 rem "i/SM.menuedit (c)nissa 190424 lh"

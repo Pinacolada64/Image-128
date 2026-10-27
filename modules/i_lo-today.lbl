@@ -9,10 +9,10 @@
 {crunch:on}
 
 4500 rem i/on-today
-4502 rem:ifct%>1thenreturn
+4502 rem ifct%>1thenreturn
 4504 cm$="Today":gosub 9:if ac%=.then return
 4506 dr=1:a$="s.today/hist":gosub 13:close 2
 4508 &"{f6:2} {yellow}Smack A Key...{pound}g1{f6:2}":on tr%+1 goto 4510
 4510 return
 4512 rem spotlight bbs 413-599-1713
-4514 rem:"i/lo-today (c)nissa 190531 lh"
+4514 rem "i/lo-today (c)nissa 190531 lh"

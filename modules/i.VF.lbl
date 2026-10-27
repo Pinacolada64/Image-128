@@ -256,4 +256,4 @@
 3478 data "Telecheck","telecheck",0,1
 3480 data "{^}"
 3482 x=.:gosub 31:for i=.to 9:x=x+1:gosub 1:&,2,2:&str$(i),a$r$:next:close 2:return
-3999 rem:"i.VF (c)nissa 230131 lh"
+3999 rem "i.VF (c)nissa 230131 lh"

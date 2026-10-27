@@ -17,7 +17,7 @@
 4512 k=int(rnd(1)*j)+1:if c%(k)<>.then 4512
 4514 if d%(i)=.then d%(i)=k:c%(k)=1
 4516 next:t$="":for i=1 to j:t$=t$+tt$(d%(i)):next:if t$=z$then 4510
-4518 rem:gosub4040
+4518 rem gosub4040
 4520 &"{clear}{f6:2}{pound}$q{gray3}    {rvrs on}Anagrams      {f6}{pound}$q{white}By: {gray3}{rvrs on}Port Commodore{f6}{pound}$q    {rvrs on}(The Chief)   "
 4522 &"{f6:2}{pound}$q{yellow}{rvrs on}":for i=1 to j:&tt$(d%(i)):&" ":next
 4524 dr=1:a$="s.anagram":gosub 14
@@ -48,4 +48,4 @@
 4574 i=int(rnd(1)*a)+1:z$=tt$(i):return
 4576 &,28,2:return
 4578 rem on.anagram by port commodore
-4580 rem:"i/lo-anagram (c)nissa 210327 lh"
+4580 rem "i/lo-anagram (c)nissa 210327 lh"

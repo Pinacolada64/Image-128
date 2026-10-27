@@ -31,5 +31,5 @@
 4044 &"{f6:2}{yellow}Please Enter New Value Desired!{f6:2} : {pound}i1":c=val(an$):on-(an$="") goto 4012
 4046 x=b:st(x)=c:gosub 17:goto 4012
 4048 close 2:return
-4050 rem:edit bar stats by breaker-deathstar bbs.
-4052 rem:"i/SM.baredit (c)nissa 190124 lh"
+4050 rem edit bar stats by breaker-deathstar bbs.
+4052 rem "i/SM.baredit (c)nissa 190124 lh"

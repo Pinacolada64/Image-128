@@ -107,4 +107,4 @@
 4180 print#2,"{white}Posted On: {$04}"d1$r$:kk=kk-1:return
 4182 dr=2:a$="nm.origin,s,r":gosub4:&,2,2:z1$=r$+a$+r$+"{^}":close2:return
 4198 copr.1990 new image 11/18/90
-4199 rem:"i/ออ.sb-post (c)nissa 210715 lh-ad"
+4199 rem "i/ออ.sb-post (c)nissa 210715 lh-ad"

@@ -155,11 +155,11 @@
 3554 &"{right:3}{rvrs on} Cursor Keys Move Highlight    {rvrs off} {f6}"
 3556 &"{right:3}{rvrs on} '/'{shft space}Keys are 'Hot' Keys       {rvrs off} {f6}"
 3558 &"{right:3}{rvrs on} Use RETURN to Select an Item  {rvrs off} {f6}"
-3560 rem:&" Press ‡R‡ to Reprint the Menu ’ ‹"
+3560 rem &" Press ‡R‡ to Reprint the Menu ’ ‹"
 3562 &"{right:3}{rvrs on}{pound}{back arrow}34{rvrs off} {f6}"
 3564 &"{right:3}{rvrs on} Press any key to continue     {rvrs off} {f6}"
 3566 &"{right:3}{rvrs on}{pound}{back arrow}34{rvrs off} {f6}"
 3568 &"{right:4}{pound}{back arrow}35{f6}":fd=3:return
 3570 d2$=mid$(p$,4):if left$(p$,3)="(M)" then d2$=mid$(p$,8)
 3572 &,60,0,10,s%(15,0),d2$:goto 3074
-3600 rem:"i.GF (c)nissa 230526 lh"
+3600 rem "i.GF (c)nissa 230526 lh"

@@ -241,4 +241,4 @@
 ' copyright line: plain text, not a rem; -crunch would take out its spaces, so
 ' they're written as {$20}
 3366 copr.{$20}1994{$20}new{$20}image{$20}9/18/94
-3368 rem:"i.IM (c)nissa 200519 lh"
+3368 rem "i.IM (c)nissa 200519 lh"

@@ -110,4 +110,4 @@
 3290 data "Files Maint","MCI Access","UDs At Primetime"
 3292 data "Max Idle Time","Calls/Day","Time/Call"
 3294 data "Time/Call","Download/Call*10"
-3300 rem:"i.ED (c)nissa 230628 lh"
+3300 rem "i.ED (c)nissa 230628 lh"

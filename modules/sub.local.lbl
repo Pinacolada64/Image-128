@@ -51,7 +51,7 @@
 60074 print# 2,d1$r$tt$(0):&,14,2,kk:print# 2,"{^}":close 2:return
 60076 dr=2:a$=c$+",s,w":gosub 4:if e%then a$=c$+",s,a":gosub 4
 60078 return
-60080 rem:subroutines
+60080 rem subroutines
 60082 x=6:goto 390:rem 1995
 60084 poke 144,sand 255:a=rc:gosub 12:rc=a:return:rem:1032
 60086 a=1-a:an$=mid$("ffn",a*2+1,2):&"{f6}{pound}$b Mode: O{pound}v7{f6}":return:rem:1870

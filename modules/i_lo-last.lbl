@@ -42,4 +42,4 @@
 4724 &"{f6}{cyan}Updating Records...{f6}":return
 4726 c$="":for c=len(tt$(x)) to 82:c$=c$+" ":next:return
 4728 c$="":for c=len(tt$(x)) to 168:c$=c$+" ":next:return
-4730 rem:"i/lo-last (c)nissa 200813 lh"
+4730 rem "i/lo-last (c)nissa 200813 lh"

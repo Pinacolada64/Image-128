@@ -101,4 +101,4 @@
 3178 poke144,sand255:a=rc:gosub12:rc=a:return
 3180 z%=(peek({sym:fretop}+1)-peek({sym:strend}+1))*256+peek({sym:fretop})-peek({sym:strend}):return
 3182 copr. 1994 new image 9/28/94
-3184 rem:"i.misc2 (c)nissa 190307 lh"
+3184 rem "i.misc2 (c)nissa 190307 lh"

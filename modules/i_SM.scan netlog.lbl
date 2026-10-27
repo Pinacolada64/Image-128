@@ -20,4 +20,4 @@
 4018 return
 4020 dr=2:gosub 2:close 1:open 1,dv%,0,"$"+dr$+"nm.log*":&"{f6}{white}":&,8,1:close 1
 4022 &"{pound}{back arrow}10{f6}{rvrs on}Any Key{rvrs off}{pound}g1":goto 4016
-4100 rem:"i/SM.scan netlog (c)nissa 211202 lh"
+4100 rem "i/SM.scan netlog (c)nissa 211202 lh"

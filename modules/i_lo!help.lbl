@@ -30,4 +30,4 @@
 4532 poke 53252,15:&"{f6}Enter Your {pound}$a:{f6}: {pound}i1":t=t+(an$=""):t=t*-(tr%>.):return
 4533 &,52,17,lf:&,52,20,em:poke {sym:modclmn},ll%:poke {sym:usrlin},mp%:poke {sym:ptrlinm},.:return
 4534 poke 53252,78:&"{f6}Enter Your {pound}$a:{f6}: {pound}i0":t=t+(an$=""):t=t*-(tr%>.):return
-4536 rem:"i/lo!help (c)nissa 200207 lh"
+4536 rem "i/lo!help (c)nissa 200207 lh"

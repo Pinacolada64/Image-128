@@ -154,7 +154,7 @@
 3264 print#15,"s"dr$"temp":gosub30:i=-1:x=25:gosub16:close2
 3266 gosub3002:ifd%=1thengosub30:x=24:st(x)=a%:gosub17:close2
 3268 goto3088
-3270 rem:pu$=an$
+3270 rem pu$=an$
 3272 on-((left$(an$,1)="O")and(right$(an$,1)="!"))goto234:f%(.)=rn:ifrn=.then3366
 3274 p$="MD":&"{f6}{lt. blue}Delete:{f6}{cyan}[A]ll, [S]ome, [N]one Of Your Mail?{f6:2}{lt. blue}MD: {white}{pound}g1"
 3276 on-(an$="A")-(an$="S")*2goto3278,3288:goto3286
@@ -309,10 +309,10 @@
 3581 an$=b$:im=1:gosub441:y=i
 3582 ifi=.then:&"{f6}{f5}{pound}$b{f5} Not Found{f6}In Current User Files.{f6}":goto3572
 3583 ifi=.then:&"{f6}{f5}{pound}$b{f5} Not Found. ID# Too High.{f6}":goto3572
-3584 tt$=b$:kk=k:rem:tt$(.)="[Forwarded From "+na$+"]":kk=k:tt$=b$
+3584 tt$=b$:kk=k:rem tt$(.)="[Forwarded From "+na$+"]":kk=k:tt$=b$
 3586 z=.:a$="w":gosub32:ife%thena$="a":gosub32:z=1
-3587 rem:h$=nn$(br):f$=str$(d%(br))
-3588 rem:print#2,h$r$f$r$d1$r$tt$(.)r$"Sent By: "h$"‹On "j$r$
+3587 rem h$=nn$(br):f$=str$(d%(br))
+3588 rem print#2,h$r$f$r$d1$r$tt$(.)r$"Sent By: "h$"‹On "j$r$
 3589 fork=1tokk-1:print#2,tt$(k):next:print#2,"{f6}[Forwarded From "+na$+"] On"
 3590 print#2,"{$04}"d1$:print#2,"{^}":close2:gosub3594:&"":l=fb:iffd=1thenfd=.:return
 3591 goto3118
@@ -331,4 +331,4 @@
 3655 &"Reply{pound}q0{f6:2}":return
 3657 &"Next{pound}q0{f6:2}":return
 3700 copr.1995 new image 04/22/95 04:38p
-3702 rem:"i.EM (c)nissa 230325 lh ad"
+3702 rem "i.EM (c)nissa 230325 lh ad"

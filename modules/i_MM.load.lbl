@@ -66,7 +66,7 @@
 4130 bz=x3%(0,xx):if bz<1 then 4144
 4132 if bz>60 then bz=60
 4134 for b=1 to bz:e%(b)=x3%(b,xx):next
-4136 rem:b$=sg$:&"‹Welcome to the \$b SIG!‹"
+4136 rem b$=sg$:&"‹Welcome to the \$b SIG!‹"
 4138 dr=1:a$="s.Sig"+str$(sg)+str$(nl):if ll%=80 then a$=a$+" 80"
 4139 gosub 14
 4140 gosub 35:x=so%:gosub 1:&,2,2:close 2
@@ -85,4 +85,4 @@
 4166 next:close 2:bz=b:on-(bz=0 and sg>0) goto 4144:lm=0:return
 4168 if sgthen lm=1:return
 4170 lm=2:return
-4172 rem:"i/MM.load (c)nissa 200504 lh"
+4172 rem "i/MM.load (c)nissa 200504 lh"

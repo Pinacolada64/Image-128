@@ -48,5 +48,5 @@
 4074 oncc+1goto4058:a$="netsub3":gosub{$33}641:goto{$33}488
 4076 a$="netsub4":gosub{$33}641:goto{$33}488
 4078 copr.1990 new image 12/06/90 11:55p
-4080 rem:"i/ÎÍ.netsub2 (c)nissa 190216 lh"
+4080 rem "i/ÎÍ.netsub2 (c)nissa 190216 lh"
 4082 rem check lines 4074 4076

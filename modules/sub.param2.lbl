@@ -80,4 +80,4 @@
 60220 x=id*4-4:fora=.to3:x=x+1:gosub1:print#2,tt$(a+1):next
 60222 close2:return
 63998 copr. 1996 new image 5/7/96 - jlf
-63999 rem:"sub.param2 (c)nissa 230318 lh"
+63999 rem "sub.param2 (c)nissa 230318 lh"

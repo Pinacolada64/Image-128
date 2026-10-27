@@ -16,7 +16,7 @@
 4508 &"{f6:2}{pound}$l       {white}{rvrs on} Weekly Board Activity {f6:2}":sh=.:rc=.
 4510 &"{pound}$l                 1 1 1 1 1 2 2 2 2 2 3{f6}"
 4512 &"{pound}$l         2 4 6 8 0 2 4 6 8 0 2 4 6 8 0{f6}"
-4514 rem:&"\$l       0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0‹"
+4514 rem &"\$l       0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0‹"
 4516 &"{pound}$l       {lt. blue}{$b0}{pound}o{$b2:12}{$ae}{f6}":for i=1 to 9:d$=mid$("{cyan}{purple}{cyan}{purple}{cyan}{purple}{cyan}{purple}{cyan}",i,1)
 4518 c$=mid$("FbackSMailMail PostsRespsUpldsDnldsNew  Calls",i*5-4,5)
 4520 x=int(sy(i-1)):b=int(x):if b>28 then b=28
@@ -31,4 +31,4 @@
 4602 for x=1 to 7:gosub 1:&,2,2:for y=.to 10:&,2,2:sy(y)=sy(y)+val(a$)
 4606 next y:next x
 4608 return
-4999 rem:"i/lo-BA.graph.3 (c)nissa 230723 lh"
+4999 rem "i/lo-BA.graph.3 (c)nissa 230723 lh"

@@ -62,7 +62,7 @@
 3102 &"{f6:2}{cyan}Add A BBS To Listing{f6}
 3104 poke 53252,24:&"{f6}BBS Name   -> {pound}i0":if an$="" or an$="Q" then 3018
 3106 poke 53252,40:ze$(1)=an$:&"BBS Address -> {pound}i0":if an$="" or an$="Q" then 3018
-3108 rem:ifleft$(an$,1)="("orlen(an$)>10then:&"‹9 Digits Format Only!‹":goto77
+3108 rem ifleft$(an$,1)="("orlen(an$)>10then:&"‹9 Digits Format Only!‹":goto77
 3110 ze$(2)=an$:zg$=an$:ze$(3)=zg$
 3112 poke 53252,6:&"Baud Rate  -> {pound}i1":if an$="" or an$="Q" then 3018:an=val(an$):ze$(4)=an
 3114 an=val(an$):if an<300 or an>38400 then:&"{f6}Invalid Baud Rate.{f6}":goto 3112
@@ -92,11 +92,11 @@
 3162 &"{f6}{white}Wild Card -> {pound}i1":if an$="" or an$="Q" then 3010
 3164 if an$="C" then zd=0:goto 3180
 3166 if an$="B" then 3172
-3168 rem:ifan$="A"then208
+3168 rem ifan$="A"then208
 3170 goto 3160
 3172 poke 53252,7:&"{f6}{cyan}Wich Baud Rate -> {pound}i1":if an$="" or an$="Q" then 3160
 3174 zc$=an$:zd=1:goto 3180
-3176 rem:poke53252,4:&"‹ŸWich Area Code -> \i1":ifan$=""oran$="Q"then200
+3176 rem poke53252,4:&"‹ŸWich Area Code -> \i1":ifan$=""oran$="Q"then200
 3178 zd=2
 3180 &"{f6:2}{cyan}Start At beginning Of File ?{pound}g1":if an$<>"N" then:&" Yes":zp=1:goto 3186
 3182 &" No":&"{f6:2}Start at wich #: {pound}i1":zp=val(an$):if zp<1 or zp>150 then zp=1:goto 3186

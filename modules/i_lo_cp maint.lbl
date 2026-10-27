@@ -39,4 +39,4 @@
 4058 print#2,"{pound}$q{pound}{back arrow}06{$dd}     Credit Pool!    {$dd}"
 4060 print#2,"{pound}$q{pound}{back arrow}06{$ad}{$c0:21}{$bd}{pound}n2":goto4052
 4062 copr. 1994 new image 9/8/94
-4064 rem:"i/lo/cp maint (c)nissa 211226 lh"
+4064 rem "i/lo/cp maint (c)nissa 211226 lh"

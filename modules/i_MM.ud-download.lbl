@@ -86,4 +86,4 @@
 4132 a$=" {white} Transfer Aborted{yellow}":goto50
 4134 lp=1:&"{f6}Sorry, Batch {pound}$ks Using {pound}vl Are Not Currently Supported.":goto{$33}214
 4136 copr.1990 new image 12/19/90 12:00p
-4138 rem:"i/ออ.ud-download (c)nissa 210307 lh"
+4138 rem "i/ออ.ud-download (c)nissa 210307 lh"

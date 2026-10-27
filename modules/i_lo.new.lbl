@@ -171,5 +171,5 @@
 4322 &mid$("{white}{cyan}{purple}{green}{yellow}{lt. red}{lt. green}{lt. blue}{gray3}",int(rnd(1)*9)+1,1)+mid$("{^}*+{pound}=[]$#",int(rnd(1)*9)+1,1)
 4324 gosub1:print#2,"{^}":next:&"{f6:2}{lt. green}Finished!!":return
 4418 copr. 1995 new image 02/08/95
-4420 rem:email mod 181221 x-tec
-4430 rem:"i/lo.new (c)nissa 210306 lh
+4420 rem email mod 181221 x-tec
+4430 rem "i/lo.new (c)nissa 210306 lh

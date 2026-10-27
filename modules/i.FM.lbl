@@ -40,4 +40,4 @@
 3060 forx=1tokk:print#2,tt$(x):next:close2:goto3002
 3062 a$="f."+left$(nn$,13):dr=2:gosub19:&"{f6}Mail Erased!{f6}":goto3002
 3064 goto300
-3066 rem:"i.FM (c)nissa 210307 lh"
+3066 rem "i.FM (c)nissa 210307 lh"

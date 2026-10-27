@@ -81,4 +81,4 @@
 4336 &"{rvrs on} {cyan} Instant Login Restricted to Sysops{pound}{back arrow}37{rvrs off} {rvrs on}{blue} {f6}{rvrs on}  {rvrs off}{pound}{back arrow}38{rvrs on} {f6}"
 4338 &,16,2,34,m%(.,1),n,17,2,n/2+.5,2,6,.:lm=a%+1:&,70,.,n/2+8.5:&"{white}"
 4344 &,28,2:return
-4399 rem:"i/lo.login+ (c)nissa 220712 lh"
+4399 rem "i/lo.login+ (c)nissa 220712 lh"

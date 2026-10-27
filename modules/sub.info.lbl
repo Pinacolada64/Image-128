@@ -65,4 +65,4 @@
 60102 tv$="":tu$=mid$(str$(o%),2):forx=1to(4-len(tu$)):tv$=tv$+"0":next
 60104 tu$=tv$+tu$:return
 60110 &"{f6}Incorrect password entered {pound}w2{f6}":return
-60150 rem:"sub.info (c)nissa 230406 lh"
+60150 rem "sub.info (c)nissa 230406 lh"

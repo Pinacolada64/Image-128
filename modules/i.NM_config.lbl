@@ -321,4 +321,4 @@
 3654 gosub1:print#2,nn$(x);:next:gosub1:return
 3656 poke53252,q:return
 3658 rem
-3660 rem:"i.NM/config (c)nissa 210305 lh"
+3660 rem "i.NM/config (c)nissa 210305 lh"

@@ -59,4 +59,4 @@
 4096 if len(an$)<>38 then 4092
 4098 tt$(a)=an$:goto 4086
 4100 close 2:return
-4102 rem:"i/SM.sayedit (c)nissa 190124 lh"
+4102 rem "i/SM.sayedit (c)nissa 190124 lh"

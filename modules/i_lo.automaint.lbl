@@ -68,4 +68,4 @@
 4098 a$="":for i=12 to 22:a$=a$+str$(st(i))+r$:next:print# 2,d1$r$a$:close 2:return
 4100 dr=3:a$="e.idle "+left$(d1$,1):gosub 19:close 2:return
 4104 dr=2:a$="nm.log "+left$(d1$,1):gosub 19:close 2:return
-4110 rem:"i/lo.automaint (c)nissa 230703 lh"
+4110 rem "i/lo.automaint (c)nissa 230703 lh"

@@ -55,5 +55,5 @@
 4590 close2:gosub30:i=1:x=1:gosub16:x=12:gosub16:x=23:gosub16
 4592 x=30:gosub16:close2:return
 4594 copr. 1994 new image 9/6/94
-4596 rem:fixes 181220 x-tec
-4598 rem:"i/lo-question (c)nissa 190514 lh"
+4596 rem fixes 181220 x-tec
+4598 rem "i/lo-question (c)nissa 190514 lh"

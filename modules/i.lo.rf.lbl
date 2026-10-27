@@ -80,6 +80,6 @@
 3144 x=6:gosub390:goto3132
 3146 rem image file readers - 12/18/2015
 3148 rem converted to 2.0 on 12/31/2017 by x-tec
-3150 rem:fix dv/dr 180829 x-tec ver 2.3
-3152 rem:fix rel record/field #'s 180903 x-tec ver 2.4
-3154 rem:"i.lo.rf (c)nissa 220325 lh"
+3150 rem fix dv/dr 180829 x-tec ver 2.3
+3152 rem fix rel record/field #'s 180903 x-tec ver 2.4
+3154 rem "i.lo.rf (c)nissa 220325 lh"

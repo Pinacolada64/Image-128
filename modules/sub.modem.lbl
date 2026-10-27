@@ -88,4 +88,4 @@
 60390 onxgoto60355,60360,60365,60370,60375,60380,60385:goto60355
 60395 &,4:on-(peek({sym:ridbs})<>peek({sym:ridbe}))goto60395:a$="":return
 60400 copyright 1995 new image 1/24/95
-60405 rem:"sub.modem (c)nissa 210501 lh"
+60405 rem "sub.modem (c)nissa 210501 lh"

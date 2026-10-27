@@ -51,4 +51,4 @@
 4076 jn$=left$(jn$,b-1)+mid$(str$(a),2)+mid$(jn$,b+1)
 4078 a$=mid$("Un-Joined",a*3+1):gosub{$33}006:&"{f6}{pound}$b:{f6}Now {pound}$a":goto{$33}228
 4080 copr.1990 new image 07/15/90
-4082 rem:"i/ออ.sb-misc (c)nissa 190125 lh"
+4082 rem "i/ออ.sb-misc (c)nissa 190125 lh"

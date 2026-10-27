@@ -8,7 +8,7 @@
 {uses:..\3_0-preface.lbl}
 {alpha:alt}
 
-4000 rem:"i/様.u/d/c"
+4000 rem "i/様.u/d/c"
 4002 pr$=d4$:&,27:on-(e%>0)goto4048
 4004 dr=3:z$="e.ss."+left$(lx$,11)
 4006 a$=z$+",s,r":gosub4:get#2,a$
@@ -62,4 +62,4 @@
 4100 &"{f6:2}{yellow}Your {white}{pound}$g{yellow} Earned {white}{pound}%c{yellow} Credits,{f6}You Now Have{white}{pound}$b{yellow} Total!{f6}{pound}w4":return
 4102 rem modded by darkstar april 2018           atlantis    atl.ddns.net 6401
 4104 rem "+.様.u/d/c":version 3 combining    by: iron axe of future systems '93
-4106 rem:"i/様.u/d/c (c)nissa 190201 lh"
+4106 rem "i/様.u/d/c (c)nissa 190201 lh"

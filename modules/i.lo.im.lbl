@@ -201,4 +201,4 @@
 3362 &"{rvrs on} {cyan}        Configuration Editor{pound}{back arrow}37{rvrs off} {rvrs on}{blue} {f6}{rvrs on}  {rvrs off}{pound}{back arrow}38{rvrs on} {f6}"
 3364 &,16,2,46,m%(.,1),n,36,1,n,2,6,.:lm=a%+1:&,70,.,n+8:&"{white}":return
 3366 copr. 1994 new image 9/18/94
-3368 rem:"i.lo.im (c)nissa 230313 lh"
+3368 rem "i.lo.im (c)nissa 230313 lh"

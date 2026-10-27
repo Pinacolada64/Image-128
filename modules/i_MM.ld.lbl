@@ -33,4 +33,4 @@
 4046 t=-(a$="P")*8000
 4048 ld$=left$(ld$,7)+right$("0"+mid$(str$(val(an$)+t),2),4):return
 4050 copr.1990 new image 01/02/90
-4052 rem:"i/MM.ld (c)nissa 190130 lh"
+4052 rem "i/MM.ld (c)nissa 190130 lh"

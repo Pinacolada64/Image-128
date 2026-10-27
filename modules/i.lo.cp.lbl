@@ -122,5 +122,5 @@
 3220 &"{pound}i0":on-(an$="")goto999:&,15,2:return
 3221 &,18,1:&,28,1:f1=3:a$="lo":goto70
 3222 copr.1995 new image 01/05/95
-3224 rem:"i.lo.cp (c)nissa 220324 lh"
+3224 rem "i.lo.cp (c)nissa 220324 lh"
 

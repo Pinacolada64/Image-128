@@ -13,4 +13,4 @@
 60005 a$="index":gosub 28
 60010 dr=6:gosub 3:a$=dr$+"u.index":&,16,1:uh=a%:return
 60015 gosub 35:&,16:close 2:i=a%:return
-60020 rem:"sub.handles (c)nissa 200304 lh"
+60020 rem "sub.handles (c)nissa 200304 lh"

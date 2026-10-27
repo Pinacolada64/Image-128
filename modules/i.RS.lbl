@@ -41,4 +41,4 @@
 3058 gosub33:x=31:gosub1:&,2,2:l1=val(a$):rc=l1:close2:lh=.:return
 3060 &"{f6} Aborted!{f6}":return
 3062 copr.1988 new image
-3099 rem:"i.RS (c)nissa 210307 lh"
+3099 rem "i.RS (c)nissa 210307 lh"

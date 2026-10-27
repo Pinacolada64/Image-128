@@ -36,4 +36,4 @@
 4050 &"{f6:2}Error writing to {f5}e.text{f5}{pound}w3":goto 4054
 4052 &"{f6:2}Error opening {f5}e.text{f5}{pound}w3"
 4054 &,28,1:return
-4056 rem:"i/SM.textedit (c)nissa 190124 lh"
+4056 rem "i/SM.textedit (c)nissa 190124 lh"

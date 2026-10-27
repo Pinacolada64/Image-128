@@ -46,4 +46,4 @@
 4070 for z=1 to r%:print# 2,nn$(z):next:print# 2,"{^}":close 2:&,37:return
 4072 print# 2,"{blue}{$c0:38}{rvrs off}"
 4074 return
-4076 rem:"i/lo/ns (c)nissa 200625 lh"
+4076 rem "i/lo/ns (c)nissa 200625 lh"

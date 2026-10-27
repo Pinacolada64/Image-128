@@ -10,4 +10,4 @@
 
 3000 zz=1:f1=1:tr%=101:gosub 31:x=10:gosub 1:&,2,2:&,2,2:fl$=a$:close 2:&"{clear}"
 3002 gosub 542:&,28,1:f1=3:a$="lo":goto 70
-3099 rem:"i.lo.wf (c)nissa 230313 lh"
+3099 rem "i.lo.wf (c)nissa 230313 lh"

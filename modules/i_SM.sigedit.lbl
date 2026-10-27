@@ -104,4 +104,4 @@
 4634 br=br+1:dr=3:a$=fi$:gosub4:x=br:gosub1:fori=1to6:print#2,tt$(i):next:close2
 4636 rk=1-(br-2)*(br>1):goto4602
 4640 j=val(an$):dr=3:a$=fi$
-4642 rem:"i/см.sigedit (c)nissa 190124 lh"
+4642 rem "i/см.sigedit (c)nissa 190124 lh"

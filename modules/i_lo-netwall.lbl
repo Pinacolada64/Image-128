@@ -11,7 +11,7 @@
 {include:"..\asm\equates.asm"}
 
 4500 rem "i/lo.netwall" 02-22-2019
-4502 rem:&"‹šView ™Netwall? ":gosub94:ifa=.thenreturn
+4502 rem &"‹šView ™Netwall? ":gosub94:ifa=.thenreturn
 4504 &,5:v=lp:onzzgoto4560
 4506 dr=2:a$="nm.config":gosub4:ife%thennn=0:goto4520
 4508 input#2,nn,a%:q=sgn(a%and2^ac%):ifnn<1then4534
@@ -98,4 +98,4 @@
 4670 &"{f6}In Memory  : {pound}%b{f6}Remaining  : {pound}%c":ifzzthen:&"{f6}Free Memory: {pound}%z"
 4672 &"{f6:2}":return
 4674 copr. 1990 new image 01-29-95
-4700 rem:"i/lo-netwall (c)nissa 200328 lh ad"
+4700 rem "i/lo-netwall (c)nissa 200328 lh ad"

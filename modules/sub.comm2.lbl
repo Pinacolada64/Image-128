@@ -25,7 +25,7 @@
 60024 qb=300*2^a:&,41,a:a=qb:&"{pound}v7-{pound}!a{f6}"
 60026 ifpeek(1063)<>250thenprint#131,"at"
 60028 return
-60030 rem:"sub.comm2 (c)nissa 181231 lh"
+60030 rem "sub.comm2 (c)nissa 181231 lh"
 61014 cm$=a$+"":gosub9:gosub3:ifa$=pr$thene%=.:return
 61015 a$=dr$+"i."+a$:loada$,dv%:pr$=cm$:lm$="":goto5
 61098 cm$=p$:gosub9:gosub61100

@@ -25,4 +25,4 @@
 4530 c%=250:goto4512:rem ca/1000
 4532 c%=500:goto4520:rem tc%/10 & ca/1000
 4534 copr. 1994 new image 9/18/94
-4599 rem:"i/lo-bonus (c)nissa 220302 lh"
+4599 rem "i/lo-bonus (c)nissa 220302 lh"

@@ -8,7 +8,7 @@
 {alpha:alt}
 {crunch:on}
 
-4500 rem:change phone # to email mod
+4500 rem change phone # to email mod
 4502 if left$(ph$,1)="[" then 4506
 4503 if left$(ph$,1)="(" then 4506
 4504 return
@@ -21,4 +21,4 @@
 4518 b$=ph$:&"{green}{f6}Is {pound}$b {f6}your correct email address? ":gosub 96
 4520 on a+1 goto 4512,4504
 4522 &"{f6}{lt. red}Not acceptable{f6:2}":goto 4512
-4524 rem:"i/lo-email (c)nissa 200615 lh"
+4524 rem "i/lo-email (c)nissa 200615 lh"

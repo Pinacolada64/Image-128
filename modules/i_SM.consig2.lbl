@@ -18,4 +18,4 @@
 4014 &"{f6}":close 2
 4015 dr=3:gosub 3:a$="e.Siglist"+str$(xx):print# 15,"s" dr$a$:close 15:dr=3:gosub 3
 4016 &,60,3,0,x%(0,0),366,dr$+"e.Siglist"+str$(xx),dv%:gosub 5:&:goto 4004
-4018 rem:"i/SM.consig2 (c)nissa 190124 lh"
+4018 rem "i/SM.consig2 (c)nissa 190124 lh"

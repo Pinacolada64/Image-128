@@ -31,4 +31,4 @@
 4144 dr=3:gosub 61:x=2:on-(bf<35) goto 390:im=1:gosub 444:goto 4120
 4150 a$="Lotto":goto 4004
 4159 rem ported from ds2 by hoy brothers   13th floor @ bbs.hoyvision.com:6400
-4199 rem:"i/lo.lof (c)nissa 211110 hb lh"
+4199 rem "i/lo.lof (c)nissa 211110 hb lh"

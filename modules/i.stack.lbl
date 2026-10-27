@@ -20,4 +20,4 @@
 3012 n=peek(a+14)+peek(a+15)*256:&" On Line {pound}!n{f6}":a=a+17
 3014 next:return
 3016 &"{f6:2} Press A Key: {pound}g1":goto 300
-3018 rem:"i.stack (c)nissa 190123 lh"
+3018 rem "i.stack (c)nissa 190123 lh"

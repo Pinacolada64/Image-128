@@ -64,7 +64,7 @@
 60100 gosub35:x=i:gosub1:&,2,2:ifa$="{^}"then:&"{f6}Deleted ID!{f6:2}":goto60094
 60102 id=i:gosub60026:im=1:goto443
 60104 copr. 1994 new image 9/20/94
-60200 rem:replaces line 1634
+60200 rem replaces line 1634
 60202 gosub31:x=ac%+1:gosub1:&,2,2:ag$=a$:&,2,2:close2
 60204 iflen(fl$)<len(a$)thenfl$=fl$+mid$(a$,len(fl$)+1)
 60206 iflen(fl$)>len(a$)thenfl$=a$

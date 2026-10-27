@@ -191,7 +191,7 @@
 3347 gosub 3290:&,22,20:if bb%then gosub 92:jm=.:goto 3350
 3348 gosub 3020
 3350 a%=f:gosub 30:i=a%:x=7:gosub 16:x=18:gosub 16:x=36:gosub 16:close 2
-3352 dc%=dc%+i:i=a%:gosub 3036:a$="  "+m$+k$:gosub 51:a%=i:rem:print#2,a$
+3352 dc%=dc%+i:i=a%:gosub 3036:a$="  "+m$+k$:gosub 51:a%=i:rem print#2,a$
 3354 c$=k$:gosub 3052:if bb%then a$=" Transfer Aborted!":gosub 50
 3356 dc=dc+a%:a=7:gosub 11:a=-((f2and 2)=2) or a:for i=1 to a%
 3358 b=a%(i):bd=bd+b:cr=cr+b*(a=.):next
@@ -218,7 +218,7 @@
 3398 if a%=.then gosub 92:goto 3412
 3400 g$=m$+l$:for i=1 to a%:b=asc(tt$(i)+nl$)+asc(mid$(tt$(i),2)+nl$)*256
 3402 d=d+b:tt$(i)=mid$(tt$(i),3):next
-3404 a=a%:gosub 3036:a$="  "+g$:gosub 51:rem:print#2,a$
+3404 a=a%:gosub 3036:a$="  "+g$:gosub 51:rem print#2,a$
 3405 c$=l$:a%=a:gosub 3052:a%=a
 3406 x=3:&,25,.,x:gosub 3082:tr%=rs
 3408 uc=uc+a%:bu=bu+d:a=2:gosub 11:cr=int(cr+d*a):gosub 30
@@ -258,4 +258,4 @@
 3512 return
 3520 &,52,$34,3:on-(a%=.) goto 3522:&,52,$35,.:poke 53370,0
 3522 return
-3599 rem:"i.UX (c)nissa 210306 lh"
+3599 rem "i.UX (c)nissa 210306 lh"

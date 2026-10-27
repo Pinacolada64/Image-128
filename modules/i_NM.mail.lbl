@@ -59,7 +59,7 @@
 4636 forz=1ton:an$=nn$(z):gosub505:ifi=0thengosub4650:goto4644
 4638 st(3)=st(3)+1:st(14)=st(14)+1:st(25)=st(25)+1:st(32)=st(32)+1
 4640 ifi=1thenst(2)=st(2)+1:st(13)=st(13)+1:st(24)=st(24)+1:st(31)=st(31)+1
-4642 rem:st(25)=st(25)+e%(z)
+4642 rem st(25)=st(25)+e%(z)
 4644 gosub30
 4646 x=13:gosub17:x=14:gosub17:x=24:gosub17:x=25:gosub17:x=31:gosub17:x=32:gosub17
 4648 next:close2:return
@@ -132,4 +132,4 @@
 4994 f=0:ifkkthenfork=1tokk:f=(tt$=tt$(k))orf:next
 4996 iff=0thenkk=kk+1:tt$(kk)=tt$
 4997 return
-4999 rem:"i/ÎÍ.mail (c)nissa 211221 lh"
+4999 rem "i/ÎÍ.mail (c)nissa 211221 lh"

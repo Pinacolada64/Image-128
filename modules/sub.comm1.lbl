@@ -77,4 +77,4 @@
 60216 if pt%then t%=p1%
 60218 &"{f6}Sorry, You Cannot Have More{f6}Than {pound}%t Minutes Total.{f6:2}":return
 60300 return
-60302 rem:"sub.comm1 (c)nissa 230704 lh"
+60302 rem "sub.comm1 (c)nissa 230704 lh"

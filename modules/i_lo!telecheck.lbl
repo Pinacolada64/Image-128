@@ -26,4 +26,4 @@
 4527 &,52,50,3:on a%goto 4530
 4528 if c$<>t$then print# 2,p$:print# 2,"{lt. green}" t$" {cyan}({f5}" an$"{f5} Was Entered)" r$
 4530 return
-4532 rem:"i/lo!telecheck (c)nissa 200928 lh"
+4532 rem "i/lo!telecheck (c)nissa 200928 lh"

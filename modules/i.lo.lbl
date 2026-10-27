@@ -12,7 +12,7 @@
 {include:"..\asm\equates.asm"}
 
 3000 k%=.:rs=.:&,52,46,3:am=a%:close2:close5
-3001 rem:&"f1="+str$(f1)+"‹mm="+str$(mm)+"‹"
+3001 rem &"f1="+str$(f1)+"‹mm="+str$(mm)+"‹"
 3002 onmmgoto,3422,3420,3080,3022,3040,3400,3231,3116,3118,3234,3114,3050,3115
 3004 onf1goto3200,3220,3230,3118,3122:goto3100
 3022 im=3:gosub446:gosub3024:poke{sym:carrst},.:return
@@ -119,4 +119,4 @@
 3600 gosub90:dr=1:on-(mid$(d1$,4,2)="12")goto3604
 3602 a$="s.logo"+str$(int(rnd(.)*7)+1):gosub13:&"{pound}u0":return
 3604 a$="s.logo"+str$(int(rnd(.)*6)+8):gosub13:&"{pound}u0":return
-3999 rem:"i.lo (c)nissa 230313 lh-ad-rs"ready.
+3999 rem "i.lo (c)nissa 230313 lh-ad-rs"ready.

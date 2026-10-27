@@ -70,4 +70,4 @@
 4193 if pw$=z$then 4200
 4194 &"{f6:2}Login is not valid.":a$="telecheck":gosub 4004:goto 4170
 4200 &"{f6}{cyan}Login {white}Successful{cyan}!{f6:2}":ll%=l9%:poke {sym:modclmn},ll%:mm=10:goto 3000
-4210 rem:"i/lo.login (c)nissa 200621 lh-ad "
+4210 rem "i/lo.login (c)nissa 200621 lh-ad "

@@ -115,4 +115,4 @@
 4662 a=val(an$):ifan$="{f2}"thengosub{$33}090
 4664 s%(1,br)=a:return
 4666 return
-4700 rem:"i/ÇÆ-maint (c)nissa 190523 lh"
+4700 rem "i/ÇÆ-maint (c)nissa 190523 lh"

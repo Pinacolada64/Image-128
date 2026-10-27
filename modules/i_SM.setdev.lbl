@@ -27,4 +27,4 @@
 4274 &"{lt. blue}Which Device has the CMD{f6}RTC Option Installed?{f6:2}":p$="{cyan}CMD Device{white}":&,1,32:a=val(an$):if a<8 or a>16 then a=8
 4275 y%=a
 4276 gosub 33:x=37:gosub 1:print# 2,y%:close 2:gosub 5:&:return
-4278 rem:"i/SM.setdev (c)nissa 190125 lh"
+4278 rem "i/SM.setdev (c)nissa 190125 lh"

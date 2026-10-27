@@ -17,4 +17,4 @@
 4012 if n<60 then jm%(0,n)=0:jm%(1,n)=0:n=n+1:goto 4012
 4014 close 2:dr=3:gosub 3:a$=dr$+"e.menu"+str$(m)
 4016 print# 15,"s" a$:&,60,3,0,jm%(0,0),3600,a$,dv%:gosub 5:&:return
-4018 rem:"i/SM.conmenu (c)nissa 190124 lh"
+4018 rem "i/SM.conmenu (c)nissa 190124 lh"

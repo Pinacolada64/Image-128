@@ -82,5 +82,5 @@
 4130 close 3:dr=4:gosub 3:print# 15,"s" dr$"d.n.Main"
 4132 a$="d.n.Main,s,w":gosub 4:print# 2,n:for i=1 to n:print# 2,tt$(i);:next:close 2
 4134 return
-4136 rem:"i/NM.update (c)nissa 190107 lh"
+4136 rem "i/NM.update (c)nissa 190107 lh"
 4138 rem check 4128 was 048 at end of line

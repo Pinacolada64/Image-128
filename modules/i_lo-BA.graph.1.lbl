@@ -26,4 +26,4 @@
 4530 b%=st(21):c%=st(22):a=b%+c%:if athen b%=int(b%/a*100+.5):c%=100-b%
 4532 &"{white}{pound}$l       Used Time:{pound}#3{pound}# {pound}%b%    Idle Time:{pound}#3{pound}# {pound}%c%{f6}{lt. blue}"
 4534 &"{f6}(Press any key){pound}g1":return
-4536 rem:"i/lo-BA.graph.1 (c)nissa 190412 lh"
+4536 rem "i/lo-BA.graph.1 (c)nissa 190412 lh"

@@ -83,4 +83,4 @@
 3146 print#2,"has been accepted!!":print#2,"{^}":close2
 3148 &"{f6:2}Tidings sent!{pound}w2":goto3010
 3150 copr. 1994 new image 9/18/94
-3152 rem:"i.JA (c)nissa 190313 lh"
+3152 rem "i.JA (c)nissa 190313 lh"

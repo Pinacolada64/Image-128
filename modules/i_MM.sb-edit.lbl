@@ -66,4 +66,4 @@
 4098 &,16,10:xx%=a%:on-(xx%>=rs)goto4090:goto4046
 4100 &,40:a$=chr$(1):z%=(peek({sym:fretop}+1)-peek({sym:strend}+1))*256+peek({sym:fretop})-peek({sym:strend}):return
 4102 copr.1990 new image 07/04/90
-4104 rem:"i/ออ.sb-edit (c)nissa 210307 lh"
+4104 rem "i/ออ.sb-edit (c)nissa 210307 lh"

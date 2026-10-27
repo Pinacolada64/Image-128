@@ -31,4 +31,4 @@
 4602 for x=1 to 7:gosub 1:&,2,2:for y=.to 10:&,2,2:sy(y)=sy(y)+val(a$)
 4606 next y:next x
 4608 return
-4999 rem:"i/lo-BA.graph.2 (c)nissa 230727 lh"
+4999 rem "i/lo-BA.graph.2 (c)nissa 230727 lh"

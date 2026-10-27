@@ -35,4 +35,4 @@
 4546 print# 2,na$r$d1$r$an$
 4548 close 2:close 15:&"{pound}q0"
 4550 return
-4552 rem:"i/lo-wall (c)nissa 191218 lh"
+4552 rem "i/lo-wall (c)nissa 191218 lh"

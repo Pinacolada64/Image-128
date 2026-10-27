@@ -43,4 +43,4 @@
 4060 return
 4062 &"{f6}Network Not Configured{f6:2}Private NetSub Response Impossible{f6}":goto{$33}464
 4064 rem copr.1990 image 06/14/90  9:41pm
-4066 rem:"i/ออ.sb-mail (c)nissa 210429 lh"
+4066 rem "i/ออ.sb-mail (c)nissa 210429 lh"

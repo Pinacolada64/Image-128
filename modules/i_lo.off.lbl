@@ -45,4 +45,4 @@
 ' a$'s minute of the day, in a: d1$'s hour at 8-9 (1-12, plus 80 after noon: midnight
 ' is 12, noon 92), b true after noon; the minute at 10-11
 4177 a=val(mid$(a$,8,2)):b=(a>80):a=a+80*b:a=a+12*(a=12):a=a*60-720*b+val(mid$(a$,10,2)):return
-4178 rem:"i/lo.off (c)nissa 220714 lh"
+4178 rem "i/lo.off (c)nissa 220714 lh"

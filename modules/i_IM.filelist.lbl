@@ -40,4 +40,4 @@
 4130 if an$="{f2}" then for i=1 to bz:a$=tt$(i):&"{pound}!i{pound}{back arrow}04{pound}$a{f6}":next:goto 4128
 4132 if b>0 and b<=fdthen tz=1:s%(a+8,x)=b
 4134 goto 4124
-4136 rem:"(c)nissa 181229 lh
+4136 rem "(c)nissa 181229 lh

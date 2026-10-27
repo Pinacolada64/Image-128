@@ -46,4 +46,4 @@
 4070 &"{f6:2}{lt. green}Message Transfer Complete{pound}q0{f6:2}"
 4072 x=3:gosub{$33}002:a%=.:a$="net":gosub28:return
 4074 copr.1990 new image 12/18/90 10:00p
-4076 rem:"i/ÎÍ.netsub4 (c)nissa 190216 lh"
+4076 rem "i/ÎÍ.netsub4 (c)nissa 190216 lh"

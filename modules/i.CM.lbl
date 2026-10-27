@@ -128,4 +128,4 @@
 3230 if(dc+bd)>f%*(uc+bu)+100then:&"{f6} {lt. red}You Are Not Eligible To Use The MALL{cyan}":goto300
 3232 &"{f6:2} {gray3}You May Enter The MALL":gosub3012:goto3050
 3234 copr. 1994 new image 9/14/94
-3236 rem:"i.CM (c)nissa 190113 lh"
+3236 rem "i.CM (c)nissa 190113 lh"

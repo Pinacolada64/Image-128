@@ -99,4 +99,4 @@
 3172 &"{f6}In Memory  : {pound}%b{f6}Remaining  : {pound}%c":ifzzthen:&"{f6}Free Memory: {pound}%z"
 3174 &"{f6:2}":return
 3176 copr. 1990 new image 01-29-95
-3178 rem:"i.NW (c)nissa 190307 lh"
+3178 rem "i.NW (c)nissa 190307 lh"

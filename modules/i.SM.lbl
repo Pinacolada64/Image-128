@@ -82,4 +82,4 @@
 3128 &"{f6}{yellow}Sorry, these utilities are for {f6}Lt. Kernal use only.{pound}w3{f6}":goto 3000
 3130 a$="IM":goto 70
 3132 &"{f6}This function for future use.{pound}w3":goto 3090
-3999 rem:"i.SM (c)nissa 230715 lh"
+3999 rem "i.SM (c)nissa 230715 lh"

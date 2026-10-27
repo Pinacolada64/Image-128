@@ -100,5 +100,5 @@
 3180 ed$(8)="Serial Number":ed$(9)="Board Name":ed$(10)="Voice Number"
 3182 ed$(11)="Telnet Addr.":ed$(12)="Network":ed$(13)="Node ID":return
 3184 copr. 1994 new image 10/10/94
-3186 rem:fixes 181220 x-tec
-3190 rem:"i.SF (c)nissa 210712 lh"
+3186 rem fixes 181220 x-tec
+3190 rem "i.SF (c)nissa 210712 lh"

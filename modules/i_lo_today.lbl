@@ -49,4 +49,4 @@
 4076 for i=1 to tt(3):a$=zt$(3,i):print# 2,a$:next
 4078 close 2:gosub 82:return
 4080 rem (c) 1992 tlm software
-4082 rem:"i/lo/today (c)nissa 190531 lh"
+4082 rem "i/lo/today (c)nissa 190531 lh"

@@ -9,7 +9,7 @@
 
 4000 rem greed reset 12/31/90
 4002 cm$="am.gd":gosub9:bh=.:ad$=""
-4004 rem:ifleft$(d1$,1)>"1"thenreturn
+4004 rem ifleft$(d1$,1)>"1"thenreturn
 4006 a$="e.g.five":p=1:w$=""
 4008 dr=3:gosub4:ife%then4048
 4010 input#2,w$:close2
@@ -81,4 +81,4 @@
 4142 rem *  written by cregan
 4144 rem *  the codex bbs/nissa
 4146 rem *  an original nissa file
-4150 rem:"i/lo/gd (c)nissa 211218 lh"
+4150 rem "i/lo/gd (c)nissa 211218 lh"

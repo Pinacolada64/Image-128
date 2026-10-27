@@ -92,4 +92,4 @@
 3162 lp=1:&"and the header will be removed from memory. Just press RETURN to "
 3164 lp=1:&"exit to Grab mode. You may also enter {f5}L{f5} to list the headers "
 3166 lp=1:&"that are currently in memory.{f6:2}":return
-3168 rem:"i.MU (c)nissa 210305 lh"
+3168 rem "i.MU (c)nissa 210305 lh"

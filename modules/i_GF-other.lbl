@@ -58,4 +58,4 @@
 4346 fl=.:rs=1:return
 4400 return
 4500 &"Sorry, that is not yet supported.{pound}w1":return
-4501 rem:"i/GF-other (c)nissa 190523 lh"
+4501 rem "i/GF-other (c)nissa 190523 lh"

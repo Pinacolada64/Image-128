@@ -30,4 +30,4 @@
 4038 print#2,"IMAGE"r$"0"d1$r$"0"r$"None"r$"IMAGE BBS"r$"Commodore 64"
 4040 print#2,"Paycheck To Non-Existant User:"r$tt$r$"{^}":close2:return
 4042 copr. 1990 new image 12-26-90
-4099 rem:"i/lo/payroll (c)nissa 211226 lh"
+4099 rem "i/lo/payroll (c)nissa 211226 lh"

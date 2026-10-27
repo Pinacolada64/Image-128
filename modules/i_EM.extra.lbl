@@ -8,9 +8,9 @@
 {uses:..\3_0-preface.lbl}
 {alpha:alt}
 
-4000 rem:em.extra
+4000 rem em.extra
 4002 onmmgoto4004,4072,4076,4084
-4004 rem:forced mail
+4004 rem forced mail
 4006 p$="":pr$="":cm$="FORCE Mail":gosub9:a=8:gosub11:ifa=.then4070
 4008 &"{f6} (E)rase Or, (S)end Force Mail?: {pound}i1":ontr%+1goto4070
 4010 fl=-(an$="E"):iffl=.andan$<>"S"then4070
@@ -44,13 +44,13 @@
 4066 forx=1tokk:print#2,tt$(x):next:close2:goto4008
 4068 a$="f."+left$(nn$,13):dr=2:gosub19:&"{f6}Mail Erased!{f6}":goto4008
 4070 goto{$33}088
-4072 rem:list active
+4072 rem list active
 4074 &"{f6} Active Network Nodes:{f6:2}":gosub{$33}426:return
-4076 rem:list all
+4076 rem list all
 4078 &"{f6} All NetWork Nodes:{f6:2}":dr=2:a$="nm.nodes":gosub4:input#2,n
 4080 fori=1ton:a%=i:x=i+1:gosub1:input#2,a$,b$,b$:&"{pound}#2{pound}%a:/{pound}$a/{pound}{back arrow}10{pound}$b{f6}"
 4082 i=i+rc*n:next:close2:return
-4084 rem:node info
+4084 rem node info
 4086 a=abs(val(mid$(an$,3,3)))
 4088 dr=2:a$="nm.nodes":gosub4:input#2,n:ifa<1ora>nthen4100
 4090 x=a+1:gosub1:input#2,a$,b$,c$,d$,o%,a%,b%,c%,d%:close2:n%=a
@@ -59,4 +59,4 @@
 4096 &" Connected To #{pound}%a":ifb%then:&",#{pound}%b":ifc%then:&",#{pound}%c":ifd%then:&",#{pound}%d"
 4098 &"{f6}":close2:return
 4100 close2:&"{f6}Unkown Node #!{f6}":return
-4102 rem:"i/ем.extra (c)nissa 210307 lh"
+4102 rem "i/ем.extra (c)nissa 210307 lh"

@@ -119,4 +119,4 @@
 4338 &"{f6}Save Changes? ":gosub 94:if athen gosub 4306
 4340 &"{f6}Activate Saved Table? ":gosub 96:if athen gosub 4312
 4342 return
-4344 rem:"i/IM.lightbar (c)nissa 201031 lh"
+4344 rem "i/IM.lightbar (c)nissa 201031 lh"

@@ -344,4 +344,4 @@
 4666 gosub5:ife%=0thenxx=xx+1:goto4664
 4668 next:goto4324
 4670 copr.1990 new image 12/06/90 11:55p
-4672 rem:"i/SM.reledit (c)nissa 210307 lh
+4672 rem "i/SM.reledit (c)nissa 210307 lh

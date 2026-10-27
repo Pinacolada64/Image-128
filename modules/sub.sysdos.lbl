@@ -14,4 +14,4 @@
 60008 b$=left$(z$,1):if b$="n" or b$="s" then:gosub 93:if a=.then return
 60010 gosub 3:print# 15,z$:gosub 5:&:return
 60012 x=6:goto 390
-60100 rem:"sub.sysdos (c)nissa 190104 lh"
+60100 rem "sub.sysdos (c)nissa 190104 lh"

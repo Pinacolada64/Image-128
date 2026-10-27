@@ -33,4 +33,4 @@
 4044 x%=1:mm=10:goto 3000
 4050 &"{f6}{lt. red}Login is not valid.{f6}":goto 4022
 4052 lp=1:&"{f6}{lt. red}That account has been deleted or is not active.{f6}":goto 4022
-4062 rem:"i/lo.instant (c)nissa 201007 lh-ad"
+4062 rem "i/lo.instant (c)nissa 201007 lh-ad"

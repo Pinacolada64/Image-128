@@ -101,4 +101,4 @@
 4226 b$="{gray3}In"+str$(ll%)+" Col. "+b$+" Mode":return
 4228 &"{clear}{blue}{rvrs on}{pound}{back arrow}39{f6}{rvrs on} {cyan}           Image BBS V3.0{pound}{back arrow}37{blue}  {f6}"
 4229 &"{rvrs on} {cyan}        Logon Menu Selection{pound}{back arrow}37{rvrs off} {rvrs on}{blue} {f6}{rvrs on}  {rvrs off}{pound}{back arrow}38{rvrs on} {f6}":return
-4230 rem:"i/lo.on (c)nissa 231215 lh ad"
+4230 rem "i/lo.on (c)nissa 231215 lh ad"

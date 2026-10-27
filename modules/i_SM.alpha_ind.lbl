@@ -45,4 +45,4 @@
 4068 &"Kill  :Pos={pound}i1":a=val(an$):if a=.then close 2:return
 4070 b%=a:&"Deleting #{pound}%b.{f6}":a%=a:&,16,5:goto 4068
 4072 rem copr.1989 new image
-4074 rem:"i/SM.alpha/ind (c)nissa 190124 lh"
+4074 rem "i/SM.alpha/ind (c)nissa 190124 lh"

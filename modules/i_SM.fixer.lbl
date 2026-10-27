@@ -53,4 +53,4 @@
 4088 gosub 1:&,2,2:if a$="{^}" then l=x:x=ur
 4090 next:l1=l
 4092 gosub 33:x=31:gosub 1:print# 2,l1:close 2:return
-4194 rem:"i/SM.fixer (c)nissa 211217 lh"
+4194 rem "i/SM.fixer (c)nissa 211217 lh"

@@ -81,4 +81,4 @@
 3126 goto 3000
 3128 &"{f6}{yellow}Sorry, these utilities are for {f6}Lt. Kernal use only.{pound}w3{f6}":goto 3000
 3130 a$="lo.im":goto 70
-3132 rem:"i.lo.sm (c)nissa 220325 lh"
+3132 rem "i.lo.sm (c)nissa 220325 lh"

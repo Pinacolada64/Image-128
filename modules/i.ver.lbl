@@ -7,6 +7,6 @@
 {uses:..\3_0-preface.lbl}
 {alpha:alt}
 
-3000 rem:display version
+3000 rem display version
 3002 &,5:a=lp:lp=1:&"{f6}Image BBS V3.0: {pound}$a{f6}":goto300
 3004 i.ver (c)nissa 200925 lh"

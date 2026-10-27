@@ -20,8 +20,8 @@
 4018 close 15:open 15,hd,15
 4020 print# 15,"m-r" chr$(160) chr$(254) chr$(6)
 4022 c$="":for i=1 to 6:get#15,b$:c$=c$+b$:next
-4024 rem:ifc$="cmd hd"then4028
-4026 rem:&"‹œThat šis noŸt a C™MD Hažrd-dr–ive...‹‹\w4":goto4014
+4024 rem ifc$="cmd hd"then4028
+4026 rem &"‹œThat šis noŸt a C™MD Hažrd-dr–ive...‹‹\w4":goto4014
 4028 print# 15,"t-rd"
 4030 get#15,wd$:wd=asc(wd$+chr$(0))
 4032 get#15,yr$:yr=asc(yr$+chr$(0))
@@ -106,4 +106,4 @@
 4187 &"{f6}{white}Sorry, RTC module not installed. {pound}w3"
 4188 &,28,1:return
 4190 rem - "Z*TRONICS mods for Image"
-4192 rem:"i/SM.cmdclock (c)nissa 200722 lh"
+4192 rem "i/SM.cmdclock (c)nissa 200722 lh"

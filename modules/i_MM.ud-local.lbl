@@ -75,4 +75,4 @@
 4120 &,25:&"{f6}Status:{f6:2}Source: {pound}$e{f6}Target: {pound}$f{f6}":return
 4122 x=6:gosub390:j=f%:return
 4124 copr.1990 new image 10/28/90
-4126 rem:"i/ออ.ud-local (c)nissa 210307 lh"
+4126 rem "i/ออ.ud-local (c)nissa 210307 lh"

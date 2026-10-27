@@ -59,4 +59,4 @@
 4936 &" {white}{pound}#2{pound}# {pound}%a {lt. red}[{white}{pound}#4{pound}%b{lt. red}] {green}{pound}#3[{white}{pound}%c{green}] {lt. blue}"+c$+"{pound}{back arrow}39"
 4938 s=rc:s=s+rc:&"{pound}q0":return
 4940 copr.1989 new image 10/28/90
-4942 rem:"i/ออ.ud-edit (c)nissa 190201 lh"
+4942 rem "i/ออ.ud-edit (c)nissa 190201 lh"

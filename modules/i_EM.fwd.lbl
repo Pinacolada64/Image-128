@@ -57,4 +57,4 @@
 4330 fori=0tokk-1:print#2,tt$(i):next:print#2,"{^}":close2
 4332 gosub{$33}440:&"Done!{f6}"
 4334 return
-4999 rem:"i/ем.fwd (c)nissa 230319 lh"
+4999 rem "i/ем.fwd (c)nissa 230319 lh"

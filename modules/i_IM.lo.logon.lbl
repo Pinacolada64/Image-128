@@ -223,4 +223,4 @@
 4724 ifx>loorx<1orx>15then:&"Illegal Value!":x=.
 4726 return
 4728 copr. 1994 new image 12/19/94
-4730 rem:"i/IM.lo.logon (c)nissa 220325 lh"
+4730 rem "i/IM.lo.logon (c)nissa 220325 lh"
