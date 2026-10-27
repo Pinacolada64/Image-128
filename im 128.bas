@@ -384,13 +384,15 @@
 ' 836 itself is in the 128's KERNAL RAM
 3066 open 4,4,7:poke {sym:datebuf}+5,1:poke {sym:keyrept},128
 3068 poke 56328,.:poke 56579,peek(56579)or 38:poke 56577,peek(56577) or 36
-3070 dim tt$(254),dv%(36),dr%(36),co$(9),hs$(10),bf(6),st(38),im$(5),pf$(10)
+3070 dim tt$(254),dv%(36),dr%(36),co$(9),hs$(10),bf(6),st(40),im$(5),pf$(10)
 3073 restore 3500:for i=1 to 9:read a$:co$(i)=a$+"":next
 ' dv%=peek(828):z%=dv%:dr$="0"+":":bd$=dr$:sr=2:pr=-1:f3=1:sys 49155:&,53
 ' sys protostart+3: intro's "jmp setup" (c64: sys 49155, $c003)
 3074 dv%=peek({sym:bootdev}):z%=dv%:dr$="0"+":":bd$=dr$:sr=2:pr=-1:f3=1:sys {sym:protostart}+3:&,53
 ' NOTE: __BuildDate and __BuildTime are themselves quoted strings, hence the weirdness here:
-3075 &,69,0,0,"im 128 revision: "+{usedef:__BuildDate}+" "+{usedef:__BuildTime},3
+' 10/27/2026: &,69 is column, then row, and row 0 draws nothing (dispstr6 skips
+' it): row 1, under intro's " Image BBS 128 v..." on row 0 (the frame is 2-5)
+3075 &,69,1,1,"im 128 revision: "+{usedef:__BuildDate}+" "+{usedef:__BuildTime},3
 ' a$="NTSC":if peek(678) then a$="PAL"
 3076 a$="NTSC":if peek({sym:ntscpal})=255 then a$="PAL"
 3078 gosub 3400:z3$=a$+" System Detected.":gosub 3404
@@ -468,7 +470,7 @@
 ' boot with ?SYNTAX ERROR
 3158 poke {sym:ptrlinm},.:poke {sym:usrlin},23:mp$=" ...More? (Y/n) "+"":im=5:gosub 447:gosub 3250
 
-3160 gosub 30:for x=1 to 38:gosub 1:&,2,2:st(x)=val(a$):next:close 2
+3160 gosub 30:for x=1 to 40:gosub 1:&,2,2:st(x)=val(a$):next:close 2
 3162 an$=am$:lt$=am$:tk$=left$(am$,1):gosub 3300
 3164 close 2:gosub 3186:&,37
 3166 a$=z$:t1=mn%:an$=z$:&,15:d2$=an$+"M":for i=54272 to i+24:poke i,.:next
@@ -668,6 +670,10 @@
 4032 for i=1 to 10:a$=chr$(58-i):if hs$(i)<>"" then print#2," {uparrow}"a$": "hs$(i)
 ' check right Dbg lightbar flag *before* color 4,3 to turn vic-ii border red
 4034 next:print#2,"^":close 2:rem &,52,57,3:if a% then color 4,3
+' 10/27/2026: count the error: st(39) since the daily reset (i/lo.automaint
+' 4064), st(40) since setup. e.stats has 40 records (i/su.config); 39 and 40
+' were unused. sub.display shows them in 80 columns
+4035 gosub 30:i=1:x=39:gosub 16:x=40:gosub 16:close 2
 4036 a$="User  : "+na$+r$+"Error :"+d$+r$+"Line  :"+str$(b)+r$+"Time  : {04}"+d1$+r$
 4038 a$=a$+"Pfile : "+pr$+r$+"Area  : "+cm$+r$+".":remgosub 51
 4040 close 2:&,37:for x=1 to 4:&,11,x:next:sy$="":sb$="":sg=.

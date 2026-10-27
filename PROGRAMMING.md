@@ -68,6 +68,30 @@ Each trap sets only its own: after an error Image's trap took, `er` and
 `peek(7)+peek(8)*256`; after one BASIC's `trap` took, those bytes are
 whatever they were. `tests/standin/trap.bas` shows both.
 
+## Daily statistics: `st()` and `e.stats`
+
+`st(x)` holds record `x` of the REL file `e.stats`: im reads them all at
+boot (line 3160), `gosub 30` opens the file, `gosub 16` adds `i` to
+record `x` and writes it back, `gosub 17` writes `st(x)` as it is. Image
+3.0's manual lists records 1-36 (`docs/prg-im-routines.adoc`, "e.stats
+records" in the ImageBBS3 repo): feedback, mail, posts and so on, each as
+last, log, current and total. Records 37 and 38 are the time used and the
+time idle, in total (i.lo line 3080, `st(x+27)` for `x` 10 and 11).
+
+Image BBS 128 adds two (10/27/2026), so `st()` is DIMmed `st(40)`:
+
+| Record | Counts | Reset |
+|---|---|---|
+| 39 | errors since the last daily maintenance | daily, with records 12-22 (`i/lo.automaint` line 4064) |
+| 40 | errors since setup | never |
+
+im's error handler adds one to both (line 4035) after it writes the error
+to `e.errlog`. In 80 columns, `sub.display` shows them on the status
+area's right half ("Errors today/total"). `i/su.config` has always created
+`e.stats` with 40 records, so disks set up before this have both, at 0.
+Code that reads all of `st()` reads 40 records: im line 3160,
+`i/lo.automaint` line 4032 and `sub.bar` line 60006.
+
 ## BASIC 7.0's stack
 
 FOR, GOSUB and DO keep their frames on BASIC 7.0's own stack at

@@ -30,7 +30,7 @@
 4026 x=31:gosub 1:input# 2,l1:close 2:gosub 31:if e%then close 2:goto 4032
 4028 for x=1 to 10:gosub 1:&,2,2:&,2,2:fl$(x-1)=a$:next
 4030 x=val(i1$)+1:gosub 1:&,2,2:i3$=a$:close 2
-4032 gosub 30:for x=1 to 38:gosub 1:input# 2,st(x):next:close 2:im=11:goto 445
+4032 gosub 30:for x=1 to 40:gosub 1:input# 2,st(x):next:close 2:im=11:goto 445
 4034 &"{f6}{green}Computing Idle/Used Time{f6}":i=t1:a$=d1$:a=mn%:t1=a:if a<ithen a=a+1440
 4036 gosub 30:i=a-i:st(11)=i:x=11:gosub 17:x=22:gosub 16:x=38:gosub 16
 4038 close 2:return
@@ -47,7 +47,8 @@
 4058 a$=" {yellow}{pound}o{$c0}{pound}o{$c0}"+r$+a$+" {yellow}{pound}o{$c0}{pound}o{$c0}"+r$
 4060 print# 2,a$:close 2
 4062 gosub 62
-4064 gosub 30:for x=12 to 22:st(x)=.:gosub 17:next:close 2
+' 10/27/2026: st(39), errors since the last reset, is a daily count too
+4064 gosub 30:for x=12 to 22:st(x)=.:gosub 17:next:x=39:st(x)=.:gosub 17:close 2
 4066 &"{f6} Weekly Log Restarted.{f6:2}":t$=am$:am$=d1$+"":lt$=d1$+"":return
 4068 k$=".prev":a$="e.logweek"+k$
 4070 &"{f6}{brown} Archiving Weekly Log{f6}"

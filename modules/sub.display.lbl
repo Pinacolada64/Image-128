@@ -1,5 +1,6 @@
 {undef:use_old_method}
 {alpha:alt}
+{include:"..\asm\equates.asm"}
 {assign:84=84}
 {:60000}
 {step:2}
@@ -9,6 +10,7 @@
 ' im=4: display file transfer mask. device=dv%(bn+6), drive=dr%(bn+6)
 ' im=5: display file transfer mask. device=d1%, drive=d2%, an$=filename
 	on im gosub {:sub.user_online_info}, {:sub.wait_for_call_blank}, {:sub.user_online_blank}, {:sub.file_xfer_1}, {:sub.file_xfer_2}
+	if sw=80 then gosub {:sub.system_box}
 	return
 
 {nice:100} ' 60100
@@ -173,3 +175,23 @@
 	for y=1 to 5:&,69,39,y+16,mid$(a$,y,1),c:next:return
 
 	rem sub.display (c)nissa 2020-05-19 lh, 2024-06-06 pinacolada
+
+{nice:100}
+' 10/27/2026: in 80 columns, system stats on the status area's right half,
+' rows 17-21 from column 41 (the left half's PRIME flag is column 39): errors
+' since the daily reset and since setup (st(39), st(40): im 4035), free
+' string space (fretop - strend, bank 1) and free stack (usr(0), as im's 209
+' shows it), and row 24's bar on to column 79. Only a$ and l, which this
+' module uses anyway, so callers keep
+' their variables. Drawn whenever the status area is drawn
+{:sub.system_box}
+	a$=" Errors today/total: "+mid$(str$(st(39)),2)+"/"+mid$(str$(st(40)),2):l=17:gosub {:system_line}
+	a$=" String space free:  "+mid$(str$(peek({sym:fretop})+256*peek({sym:fretop}+1)-peek({sym:strend})-256*peek({sym:strend}+1)),2):gosub {:system_line}
+	a$=" Stack free:         "+mid$(str$(usr(0)),2):gosub {:system_line}
+	a$="":gosub {:system_line}:gosub {:system_line}
+' the bottom line (row 24, tdisp) on to column 79: reversed spaces in the
+' reverse and color of its column 1 (the date), as the left half shows it
+	&,69,40,24,"{space:40}",(peek({sym:tdisp}+1) and 128)+(peek(55296+961) and 15):return
+' a$ on row l, padded to 38 columns
+{:system_line}
+	&,69,41,l,left$(a$+"{space:38}",38),$8c:l=l+1:return

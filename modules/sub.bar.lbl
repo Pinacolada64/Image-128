@@ -10,7 +10,7 @@
 60000 onimgoto60002,60008,60100:return
 60002 gosub60004:&"{pound}{back arrow}13{rvrs on} PRESS A{shft space}KEY {pound}g1{f6}":return
 60004 a=11:gosub11:on-(a<>.)goto60008:return
-60006 gosub30:forx=1to38:gosub1:&,2,2:st(x)=val(a$):next:close2
+60006 gosub30:forx=1to40:gosub1:&,2,2:st(x)=val(a$):next:close2
 60008 b$=d6$:&"{clear}  Restarted: {pound}$b"
 60010 &"{f6} {rvrs on}{purple}  B.A.R.  {lt. blue} This   Log  Current System "
 60012 &"{f6} {rvrs on}{purple}  Stats   {lt. blue} Call  Total  Total  Total  ":restore
