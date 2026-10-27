@@ -33,6 +33,7 @@ They're petcat source (BASIC 7.0), not C64List: `chr$(92)` for `£`, no
 | `dskin.bas` | `&,2,2` into `a$`, then `g$=a$`, `h$=a$`, `u$=a$`: each keeps its own line (`dskina`/`strfix`), through `fre(1)` and 150 more reads. Reads `t.lines` (`dskin.t.lines.seq`, put on its disk by `standin.sh`) |
 | `clrarr.bas` | `&,11,0` clears `tt$()`, then two new variables move the arrays and `fre(1)` collects: run `tools/strcheck.py --port 6537` at the end, no damage (the old `clrarr` left the strings linked into a new variable) |
 | `arrayrs.bas` | `&,28` as im's line 304 runs it: im's arrays (`tt$()`, `co$()`...) saved with `&,27,1`, then 20 rounds of `&,28,1`, line 306's DIMs (`bb$()`...) with strings in them, four new variables and `fre(1)`: `co$()` and `tt$(1)` stay right, and `tools/strcheck.py --port 6537` at the end finds no damage (with the old `&,28` it found one, linked into dropped memory) |
+| `color.bas` | colour codes in `&` output (red, white, cyan): the monitor reads VIC colour RAM (`$d800`) in 40 columns or VDC attributes (`$0800`) in 80; before `sc9` passed the codes to the screen editor, all three stayed one colour |
 | `errmenu.bas` | an error inside `&,16,0` (`++ menu2`) and a plain `?bad subscript`, caught by Image's trap at line 2000, which reads `peek(6)`-`peek(8)`, closes files as `im` does, and prints them with MCI `\!x` |
 
 ## What a stand-in has to set up

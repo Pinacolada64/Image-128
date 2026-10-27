@@ -67,7 +67,13 @@ sc9:
 	tay
 sc9a:
 	sty mcolor
-	rts
+; 128: and pass the code to the screen editor, which sets its own color from
+; it: a VIC color number in 40 columns, a VDC attribute in 80 (with the
+; alternate set bit). On the c64 mcolor was 646, the KERNAL's color itself;
+; here it's Image's own byte (MCI's kolorific and file read modes read it),
+; so the codes in & output changed nothing on the screen.
+	lda colors,y
+	jmp prtscn
 
 sc6:
 	tya
