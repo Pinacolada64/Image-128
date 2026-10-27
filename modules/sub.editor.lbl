@@ -30,7 +30,9 @@
 60030 b$="Get":gosub60004:onflgoto60108:&"{f6:2}":gosub60126:v$=an$:ifv$=""then60110
 60032 gosub349:gosub350:ifathen:gosub60134:goto60032
 60034 gosub3:a$="r":gosub60002:gosub60122:ife%thenclose6:&:goto60110
-60036 &,2,6:tt$(kk)=a$:kk=kk+1:gosub60124:on-(z%>100andkk<254andst=0)goto60036
+' 10/27/2026: im 47 reads the file (it was a loop here, which searched all of
+' im for its line each pass); im 48 is z%, which was 60124
+60036 gosub47
 60038 close6:goto60110
 60040 onkkgoto60108:b$="Put":gosub60004:onflgoto60108:&"{f6:2}"
 60042 ifv$<>""thenpoke53252,16:w$=v$:&,1,32:goto60046
@@ -71,10 +73,11 @@
 60112 b$="Signature":gosub60004:onflgoto60100:&"{lt. green}Which signature? (0-9) {pound}g1"
 60114 &"{f6:2}":v$="ps."+an$+na$:dr=3:a$="r":gosub3:gosub60002:gosub60122
 60116 a=1948:ife%thenclose6:&:goto60110
-60118 &,2,6:tt$(kk)=a$:kk=kk+1:gosub60124:on-(z%>100andkk<254andst=.)goto60118
+' 10/27/2026: im 47, as 60036
+60118 gosub47
 60120 close6:goto60110
-60122 &,40
-60124 z%=(peek({sym:fretop}+1)-peek({sym:strend}+1))*256+peek({sym:fretop})-peek({sym:strend}):return
+' 10/27/2026: on to z% in im 48, as it fell through to 60124 before
+60122 &,40:goto48
 60126 pl=.:poke53249,pl:lp=.:&,1:return
 60128 &"{f6}Sorry, {pound}$b Limit Exceeded.{f6}":return
 60130 gosub350:onagoto60134:&"{f6}Pattern: ":gosub289:b$="*"

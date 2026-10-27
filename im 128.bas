@@ -65,6 +65,13 @@
 44 a=rnd(-ti):x=int(rnd(1)*x)+2:gosub 1
 45 input#2,b$,c$,d$,f$:gosub 90:lp=1:&"{f6}{pound}$q{white} {pound}$b{f6}{pound}$q{cyan} {pound}$c{f6}{pound}$q{yellow} {pound}$d{f6}{pound}$q{orange} {pound}$f{f6}{pound}q0"
 46 close 2:return
+' 10/27/2026: read LFN 6 into tt$(kk) on, kk then the next free line (as 39
+' writes them); stops at the end of the file, at tt$(253), or with under 100
+' bytes free for strings. For i.WF and sub.editor: their loop, back here in im,
+' doesn't search all of im for its line each pass as a module's GOTO does
+47 do:&,2,6:tt$(kk)=a$:kk=kk+1:gosub 48:loop while z%>100 and kk<254 and st=.:return
+' z%: bytes free between the arrays and the strings
+48 z%=(peek({sym:fretop}+1)-peek({sym:strend}+1))*256+peek({sym:fretop})-peek({sym:strend}):return
 50 if i% then return
 51 c$=a$:a$="a":gosub 34:if e%=. then print#2,c$
 52 close 2:a$=c$:an$=c$:a=a%:&,52,13,3:b=a%:a%=a:if b=. then return

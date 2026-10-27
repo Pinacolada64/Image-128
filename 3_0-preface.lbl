@@ -44,6 +44,9 @@
 {assign:43  =43 } ' im.open_e.say
 {assign:44	=44	} ' im: pick a random e.say record
 {assign:45	=45	} ' im: display an e.say saying
+' 10/27/2026: Image BBS 128 only
+{assign:47	=47	} ' im: read LFN 6 into tt$(kk) on (i.WF, sub.editor)
+{assign:48	=48	} ' im: z% = bytes free for strings
 {assign:50	=50	} ' im.check_local_mode
 {assign:51  =51 } ' im.open_s_config
 
