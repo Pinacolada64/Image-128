@@ -130,7 +130,12 @@ gc_pages = (* - gc_load_address) / 256
 	orig ecs_load_address
 	embed "ecs.bin"
 	align $100,$00
-ecs_pages = (* - ecs_load_address) / 256
+; 128: the whole module, not just ecs.bin: ecs.bin ends at ecsdefs, and the
+; definitions after it run to ecs+ecsdefs_size ($a00, ecs.asm), up to the
+; struct module. Counted from ecs.bin (4 pages), the swapper exchanged only
+; the first 4; the rest stayed in the run area at protostart, where ++
+; overlays load over them: ECS commands defined there went "Unknown"
+ecs_pages = (struct_load_address - ecs_load_address) / 256
 
 ;;;
 ;;; structures: $8e00

@@ -453,6 +453,12 @@ usevar:
 ecsload:
 	ldx #var_a_string
 	jsr usevar
+; 128: a$ is in bank 1, and the KERNAL reads the filename from setbnk's
+; bank; the definitions are in the shared RAM below $4000. Without this
+; the bank was whatever the last setbnk left (prgfile's 1 so far, by luck)
+	lda #0
+	ldx #1
+	jsr setbnk
 	lda varbuf
 	ldx varbuf+1
 	ldy varbuf+2
@@ -472,6 +478,12 @@ ecssave:
 ; TODO combine with common code from ecsload
 	ldx #var_a_string
 	jsr usevar
+; 128: a$ is in bank 1, and the KERNAL reads the filename from setbnk's
+; bank; the definitions are in the shared RAM below $4000. Without this
+; the bank was whatever the last setbnk left (prgfile's 1 so far, by luck)
+	lda #0
+	ldx #1
+	jsr setbnk
 	lda varbuf
 	ldx varbuf+1
 	ldy varbuf+2
