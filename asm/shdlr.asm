@@ -501,6 +501,19 @@ vdccon:
 	inx		; R15
 	tya
 	jsr vdc_write_reg
+; the VDC draws its cursor in the attribute of the cell it's on, which
+; is whatever that cell last got (a clear's color, say): give it the
+; current one (color, a VDC attribute in 80 columns; sc9 keeps it up),
+; so the cursor shows in the color output is in. colptr + pntr: that cell
+	lda colptr
+	clc
+	adc pntr
+	tay
+	lda colptr+1
+	adc #0
+	jsr vdc_set_update
+	lda color
+	jsr vdc_put
 	lda vdccur_on
 	bne vdccon1	; already showing
 	ldx #VDC_R_CURSOR_MODE
