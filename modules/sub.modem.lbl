@@ -2,7 +2,7 @@
 '   tools/detok.sh (C64List4_04.exe -txt -keycase -varcase -alpha:alt)
 ' line numbers are kept as they were. unchanged, this built a program identical
 ' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
-' 10/27/2026: built with C64List 4.06 and Basic70.bas, for dec() and hex$(); 4.06
+' 10/27/2026: built with C64List 4.06 and Basic70.bas, for instr(); 4.06
 ' can't take 3_0-preface.lbl's line numbers, so jumps to lines in im are written
 ' as {$33} for 3, {$39}99 for 999 and so on
 
@@ -19,12 +19,10 @@
 60020 m$=m$+"x"+mid$(mt$,8,1)+"m"+chr$(mf+48)+"b"+mid$(mt$,10,1)
 60025 gosub60045:on-(t=0)goto60010:&,52,43,3:a=49:ifa%ormid$(mt$,3,1)<>"A"thena=48
 ' 10/27/2026: s2, the Hayes escape character, from mt$ 13-14 (two hex digits,
-' i/IM.modem's flag 13); "00" (not set) is 27, ESC, as it always was. dec()
-' stops the program on anything but 0-9 and unshifted a-f: and 127 makes
-' shifted A-F unshifted, and anything else is 27 too
-60029 q9$=mid$(mt$+"00",13,2):q9$=chr$(asc(q9$)and127)+chr$(asc(right$(q9$,1))and127)
-60030 q9=.:ifinstr("0123456789abcdef",left$(q9$,1))*instr("0123456789abcdef",right$(q9$,1))thenq9=dec(q9$)
-60031 q9=q9-27*(q9=.):m$="s0="+chr$(a)+"s2="+mid$(str$(q9),2)+"s7=25":gosub60045:on-(t=0)goto60010:&,22,10
+' i/IM.modem's flag 13, from hx$); "00" (not set) is 27, ESC, as it always
+' was. instr() gives each digit's value plus 1, 0 if it isn't in hx$: 27 too
+60030 q8=instr(hx$,mid$(mt$+"00",13,1)):q9=instr(hx$,mid$(mt$+"00",14,1)):q9=16*q8+q9-17:ifq8*q9=.orq9=.thenq9=27
+60031 m$="s0="+chr$(a)+"s2="+mid$(str$(q9),2)+"s7=25":gosub60045:on-(t=0)goto60010:&,22,10
 60035 an$=in$:&,15,2:m$=an$:gosub60045
 60040 on-(t=0)goto60010:&,22,10:goto60395
 60045 x=1

@@ -3,7 +3,7 @@
 '   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
 ' line numbers are kept as they were. unchanged, this built a program identical
 ' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
-' 10/27/2026: built with C64List 4.06 and Basic70.bas, for dec() and hex$(); 4.06
+' 10/27/2026: built with C64List 4.06 and Basic70.bas, for instr(); 4.06
 ' can't take 3_0-preface.lbl's line numbers, so jumps to lines in im are written
 ' as {$33} for 3, {$39}99 for 999 and so on
 
@@ -124,18 +124,17 @@
 4200 &"{yellow}0: {lt. blue}No; Caller ID Not Available{f6}{yellow}1: {lt. blue}Yes; Caller ID is Available{f6}"
 4202 b$="01":goto 4004
 ' 10/27/2026: flag 13, the Hayes escape character (S2): sent in the init
-' string as s2= (4100; sub.modem 60030). Kept in mt$ 13-14 as two hex digits;
+' string as s2= (4100; sub.modem 60030). Kept in mt$ 13-14 as two hex digits
+' from hx$;
 ' "00" (not set) is 27, ESC, which Image always sent: then a caller's +++
 ' can't take the modem to command mode. 43 is +, the Hayes default
 4204 gosub 4210:&" {gray3}(Flag 13){f6:2}{cyan}Hayes escape character (S2), 0-255{f6}{yellow}43{lt. blue} is +, the Hayes default{f6}{yellow}27{lt. blue} is ESC: a caller's +++ does nothing{f6:2}{white}Return keeps"+str$(s)+": {pound}i1"
 4205 a=int(val(an$)):if an$="" or a<. or a>255 or tr%<1 then return
-4206 mt$=left$(mt$+"00",12)+right$(hex$(a),2)+mid$(mt$+"00",15):jf=1:return
-' s: S2 from mt$ 13-14, in hex. dec() takes only 0-9 and unshifted a-f, and
-' stops the program with ?illegal quantity on anything else: and 127 makes
-' shifted A-F (as in hx$) unshifted, and the rest is checked first; anything
-' else, and "00", is 27
-4210 c$=mid$(mt$+"00",13,2):c$=chr$(asc(c$) and 127)+chr$(asc(right$(c$,1)) and 127):s=.:if instr("0123456789abcdef",left$(c$,1))*instr("0123456789abcdef",right$(c$,1)) then s=dec(c$)
-4211 if s=. then s=27
+4206 mt$=left$(mt$+"00",12)+mid$(hx$,a/16+1,1)+mid$(hx$,(a and 15)+1,1)+mid$(mt$+"00",15):jf=1:return
+' s: S2 from mt$ 13-14, two of hx$'s digits: instr() gives each one's value
+' plus 1, or 0 for anything else. "00", or anything that isn't in hx$, is 27
+' (q8 and q9, not a: 4100 still needs it)
+4210 q8=instr(hx$,mid$(mt$+"00",13,1)):q9=instr(hx$,mid$(mt$+"00",14,1)):s=16*q8+q9-17:if q8*q9=. or s=. then s=27
 4212 return
 4216 &" {gray3}(Edit Init){f6:2}"
 4218 if len(mt$)=1 then:&"{f6:2}{yellow}You Must First Setup a Modem!{f6:2}  {white}>Any Key<{pound}g1":goto 4030
