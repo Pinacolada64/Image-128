@@ -11,7 +11,7 @@
 {alpha:alt}
 {include:"..\asm\equates.asm"}
 
-4000 gosub4480:onlmgoto4100,4200,4010:mm=.:f1=3:goto3000
+4000 gosub4480:onlmgoto4100,4200,4010:mm=.:f1=3:goto3000:rem i/lo.idle
 4006 cm$="Connected":gosub9:&,69,5,21,cm$,$85
 ' 10/26/2026: d1$ is the clock's own string (the ML rewrites it in place, $0e00),
 ' and BASIC 7's x$=d1$ copies only its pointer: lt$ (and ld$, d5$ below) kept
@@ -69,8 +69,10 @@
 ' color: in 80 columns color is the editor's VDC attribute, and a VIC color
 ' number poked there clears its charset bit, so the text after it (? and
 ' the rest) came out in the uppercase/graphics set
-4212 &"{pound}q"+chr$(df%+48):&,16:a$="":ifpeek({sym:ndx})thengeta$
-4214 on-(a$="")goto4230:poke{sym:ndx},.:onwc+1goto4222
+' FIXME: 10/22/2026: after "fixing" string variables, idle keys are not recognized
+' 4212 &"{pound}q"+chr$(df%+48):&,16:a$="":ifpeek({sym:ndx})thengeta$
+4212 &"{pound}q"+chr$(df%+48):&,16:a$="":ifpeek({sym:ndx})thengeta$:a$=a$+""
+4214 on-(a$="")goto4230:poke{sym:ndx},.:ifwc=.then4222
 4216 b=.:lm=1:fori=1towc%(0,0):ifasc(a$)=wc%(0,i)thenb=i:i=wc%(0,0)+1
 4218 next:on-(b=.)goto4224:&,60,1,16,wc%(8,b),cm$:gosub9:&,60,1,11,wc%(2,b),a$
 4220 lm=wc%(1,b):mm=8:goto72
@@ -169,5 +171,5 @@
 4524 &,62,b,c:b=b+80*((b=92)-(b=12))+12*((b=93)or(b=13)):&,58,b,.
 4526 &,52,25,.:return
 4528 a=16*int(a/10)+a-int(a/10)*10:return
-4530 rem:"i/lo.idle (c)nissa 230711 lh rs"
+4530 rem "i/lo.idle (c)nissa 2023-07-11, 2026-10-22 rs"
  {warning:Source .prg file contains non-BASIC code which will need to be ported separately: $0801 21f0}
