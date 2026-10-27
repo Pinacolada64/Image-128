@@ -118,7 +118,7 @@
 ' text)
 ' also, sorted
 4272 p=.:a$="1 Set Time,5 Garbage Collect,2 View BAR,6 Reset Modem,3 View Blocks Free,7 Set Password,4 View Clock/Calls,8 View Logs,":gosub4288
-4274 a$="A AutoMaintenance,I IM Configurator,C Copy Files,R Reload LO,D Display Files,W WF Editor,F Feedback/Mail {$ba},+ Default Color +,- Default Color -,{back arrow} Image Terminal,Spc Redraw Screen,{pound} Answer Modem,T Toggle Carrier,":gosub4288
+4274 a$="A AutoMaintenance,I IM Configurator,C Copy Files,R Reload LO,D Display Files,T Toggle Carrier,F Feedback/Mail {$ba},W WF Editor,+ Default Color +,- Default Color -,{back arrow} Image Terminal,Spc Redraw Screen,{pound} Answer Modem,":gosub4288
 4278 i=.:do while i<wc%(.,.):i=i+1:ifwc%(0,i)then:&,60,1,16,wc%(8,i),c$:b$=chr$(wc%(0,i))+" "+c$:gosub4292
 4280 loop
 ' an odd number of items: close the row the last one started
