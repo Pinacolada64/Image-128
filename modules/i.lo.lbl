@@ -9,6 +9,8 @@
 ' as {sym:...} names from asm/equates.asm (included below).
 {uses:..\3_0-preface.lbl}
 {alpha:alt}
+' 10/27/2026: {comma} and the other quoter tokens (3202)
+{include:..\quoters.lbl}
 {include:"..\asm\equates.asm"}
 
 3000 k%=.:rs=.:&,52,46,3:am=a%:close2:close5
@@ -45,8 +47,8 @@
 3120 a$="EM":goto70
 3122 goto300
 3200 &,52,51,3:on-(a%=.)goto3201:a$="lo."+"lof":gosub72:onf1goto3202:goto3004
-3201 &"{f6}Leave Feedback? : ":gosub94:onagosub3418
-3202 &,52,$22,.:an$=ff$:&,15,1:&"{f6:2} {green}Bye {lt. green}{pound}v7{green}!{f6:2}":dr=1:a$="s.end":gosub3050
+3201 ifi%=.then:&"{f6}Leave Feedback? : ":gosub94:onagosub3418
+3202 &,52,$22,.:an$=ff$:&,15,1:&"{f6:2} {green}Bye{comma} {lt. green}{pound}v7{green}!{f6:2}":dr=1:a$="s.end":gosub3050
 3203 oni%ork%goto3204:im=3:gosub446:ll%=40:gosub90
 3204 ifi%ork%then:&"{f6}{lt. blue}Update User File?:{white} ":gosub96:im=1:onagosub445
 3220 &,52,$22,.:on-(ac%=16)goto3230:im=3:gosub446:im=1:gosub446

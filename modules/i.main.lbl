@@ -41,8 +41,22 @@
 ' c$=an$+"": {pound}i puts the input in a buffer and an$ points at it, so a plain
 ' c$=an$ shares the buffer and the value typed next (3046) overwrote the
 ' name ("sub.0tack"); +"" copies it into the string area
+'
+' 1 for a=3 to 6
+' 2 c=a-2:an$=mid$("i.   i/   sub. i/lo-",c*5-4,5):x=instr(an$," "):if x then an$=left$(an$,x-1)
+' 3 printc left$(an$+"xxxxxxxxxxxxxxxx",16)
+' 4 next
+' run
+' 1 i.xxxxxxxxxxxxxx
+' 2 i/xxxxxxxxxxxxxx
+' 3 sub.xxxxxxxxxxxx
+' 4 i/lo-xxxxxxxxxxx
+'
+' FIXME: however, when class 3 is chosen ("i."), "Run: sub." is displayed (which is index 3 in an$). "blablabla" is typed.
+' "area" shows correct prefix ("i." but suffix is "lablabla")
+
 	c=a-2:an$=mid$("i.   i/   sub. i/lo-",c*5-4,5):&,15,6,32:b$=a$+""
-	poke 53252,16-len(b$):&"{lt. blue}Run{cyan}: {white}"+b$+"{pound}i0":poke 53252,ll%:c$=an$+"":on -(c$="")-2*(c=3) goto {:3002},{:3046}
+	poke 53252,16-len(b$):&"{lt. blue}Run{cyan}: {white}{pound}$b{pound}i0":poke 53252,ll%:c$=an$+"":on -(c$="")-2*(c=3) goto {:3002},{:3046}
 ' ask for device,drive, a=device not present
 	gosub 349:gosub 350:if a then x=6:gosub 390:goto {:3002}
 {:3046}
@@ -76,4 +90,4 @@
 {:sub.module}
 ' strip "sub." prefix:
 	a$=mid$(p2$,5):goto 74
-	rem i.main (c)nissa 2020-08-02 lh, 2024-07-24 rs
+	rem i.main (c)nissa 2020-08-02 lh, 2024-07-24, 2026-10-22 rs
