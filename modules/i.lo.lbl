@@ -52,7 +52,9 @@
 3220 &,52,$22,.:on-(ac%=16)goto3230:im=3:gosub446:im=1:gosub446
 3222 a$="lo."+"off":gosub72
 3230 lm=1
-3231 &,52,$37,3:a$="lo."+"idle":ifa%thena$=a$+"2"
+' 10/27/2026: always i/lo.idle; it checks lightbar flag 55 itself (4400) to show
+' New Messages instead of Calls/Log, which was all i/lo.idle2 did
+3231 a$="lo."+"idle"
 3232 goto72
 3233 gosub{$34}480:print#131,"ath1":poke{sym:clock},.:poke53248,1:a$="lo."+"vf":goto70
 3234 a$="lo."+"instant":goto72
