@@ -13,40 +13,15 @@
 
 4000 rem +/lo.misc - misc. idle commands
 4002 poke 53248,1:on lmgosub 4100,4200,4300:poke 53248,0:return
-4100 &"{clear}{cyan}Enter current date/time.{f6}{white}Return {cyan}keeps current setting.{f6}"
-4102 &"{f6}{pound}{back arrow}10{cyan}Current date/time is{f6}{pound}{back arrow}07{pound}v0{f6:2}":d$=d1$:tz=.
-4104 l=1:t=0:&"{pound}{back arrow}12[1=Sun...7=Sat]{f6}{up}"
-4106 p$="    Day":w$=left$(d$,1):gosub 4150:if a<1 or a>7 then:&"{up}":goto 4104
-4108 dw$=an$:l=2
-4110 p$="  Month":w$=mid$(d$,4,2):gosub 4150:if a<1 or a>12 then:&"{up}":goto 4110
-4112 mo$=an$
-4114 p$="   Date":w$=mid$(d$,6,2):gosub 4150:if a<1 or a>31 then:&"{up}":goto 4114
-4116 dt$=an$
-4118 p$="   Year":w$=mid$(d$,2,2):gosub 4150:if a<1 or a>99 then:&"{up}":goto 4118
-4120 yr$=an$
-4122 c$="A":w$=mid$(d$,8,2):a=val(w$):if a>79 then a=a-80:c$="P"
-4124 w$=right$("0"+mid$(str$(a),2,2),2)
-4126 p$="   Hour":gosub 4150:if a<1 or a>12 then:&"{up}":goto 4122
-4128 gosub 4148:b=a:hr$=an$:gosub 4160
-4130 p$=" Minute":w$=right$(d$,2):gosub 4150:if a<.or a>59 then:&"{up}":goto 4130
-4132 a=a-sgn(a):gosub 4148:c=a:mn$=an$
-4134 t=1:w$=c$:p$="  AM/PM":gosub 4150:if an$<>"A" and an$<>"P" then:&"{up}":goto 4134
-4136 if (an$="P" and b<>18) or (an$="A" and b=18) then b=bor 128:gosub 4160
-4138 if tz=.then:&"{f6}No changes made - aborted!{f6:2}":return
-4140 a$=dw$+yr$+mo$+dt$+hr$+mn$:&"{cyan}{pound}{back arrow}10Setting date/time to{f6}{pound}{back arrow}07{$04}"+a$
-4142 &"{f6:2} {lt. blue}Select {lt. green}Yes{lt. blue} to set clock, or{f6} select {lt. green}No{lt. blue} to change: "
-4144 gosub 96:on a+1 goto 4100:gosub 4162:poke 56331,b:poke 56330,c:poke 56329,89
-4146 poke 56328,.:poke {sym:timeset},1:gosub 33:x=19:gosub 1:print# 2,d1$:close 2:return
-4148 a=16*int(a/10)+a-int(a/10)*10:return
-4150 y$=w$:poke 53252,l
-4152 &" {cyan}{pound}$p{white}: {pound}$y{f6} {cyan}{pound}$p{white}: {pound}i1":if an$="" then an$=y$
-4154 if tthen an$=left$(an$,l):tz=(tzor-(an$<>w$))
-4156 if t=.then a=val(an$):tz=(tzor-(a<>val(w$))):an$=right$("0"+mid$(str$(a),2,l),l)
-4158 &"{up:2} {lt. blue}{pound}$p{gray3}: {pound}v7{pound}{back arrow}35{f6}{pound}{back arrow}35{f6}{up}":return
-4160 hr$=right$("0"+mid$(str$(-80*(an$="P")+val(hr$)),2,2),2):return
-4162 a=val(dw$):gosub 4148:poke {sym:bootdate_at},a:a=val(mo$):gosub 4148:poke {sym:bootdate_at}+1,a
-4164 a=val(dt$):gosub 4148:poke {sym:bootdate_at}+2,a:a=val(yr$):gosub 4148:poke {sym:bootdate_at}+3,a
-4166 return
+' 10/27/2026, from Image 3.0 (2ea3053, 22c8d09): Set Time uses sub.clocks with
+' the clock saved in e.data record 37 (im=0): the hardware clock, or asking by
+' hand if that's what's saved (which gives up after 5 minutes without an
+' answer, so the idle screen comes back). The release's own clock setter here
+' (4100-4166) only asked by hand, and waited for ever.
+' Keep z$ (zs$) across sub.clocks, which sets z$ to the date: this module runs
+' through im line 80, which keeps the name of the module to go back to
+' (lo.idle) in z$, and loaded "i/<the date>" instead (?load error)
+4100 &"{clear}":zs$=z$:im=.:a$="clocks":gosub 74:z$=zs$:return
 4200 &"{clear}{f6}System Password{f6:2}[A]ll Calls, [O]ne Call or [N]one? {pound}g1"
 4202 if an$="N" then l2=0:&,52,40,0:&"None{f6}"
 4203 if an$="N" then:&,69,31,19," None    ",$8 c:an$="Off":goto 4212

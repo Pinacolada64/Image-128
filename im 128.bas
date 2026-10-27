@@ -462,9 +462,13 @@
 3153 z$={usedef:imdate}:d1$=z$
 3154 x=58:gosub 1:&,2,2:nc=val(a$)
 
-' clock types:
-3155 if y%>4 then gosub 3348:gosub 3170:goto 3158
-3156 on y% gosub 3348,3358,3366:gosub 3170
+' 10/27/2026: the clock from sub.clocks, im=10, as Image 3.0 does (22c8d09,
+' 8948c5f): the method saved in e.data record 37 (y%), quietly; it knows every
+' clock (CMD, DS12C887, Ultimate, TeensyROM, the last AutoMaint date), where
+' 3348-3366 knew only CMD and Lt. Kernal. "Clock Set." on the same line (3405).
+' Manual (y%=0), or no clock read: from the date im was built, as before (3170)
+3155 if y% then z3$="Setting Clock...":gosub 3404:im=10:a$="clocks":gosub 74:if e%=. then z2$=left$(" "+z3$+" Clock Set."+s$,36):gosub 3405:goto 3158
+3156 z$={usedef:imdate}:gosub 3170
 ' 10/20/2026: ptrlinm and usrlin (c64 970, 971): on the 128, 970 ($03ca)
 ' is in the routines BASIC 7 keeps in RAM, and poking it stopped the
 ' boot with ?SYNTAX ERROR
@@ -553,22 +557,8 @@
 3306 gosub 33:x=44:gosub 1:print#2,d6$:close 2
 3308 gosub 30:for x=12 to 22:st(x)=.:gosub 17:next:return
 
-' cmd clock set:
-3348 z3$="Setting Clock by CMD Device...":gosub 3404:close 15:open 15,y%,15:print#15,"t-ra":&,2,15
-3350 z$=left$(a$,2):a=-(z$="su")-2*(z$="mo")-3*(z$="tu")-4*(z$="we")-5*(z$="th")
-3352 a=a-6*(z$="fr")-7*(z$="sa"):z$=mid$(str$(a),2,1)+mid$(a$,12,2)+mid$(a$,6,2)
-3354 a=-80*(mid$(a$,24,1)="p")+val(mid$(a$,15,2))
-' 10/20/2026: timeset (c64 1010)
-3356 z$=z$+mid$(a$,9,2)+right$("0"+mid$(str$(a),2),2)+mid$(a$,18,2):poke {sym:timeset},1:return
-
-' ltk clock set:
-3358 gosub 3364:sys 49155:goto 3362
-' 10/20/2026: timeset (c64 1010)
-3360 gosub 33:x=35:gosub 1:&,2,2:d1$=a$:close 2:poke {sym:timeset},1:return
-' 10/20/2026: timeset (c64 1010)
-3362 z$="":for a=49159 to a+10:z$=z$+chr$(peek(a)):next:poke {sym:timeset},1:return
-3364 z$="Setting Clock by Lt.Kernal...":gosub 3404:dr=5:gosub 4:a$=dr$+"swr.ml":&,7,dv%,2:return
-3366 gosub 3364:sys 49152:sys 49155:goto 3362
+' 10/27/2026: 3348-3366 (read a CMD or Lt. Kernal clock) removed: sub.clocks
+' does it now (3155)
 
 ' TODO: use WINDOW command?
 ' based on fixed code in

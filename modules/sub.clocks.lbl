@@ -10,7 +10,7 @@
 '       answered in 5 minutes, it gives up and returns e%=2
 ' im=2: read a CMD device's real-time clock      (cp = device number)
 ' im=3: read a Lt. Kernal's clock with swr.ml    (cp = port: 1 or 2)
-' im=4: read a DS12C887 RTC chip                 (cp = base address, e.g. 54528 = $d500)
+' im=4: read a DS12C887 RTC chip                 (cp = base address, e.g. 54528 = $d500 on the c64, 55040 = $d700 on the 128?)
 '       VICE: x64sc -ds12c887rtc -ds12c887rtcbase 0xd500 (not $de00, the SwiftLink)
 ' im=5: read a 1541 Ultimate/Ultimate 64 clock through its Command Interface
 '       (enable "Command Interface" in the Ultimate's settings)
@@ -39,10 +39,12 @@
 '   "0"          manual             ck=1
 '   "2", "3"     Lt. Kernal port 1, 2   ck=3, cp=1 or 2
 '   "8"-"30"     CMD device             ck=2, cp=device
-'   "4,d,54528"  DS12C887 at $d500      ck=4, cp=base address
+'   "4,d,54528"  DS12C887 at $dx00      ck=4, cp=base address [*]
 '   "4,u"        Ultimate               ck=5
 '   "4,t"        TeensyROM              ck=6
 '   "4,a"        last AutoMaint date    ck=7
+'
+' [*] $d500 is okay to use on a c64; it is in use on the 128: use $d700 instead
 '
 ' Called with im=1 by i.IM (K: Set Time) and i/lo.misc (idle screen 1: Set
 '   Time). TODO (see TODO.md): call it from im at boot, and from the Trc right
@@ -81,7 +83,7 @@
 	if v>4 then ck=2:cp=v
 	if v<>4 then return
 	c$=mid$(b$,3,1):ck=4-(c$="u")-2*(c$="t")-3*(c$="a"):cp=val(mid$(b$,5))
-	if ck=4 and cp=. then cp=54528
+	if ck=4 and cp=. then cp=55040:rem $d700
 	return
 
 ' --- 1: manual ---
@@ -142,7 +144,7 @@
 ' print the prompt as &,1 does (p$ and ": "), wait for a key, then &,1,36:
 ' edit mode (32), without printing the prompt again (4)
 	&p$+"{colon} ":gosub {:sub.manual_key}:if e% then return
-	pl=1:&,1,36:if f=. then if tr%<1 then e%=2
+	pl=1:&,1,32+4:if f=. then if tr%<1 then e%=2
 	return
 
 {:sub.manual_key}
@@ -303,7 +305,7 @@
 ' register B (11): bit 7 stops the clock updating while it's set; bit 2 =
 ' binary (else BCD), bit 1 = 24-hour (else 12-hour, bit 7 of the hour = PM).
 ' Register 50 is the century (DS12C887). First check there's a chip at cp
-' (nothing there, $d500 is a mirror of the SID): its month must be 1-12
+' (nothing there, $d700 is usable on the 128): its month must be 1-12
 	poke cp,11:f=peek(cp+1):a=8:gosub {:sub.ds_read}
 	if b<1 or b>12 then e%=1:&"{f6}{lt. red}No DS12C887 clock at "+mid$(str$(cp),2)+".{f6}":return
 	gosub {:sub.bbs_time}:poke cp,11:poke cp+1,f or 128
