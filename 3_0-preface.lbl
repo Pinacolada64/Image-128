@@ -99,7 +99,7 @@
 {assign:350	=350	} ' im.set_drive
 {assign:330	=330	} ' im: open e.macros
 {assign:304	=304	}
-{assign:353	=353	} ' im.353 (i.RF, i.lo.rf); 10/21/2026
+{assign:353	=353	} ' im.353 (i.RF); 10/21/2026
 {assign:370	=370	}
 {assign:375	=375	} '
 
