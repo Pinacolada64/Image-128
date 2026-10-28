@@ -554,6 +554,7 @@
 	mci	= cassbuff + 206 ; 6350 / $18d7: 0=don't interpret MCI
 	mdigits	= cassbuff + 207 ; 6351 / $18d8: Number of digits for £#
 	carrst	= cassbuff + 208 ; 6352 / $18d9: modem carrier status (check mark/no check mark, displayed on screen)
+                                 ; 0=normal, 16=inverted
 	tsp1	= cassbuff + 209 ; 6353 / $18da: transmit speed lo-byte
 	tsp2	= cassbuff + 210 ; 6354 / $18db: transmit speed hi-byte
 	chks	= cassbuff + 211 ; 6355 / $18dc: Checkmark flag for Lightbar (left side)
@@ -631,7 +632,7 @@
 
 ; $194e-$19ff: free (buf2 and buffer are in the buffer page at $0e00)
 
-; TODO: $1a00-$1bff: $1ff / 511 bytes. room for IRQ/& jump tables?
+; $1a00-$1bff: $1ff / 511 bytes. room for IRQ/& jump tables?
 
 ; Image '&' jump table:
 	jmptbl	= $1a00	; 72 * 2 = 144 bytes => 6800 / $1A90
@@ -641,7 +642,7 @@
 ; $1bff: end of Application Program Area
 
 ; 7167 / $1C01: Normal start of BASIC text
-; to reserve 9K RAM from 7168-16383 / $lC00-$3FFF: GRAPHIC l:GRAPHIC 0
+; to reserve 9K RAM from 7168-16383 / $1C00-$3FFF: GRAPHIC l:GRAPHIC 0
 ; (9216 / $2400 bytes)
 
 ; 1) VIC = 40 (or VDC = 80) * 8 rows * 2 blocks (text/color) for screen mask buffer

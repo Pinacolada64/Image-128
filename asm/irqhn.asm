@@ -486,7 +486,13 @@ mxor_compat:
 
 mxor_shadow:
 	cmp #0 ; target of self-modifying code
-	bne mxor_unchanged
+; 10/28/2026: beq, not bne (as in the C64 source): bne went on to "changed"
+; when mxor hadn't changed, and so set the DCD-invert flag (58, $3a) from
+; mxor on every pass, clearing it while mxor was 0 (as it nearly always
+; is), whatever the lightbar or &,52 had set; and when mxor had changed it
+; did nothing. Now a new mxor value is applied once, and the flag is
+; otherwise left alone
+	beq mxor_unchanged
 
 mxor_changed:
 	sta mxor_shadow+1
