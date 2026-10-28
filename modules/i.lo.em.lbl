@@ -297,7 +297,8 @@
 3540 mm=3:goto3564
 3546 mm=4:goto3564
 3562 mm=1:goto3564
-3563 a$="lo."+"vf":goto70
+' 10/27/2026: back to i.VF (idletool still set), not i.lo.vf
+3563 a$="VF":goto70
 3564 a$="EM.extra":goto72
 3570 gosub3600:f1=f1-(f1=.):fb=l:&"{f6:2}{lt. blue}Forward As [{yellow}E{lt. blue}]-Mail Or [{yellow}N{lt. blue}]et-Mail? {pound}g1{f6}"
 3571 on-(an$<>"E"andan$<>"N")goto3118:ifan$="N"thengosub3620:goto3118

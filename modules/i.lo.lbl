@@ -4,7 +4,7 @@
 
 ' Image BBS 128 (10/21/2026): jumps to lines in other modules, or to lines
 ' that don't exist (as in the original), are written {$3d}ddd so that
-' C64List leaves the number as it is (it wrote [n] otherwise): 3216, 4480
+' C64List leaves the number as it is (it wrote [n] otherwise): 3216, 4470
 ' Image BBS 128 (10/21/2026): C64 addresses in peek/poke/sys are the 128's,
 ' as {sym:...} names from asm/equates.asm (included below).
 {uses:..\3_0-preface.lbl}
@@ -58,7 +58,10 @@
 ' New Messages instead of Calls/Log, which was all i/lo.idle2 did
 3231 a$="lo."+"idle"
 3232 goto72
-3233 gosub{$34}480:print#131,"ath1":poke{sym:clock},.:poke53248,1:a$="lo."+"vf":goto70
+' 10/27/2026: i/lo.idle's 4480 is 4470 now (it gave ?undef'd statement in 3233:
+' F at the idle screen). i.VF itself, not i.lo.vf: idletool tells it it was
+' started from idle, and tr%=101 passes its carrier checks (as C and D do)
+3233 gosub{$34}470:print#131,"ath1":tr%=101:poke{sym:clock},.:poke53248,1:poke{sym:idletool},1:a$="VF":goto70
 3234 a$="lo."+"instant":goto72
 3400 poke53248,1:&"{clear}":cm$="Auto-Maint":gosub9
 3401 a$="lo."+"automaint":gosub72:b$="automaint":x=11:gosub3080
