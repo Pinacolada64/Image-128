@@ -90,3 +90,118 @@ numbers separated by commas: `(1,2)`.
 - `VL` changes none of the BBS's settings: it only reads the variables.
 - Numbers are shown the way BASIC's `str$()` writes them: positive ones
   with a leading space, very large or small ones as `1.5E+12`.
+
+## `VF`: View Feedback
+
+Reads the messages the BBS keeps for the sysop: feedback, new user
+applications, the error log and Telecheck. In local maintenance mode it
+also edits canned replies, archives new user applications, scratches the
+message files and shows the WatchDog logs.
+
+### Running it
+
+Type `VF` at the main prompt (module `i.VF`), or press `F` at the idle
+screen. From the idle screen, VF logs the sysop in locally, adds
+`(M)ail Check` to its menu, and goes back to the idle screen when you
+quit. From the main prompt, quitting goes back to the main prompt.
+
+### Reading the files
+
+VF says what it's reading as it goes, a line for each file:
+
+```
+* Reading Feedback (e.fback): 3
+* Reading New Users (e.new): 0
+* Reading Error Log (e.errlog): 15
+* Reading Telecheck (e.telecheck): None
+* Reading Access Groups (e.access): 10
+* Reading Canned Messages (s.can msg): 4
+```
+
+A file VF reads shows a count that goes up as it reads: Error Log,
+Telecheck, Access Groups, Canned Messages. `None` means the file isn't
+there. Feedback and New Users are counted in the daily statistics, not
+read from their files, so their counts appear at once.
+
+### The menu
+
+```
+ (F)eedback   (3)   (N)ew Users (0)
+ (E)rror Log (15)   (T)elecheck (4)
+ (C)an Msg's  (4)   (A)rch. New Users
+ (S)cratch Files    (W)atchDog Files
+ (M)ail Check
+```
+
+| Key | Does | Who |
+|---|---|---|
+| `F` `N` `E` `T` | read that file's messages (Telecheck: the sysop only) | everyone who can run VF |
+| `C` | canned replies: `(A)dd (E)dit (K)ill (L)ist (S)end`, up to 60 (`s.can msg`, `s.can msg1`...) | local maintenance |
+| `A` | archive the new user applications: `e.new` is added to `e.nark` | local maintenance |
+| `S` | scratch a file's messages, or `(X)` all of them: `(S)elective` (delete or keep each one) or `(A)uto` (all) | local maintenance |
+| `W` | the WatchDog logs (below) | local maintenance, user #1 |
+| `M` | mail check (`i.lo.em`) | from the idle screen |
+| Return | quit | |
+
+### Reading a message
+
+`Start At (N=New)?` takes a message number, or `N` for the ones since
+your last call. Each message shows its sender's handle, date, access,
+e-mail, name, computer and subject, then the text, and then:
+
+| Key | Does |
+|---|---|
+| a number | go to that message |
+| Return, `N` | the next message |
+| `O` | show this one over |
+| `F` | forward it as e-mail to a user |
+| `R` | reply: a subject, the editor, and it's sent as e-mail to the sender |
+| `Q` | back to the menu |
+
+In local maintenance mode, more, all about the sender's account:
+
+| Key | Does |
+|---|---|
+| `A` | set their access group; on a new user's application, VF then offers the welcome message (`s.nu welcome` and the group, or `s.nu welcome`) |
+| `C` | send them a canned reply |
+| `CR` | set their credits |
+| `D` | delete their account (and their `f.` and `m.` files) |
+| `V` | their account at a glance: handle, name, e-mail, access, calls, credits, posts, uploads, downloads |
+| `P` | print the message, with or without its header |
+
+### Where feedback goes: the QuickList
+
+When a caller leaves feedback (`sub.feedback`), the QuickList decides
+who it's for and where it's kept. The QuickList is up to 15 accounts in
+`e.sysoplist`, edited in `IM`, then `D` (Logon Editor), then `D`
+(Quicklist). Each entry has a handle, a description and eight Yes/No
+flags:
+
+| # | Flag | Does |
+|---|---|---|
+| 1 | In Feedback List | the account is offered at "Feedback To Whom", by its handle and description; `A` sends to all of them |
+| 2 | Feedback To `e.fback` | feedback for this account is filed in `e.fback` (VF's Feedback); without it, it's sent to the account as e-mail |
+| 3 | Feedback Shadow | not used: no module reads it (10/27/2026) |
+| 4 | Remote Instant Logon | Instant Login offers the account to a caller |
+| 5 | Console Instant Logon | Instant Login offers the account at the console |
+| 6-8 | Flag #6-8 | not used |
+
+So feedback ends up in VF's Feedback list when it's sent to an account
+with flag 2, or to `A` (all), or when nobody has flag 1, or when there's
+no `e.sysoplist`. With one account in the list, feedback goes to it
+without asking.
+
+### WatchDog files
+
+Logs the BBS writes as it runs. Each one is shown, and then VF asks
+whether to delete it.
+
+| # | Log | File | What's in it |
+|---|---|---|---|
+| 1 | Network Error Log | `nm.errors` (NetMail drive) | NetMail's errors |
+| 2 | E-Mail Sent Log | `e.em log` | e-mail sent |
+| 3 | Netsub Tracking Log | `nm.P.count` (NetMail drive) | NetSub message tracking |
+| 4 | Local Maint File | `e.zz log` | each time someone turned local maintenance mode on, with their handle and the date and time (`sub.local`) |
+
+`e.zz log` shows who has used local maintenance and when. Delete it
+when you've read it, or it keeps growing.
