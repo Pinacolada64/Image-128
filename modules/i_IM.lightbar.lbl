@@ -26,7 +26,9 @@
 4116 if tzthen:&"Save Changes? ":gosub 94:if athen gosub 4134:gosub 4172
 4118 &,11:return
 4120 a=val(an$):if a<1 or a>16 then return
-4122 a$=mid$(c$(p%),a,1):if a$="-" then return
+' 10/27/2026: - marks a checkmark this editor doesn't set: say so, rather than
+' do nothing
+4122 a$=mid$(c$(p%),a,1):if a$="-" then:&"{f6}Checkmark {pound}!a can't be set here.{pound}w2":return
 4124 a$=chr$(48-(a$="0")):c$(p%)=left$(c$(p%),a-1)+a$+mid$(c$(p%),a+1)
 4126 tz=1:return
 4128 tz=0:&"Loading Checkmark Defaults{f6}":gosub 4146
@@ -52,8 +54,8 @@
 4168 if yy$="-" then xx$="-"
 4170 a$=left$(a$,i-1)+xx$+mid$(a$,i+1):next:return
 ' 10/27/2026: set the checkmarks from c$(), as im does at boot (3250-3258),
-' but leave the ones marked - alone: im sets those to 0 at boot, and now
-' they hold the running system's state
+' but leave the ones marked - alone: they aren't set in this editor (im sets
+' them to 0 at boot)
 4172 &"Activate Saved Table? ":gosub 96:if a=. then return
 4174 for x=1 to zz%:for i=1 to 16:a$=mid$(c$(x),i,1):if a$<>"-" then:&,52,(x-1)*16+i-1,val(a$)
 4176 next:next:return
