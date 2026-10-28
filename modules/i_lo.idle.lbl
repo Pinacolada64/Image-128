@@ -32,7 +32,9 @@
 4026 &,69,2,22,right$(str$(ca+1e5),5),$81:&,69,10,22,right$(str$(cn+1e5),3),$81
 4028 return
 4030 &,52,2,3:a=a%:&,52,4,3:a=a+a%:&,52,6,3:a=a+a%:return
-4040 cm$="System Idle":&,69,5,21,cm$,$8a:return
+' 10/27/2026: padded to the status field's width (gosub 9's, from column 5), so
+' no longer message (gosub 9) shows past "System Idle"
+4040 cm$="System Idle":&,69,5,21,left$(cm$+"{space:10}",21),$8a:return
 4042 cm$="Connected":gosub{$39}:&,69,5,21,cm$,$85:return
 4044 gosub{$38}4:&,52,7,3:ifa%thenpt%=1-pt%:ifp1%<1thenp1%=30
 4046 b%=val(mid$(fl$,18,2)):b%=b%-101*(b%=.):onpt%+1goto4050
@@ -59,8 +61,9 @@
 4124 gosub{$33}3:x=21:gosub{$31}:&,2,2:l2=val(a$):l2$=mid$(a$,3):close2
 4126 gosub4010:ifpeek({sym:timeset})thena$=d1$:t1=mn%
 4128 a$="clock":gosub{$32}8:goto4200
-' 10/27/2026: back at idle: nothing running was started from here (i.CP, i.RF)
-4200 poke{sym:idletool},.:q=.:k=1:im=10:gosub{$34}46:poke53248,.:poke53252,.:onf3gosub4400,4420,4430
+' 10/27/2026: back at idle: nothing running was started from here (i.CP, i.RF),
+' and 4213 sets the colour on its first pass (idlecolr 255)
+4200 poke{sym:idletool},.:poke{sym:idlecolr},255:q=.:k=1:im=10:gosub{$34}46:poke53248,.:poke53252,.:onf3gosub4400,4420,4430
 4202 t1%=mn%:ti$="000000":gosub4472
 4204 on-(ti>36000)gosub4044
 4205 mm=6:on-(ti>36000)gosub{$33}000:ifmn%<>t1%thent1%=mn%
@@ -78,9 +81,15 @@
 ' 10/27/2026: the key first, then the print: & output reads a key after each
 ' character (output: getchr, for pause and abort) and drops any other, so the
 ' print here took most keys before the get could (the FIXME above)
-4212 on-(peek({sym:ndx})=.)goto4213:geta$
-4213 &"{pound}q"+chr$(df%+48):&,16
-4214 on-(a$="")goto4230:poke{sym:ndx},.:ifwc=.then4222
+' 10/27/2026: a$="" first: without it a$ kept the last key, and the loop did it
+' again on every pass
+4212 a$="":on-(peek({sym:ndx})=.)goto4213:geta$
+' 10/27/2026: the colour only when it has changed since 4213 set it (idlecolr:
+' the color byte then, in memory, not a variable): the views, the menu and +
+' and - print in other colours, but on most passes nothing has, and every
+' print reads (and drops) a key
+4213 ifpeek({sym:color})<>peek({sym:idlecolr})then:&"{pound}q"+chr$(df%+48):poke{sym:idlecolr},peek({sym:color})
+4214 &,16:on-(a$="")goto4230:poke{sym:ndx},.:ifwc=.then4222
 4216 b=.:lm=1:fori=1towc%(0,0):ifasc(a$)=wc%(0,i)thenb=i:i=wc%(0,0)+1
 ' 10/27/2026: a key that isn't an idle command goes on to 4222, not 4224:
 ' with e.idle cmds on the disk, 1-8 never reached 4222 (as in the release)
@@ -101,10 +110,14 @@
 4251 goto4476
 4252 gosub4474:n=n-1:ifn<1thenn=15
 4253 goto4476
-4254 im=7:goto{$34}46
+' 10/27/2026: status line messages (cm$, im line 9) for the keys that showed
+' nothing: {pound} answer, T, + and -, 5 garbage collect, 6 reset modem. The loop
+' puts "System Idle" back on nearly every pass (4232, 4040), so T, + and -,
+' which are done at once, hold theirs for a second (&,22,10)
+4254 cm$="Answering Call":gosub{$39}:im=7:goto{$34}46
 4256 poke53258,16-peek(53258):return
 4258 mm=7:goto{$33}000
-4259 poke53258,16-peek(53258):goto4204
+4259 poke53258,16-peek(53258):cm$="Carrier "+mid$("Normal  Inverted",1-8*(peek(53258)>.),8):gosub{$39}:&,22,10:goto4204
 4260 poke{sym:clock},.:poke53248,1:&"{clear}{f6:2}Loading Image-Term..{f6}":gosub{$33}04:b$="term":x=11
 4262 mm=4:gosub{$33}000:a$="t":goto{$37}0
 4264 cm$="Ring Detected":gosub{$39}:&,69,5,21,cm$,$83:goto4202
@@ -161,8 +174,8 @@
 4452 lm=2:goto4460
 4454 lm=3:goto4460
 4460 z$="lo."+"misc":gosub{$38}0:goto4200
-4462 &,40:goto4204
-4464 mm=6:gosub{$33}000:goto4204
+4462 cm$="Garbage Collecting":gosub{$39}:&,40:gosub4040:goto4204
+4464 cm$="Resetting Modem":gosub{$39}:mm=6:gosub{$33}000:gosub4040:goto4204
 4465 onxgosub,4420,4430,4400:goto4204
 ' SuperCPU detection / enable / disable:
 ' 10/27/2026: as 4480-4482 did: with flag $34 set, 4470 sets flag $35 (and
@@ -177,7 +190,7 @@
 ' 4472 return
 ' read/set default text color:
 4474 gosub{$33}3:x=40:gosub{$31}:&,2,2:n=val(a$):close2:return
-4476 gosub{$33}3:x=40:gosub{$31}:print#2,n:close2:df%=n:&"{pound}q"+chr$(df%+48):&,16:return
+4476 gosub{$33}3:x=40:gosub{$31}:print#2,n:close2:df%=n:&"{pound}q"+chr$(df%+48):&,16:cm$="Default Color"+str$(n):gosub{$39}:&,22,10:return
 ' 10/27/2026: i.CP and i.RF themselves, not their i.lo.cp and i.lo.rf copies:
 ' idletool tells them to go back to idle when they quit
 4487 gosub4470:print#131,"ath1":tr%=101:poke{sym:clock},.:poke53248,1:poke{sym:idletool},1:a$="CP":goto{$37}0

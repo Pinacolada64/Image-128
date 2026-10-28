@@ -400,6 +400,9 @@
 	; (i/lo.idle sets it for C and D, clears it at 4200): i.CP and i.RF go
 	; back to idle on quitting, instead of to the main prompt
 	idletool= $0aef	; 2799
+	; 10/27/2026: i/lo.idle: the color byte ($f1) as its last {pound}q left it
+	; (4213 prints {pound}q again only when it has changed)
+	idlecolr= $0af0	; 2800
 
 ; $0aff: end of unused block
 
