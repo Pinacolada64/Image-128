@@ -158,16 +158,26 @@ Unchanged on the 128: the VIC, SID and CIA registers, Image's flags at
 `$d000`-`$d010`, the KERNAL jump table (`sys 65418`), `$90` status,
 `$0200`.
 
-### Keep an input with `+""`
+### `an$` after an input (copied since 10/27/2026)
 
-`&,1` and `£i` leave `an$` pointing at Image's input buffer (`buffer`,
-$0e77), outside the string area, and BASIC 7's `c$=an$` copies only the
-descriptor for such a string: `c$` points at the buffer too. The next
-input starts by putting a 0 in the buffer's first byte, so `c$` loses its
+`&,1` and `£i` (`swap1`'s `ctrlm`) and `£g` (`inchr`) leave `an$`
+pointing at Image's input buffer (`buffer`, $0e77), outside the string
+area, and BASIC 7's `c$=an$` copies only the descriptor for such a string:
+`c$` pointed at the buffer too, and changed with the next input. The next
+input starts by putting a 0 in the buffer's first byte, so `c$` lost its
 first character (Larry's `i.main` R command: "edit idlecmds" loaded as
-"i.?dit idlecmds", `?load error` on line 79; "sub.0tack" before). Copy an
-input that has to outlive the next one with `c$=an$+""`: a concatenation
-always makes a new string in the string area.
+"i.?dit idlecmds", `?load error` on line 79; "sub.0tack" before), and a
+garbage collection could scramble it further.
+
+Now those three set `anfix` (`$0af4`), and `trace0`, which the wedge calls
+before every statement, copies `an$` into a string of its own (`strfix`,
+as `&,2` does for `a$`) before the next statement runs. Not at the end of
+the input itself: `£i` and `£g` run in the middle of an `&` string's MCI,
+where a collection (`makeroom` can start one) could move the very string
+being printed. So a plain `c$=an$` keeps its value; the `an$+""` copies in
+`im` (line 220) and the modules are harmless and no longer needed.
+`tests/standin/anfix.bas` (with the old ML: `c$=453 d$=45`, then
+`853/85/8/8` after a collection; now `123/45/7/8`).
 
 ### C64List and long branches
 
@@ -188,8 +198,9 @@ still reaches its label (a `$ff` offset is the giveaway).
 
 ## Modules
 
-- They're C64 BASIC 2 programs (BASIC 7 runs BASIC 2 tokens), built
-  with C64List 4.04, from `modules/`. Most come from the 3.0 release
+- They're C64 BASIC 2 programs (BASIC 7 runs BASIC 2 tokens), from
+  `modules/`, built with C64List 4.04 but for the six that use BASIC 7
+  keywords (4.06, below). Most come from the 3.0 release
   through ImageBBS3's `tools/detok.sh`, which checks the listing
   rebuilds byte for byte.
 - A jump into another module (an `i/` module into its main module's
@@ -202,6 +213,41 @@ still reaches its label (a `$ff` offset is the giveaway).
 - A module that needs BASIC 7 keywords includes `Basic70.bas` and is
   built with C64List 4.06 (`build.sh` picks it); 4.06 won't take the
   preface's numeric `{assign}`s, so such a module can't use the preface.
+  sub.stack and i.VL were written that way; sub.modem, i/IM.modem,
+  sub.misc2 and i/lo.idle were converted. Converting one:
+  swap the preface for `Basic70.bas`, write each jump into `im` with its
+  first digit as a byte (`gosub {$33}`, `goto {$39}99`), build, and check
+  the program is byte for byte the 4.04 build before changing any code. A
+  jump right after THEN or a variable (`thengosub30`, `onntgoto999`) is
+  easy to miss: 4.06 says "Can't locate target line". Unquoted text that
+  never runs can tokenize differently (`copyright` became COPY).
+- A GOTO or THEN to an earlier line searches the program from the start,
+  a line at a time, and a module's lines come after `im`'s (236 below
+  3000). On x128 at 1 MHz, 500 passes of `k=k+1` behind an `im`-sized
+  program took 2908 jiffies looping with `if k<500 then 60010`, 307 with
+  the same loop at line 2, 290 as `do:k=k+1:loop while k<500` and 47 as
+  `for k=1 to 500:next`: about 90 ms a pass just to find the line. A loop
+  in a module that goes round many times (reading a file) is worth a DO
+  loop, or a routine in `im`'s low lines (`im` 47, the editor's file
+  loader). RETURN from inside a DO or FOR leaves BASIC 7's stack clean;
+  a GOTO out of one doesn't.
+- `dec()` takes only `0`-`9` and unshifted `a`-`f` ($41-$46), and stops
+  the program with `?illegal quantity` on anything else; `hex$()` gives
+  unshifted letters. Under `{alpha:alt}` a capital in the source is
+  shifted ($c1-$da), so `hx$`'s A-F can't be read by `dec()`. The S2
+  setting reads and writes its digits with `hx$` and `instr()` instead.
+- Flags that have to outlive a module load, an error or a restart of
+  `im` are bytes in the 128 OS's unused block at `$0ac6`-`$0aff`, past
+  Image's last (`freq`, `$0aee`), not new variables (which also cost
+  string and variable space in a module that loads others):
+
+  | Byte | Name | Use |
+  |---|---|---|
+  | `$0aef` | `idletool` | 1: i.CP or i.RF was started from the idle screen, so it goes back there on quitting |
+  | `$0af0` | `idlecolr` | i/lo.idle: the colour byte (`$f1`) as its last `£q` left it |
+  | `$0af1` | `idlekey` | the first key the editor decoded (see below) |
+  | `$0af2`-`$0af3` | `idlemsgt` | when i/lo.idle's last status message went up, in seconds |
+  | `$0af4` | `anfix` | not 0: an input left `an$` in the input buffer; `trace0` copies it out |
 
 ## The ML
 
@@ -265,6 +311,35 @@ still reaches its label (a `$ff` offset is the giveaway).
   only through names in `equates.asm` (`++ clock` carries its own VDC
   register writes and colour table).
 
+## Keys and the status line at the idle screen
+
+- **`&` output eats keys.** Every character printed with `&` goes
+  through `output` (`chrio.asm`), which calls `getchr` after it to look
+  for space, `/`, Ctrl-C and Ctrl-S, and `getchr` takes a key out of the
+  keyboard buffer (`getkbd`, the editor's `kbdget`). Any other key is
+  dropped. The idle loop printed its colour (`&"£q"+…`) on every pass,
+  right before its `get a$`, so most presses never reached the GET; the
+  C64 3.0 poked 646 instead and printed nothing there.
+- **KEYCHK.** The 128's editor passes each key it decodes through the
+  vector at `$033c` (default `$c6ad`, which handles the function keys and
+  puts the key in the buffer at `$034a`), with the key in `.a`, inside
+  the keyboard interrupt. `setirq` points it at `keychk_far` (`glue.asm`,
+  visible in every configuration), which keeps the first key in
+  `idlekey` and goes on to the old vector, so the buffer gets the key as
+  before. i/lo.idle reads `idlekey` and clears it rather than using GET.
+  A key poked into the buffer from the monitor bypasses KEYCHK: to try the
+  idle keys in a test, poke `idlekey` instead.
+- **Clear `a$` each pass.** With the key read on its own line, a pass with
+  no key has to start `a$=""`, or the last key is done again on every
+  pass (T toggled the carrier over and over).
+- **The colour** is printed only when `$f1` differs from `idlecolr`: the
+  views, the menu, and `+` and `-` print in other colours, but most passes
+  print nothing at all.
+- **The status line:** the loop writes "System Idle" (4040) on nearly
+  every pass. A message from a key goes through 4043, which notes when in
+  `idlemsgt`; 4040 leaves it there for 30 seconds. "System Idle" is
+  padded to the field's width, so a longer message doesn't show past it.
+
 ## C64List
 
 - Text in the ML is `{alpha:alt}`, as the C64's KickAss `petscii_mixed`:
@@ -277,7 +352,10 @@ still reaches its label (a `$ff` offset is the giveaway).
   (the offset comes out wrong): use `bxx skip / jmp target` where it
   might be far.
 - 4.06 rejects `{assign:60000=60000}` (a numeric label), and a `{:label}`
-  makes it renumber the whole file, so `im 128.bas` (4.06) uses neither;
+  makes it number the whole file from 0, one by one: it ignores `{number:}`,
+  `{step:}` and `{renumber:}` (tried 10/27/2026), so a module with labels
+  can't use BASIC 7 keywords (i.edit idlecmds keeps to BASIC 2), and
+  `im 128.bas` (4.06) uses neither;
   a jump to a line that's only there at run time is `{$36}0000`.
 - C64List 4.06's `-def:name="text"` with `{usedef:name}` puts a string
   into the program (`build.sh`'s `imdate`).
@@ -294,6 +372,14 @@ still reaches its label (a `$ff` offset is the giveaway).
   would write through.
 - `tools/vmon.py`: driving x128 through its remote monitor (port 6537);
   `tools/ovl_dis.py`: a C64 `++` overlay into C64List source to port.
+- Booting the run disk in a test x128 needs the SwiftLink and a tcpser
+  (`start-image-128.sh`'s options, on other ports): without them the boot
+  waits at "Reading Blocks Free" for the modem.
+- Warp mode runs `ti` and the clocks fast too: a 30-second wait passes in
+  3. Turn warp off (`warp off` in the monitor) before timing anything.
+- To find what takes a key out of the buffer, `watch store 00d0` in the
+  monitor, put a key in, and read the stack when it stops: the editor's
+  `dec $d0` at `$c252` and the return addresses above it.
 
 ## Open problems
 
@@ -329,17 +415,18 @@ assignment does. That no longer fit in the struct module's 6 pages, so
 `tests/standin/clrarr.bas` (with the old ML, strcheck finds its "LINE 1"
 string linked into the new variable `zq`).
 
-`&,1`/`£i` still leave `an$` at `buffer`: see "Keep an input with `+""`".
+`&,1`/`£i` left `an$` at `buffer` the same way: see "`an$` after an input".
 And BASIC code that copies `d1$` keeps a pointer to the clock's own string
 at `$0e00`, which the ML rewrites: copy it with `+""` (i/lo.idle's `lt$`).
 
-### Logoff corrupts memory (found 10/22/2026, not fixed)
+### Logoff corrupts memory (found 10/22/2026, fixed 10/26/2026)
 
 The cause found 10/26/2026 with `tools/strwatch.py` during a logoff: the
 string area was clean at line 7 and damaged at im line 304, `&,28,1`, which
 dropped line 306's string arrays without marking their strings garbage
 (fixed: `arrmarka`, see "BASIC 7's strings" above). `&,11` was another
-source (section above). Still to confirm with a few logoffs.
+source (section above). The logoffs since (four in `e.last` from 10/26 to
+10/27) all finished. What follows is how it was tracked down.
 
 Logging off (`O` at the main prompt, after a local login) crashes the
 128, a different way on each try. Reported: a CPU JAM at $7b8c with
@@ -372,8 +459,8 @@ its old string (see above). Logoff still jams with that fixed.
 hangup (im line 74, then 100). When sub.modem returns, im line 102 does
 `new 60000` and line 110 reloads sub.misc over itself, while BASIC is
 still inside a gosub from sub.misc's own lines (the 3.0 release does the
-same; line 110 differs only by a debugging `gosub 20` and `"L:"` in the
-status line text). The loads around it are what make the collection
+same; line 110 had a debugging `gosub 20` and `"L:"` in the status line
+text then, gone since). The loads around it are what make the collection
 run; every failure seen came after that reload:
 
 - `[Error#18, Line#2]` (?bad subscript in im's drive lookup), then
@@ -395,9 +482,9 @@ built during login (`tt$(1)`, the last callers list) whose back-link
 moved up 21 bytes (three new variables) and the link wasn't moved with
 them.
 
-**Suspect:** string arrays a module DIMs after `&,27` and drops with
-`&,28` (the gap noted above: `arrmark` only marks the dropped *plain*
-variables' strings). Their strings stay live, linked to memory that is
+**The cause, confirmed 10/26/2026:** string arrays a module DIMs after
+`&,27` and drops with `&,28` (`arrmark` marked only the dropped *plain*
+variables' strings then; `arrmarka` does the arrays now). Their strings stay live, linked to memory that is
 other variables or arrays later. Login runs modules that do that (e.g.
 `i.lo.im`: `dt$()`, `ed$()`, `b$()`, `c$()`).
 
@@ -419,13 +506,16 @@ other variables or arrays later. Login runs modules that do that (e.g.
 - `&,28` moving the arrays *up* (its forward copy would smear them): a
   debug count in the wedge saw none through login and logoff
 
-**Next:** mark the strings of dropped string arrays garbage in
-`arrayrs0` (the wedge ends at about $32f5; glue starts at $3600); then walk the string area after each module load to
-find the first bad record. To repeat it: a configured disk, `i.lo` with
+**Done:** `arrmarka` marks the dropped string arrays' strings garbage.
+It didn't fit in the wedge (which ends where `tempscn` starts, $3300), so
+`&,28` runs from `arrays.asm`, resident at `$fc00`. To repeat the old
+failure: a configured disk, `i.lo` with
 `tr%=10`, the Loc checkmark (`> 1300` bit `$10`) at the idle screen,
 warp off from then on, log in, `O`, `Y`, Return, Return. With
 `-jamaction 2` x128 opens its own monitor window on the JAM and the
-remote monitor stops answering; breakpoints and store watchpoints set
-over the remote monitor also left it unreachable. The two TODOs this
+remote monitor stops answering. Breakpoints and store watchpoints set
+over the remote monitor left it unreachable then; on 10/27/2026 a store
+watchpoint (`watch store 00d0`) worked, set and resumed in one
+connection and read from a new one once it stopped. The two TODOs this
 left (fixing the nested reload; i/lo-last's time used) are in
 `modules/TODO.md`.

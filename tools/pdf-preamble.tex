@@ -1,0 +1,9 @@
+% pdf-preamble.tex: pandoc's -H for the Makefile's docs, as TADA's
+% md_to_pdf.sh: Latin Modern with Symbola for what it lacks, striped tables
+\usepackage{fontspec}
+\directlua{
+  luaotfload.add_fallback("emojifallback", {"Symbola:mode=harf;"})
+}
+\setmainfont{latinmodern-math.otf}[RawFeature={fallback=emojifallback}]
+\usepackage[table]{xcolor}
+\rowcolors{2}{black!5}{white}
