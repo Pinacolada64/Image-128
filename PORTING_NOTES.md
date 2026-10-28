@@ -340,6 +340,15 @@ still reaches its label (a `$ff` offset is the giveaway).
   `idlemsgt`; 4040 leaves it there for 30 seconds. "System Idle" is
   padded to the field's width, so a longer message doesn't show past it.
 
+- **The DCD invert flag** (lightbar 58, `$3a`) was put back to off every
+  eighth frame: `mxor_compat` (`irqhn.asm`), which copies Image 1.2's
+  53258 (`mxor`) into the flag, branched the wrong way (`bne` for `beq`,
+  as in the C64 source), so it rewrote the flag from `mxor` whenever
+  `mxor` *hadn't* changed (nearly always 0) and ignored it when it had.
+  Fixed 10/28/2026. The idle screen's `T` toggles flag 58 with `&,52`
+  and reads `Carrier Present` (59, `$3b`) back after `carrier_update`
+  has run (`irq5`, every eighth frame: `&,22,3`).
+
 ## C64List
 
 - Text in the ML is `{alpha:alt}`, as the C64's KickAss `petscii_mixed`:

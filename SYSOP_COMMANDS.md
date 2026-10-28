@@ -140,7 +140,7 @@ read from their files, so their counts appear at once.
 | `A` | archive the new user applications: `e.new` is added to `e.nark` | local maintenance |
 | `S` | scratch a file's messages, or `(X)` all of them: `(S)elective` (delete or keep each one) or `(A)uto` (all) | local maintenance |
 | `W` | the WatchDog logs (below) | local maintenance, user #1 |
-| `M` | mail check (`i.lo.em`) | from the idle screen |
+| `M` | mail check (`i.EM`; `Q` there comes back to VF) | from the idle screen |
 | Return | quit | |
 
 ### Reading a message
@@ -205,3 +205,48 @@ whether to delete it.
 
 `e.zz log` shows who has used local maintenance and when. Delete it
 when you've read it, or it keeps growing.
+
+## The idle screen
+
+What the BBS shows while nobody is connected (`i/lo.idle`). `?` lists
+its keys. Most of them load another module; these report on the status
+line's Area field instead, and their message stays there for 30 seconds
+before `System Idle` comes back:
+
+| Key | Message |
+|---|---|
+| `5` | `Garbage Collecting`, then `Garbage Collected` |
+| `6` | `Resetting Modem`, then `Modem Reset` |
+| `+` `-` | `Default Color` and its number |
+| `£` | `Answering Call` |
+| `T` | the carrier detect setting (below) |
+
+### `T`: carrier detect (DCD)
+
+The modem tells the BBS a caller is connected with its DCD (carrier
+detect) line. Some modems, and tcpser run with `-I`, give it the other
+way round, so Image can invert it: the lightbar's `DCD` checkmark, left
+side ("Invert DCD Signal", flag 58). With the wrong setting, the check
+mark at the right of the status line ("Carrier Present", flag 59) shows
+while nobody is connected, and the BBS takes a call that isn't there.
+
+`T` turns the inversion on or off, waits a moment for the BBS to read
+the carrier again, and says which setting it's on and whether it's
+right:
+
+| Message | Means |
+|---|---|
+| `DCD Normal: OK` | not inverted; no carrier, as there shouldn't be at the idle screen |
+| `DCD Inverted: OK` | inverted; no carrier |
+| `DCD Normal: Wrong` | not inverted, but the check mark shows with nobody connected: press `T` again |
+| `DCD Inverted: Wrong` | inverted, but the check mark shows: press `T` again |
+
+"OK" and "Wrong" are judged by the idle screen itself: nobody is
+connected there, so a carrier means the setting is the wrong way round.
+Pressing `T` while a call is coming in can give `Wrong` when the setting
+is right; press it again when the line is quiet. With tcpser run by
+`start-image-128.sh` (`-I`), the right setting is `DCD Inverted`.
+
+The setting is the lightbar checkmark itself, so it can be changed there
+too. Until 10/28/2026 the ML put it back off every few moments (the
+`mxor_compat` bug, `PORTING_NOTES.md`), so it couldn't be left on.
