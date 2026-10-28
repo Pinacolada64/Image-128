@@ -48,7 +48,10 @@
 4052 return
 4100 a=.:gosub{$33}75:b$="logoff":x=10:mm=4:gosub{$33}000:&,52,4:&,52,5:tr%=.
 4102 f1=.:&,28,1:dr=3:b$="e.idle cmds":a$=b$:gosub{$34}:ife%thenwc=.:close2:goto4106
-4104 wc=1:dimwc%(15,30):&,60,2,0,wc%(0,0),b$,dv%
+' 10/27/2026: e.idle cmds has 36-byte records now (18 integers: key, value,
+' 14-byte filename, class, 16-byte text); record 0's wc%(1,0) is 36. An older
+' file (32-byte records) counts as none until i.edit idlecmds converts it
+4104 wc=1:dimwc%(17,30):&,60,2,0,wc%(0,0),b$,dv%:ifwc%(1,0)<>36thenwc=.:wc%(0,0)=.
 4106 im=.:gosub{$34}46:ifac%=16thenmm=5:gosub{$33}000
 4108 ak$=" {$c0:38}"+"{f6}":pf=.:poke{sym:modclmn},40
 4110 gosub{$33}3:x=17:gosub{$31}:&,2,2:d3$=a$:x=19:gosub{$31}:&,2,2:close2
@@ -103,8 +106,11 @@
 4216 b=.:lm=1:fori=1towc%(0,0):ifasc(a$)=wc%(0,i)thenb=i:i=wc%(0,0)+1
 ' 10/27/2026: a key that isn't an idle command goes on to 4222, not 4224:
 ' with e.idle cmds on the disk, 1-8 never reached 4222 (as in the release)
-4218 next:on-(b=.)goto4222:&,60,1,16,wc%(8,b),cm$:gosub{$39}:&,60,1,11,wc%(2,b),a$
-4220 lm=wc%(1,b):mm=8:goto{$37}2
+4218 next:on-(b=.)goto4222:&,60,1,16,wc%(10,b),cm$:gosub{$39}:&,60,1,14,wc%(2,b),a$
+' 10/27/2026: by its class (3-6, as i.main's R), wc%(9,b) (0: 4):
+' 3 i. (mm; replaces i.lo, so it quits to the main prompt), 4 i/ (lm, back
+' to idle through mm=8), 5 sub. (im, back here), 6 i/lo- (as 4)
+4220 x=wc%(1,b):a=wc%(9,b):on-(a=3)-2*(a=5)-3*(a=6)goto4226,4227,4228:lm=x:mm=8:goto{$37}2
 ' 10/27/2026: the keys by instr(), not a test for each: x is the key's place
 ' in the string, so 1-8 are their own digits (4465 needs x 2-4). + and - step
 ' the colour once: 4226 and 4227 each called 4250 or 4252 before, so twice.
@@ -113,6 +119,9 @@
 4223 onxgoto4450,4465,4465,4465,4462,4464,4452,4454,4225,{$33}233,4488,4487,4498,4499,4259,4258,4260
 4224 onx-17gosub4250,4252,4254,4270:goto4232
 4225 b$="reload":x=11:mm=4:gosub{$33}000:f1=3:pr$="":goto{$33}02
+4226 mm=x:goto{$37}0
+4227 im=x:gosub{$37}4:goto4200
+4228 lm=x:mm=8:a$="lo-"+a$:goto{$37}2
 4230 k=k+(k>.):on-(a$=" "ork=1)goto4200:on-(a$<>""and(a$<"{f1}"ora$>"{f8}"))gosub4270
 4231 &,52,43,3:ona%goto4204
 4232 im=5:gosub{$34}46:onagoto4006,4264,4266:gosub4040:goto4204
@@ -142,7 +151,7 @@
 ' also, sorted
 4272 p=.:a$="1 Set Time,5 Garbage Collect,2 View BAR,6 Reset Modem,3 View Blocks Free,7 Set Password,4 View Clock/Calls,8 View Logs,":gosub4288
 4274 a$="A AutoMaintenance,I IM Configurator,C Copy Files,R Reload LO,D Display Files,T Toggle Carrier,F Feedback/Mail {$ba},W WF Editor,+ Default Color +,- Default Color -,{back arrow} Image Terminal,Spc Redraw Screen,{pound} Answer Modem,":gosub4288
-4278 i=.:do while i<wc%(.,.):i=i+1:ifwc%(0,i)then:&,60,1,16,wc%(8,i),c$:b$=chr$(wc%(0,i))+" "+c$:gosub4292
+4278 i=.:do while i<wc%(.,.):i=i+1:ifwc%(0,i)then:&,60,1,16,wc%(10,i),c$:b$=chr$(wc%(0,i))+" "+c$:gosub4292
 4280 loop
 ' an odd number of items: close the row the last one started
 4284 ifpthen:&"{pound}{back arrow}38{blue}{rvrs off}{$a1}{f6}"

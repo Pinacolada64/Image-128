@@ -10,10 +10,18 @@
 '   stored, so the name includes "lo." (lo.stack runs i/lo.stack)
 ' - Edit # takes the next free item number too (up to 30), which adds an
 '   item: before, only the items the file already had could be edited
-' - the save is 992 bytes, all of wc%(15,30): 16 integers a record, 2 bytes
-'   each, 31 records (it was 16*31, half, which lost items 16-30)
+' - the save is all of wc%(): 31 records (it was half, which lost items
+'   16-30). 10/27/2026: 36-byte records, wc%(17,30) (were 32, wc%(15,30)):
+'   a 14-byte filename (was 11) and a class word; record 0's wc%(1,0) is 36,
+'   and an older file is converted when it's loaded (see the layout below)
+' - 10/27/2026: each item has a class, 3-6 as i.main's R (i., i/, sub.,
+'   i/lo-), in the byte after the filename (the low byte of wc%(7,x); 0 in
+'   older files, taken as 4, i/); the filename in upper and lower case
+'   (pl=0); $ at the filename lists the modules with the class's prefix
 {uses:..\3_0-preface.lbl}
 {alpha:alt}
+' 10/27/2026: no BASIC 7 keywords (instr, else...): they need C64List 4.06,
+' which numbers a file with {:labels} from 0 whatever {number:} says
 {include:"..\asm\equates.asm"}
 {step:2}
 
@@ -40,34 +48,49 @@
 	&"{pound}{back arrow}07{rvrs on}{lt blue} Edit Idle Commands v0.2 {rvrs off}{f6}"
 	&"{pound}{back arrow}06{purple}{pound}o{192}{192:8}{f6:2}{pound}q0"
 
-	&,28,1:dim wc%(15,30) ' ,fd%(30)
+	&,28,1:dim wc%(17,30)
 
 {:3010}
 ' load struct:
 	m$="e.idle cmds":&"Loading {f5}{pound}$m{f5}..."
 	dr=3:gosub 3:&,60,2,0,wc%(0,0),dr$+m$,dv%
 ' check error channel:
-	gosub 5:if e%=. then:&" Ok{f6}":goto {:3108}
+	gosub 5:if e%=. then:&" Ok{f6}":goto {:convert}
 	&"{f6}Initializing new struct..."
 ' erase key table:
 	for i=0 to 30:wc%(0,i)=0:next
 ' tz (edit flag) = 1 [no "edits" have taken place, but it forces a save prompt on quit]
 ' wc%(0,0) = 1 [# of items in struct]
 ' sample keypress: "0", lm=0
-	tz=1:wc%(0,0)=1:wc%(0,1)=asc("0"):wc%(1,1)=1
+	tz=1:wc%(0,0)=1:wc%(1,0)=36:wc%(0,1)=asc("0"):wc%(1,1)=1:wc%(9,1)=4
 ' sample filename: "test"
-	&,60,0,11,wc%(2,1),"test"
+	&,60,0,14,wc%(2,1),"test"
 ' sample menu item text: "Test"
-	&,60,0,16,wc%(8,1),"Test"
+	&,60,0,16,wc%(10,1),"Test"
+	goto {:3108}
+
+' 10/27/2026: an older file (32-byte records: the filename 11 bytes, the
+' class in the 12th, the text after; wc%(1,0) isn't 36) into 36-byte ones:
+' load it again as it is, into o%(), and copy each item across
+{:convert}
+	if wc%(1,0)=36 then {:3108}
+	&"Converting to 36-byte records...":dim o%(15,30):dr=3:gosub 3:&,60,2,0,o%(0,0),dr$+m$,dv%:gosub 5
+	for i=0 to 30:for j=0 to 17:wc%(j,i)=0:next:next:wc%(0,0)=o%(0,0):wc%(1,0)=36:tz=1
+	if o%(0,0)=. then {:convert_done}
+	for i=1 to o%(0,0):wc%(0,i)=o%(0,i):wc%(1,i)=o%(1,i):&,60,1,11,o%(2,i),a$:&,60,0,14,wc%(2,i),a$
+	c=o%(7,i) and 255:if c<3 or c>6 then c=4
+	wc%(9,i)=c:&,60,1,16,o%(8,i),a$:&,60,0,16,wc%(10,i),a$:next
+{:convert_done}
+	&" Ok{f6}"
 
 {:3108}
 	&"{f6}Options: [L]ist [E]dit [Q]uit{f6:2}>"
 {:3110}
-	&"{pound}g1":if tr%<1 then {:quit}
+	&"{pound}i1":if tr%<1 then {:quit}
 
 ' capital letters must be in this range for Image to compare properly:
 '	{$d1} Q   {$cc} L   {$c5} E
-	on -(an$="{$d1}")-2*(an$="{$cc}")-3*(an$="{$c5}") goto {:menu_quit},{:menu_list},{:menu_edit}:goto {:3110}
+	on -(an$="Q")-2*(an$="L")-3*(an$="E") goto {:menu_quit},{:menu_list},{:menu_edit}:goto {:3110}
 {:menu_quit}
 	&"Quit{f6:2}"
 
@@ -77,7 +100,7 @@
 ' scratch struct: disregard 62,file not found in the case of a new file:
 	dr=3:gosub 3:print# 15,"s"dr$m$
 ' save struct: 32 bytes a record (16 integers), 31 records (wc%(0,0) too)
-	&,60,3,0,wc%(0,0),32*31,dr$+m$,dv%
+	&,60,3,0,wc%(0,0),36*31,dr$+m$,dv%
 
 {:quit}
 ' restore variable pointers, exit to main prompt
@@ -92,7 +115,7 @@
 {:list_idlekeys}
 	a=.:for i=1 to wc%(.,.):a$=mid$("{cyan}{rvrs on}{$a1}{lt. blue}",a*4+1):e$=mid$("{pound}{back arrow}38{blue}{rvrs off}{$a1}{f6}{pound}{back arrow}20",(1-a)*8+1,8)
 
-' the filename is up to 11 chars, after "i/" (like lo-varlist)
+' the filename is up to 14 chars, after the class's prefix (like lo-varlist)
 
 ' TODO: would be nice to check if 1st line is really 4000
 ' (get #2,a$,a$,a$,a$: toss load address, line link pointer)
@@ -101,7 +124,7 @@
 ' b$=keypress
 ' c$=title
 
-	if wc%(.,i) then b$=chr$(wc%(.,i)):&,60,1,16,wc%(8,i),c$:&a$+b$+")"+c$+e$:a=1-a
+	if wc%(.,i) then b$=chr$(wc%(.,i)):&,60,1,16,wc%(10,i),c$:&a$+b$+")"+c$+e$:a=1-a
 	next:if a then:&"{pound}{back arrow}38{blue}{rvrs off}{$a1}{f6}"
 	&"{lt. blue}{$bc}{blue}{rvrs on}{pound}o{$a2}{pound}o{$a2}{pound}h1{rvrs off}{$be}{pound}q0{f6}"
 	goto {:3108}
@@ -110,95 +133,102 @@
 {:menu_edit}
 ' edit: an item, or the next free one (which adds it)
 	poke {sym:llen},2:&"Edit #{pound}i1":x=val(an$):if x<1 or x>wc%(0,0)+1 or x>30 then {:menu_edit}
-	if x>wc%(0,0) then wc%(0,0)=x:wc%(0,x)=.:wc%(1,x)=1:&,60,0,11,wc%(2,x),"":&,60,0,16,wc%(8,x),"":tz=1
+	if x>wc%(0,0) then wc%(0,0)=x:wc%(0,x)=.:wc%(1,x)=1:wc%(9,x)=4:&,60,0,14,wc%(2,x),"":&,60,0,16,wc%(10,x),"":tz=1
 {:edit}
-'   Item #{pound}!x:
-'[K]eypress..: <None>
-'[L]M Value..: 1
-'[F]ilename..: i/<filename>
-'[T]ext......:
 	&"{clear}   Item #{pound}!x:{f6:2}"
-	a=wc%(0,x):if a then a$=chr$(a):goto {:3228}
-	a$="<None>"
-{:3228}
+	a=wc%(0,x):a$="<None>":if a then a$=chr$(a)
 	&"[K]eypress..: {pound}$a{f6}"
-	a=wc%(1,x)
-{:lm_value}
-	&"[L]M Value..: {pound}!a{f6}"
-
-	&,60,1,11,wc%(2,x),a$
-	&"[F]ilename..: i/{pound}$a{f6}"
-
-	&,60,1,16,wc%(8,x),a$
-	&"[T]ext......: {pound}$a{f6:2}"
+' c: the class (3-6, as i.main's R), from the low byte of wc%(7,x) (0 in
+' older files: 4); b$ its prefix (its 5-character slot, split at the first
+' space by &,15,6,32, which leaves what's before it in a$); d$ what the
+' value sets (mm, lm or im)
+	c=wc%(9,x):if c<3 or c>6 then c=4
+	an$=mid$("i.   i/   sub. i/lo-",c*5-14,5):&,15,6,32:b$=a$+"":d$=mid$("mmlmimlm",c*2-5,2)
+	&"[C]lass.....: {pound}!c ({pound}$b){f6}"
+	a=wc%(1,x):&"[V]alue.....: {pound}!a ({pound}$d){f6}"
+' the filename field is always 14 bytes (wc%(2..8,x))
+	&,60,1,14,wc%(2,x),a$:&"[F]ilename..: {pound}$b{pound}$a{f6}"
+	&,60,1,16,wc%(10,x),a$:&"[T]ext......: {pound}$a{f6:2}"
 	&"[Return]....: Done{f6}"
-
-	an$="":&"{f6}>{pound}i1":on -(an$="K")-2*(an$="L")-3*(an$="F")-4*(an$="T") goto {:edit_keypress},{:edit_lm},{:edit_filename},{:edit_text}
-	on -(an$="") goto {:3108}:goto {:edit}
-
-{:edit_keypress}
-' tz could have separate bits per edited item like in setup, each independent
-' item changed sets/clears a bit, instead of just setting tz=1, maybe
-
-' TODO: check for duplicate entries
-' TODO: check for conflict with idle screen keys (<- 1-8 + - {pound} A T R {space})
-' PutString:
-' &,60,0,<#_bytes>,wc%(<field>,<record>),<string$>
-
-' to store a numeric value: wc%(<field>,<record>)=<number>
-
-' &,1,32 displays like:
-' Keypress: C
-' Keypress: _ (cursor blinks here)
-' pl=0 allows uppercase/lowercase input (read by ML)
-	poke {sym:llen},1:pl=.:p$="Keypress"+"":w$=chr$(wc%(0,x)):&,1,32
-' kp% is maintained by ml: keypress PETSCII value, replaces "a=asc(an$)"
-	if an$<>"" then wc%(0,x)=asc(an$):tz=1
+	an$="":&"{f6}>{pound}i1":on -(an$="K")-2*(an$="C")-3*(an$="V")-4*(an$="F")-5*(an$="T") goto {:edit_keypress},{:edit_class},{:edit_value},{:edit_filename},{:edit_text}
+	if an$="" then {:3108}
 	goto {:edit}
 
-{:edit_lm}
-' TODO: range is 1-9 I'm assuming? add check
-	poke {sym:llen},1:p$="LM Value"+"":w$=chr$(wc%(1,x)):&,1,32
-	if an$<>w$ then wc%(1,x)=val(an$):tz=1
+' each field: &,1,32 shows p$ and the value now (w$), and leaves what's typed
+' in an$, "" for Return (which keeps the value). p$ with +"": a literal is in
+' the program text (bank 0), which the ML can't read
+
+{:edit_keypress}
+' pl=0: upper and lower case
+	poke {sym:llen},1:pl=.:p$="Keypress"+"":w$=chr$(wc%(0,x)):&,1,32
+	if an$="" then {:edit}
+' 10/27/2026: not one of the idle screen's own keys: i/lo.idle checks these
+' items first (4216), so one on its key would take that key over. r$ is
+' i/lo.idle's key string (4222), and Space. (A loop, not a struct scan:
+' &,60,8 matches on any shared bit, and &,60,6 writes into a flags word,
+' which these records don't have spare)
+	a$=an$:r$="12345678RFWCDITA{back arrow}+-{pound}? ":for i=1 to len(r$):if a$=mid$(r$,i,1) then i=98
+	next:if i=99 then:&"{f6}{pound}$a is one of the idle screen's own keys.{pound}w2":goto {:edit}
+' nor another item's key
+	for i=1 to wc%(0,0):if i<>x and wc%(0,i)=asc(a$) then j=i:i=98
+	next:if i=99 then:&"{f6}Item {pound}!j has {pound}$a already.{pound}w2":goto {:edit}
+	wc%(0,x)=asc(a$):tz=1
+	goto {:edit}
+
+{:edit_class}
+' 3-6 into the low byte of wc%(7,x) (its high byte is the filename's 11th
+' character)
+' the classes' prefixes, as i.main's R shows them (not in expert mode)
+	if em=. then:&"{f6}[3=i.  4=i/  5=sub.  6=i/lo-]{f6}"
+	poke {sym:llen},1:p$="Class (3-6)"+"":w$=chr$(48+c):&,1,32:a=val(an$)
+	if a>2 and a<7 then wc%(9,x)=a:tz=1
+	goto {:edit}
+
+{:edit_value}
+	poke {sym:llen},3:p$=d$+" Value"+"":w$=mid$(str$(wc%(1,x)),2):&,1,32
+	if an$<>"" and an$<>w$ then wc%(1,x)=val(an$):tz=1
 	goto {:edit}
 
 {:edit_filename}
-	poke {sym:llen},11:p$="i/ Filename"+""
-' TODO: possibly get directory with '$'
-' TODO: check for blank entry
-	&,60,1,11,wc%(2,x),w$
-'	PutString: put string into structure
-'	Usage	&,60,0,<#_bytes>,wc%(<field>,<record>),<string$>
-' ( 2,record) 11 bytes - [f]ilename (loaded as "i/"+a$)
-	&,1,32:if an$<>w$ or an$<>"" then:&,60,0,11,wc%(2,x),an$:tz=1
+' up to 16 characters with the prefix (14 for i. and i/, 12 for sub., 11 for
+' i/lo-); upper and lower case; $ lists the modules with the prefix
+	&"{f6}{cyan}Typing {white}${cyan} lists the directory of {white}{pound}$b{cyan} files.{f6}"
+	l=16-len(b$)
+	poke {sym:llen},l:pl=.:p$=b$+" Filename"+"":&,60,1,14,wc%(2,x),w$:&,1,32
+	if an$="$" then gosub {:directory}:goto {:edit}
+	if an$<>"" and an$<>w$ then:&,60,0,14,wc%(2,x),an$:tz=1
 	goto {:edit}
+
+' $: the modules disk (drive 5) with this class's prefix, then a key
+{:directory}
+	&"{f6}":dr=5:gosub 3:close 2:open 2,dv%,0,"$"+dr$+b$+"*":get#2,a$,a$:&,8,2,0:close 2
+	&"{f6}Any key: {pound}g1":return
 
 {:edit_text}
-' pl=0: allow uppercase/lowercase input
-	poke {sym:llen},16:p$="Text"+"":pl=0:&,60,1,16,wc%(8,x),w$
-
-'	PutString: put string into structure
-'	Usage:	&,60,0,<#_bytes>,wc%(<field>,<record>),<string$>
-
-' ( 8,row) 16 bytes - [t]itle to display in menu/Area window
-
-	&,1,32:if an$<>w$ or an$<>"" then:&,60,0,16,wc%(8,x),an$:tz=1
+' pl=0: upper and lower case
+	poke {sym:llen},16:pl=.:p$="Text"+"":&,60,1,16,wc%(10,x),w$:&,1,32
+	if an$<>"" and an$<>w$ then:&,60,0,16,wc%(10,x),an$:tz=1
 	goto {:edit}
 
-' so looks like the struct layout is thus:
-' from 4220- i/lo.idle:
-' dim wc%(15,30)
+' the struct layout, 10/27/2026 (36-byte records; i/lo.idle 4104-4278 reads it):
+' dim wc%(17,30)
 '
 ' element,<n>="record" in struct
-'   wc%(0,<n>) 2  bytes - [k]ey
-'   wc%(1,<n>) 2  bytes - [l]m value, "sub-task" within a multi-function module
-'   wc%(2,<n>) 6  bytes - [f]ilename ("i/"+a$, up to 11 characters)
-'   wc%(8,<n>) 16 bytes - [t]itle to display in menu/Area window
-
+'   wc%(0,<n>)  2  bytes - [k]ey
+'   wc%(1,<n>)  2  bytes - [v]alue: lm, mm or im by the class ("sub-task"
+'                          within a multi-function module)
+'   wc%(2,<n>)  14 bytes - [f]ilename, after the class's prefix ("i/"+a$...)
+'   wc%(9,<n>)  2  bytes - [c]lass, 3-6 as i.main's R (0: 4)
+'   wc%(10,<n>) 16 bytes - [t]ext to display in the menu/Area window
+' record 0: wc%(0,0) the number of items, wc%(1,0) 36 (the format)
+'
 ' *** each integer array element uses two bytes ***
-
-'                    1    1
-' 0   1   234567   89012345  element
-'0-1 2-3  4 - 15   16 -- 31  byte
-'[k] [l] [ffffff] [tttttttt]
-' 1   1     12        16     bytes
+'
+'                      1  1
+' 0   1   2345678      9  0-7       element
+'0-1 2-3  4 -- 17   18-19 20 -- 35  byte
+'[k] [v] [fffffff]   [c]  [tttttttt]
+' 2   2     14        2      16     bytes
+'
+' before 10/27/2026: 32-byte records, wc%(15,30): the filename 11 bytes in
+' wc%(2-7) (the class in the 12th, from 10/27), the text in wc%(8-15)
