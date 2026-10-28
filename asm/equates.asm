@@ -403,6 +403,16 @@
 	; 10/27/2026: i/lo.idle: the color byte ($f1) as its last {pound}q left it
 	; (4213 prints {pound}q again only when it has changed)
 	idlecolr= $0af0	; 2800
+	; 10/27/2026: the first key the screen editor decodes, kept by glue.asm's
+	; keychk_far (0: none since i/lo.idle last took one). The idle loop
+	; reads it, not the keyboard buffer: & output and other code take keys
+	; out of the buffer and drop them
+	idlekey	= $0af1	; 2801
+	; 10/27/2026: i/lo.idle: when its last status message went up, in seconds
+	; (ti/60), low byte first; System Idle (4040) waits 30 seconds after it
+	idlemsgt= $0af2	; 2802-2803
+	keychk	= $033c	; 128 only: KEYCHK, the editor's vector for each decoded key
+			; on its way into the buffer (.a: the key; default $c6ad)
 
 ; $0aff: end of unused block
 

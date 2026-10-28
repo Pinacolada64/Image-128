@@ -329,6 +329,24 @@ setirq1:
 	lda #>irq_far
 	sta 789
 setirq2:
+; 10/27/2026: KEYCHK to keychk_far (glue.asm), which keeps the first key in
+; idlekey for i/lo.idle; not chained to itself when im restarts either
+	lda keychk
+	ldx keychk+1
+	cmp #<keychk_far
+	bne setirq3
+	cpx #>keychk_far
+	beq setirq4
+setirq3:
+	sta oldkeychk_vec
+	stx oldkeychk_vec+1
+	lda #<keychk_far
+	sta keychk
+	lda #>keychk_far
+	sta keychk+1
+setirq4:
+	lda #0
+	sta idlekey
 	cli
 	rts
 

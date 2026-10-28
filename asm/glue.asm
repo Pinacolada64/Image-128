@@ -203,6 +203,24 @@ irq_mset:
 oldirq_vec:
 	word k_irq		; setirq saves the vector here
 
+; 10/27/2026: the editor's KEYCHK vector ($033c), set by setirq. Every key
+; the editor decodes comes through here in .a, in the keyboard interrupt,
+; on its way into the buffer: keep the first one in idlekey, for
+; i/lo.idle (which clears it when it takes it), then go on as before
+keychk_far:
+	pha
+	lda idlekey
+	bne keychk_far1		; one is waiting already
+	pla
+	pha
+	sta idlekey
+keychk_far1:
+	pla
+	jmp (oldkeychk_vec)
+
+oldkeychk_vec:
+	word $c6ad		; setirq saves the vector here
+
 ; BASIC line trace, from the wedge's statement hook
 trace_far:
 	jsr farcall
