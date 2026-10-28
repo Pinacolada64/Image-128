@@ -1269,7 +1269,19 @@ dectbl2:
 ;*
 ;* memory and trace update
 ;*
+; 10/27/2026: first, if an input left an$ in Image's buffer (anfix: &,1,
+; {pound}i, {pound}g), copy it into a string of its own (strfix, miscl.asm). Here,
+; between statements, no ML is in the middle of anything a garbage
+; collection (makeroom's) could upset, as it could be in the middle of an
+; & string's MCI
 trace0:
+	lda anfix
+	beq trace0a
+	lda #0
+	sta anfix
+	ldx #var_an_string
+	jsr strfix
+trace0a:
 	inc scnlock
 	lda scnmode
 	bne trace1

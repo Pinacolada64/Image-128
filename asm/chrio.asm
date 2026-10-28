@@ -340,6 +340,7 @@ inchr:
 	sta buffer
 	lda #1
 	sta varbuf
+	sta anfix	; 128: trace0 copies an$ out of the buffer
 	lda #<buffer
 	sta varbuf+1
 	lda #>buffer

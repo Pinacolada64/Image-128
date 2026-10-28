@@ -411,6 +411,10 @@
 	; 10/27/2026: i/lo.idle: when its last status message went up, in seconds
 	; (ti/60), low byte first; System Idle (4040) waits 30 seconds after it
 	idlemsgt= $0af2	; 2802-2803
+	; 10/27/2026: not 0: an$ points at Image's input buffer (&,1, {pound}i and {pound}g
+	; leave it there), and trace0 copies it into a string of its own before
+	; the next statement. BASIC 7's x$=an$ copies only the descriptor
+	anfix	= $0af4	; 2804
 	keychk	= $033c	; 128 only: KEYCHK, the editor's vector for each decoded key
 			; on its way into the buffer (.a: the key; default $c6ad)
 

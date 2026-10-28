@@ -347,6 +347,7 @@ setirq3:
 setirq4:
 	lda #0
 	sta idlekey
+	sta anfix
 	cli
 	rts
 

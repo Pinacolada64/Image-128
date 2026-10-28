@@ -276,6 +276,7 @@ ctrlm:
 	sta varbuf+1
 	lda #>buffer
 	sta varbuf+2
+	sta anfix	; 128: trace0 copies an$ out of the buffer (not 0: .a)
 	ldx #var_an_string
 	jsr putvar
 	jmp memory

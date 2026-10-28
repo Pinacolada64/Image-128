@@ -28,6 +28,7 @@ They're petcat source (BASIC 7.0), not C64List: `chr$(92)` for `£`, no
 | `copier2.bas` | `++ 2`, Copier 3.0's copier: `sys` protostart copies `++ menu2` to `t.copy` (compared byte for byte, 1514 bytes), protostart+3 counts its bytes into `t.count`; `BLKS:` shows 6 on row 21 |
 | `trap.bas` | BASIC 7's `trap`/`resume` with Image's trap off, then both on (Image's wins); `er`/`el` against what Image's trap saves (`peek(6)`, `peek(7)+256*peek(8)`) |
 | `fkey-macros.bas` | Ctrl/C= + f1/f3/f5/f7 typing `f1$`-`f8$` into an input line |
+| `anfix.bas` | `&,1` and `£g1` inputs kept with a plain `x$=an$`: each keeps its own value through the next input and a collection (the ML copies `an$` out of the input buffer before the next statement); the script types 123, 45, 7 and 8 |
 | `swiftlink.bas` | the SwiftLink driver (`ml.rs232`, `&,16,1`): sends a line, then shows and echoes back what arrives on device 2 |
 | `userport.bas` | the same with the user port driver (`&,16,0`) at 1200 baud |
 | `dskin.bas` | `&,2,2` into `a$`, then `g$=a$`, `h$=a$`, `u$=a$`: each keeps its own line (`dskina`/`strfix`), through `fre(1)` and 150 more reads. Reads `t.lines` (`dskin.t.lines.seq`, put on its disk by `standin.sh`) |
