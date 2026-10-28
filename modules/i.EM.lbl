@@ -205,7 +205,11 @@
 3362 ifd%(i)=1thengosub30:x=24:st(x)=st(x)+1:gosub17
 3364 close2:next
 3366 ong%+1goto3062:r%=.:an$=pu$:a$=left$(an$,1):z$=left$(an$,2)
-3368 on-(a$="Q")-(z$="O"orz$="O%")*2goto300,234:goto3088
+' 10/28/2026: Q goes back to i.VF when VF's Mail Check started it from the idle
+' screen (idletool; tr% is 101 from there, so the carrier checks pass), as
+' i.lo.em, which this replaces, did; otherwise to the main prompt
+3368 on-(a$="Q")-(z$="O"orz$="O%")*2goto3369,234:goto3088
+3369 a$="VF":onpeek({sym:idletool})goto70:goto300
 3370 ifnf=.or(af%and2^ac%)=.thenrs=.:return
 3372 goto3384
 3374 ifnf=.thenreturn

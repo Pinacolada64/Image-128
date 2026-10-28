@@ -58,10 +58,6 @@
 ' New Messages instead of Calls/Log, which was all i/lo.idle2 did
 3231 a$="lo."+"idle"
 3232 goto72
-' 10/27/2026: i/lo.idle's 4480 is 4470 now (it gave ?undef'd statement in 3233:
-' F at the idle screen). i.VF itself, not i.lo.vf: idletool tells it it was
-' started from idle, and tr%=101 passes its carrier checks (as C and D do)
-3233 gosub{$34}470:print#131,"ath1":tr%=101:poke{sym:clock},.:poke53248,1:poke{sym:idletool},1:a$="VF":goto70
 3234 a$="lo."+"instant":goto72
 3400 poke53248,1:&"{clear}":cm$="Auto-Maint":gosub9
 3401 a$="lo."+"automaint":gosub72:b$="automaint":x=11:gosub3080
@@ -98,7 +94,7 @@
 3542 gosub82:&,40:a$="{f6}CONNECTION{shft space}CONFIRMED: "+str$(qb)+"{f6}":&"{pound}$a"
 3544 a%=.:ifqb<1200then:&,52,3,3:ifa%then3506
 3546 mp%=.:ll%=80:poke{sym:usrlin},mp%:poke{sym:ptrlinm},.:poke{sym:modclmn},ll%
-3548 gosub3510:onbgoto3568:&"{f6}HIT YOUR BACKSPACE/DELETE KEY 1 TIME 1"
+3548 gosub3510:onbgoto3568:&"{f6}HIT YOUR BACKSPACE/DELETE KEY"
 3550 &,52,16,.:&"{pound}b1: ":&,52,16,1
 3552 &,22,5:&,4:a=peek({sym:sareg})and127:if(peek({sym:carrst})and128)<>128ortr%<1then3508
 3553 &,52,42,3:ifa%=1thentr%=.
@@ -124,4 +120,4 @@
 3600 gosub90:dr=1:on-(mid$(d1$,4,2)="12")goto3604
 3602 a$="s.logo"+str$(int(rnd(.)*7)+1):gosub13:&"{pound}u0":return
 3604 a$="s.logo"+str$(int(rnd(.)*6)+8):gosub13:&"{pound}u0":return
-3999 rem "i.lo (c)nissa 230313 lh-ad-rs"ready.
+3999 rem "i.lo (c)nissa 230313 lh-ad-rs"

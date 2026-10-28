@@ -37,12 +37,14 @@
 ' after a message from 4043 (idlemsgt: when, in seconds; ti counts on from
 ' 4202's reset, and 4200 sets 65535 so a fresh idle screen isn't held)
 4040 ifti/60-peek({sym:idlemsgt})-256*peek({sym:idlemsgt}+1)<30andti/60>=peek({sym:idlemsgt})+256*peek({sym:idlemsgt}+1)thenreturn
-4041 cm$="System Idle":&,69,5,21,left$(cm$+"{space:10}",21),$8a:return
-4042 cm$="Connected":gosub{$39}:&,69,5,21,cm$,$85:return
+' TODO: clear Area line first
+4041 cm$="System Idle":&,69,5,21,cm$,$8a:return
+4042 cm$="Connected":&,69,5,21,cm$,$85:return
 ' 10/27/2026: cm$ on the status line, held there 30 seconds (4040)
 4043 gosub{$39}:poke{sym:idlemsgt},(ti/60)and255:poke{sym:idlemsgt}+1,ti/15360:return
 4044 gosub{$38}4:&,52,7,3:ifa%thenpt%=1-pt%:ifp1%<1thenp1%=30
 4046 b%=val(mid$(fl$,18,2)):b%=b%-101*(b%=.):onpt%+1goto4050
+' TODO: move for 80 columns:
 4048 fory=1to5:&,69,26,y+16,mid$("PRIME",y,1),135:next:goto4052
 4050 fory=1to5:&,69,26,y+16,mid$("     ",y,1),140:next
 4052 return
@@ -53,7 +55,7 @@
 ' file (32-byte records) counts as none until i.edit idlecmds converts it
 4104 wc=1:dimwc%(17,30):&,60,2,0,wc%(0,0),b$,dv%:ifwc%(1,0)<>36thenwc=.:wc%(0,0)=.
 4106 im=.:gosub{$34}46:ifac%=16thenmm=5:gosub{$33}000
-4108 ak$=" {$c0:38}"+"{f6}":pf=.:poke{sym:modclmn},40
+4108 ak$=left$(" {$c0:78}",sw-1)+"{f6}":pf=.:poke{sym:modclmn},sw
 4110 gosub{$33}3:x=17:gosub{$31}:&,2,2:d3$=a$:x=19:gosub{$31}:&,2,2:close2
 4112 an$=a$:&,15:d2$=an$+"M":&,52,44,1:uf$="00100"+tz$:im=6:gosub{$34}47
 4114 lc=.:em=.:zz=.:gs=.:cf=.:cr=.:lf=1:nl=.:ul=.:le=.:pm=1:c9=.
@@ -116,7 +118,7 @@
 ' the colour once: 4226 and 4227 each called 4250 or 4252 before, so twice.
 ' ? (21) draws the menu (4270), as any other key not here does from 4230
 4222 x=instr("12345678RFWCDITA{back arrow}+-{pound}?",a$):ifx=.then4230
-4223 onxgoto4450,4465,4465,4465,4462,4464,4452,4454,4225,{$33}233,4488,4487,4498,4499,4259,4258,4260
+4223 onxgoto4450,4465,4465,4465,4462,4464,4452,4454,4225,4482,4488,4486,4498,4499,4256,4258,4260
 4224 onx-17gosub4250,4252,4254,4270:goto4232
 4225 b$="reload":x=11:mm=4:gosub{$33}000:f1=3:pr$="":goto{$33}02
 4226 mm=x:goto{$37}0
@@ -134,9 +136,20 @@
 ' puts "System Idle" back on nearly every pass (4232, 4040), so T, + and -
 ' and the ends of 5 and 6 show theirs through 4043, which holds it 30 seconds
 4254 cm$="Answering Call":gosub{$39}:im=7:goto{$34}46
-4256 poke53258,16-peek(53258):return
+' toggle carrier status:
+' 4256 poke53258,16-peek(53258):return
+' 10/28/2026: T toggles lightbar flag 58 ($3a), Invert DCD (the ML's
+' carrier_update then sets carrst and the check mark from it). Poking 53258
+' (mxor) didn't reach the flag until the ML's mxor_compat was fixed, and
+' poking carrst only changed the check mark until the next pass
+' 10/28/2026: the message says the flag as the lightbar names it (DCD
+' Inverted/Normal) and whether the result is right: at the idle screen
+' nobody is connected, so Carrier Present (59, $3b; the check mark) should
+' be off. "Wrong": the check mark is on with no caller, so press T again.
+' &,22,3 lets the ML's carrier_update (irq5, every 8th frame) run first; b%
+' keeps flag 58
+4256 &,52,$3a,2:&,22,3:&,52,$3a,3:b%=a%:&,52,$3b,3:cm$="DCD "+mid$("Normal  Inverted",1+8*b%,6+2*b%)+": "+mid$("OKWrong",1+2*a%,2+3*a%):gosub4043:goto4204
 4258 mm=7:goto{$33}000
-4259 poke53258,16-peek(53258):cm$="Carrier "+mid$("Normal  Inverted",1-8*(peek(53258)>.),8):gosub4043:goto4204
 4260 poke{sym:clock},.:poke53248,1:&"{clear}{f6:2}Loading Image-Term..{f6}":gosub{$33}04:b$="term":x=11
 4262 mm=4:gosub{$33}000:a$="t":goto{$37}0
 4264 cm$="Ring Detected":gosub{$39}:&,69,5,21,cm$,$83:goto4202
@@ -192,38 +205,47 @@
 4450 lm=1:goto4460
 4452 lm=2:goto4460
 4454 lm=3:goto4460
+' 10/28/2026: 4460-4464 back (1, 7, 8: i/lo.misc; 5: Garbage Collect; 6: Reset Modem)
 4460 z$="lo."+"misc":gosub{$38}0:goto4200
 4462 cm$="Garbage Collecting":gosub{$39}:&,40:cm$="Garbage Collected":gosub4043:goto4204
 4464 cm$="Resetting Modem":gosub{$39}:mm=6:gosub{$33}000:cm$="Modem Reset":gosub4043:goto4204
 4465 onxgosub,4420,4430,4400:goto4204
-' SuperCPU detection / enable / disable:
+' SuperCPU detection / enable:
 ' 10/27/2026: as 4480-4482 did: with flag $34 set, 4470 sets flag $35 (and
 ' pokes 53371), 4472 clears it (and pokes 53370); with $34 clear, neither
 ' does anything
 4470 &,52,$34,3:if a% then poke 53371,0:&,52,$35,1
 4471 return
+' SuperCPU disable:
 4472 &,52,$34,3:if a% then poke 53370,0:&,52,$35,0
 4473 return
-' 4470 &,52,$34,3:on-(a%=.)goto4482:poke53371,0:&,52,$35,1:goto4482
-' 4471 &,52,$34,3:on-(a%=.)goto4482:poke53370,0:&,52,$35,0
+' 4470 &,52,$34,3:on-(a%=.)goto4472:poke53371,0:&,52,$35,1:goto4482
+' 4471 &,52,$34,3:on-(a%=.)goto4472:poke53370,0:&,52,$35,0
 ' 4472 return
 ' read/set default text color:
 4474 gosub{$33}3:x=40:gosub{$31}:&,2,2:n=val(a$):close2:return
 4476 gosub{$33}3:x=40:gosub{$31}:print#2,n:close2:df%=n:&"{pound}q"+chr$(df%+48):&,16:cm$="Default Color"+str$(n):goto4043
+' 10/28/2026: consolidate disabling SuperCPU, taking modem off-hook, time remaining, disabling clock display, setting idletool flag here:
+4480 gosub 4470:print#131,"ath1":tr%=101:poke{sym:clock},.:poke 53248,1:poke {sym:idletool},1:return
+' 10/27/2026: i/lo.idle's 4480 is 4470 now (it gave ?undef'd statement in 3233:
+' F at the idle screen). i.VF itself, not i.lo.vf: peek(idletool)=1 tells it it was
+' started from idle, and tr%=101 passes its carrier checks (as C and D do)
+4482 gosub 4480:a$="VF":goto {$37}0
 ' 10/27/2026: i.CP and i.RF themselves, not their i.lo.cp and i.lo.rf copies:
 ' idletool tells them to go back to idle when they quit
-4487 gosub4470:print#131,"ath1":tr%=101:poke{sym:clock},.:poke53248,1:poke{sym:idletool},1:a$="CP":goto{$37}0
-4488 gosub4470:c=a:a=.:lt$=d1$+"":poke{sym:carrst},.:&,52,16,1:&,52,4,1:zz=1
+4486 gosub 4480:a$="CP":goto {$37}0
+4488 gosub 4470:c=a:a=.:lt$=d1$+"":poke{sym:carrst},.:&,52,16,1:&,52,4,1:zz=1
 4489 &,52,17,1:&,52,5,1
-4490 &,52,10,3:fl=-(a%=1):poke53251,101:poke{sym:clock},.:nl=1
-4491 poke53248,1:&,52,16,1:k=.:i%=1:id=i%:gosub{$33}5:x=id:gosub{$31}
+4490 &,52,10,3:fl=-(a%=1):poke 53251,101:poke{sym:clock},.:nl=1
+4491 poke 53248,1:&,52,16,1:k=.:i%=1:id=i%:gosub{$33}5:x=id:gosub{$31}
 4492 input#2,na$,pw$,ff$,ll$,ph$,ld$,ac%,ct%:close2:co%=1:ll%=sw:ul=1:lf=.
-4493 le=100:em=val(left$(i2$,1)):ld$=d1$+"":d5$=d1$+"":tc%=1:&,52,20,em:poke53252,20
+4493 le=100:em=val(left$(i2$,1)):ld$=d1$+"":d5$=d1$+"":tc%=1:&,52,20,em:poke 53252,20
 4495 fl$=fl$(9):co$=str$(co%):im=15:gosub{$34}45
 4496 ch$=co$:d5$=lt$:fori=1to10:st(i)=.:next:&,18,0:gosub{$31}2
+' FIXME:
 4497 a$="lo."+"wf":goto{$37}0
-4498 gosub4470:print#131,"ath1":tr%=101:poke{sym:clock},.:poke53248,1:poke{sym:idletool},1:a$="RF":goto{$37}0
-4499 gosub4470:print#131,"ath1":tr%=101:poke{sym:clock},.:poke53248,1:zz=1:a$="lo."+"im":goto{$37}0
+4498 gosub 4480:a$="RF":goto{$37}0
+4499 gosub 4470:print#131,"ath1":tr%=101:poke{sym:clock},.:poke53248,1:zz=1:a$="lo."+"im":goto{$37}0
 ' 10/27/2026: lightbar Trc right (Time: Reset Clock) re-reads the clock with
 ' sub.clocks im=11, as in Image 3.0 (22c8d09, 4d6018d): whatever the method saved
 ' in e.data record 37 (CMD device, DS12C887, Ultimate, TeensyROM), quietly;

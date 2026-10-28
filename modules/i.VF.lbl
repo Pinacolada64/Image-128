@@ -77,7 +77,8 @@
 3103 if peek({sym:idletool}) then:&" (M)ail Check{pound}{back arrow}18":x=x+1:if x>1 then:&"{f6}":x=.
 3104 &"{f6:2} VF: {pound}g1":on tr%+1 goto 3424:gosub 3012:if bnthen:&"{pound}$k{f6}":goto 3234
 3106 if zzthen on-(an$="A")-2*(an$="C")-3*(an$="S")-4*(an$="W") goto 3220,3278,3178,3426
-3107 if peek({sym:idletool}) and an$="M" then a$="lo."+"em":goto 70
+' 10/28/2026: i.EM itself (it comes back here on Q), not i.lo.em
+3107 if peek({sym:idletool}) and an$="M" then a$="EM":goto 70
 3110 &"Quit{f6}":goto 3424
 3112 &"{f6}":gosub 3024:if e%then:&"No {pound}$k.":close 2:goto 3086
 3114 on lgoto 3118:for i=1 to l-1
