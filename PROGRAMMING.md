@@ -266,6 +266,9 @@ maintenance lists. The twelve `today.*` files come on the release's
 `tools/today.py` lists, checks and edits a `today.<Mon>` file, on a
 `.d81` or as a SEQ file (`tools/today.py --help`).
 
+The other data files, what each is for and where it lives, are in
+DATA_FILES.md.
+
 ### `today.<Mon>`
 
 A SEQ file of lines, each ended by a carriage return:

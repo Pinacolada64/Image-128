@@ -19,7 +19,7 @@
 #   characters it lacks (arrows, check marks, box drawing), and light
 #   striping on table rows.
 
-DOCS := PORTING_NOTES.md PROGRAMMING.md DEBUG_TECHNIQUES.md \
+DOCS := PORTING_NOTES.md PROGRAMMING.md DEBUG_TECHNIQUES.md DATA_FILES.md \
 	BASIC_VARIABLES.md SYSOP_COMMANDS.md editor.md modules/TODO.md \
 	docs/loop-report.md
 OUT := build/docs
