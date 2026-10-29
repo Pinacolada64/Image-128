@@ -250,3 +250,10 @@ is right; press it again when the line is quiet. With tcpser run by
 The setting is the lightbar checkmark itself, so it can be changed there
 too. Until 10/28/2026 the ML put it back off every few moments (the
 `mxor_compat` bug, `PORTING_NOTES.md`), so it couldn't be left on.
+
+**To keep it:** `T` changes the setting only until the BBS restarts,
+which sets the lightbar's checks from `e.lightdefs` (`im 128` line
+3250). Once `T` says `OK`, set the `DCD` left checkmark the same way in
+`IM`: **H** Lightbar/Alarms, **A** LightBar Defs, then save; `i/IM.lightbar`
+offers to make the saved table active. (Modem Config has no carrier
+setting: its flag 9 is DTR, the BBS's own line to the modem.)

@@ -17,7 +17,7 @@
 - [ ] `i/SM.make anagra`: `?syntax error in 4026` (e.errlog, 10/27/2026)
 - [ ] i.ED line 3174 builds the whole user record in one string (`a$=a$+tt$(i)+r$` for 23 fields): past 255 characters it stops with `?string too long` (seen 10/27/2026), and the REL record holds 254 anyway. Check the total first and say which field is too long instead
 - [ ] `hs$(6)`-`hs$(10)` point into Image's buffer page at `$0e27` (`tools/strcheck.py` lists them outside the string area), so like the old `an$` they change under anything that reuses it; confirm where they're set and copy them into strings of their own (`+""`, or `strfix` in the ML)
-- [ ] ImageBBS3: `mxor_compat` in `source/irqhn.s` has the same `bne mxor_unchanged` that this port fixed 10/28/2026 (`beq`; PORTING_NOTES.md): the C64 BBS can't keep the Invert DCD flag (58) on either
+- [x] ImageBBS3: `mxor_compat` in `source/irqhn.s` has the same `bne mxor_unchanged` that this port fixed 10/28/2026 (`beq`; PORTING_NOTES.md): the C64 BBS can't keep the Invert DCD flag (58) on either Done 10/29/2026 (`source/irqhn.s`, beq)
 - [ ] ImageBBS3 manual, `docs/im-configuration.adoc` (Quicklist): Feedback Shadow (flag 3) isn't read by any module, and flags 6-8 aren't used (SYSOP_COMMANDS.md, "Where feedback goes")
 - [ ] retire the other `i.lo.*` copies as i.lo.cp, .rf, .vf and .em were (`idletool`: the module does the idle setup itself and goes back to idle on quitting): `i.lo.im` (31 blocks, vs i.IM), `i.lo.sm` (vs i.SM) and the 1-block `i.lo.wf`; diff each against its original first
 - [ ] tools: `tools/to406.py`, converting a module to C64List 4.06 (`Basic70.bas`, jumps into im as `{$33}`...); the version used 10/2026 is a scratch script and misses a jump right after THEN or a variable (`thengosub30`, `onntgoto999`)
