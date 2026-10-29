@@ -89,19 +89,17 @@ def save(a, data):
     with tempfile.TemporaryDirectory() as tmp:
         f = os.path.join(tmp, 'seq')
         open(f, 'wb').write(data)
-        # c1541 can't spell the PETSCII capital in "today.Nov": scratch it
-        # with a ? there, write under a plain name, then rename the entry
-        pattern = 'today.?' + a.month[1:].lower()
-        r = subprocess.run(['c1541', a.source, '-delete', pattern, '-write', f, 'todaytmp,s'],
-                           capture_output=True, text=True)
+        # c1541 writes the capital in "today.Nov" as PETSCII $ce, as the
+        # maker's "today."+zm$ has it
+        name = 'today.' + a.month
+        r = subprocess.run(['c1541', a.source, '-delete', name, '-write', f, name + ',s'],
+                           capture_output=True, text=True, errors='replace')
         if r.returncode:
             sys.exit('today: c1541 failed:\n' + r.stdout + r.stderr)
-    d = bytearray(open(a.source, 'rb').read())
-    e = find_entry(d, b'TODAYTMP')
-    if e is None:
-        sys.exit('today: c1541 wrote nothing; the old disk is %s.bak-today' % a.source)
-    d[e + 5:e + 21] = disk_name(a.month).ljust(16, b'\xa0')
-    open(a.source, 'wb').write(d)
+    d = open(a.source, 'rb').read()
+    e = find_entry(d, disk_name(a.month))
+    if e is None or read_file(d, e) != data:
+        sys.exit('today: c1541 didn\'t write it; the old disk is %s.bak-today' % a.source)
     print('today.%s written to %s (%d bytes); the old disk is %s.bak-today'
           % (a.month, a.source, len(data), a.source))
 

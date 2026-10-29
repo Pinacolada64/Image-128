@@ -145,6 +145,13 @@ for f in sub.*.lbl i.*.lbl i_*.lbl; do
 	modwrites+=(-write "$m.prg" "$disk")
 done
 
+# Today in History (disk/today.<Mon>.seq): c1541 writes the capital in
+# "today.Oct" as the PETSCII capital, as i/lo/today's "today."+zm$ has it
+todaywrites=()
+for m in Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec; do
+	todaywrites+=(-write "$repo/disk/today.$m.seq" "today.$m,s")
+done
+
 cd "$build"
 rm -f image128.d64 image128.d71 image128.d81
 c1541 -format "image bbs 128,ib" d81 image128.d81 \
@@ -161,5 +168,5 @@ c1541 -format "image bbs 128,ib" d81 image128.d81 \
 	-write "$repo/disk/e.alarms.prg" e.alarms \
 	-write "$repo/disk/nm.times.prg" nm.times \
 	-write "$repo/disk/e.fkeys.seq" "e.fkeys,s" \
-	"${modwrites[@]}" "${ovlwrites[@]}" >/dev/null
+	"${modwrites[@]}" "${ovlwrites[@]}" "${todaywrites[@]}" >/dev/null
 c1541 image128.d81 -list

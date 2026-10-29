@@ -260,7 +260,8 @@ drive 3, picks out today's facts, lists them on the screen, and writes
 them to `s.today/hist` on drive 1. `i/lo-today` (`modules/i_lo-today.lbl`)
 shows `s.today/hist` to callers. Both are run from the logon and
 maintenance lists. The twelve `today.*` files come on the release's
-`MASTER D2` disk.
+`MASTER D2` disk; `disk/today.<Mon>.seq` are those, fixed (see
+`disk/README.md`), and `asm/build.sh` writes them to `image128.d81`.
 
 `tools/today.py` lists, checks and edits a `today.<Mon>` file, on a
 `.d81` or as a SEQ file (`tools/today.py --help`).
@@ -308,10 +309,10 @@ A SEQ file of lines, each ended by a carriage return:
   `{alpha:alt}` writes them, and so are the `B`/`S`/`R` and `C` in
   columns 1 and 10.
 
-`today.py check` finds three mistakes in the release files:
-`R0315` (Beware the Ides of March!) has `S` in column 10, which isn't a
-weekday, so it never shows; `S0838` (Lea and Perrins) has no such day;
-and `B0808` (Rudi Gernreich) is 81 characters.
+`today.py check` finds three mistakes in the release files, fixed in
+`disk/`: `R0315` (Beware the Ides of March!) has `S` in column 10, which
+isn't a weekday, so it never shows; `S0838` (Lea and Perrins) has no such
+day; and `B0808` (Rudi Gernreich) is 81 characters.
 
 ### `s.today/hist`
 
