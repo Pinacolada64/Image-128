@@ -20,7 +20,7 @@ JIFFYDOS=${JIFFYDOS:-$HOME/Documents/c64/JiffyDOS}
 
 # --- modem (tcpser) ---
 TCPSER=${TCPSER:-$HOME/bin/tcpser/tcpser}
-MODEM_PORT=${MODEM_PORT:-25240}   # x128 <-> tcpser, on 127.0.0.1 only
+MODEM_PORT=${MODEM_PORT:-25232}   # x128 <-> tcpser, on 127.0.0.1 only
 TELNET_PORT=${TELNET_PORT:-6128}  # callers telnet here
 # 19200: IM's "tcpser (VICE)" modem profile (rs232_swift.asm goes to 38400)
 BAUD=${BAUD:-19200}
@@ -36,9 +36,11 @@ for p in "$MODEM_PORT" "$TELNET_PORT"; do
 	port_in_use "$p" && die "port $p is already in use (is another tcpser running?)"
 done
 
-# -I inverts DCD: through VICE's SwiftLink the BBS otherwise sees a carrier
-# when nobody is connected (as in ImageBBS3's start-image-bbs.sh)
-"$TCPSER" -s "$BAUD" -v "127.0.0.1:$MODEM_PORT" -p "$TELNET_PORT" -I \
+# -I would invert DCD: through VICE's SwiftLink the BBS otherwise sees a
+# carrier when nobody is connected (ImageBBS3's start-image-bbs.sh uses it).
+# Left off for now: instead, the lightbar's Invert DCD (flag 58, T at the
+# idle screen) is set so the carrier check is off with no caller
+"$TCPSER" -s "$BAUD" -v "127.0.0.1:$MODEM_PORT" -p "$TELNET_PORT" \
 	-l "$TCPSER_LOG_LEVEL" ${TCPSER_TRACE:+-t "$TCPSER_TRACE"} -L "$LOG" &
 TCPSER_PID=$!
 trap 'kill "$TCPSER_PID" 2>/dev/null' EXIT
