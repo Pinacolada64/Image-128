@@ -3,7 +3,9 @@
 #
 #   make docs                   every doc in DOCS, into build/docs/ (one in a
 #                               subdirectory under the same: modules/TODO.md as
-#                               build/docs/modules/TODO.pdf)
+#                               build/docs/modules/TODO.pdf; docs/ itself is
+#                               left out: docs/loop-report.md is
+#                               build/docs/loop-report.pdf)
 #   make build/docs/PORTING_NOTES.pdf   just one
 #   make clean-docs
 #
@@ -27,13 +29,19 @@ PANDOC := pandoc
 PANDOC_FLAGS := -f markdown-tex_math_dollars -t pdf --pdf-engine=lualatex \
 	-V geometry:margin=1in -V colorlinks=true --toc -H $(PREAMBLE)
 
-PDFS := $(patsubst %.md,$(OUT)/%.pdf,$(DOCS))
+# docs/x.md goes to build/docs/x.pdf, not build/docs/docs/x.pdf
+PDFS := $(patsubst %.md,$(OUT)/%.pdf,$(patsubst docs/%,%,$(DOCS)))
 
 .PHONY: docs clean-docs
 
 docs: $(PDFS)
 
 $(OUT)/%.pdf: %.md $(PREAMBLE)
+	@mkdir -p $(dir $@)
+	@echo "Rendering $< -> $@"
+	$(PANDOC) $< $(PANDOC_FLAGS) -o $@
+
+$(OUT)/%.pdf: docs/%.md $(PREAMBLE)
 	@mkdir -p $(dir $@)
 	@echo "Rendering $< -> $@"
 	$(PANDOC) $< $(PANDOC_FLAGS) -o $@
