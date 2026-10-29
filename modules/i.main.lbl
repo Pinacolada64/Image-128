@@ -74,8 +74,10 @@
 ' 10/21/2026: the name is in a$ (an$ is the value just typed), and gosub 73
 ' loads it if it isn't in memory and runs it at 4000, as class 4 (77 only
 ' loaded it)
+' 10/28/2026: but an i/lo- module starts at 4500 (i/lo.on runs it there),
+' not 4000: load it through 77 as 73 does, then run it at 4500
 {:3054}
-	lm=a:a$="lo-"+a$:gosub 73:goto {:3002}
+	lm=a:a$="lo-"+a$:dr=5:on -(p1$<>"i/"+a$) gosub {$37}7:gosub {$34}500:goto {:3002}
 {nice:10}
 {:reload_module}
 '	if an$="RL" then a%=-3000*(pr$<>"")-4000*(p1$<>"")-60000*(p2$<>""):&,66,1:goto {:3000}
