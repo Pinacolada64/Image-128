@@ -23,6 +23,9 @@
 4024 a$="today."+zm$+",s,r":gosub 4
 4026 &,2,2:b$=left$(a$,1):d$=mid$(a$,4,2):c$=","
 4028 if b$="{^}" then close 2:goto 4048
+' 10/28/2026: a line starting with * is a comment (it was skipped only
+' because its columns 4-5 never matched a day)
+4029 if b$="*" then 4026
 4030 zw$=mid$(a$,10,1):if zw$="C" or zw$=" " then 4034
 4032 if zw$<>zx$then 4026
 4034 if d$<>zd$then 4026

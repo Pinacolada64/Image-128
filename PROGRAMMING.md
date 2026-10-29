@@ -296,9 +296,13 @@ A SEQ file of lines, each ended by a carriage return:
 - **A weekday fact must fit on one line.** Its `C` lines have no weekday,
   so on the other weekdays the maker keeps them and joins them onto
   whatever fact came before.
-- **Lines starting with `*`** are headers (`*MMDDYYYY Birthdays`,
-  `*updated 03/22/88 MAC`); the maker skips them, as their columns 4-5
-  never match a day. **`^`** ends the file: the maker stops there.
+- **A line starting with `*` is a comment**: the release uses them for
+  headers (`*MMDDYYYY Birthdays`, `*updated 03/22/88 MAC`). The maker
+  skips them (line 4029). The release's maker had no such test and
+  skipped them only because their columns 4-5 never match a day: there,
+  a comment with a day in columns 4-5 and a space, `C` or weekday in
+  column 10 would show as a fact, which `today.py check` warns about.
+  **`^`** ends the file: the maker stops there.
 - **The order**: in the release, the `B` facts by date, then `S` and `R`
   day by day. The maker doesn't need it (it reads the whole file and
   keeps today's), except that `C` lines follow their fact.

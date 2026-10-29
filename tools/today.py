@@ -208,7 +208,13 @@ def cmd_check(a, lines):
         print('line %d: %s\n    %s' % (i + 1, what, show(lines[i])))
     mm = '%02d' % (MONTHS.index(a.month) + 1) if a.month else None
     for i, l in enumerate(lines):
-        if not l or l[:1] in (b'*', b'^'):
+        if l[:1] == b'*':
+            day = show(l[3:5])
+            if day.isdigit() and 1 <= int(day) <= 31 and len(l) > 9 and l[9] in b' 1234567' + bytes([CONT]):
+                say(i, 'a comment that the release\'s i/lo/today would show on day %s '
+                       '(columns 4-5 and 10 look like a fact); ours skips every * line' % day)
+            continue
+        if not l or l[:1] == b'^':
             continue
         if not is_fact(l):
             say(i, 'not a fact (B, S or R), a header (*) or the end (^)')
