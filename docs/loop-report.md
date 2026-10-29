@@ -70,14 +70,33 @@ Condition at the end:
 4606 do:&,2,2:kk=kk+1:ed$(kk)=a$:loop while st=0 and kk<61:close2:u=1
 ```
 
-The jump inside an IF's THEN (a false IF skips the rest of the line, LOOP
-included, so the test turns round into an EXIT):
+The jump inside an IF's THEN: a false IF skips the rest of its line,
+LOOP included. Either turn the test round into an EXIT:
 
 ```
 4592 &,2,2:ifa$<>"{^}"andkk<101thentt$(kk)=a$:kk=kk+1:goto4592
 4592 do:&,2,2:if a$="{^}" or kk>100 then exit
 4593 tt$(kk)=a$:kk=kk+1:loop
 ```
+
+or, to test the common case first, keep the test in a variable and end
+the loop with LOOP WHILE:
+
+```
+4592 do:&,2,2:f=a$<>"{^}" and kk<101:if f then tt$(kk)=a$:kk=kk+1
+4593 loop while f
+```
+
+Two that don't work (tried on x128, 10/28/2026):
+
+- `if a$<>"{^}" and kk<101 then tt$(kk)=a$:kk=kk+1:loop` alone: when
+  the IF is false the program falls through to the next line with the
+  DO frame still on BASIC 7's stack. Inside a FOR loop, the next NEXT
+  finds it first: `?next without for`; anywhere else it's 5 bytes lost
+  each time.
+- `...:loop:else exit` on the same line: EXIT looks for the next LOOP
+  *after* it in the program text and goes on from there, so a LOOP
+  before it gives `?loop not found`. An EXIT needs its LOOP later on.
 
 ## 1. Convert: file-reading loops with no way out but the end (112)
 
