@@ -117,6 +117,17 @@ A frame whose RETURN, NEXT or LOOP never runs stays on the stack:
 - a GOSUB to a line that doesn't exist, caught with `trap` and `resume
   next`: GOSUB puts its frame on before it looks for the line, and the
   error doesn't take it off. `&,66,1` does the same.
+- a DO loop whose LOOP is in the THEN part of an IF: when the IF is
+  false, the rest of the line is skipped, LOOP included, and the program
+  falls through with the frame still there. Inside a FOR loop, the next
+  NEXT finds the DO frame first: `?next without for`. End the loop on a
+  line of its own instead (`loop while f`, with the test kept in `f`).
+
+EXIT leaves a DO loop cleanly, but it doesn't use the frame to find the
+way out: it looks for the next LOOP *after* it in the program text and
+goes on from there. A LOOP before the EXIT (`...:loop:else exit` on one
+line) gives `?loop not found`. RETURN from inside a DO or FOR loop takes
+their frames off too (tried 10/28/2026, `docs/loop-report.md`).
 
 Each one takes stack space for good. The stack holds about 66 GOSUB
 frames (fewer FOR frames, at 18 bytes), and evaluating an expression
