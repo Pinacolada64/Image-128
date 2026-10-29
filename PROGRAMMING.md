@@ -252,6 +252,80 @@ the statement after the `&`); `&,66,0` is a GOTO. The line must be under
   ends the line itself unless the string ends with a space; `lp` is back
   to 0 after each string, so set it before each one.
 
+## Today in History files: `today.<Mon>` and `s.today/hist`
+
+`i/lo/today` (the maker, `modules/i_lo_today.lbl`) reads this month's
+`today.<Mon>` (`today.Jan` ... `today.Dec`, with a PETSCII capital) from
+drive 3, picks out today's facts, lists them on the screen, and writes
+them to `s.today/hist` on drive 1. `i/lo-today` (`modules/i_lo-today.lbl`)
+shows `s.today/hist` to callers. Both are run from the logon and
+maintenance lists. The twelve `today.*` files come on the release's
+`MASTER D2` disk.
+
+`tools/today.py` lists, checks and edits a `today.<Mon>` file, on a
+`.d81` or as a SEQ file (`tools/today.py --help`).
+
+### `today.<Mon>`
+
+A SEQ file of lines, each ended by a carriage return:
+
+| Columns | What |
+|---|---|
+| 1 | `B` born today, `S` happened today, `R` don't forget (a holiday or a reminder) |
+| 2-5 | `MMDD`; the maker only compares the day (4-5) |
+| 6-9 | the year, right-aligned (` 742`); spaces for `R` |
+| 10 | a space: a new fact; `C`: more of the fact above; `1`-`7`: a new fact shown only on that weekday |
+| 11- | the text |
+
+- **A fact longer than one line** goes on in `C` lines, with the same type
+  and date as its first line: `B10021851 Ferdinand Foch, believed to be
+  the leader responsible for` then `B10021851CAllies winning World War
+  I.` The text of a `C` line starts in column 11 too; a space is put
+  between the lines when they're joined, unless the line before ends in
+  one.
+- **A line is at most 80 characters**, as `&,2,2` reads no more; the
+  release's lines go to 79 (one is 81, and loses its last character).
+  `today.py` wraps at 76.
+- **The weekday digit** is compared with the first character of `d1$`
+  (1 Sunday ... 7 Saturday). A holiday on "the nth weekday of the month"
+  is one line for each of the 7 days it can fall on, each with that
+  weekday: Thanksgiving, the fourth Thursday in November, is `R1122` to
+  `R1128`, each with `5`. `today.py ... sliding 4 Thu "..."` writes such a
+  set; `sliding last Mon` the last week (Memorial Day).
+- **A weekday fact must fit on one line.** Its `C` lines have no weekday,
+  so on the other weekdays the maker keeps them and joins them onto
+  whatever fact came before.
+- **Lines starting with `*`** are headers (`*MMDDYYYY Birthdays`,
+  `*updated 03/22/88 MAC`); the maker skips them, as their columns 4-5
+  never match a day. **`^`** ends the file: the maker stops there.
+- **The order**: in the release, the `B` facts by date, then `S` and `R`
+  day by day. The maker doesn't need it (it reads the whole file and
+  keeps today's), except that `C` lines follow their fact.
+- **At most 20 lines of one type on one day**, `C` lines included: the
+  maker keeps them in `dim zt$(3,20)`, and a 21st stops it with `?bad
+  subscript`. The release has at most 12.
+- Text is mixed case: capitals are PETSCII `$c1`-`$da`, as C64List's
+  `{alpha:alt}` writes them, and so are the `B`/`S`/`R` and `C` in
+  columns 1 and 10.
+
+`today.py check` finds three mistakes in the release files:
+`R0315` (Beware the Ides of March!) has `S` in column 10, which isn't a
+weekday, so it never shows; `S0838` (Lea and Perrins) has no such day;
+and `B0808` (Rudi Gernreich) is 81 characters.
+
+### `s.today/hist`
+
+What the maker writes for the day: a heading and a blank line, then for
+each type that has facts today, a purple title ("Famous people born on
+this date..."), a blank line and the facts, with a blank line before
+the second and third titles. A fact's first line is `{white} ` + the
+year + `,` (a space for `R`) + ` {yellow}` + the text; each `C` line
+becomes 7 spaces + `{yellow}` + the text. `i/lo-today` joins those back
+onto the fact before them, and prints each fact word-wrapped with
+`lp=1:&`; the maker's own lists on the screen do the same (4084-4096).
+A fact stays in pieces in the file, since `&,2,2` reads at most 80
+characters and a joined fact can run to about 215.
+
 ## Test programs
 
 `tests/standin/` programs are petcat source, not C64List: `\` is the `£`
