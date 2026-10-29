@@ -32,10 +32,11 @@
 4042 tt(zp)=tt(zp)+1:if mid$(a$,10,1)="C" then a$="       {yellow}"+mid$(a$,11):goto 4046
 4044 a$="{white} "+mid$(a$,6,4)+c$+" {yellow}"+mid$(a$,11)
 4046 zt$(zp,tt(zp))=a$:goto 4026
-4048 &"{f6:3}{lt. blue}Born Today:{f6}":for i=1 to tt(1):&zt$(1,i):&"{f6}":next
-4050 &"{lt. blue}Happened Today:{f6}":for i=1 to tt(2):&zt$(2,i):&"{f6}":next
+' 10/28/2026: the lists word-wrap to the caller's width (gosub 4084)
+4048 &"{f6:3}{lt. blue}Born Today:{f6}":zp=1:gosub 4084
+4050 &"{lt. blue}Happened Today:{f6}":zp=2:gosub 4084
 ' 10/28/2026: "Don't", and tt(3), this list's own count (it was tt(2))
-4052 &"{lt. blue}Don't Forget:{f6}":for i=1 to tt(3):&zt$(3,i):&"{f6}":next
+4052 &"{lt. blue}Don't Forget:{f6}":zp=3:gosub 4084
 4054 &"{f6}{lt. red}Writing File..."
 4056 dr=1:a$="s.today/hist":gosub 18
 4058 a$="{lt. blue} Here are some fascinating facts for "+zm$+" "+zd$+", 20"+zy$+"..."
@@ -51,3 +52,14 @@
 4078 close 2:gosub 82:return
 4080 rem (c) 1992 tlm software
 4082 rem "i/lo/today (c)nissa 190531 lh"
+' 10/28/2026: print list zp, each fact word-wrapped. A fact's further lines
+' (4042: 7 spaces, {yellow}, the text) are joined back onto it first, as
+' i/lo-today does. x: a fact is waiting in b$.
+4084 b$="":x=.:for i=1 to tt(zp):a$=zt$(zp,i):if left$(a$,7)="       " then b$=b$+mid$(" ",1-(right$(b$,1)=" "))+mid$(a$,9):goto 4090
+4086 if x then gosub 4094
+4088 b$=a$:x=1
+4090 next:if x then gosub 4094
+4092 return
+' a line ending in a space wouldn't be ended by lp=1
+4094 if right$(b$,1)=" " then b$=left$(b$,len(b$)-1):goto 4094
+4096 lp=1:&b$:return

@@ -11,8 +11,22 @@
 4500 rem i/on-today
 4502 rem ifct%>1thenreturn
 4504 cm$="Today":gosub 9:if ac%=.then return
-4506 dr=1:a$="s.today/hist":gosub 13:close 2
-4508 &"{f6:2} {yellow}Smack A Key...{pound}g1{f6:2}":on tr%+1 goto 4510
-4510 return
-4512 rem spotlight bbs 413-599-1713
-4514 rem "i/lo-today (c)nissa 190531 lh"
+' 10/28/2026: read s.today/hist a line at a time and word-wrap each fact to
+' the caller's width (it was &,3,2, which breaks words at the screen edge).
+' A fact longer than one line in today.<Mon> is stored as its first line,
+' then each further line as 7 spaces, {yellow} and the text: join those back
+' up to the fact before printing it. x: a fact is waiting in b$.
+4506 &"{clear}":dr=1:a$="s.today/hist,s,r":gosub 4:b$="":x=.:if e% then 4520
+4508 &,2,2:s=st:if left$(a$,7)<>"       " then 4512
+4510 b$=b$+mid$(" ",1-(right$(b$,1)=" "))+mid$(a$,9):goto 4516
+4512 if x then gosub 4524
+4514 b$=a$:x=1
+4516 if s=. and rc=. then 4508
+4518 if x and rc=. then gosub 4524
+4520 close 2:&"{f6:2} {yellow}Smack A Key...{pound}g1{f6:2}"
+4522 return
+' print the fact in b$; a line ending in a space wouldn't be ended by lp=1
+4524 if right$(b$,1)=" " then b$=left$(b$,len(b$)-1):goto 4524
+4526 lp=1:&b$:return
+4528 rem spotlight bbs 413-599-1713
+4530 rem "i/lo-today (c)nissa 190531 lh"
