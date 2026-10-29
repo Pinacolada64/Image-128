@@ -1,8 +1,9 @@
 # Makefile: the reference docs (*.md) as PDFs, through pandoc and lualatex,
 # the way TADA's server/scripts/md_to_pdf.sh does it.
 #
-#   make docs                   every doc in DOCS, into build/docs/ (modules/TODO.md
-#                               as build/docs/modules/TODO.pdf)
+#   make docs                   every doc in DOCS, into build/docs/ (one in a
+#                               subdirectory under the same: modules/TODO.md as
+#                               build/docs/modules/TODO.pdf)
 #   make build/docs/PORTING_NOTES.pdf   just one
 #   make clean-docs
 #
@@ -17,7 +18,8 @@
 #   striping on table rows.
 
 DOCS := PORTING_NOTES.md PROGRAMMING.md DEBUG_TECHNIQUES.md \
-	BASIC_VARIABLES.md SYSOP_COMMANDS.md editor.md modules/TODO.md
+	BASIC_VARIABLES.md SYSOP_COMMANDS.md editor.md modules/TODO.md \
+	docs/loop-report.md
 OUT := build/docs
 PREAMBLE := tools/pdf-preamble.tex
 
