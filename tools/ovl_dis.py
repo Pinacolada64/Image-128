@@ -79,6 +79,17 @@ while todo:
         if op in ('RTS', 'RTI', 'JMP', 'BRK'):
             break
 
+def inside(v):
+    """an address in the middle of an instruction (self-modifying code
+    changes its operand) as (the instruction's start, the offset)"""
+    if is_code.get(v) is False:
+        s = v
+        while is_code.get(s) is False:
+            s -= 1
+        return s, v - s
+    return v, 0
+
+
 # labels: code targets, --label addresses, plus anything in the overlay an
 # operand refers to
 labels = set(targets) | {int(v.replace('$', ''), 16) for v in args.label}
@@ -91,7 +102,7 @@ while a < end:
         if m and '#' not in t and len(m.group(1)) == 4:
             v = int(m.group(1), 16)
             if base <= v < end:
-                labels.add(v)
+                labels.add(inside(v)[0])
             elif end <= v < end + 0x100:
                 refs_beyond.add(v)
         a += n
@@ -120,8 +131,9 @@ def operand(t):
         return low, note
     if len(s) == 4 and base <= v < end:
         # an operand in the middle of an instruction: label + offset
-        if v in labels:
-            return low.replace('$' + s, lab(v)), note
+        start, k = inside(v)
+        if start in labels:
+            return low.replace('$' + s, lab(start) + (f'+{k}' if k else '')), note
     if len(s) == 4 and v in refs_beyond:
         return low.replace('$' + s, lab(v)), note
     note = f'; EXT {region(v)}'
