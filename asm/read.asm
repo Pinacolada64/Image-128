@@ -11,7 +11,9 @@
 ;   its own strings and tables are #<label/#>label (c64 #$c0-#$ca)
 ; - Image's variable buffer is varbuf ($63-$65; c64 $61-$63), its buffers
 ;   buf2 and buffer ($0e27, $0e77; c64 $ce27, $ce77), its & dispatcher
-;   usetbl1 ($192a; c64 $cd03)
+;   usetbl1 ($192a; c64 $cd03); 10/29/2026: also the six pointers to buf2
+;   and buffer it builds from immediates (#<buf2/#>buf2; c64 #$27/#$ce),
+;   which ovl_dis.py didn't flag: the lines came out as commas
 ; - the KERNAL (READST, CHKIN, GETIN) through the ML's ROM stubs, the ROM
 ;   being out in cfg_ml
 ; - $fb/$fc stay: farcall puts them back (glue.asm)
@@ -267,9 +269,9 @@ L_c1d3:
 	sta buf2	; c64: $ce27
 	lda #$01
 	sta varbuf	; c64: $61
-	lda #$27
+	lda #<buf2	; c64: #$27
 	sta varbuf+1	; c64: $62
-	lda #$ce
+	lda #>buf2	; c64: #$ce
 	sta varbuf+2	; c64: $63
 	ldx #$01
 	jsr L_ca2a
@@ -352,9 +354,9 @@ L_c279:
 	jmp L_c279
 L_c288:
 	sty varbuf	; c64: $61
-	lda #$27
+	lda #<buf2	; c64: #$27
 	sta varbuf+1	; c64: $62
-	lda #$ce
+	lda #>buf2	; c64: #$ce
 	sta varbuf+2	; c64: $63
 	ldx #$01
 	jsr L_ca2a
@@ -673,9 +675,9 @@ L_c8bf:
 	sta L_c005
 	sta L_c006
 	sta L_c010
-	lda #$77
+	lda #<buffer	; c64: #$77
 	sta L_c00b
-	lda #$ce
+	lda #>buffer	; c64: #$ce
 	sta L_c00c
 	lda L_c009
 	and #$f0
@@ -711,9 +713,9 @@ L_c8bf:
 	sta buf2+4	; c64: $ce2b
 	lda #$20
 	sta buf2+5	; c64: $ce2c
-	lda #$27
+	lda #<buf2	; c64: #$27
 	sta varbuf+1	; c64: $62
-	lda #$ce
+	lda #>buf2	; c64: #$ce
 	sta varbuf+2	; c64: $63
 	lda #$06
 	sta varbuf	; c64: $61
@@ -751,9 +753,9 @@ L_c961:
 	sta buf2+2	; c64: $ce29
 	lda #$03
 	sta varbuf	; c64: $61
-	lda #$27
+	lda #<buf2	; c64: #$27
 	sta varbuf+1	; c64: $62
-	lda #$ce
+	lda #>buf2	; c64: #$ce
 	sta varbuf+2	; c64: $63
 	ldx #$01
 	jsr L_ca2a
@@ -811,9 +813,9 @@ L_c9e1:
 	ldx #$01
 	jsr L_ca2a
 	jsr L_ca3b
-	lda #$77
+	lda #<buffer	; c64: #$77
 	sta varbuf+1	; c64: $62
-	lda #$ce
+	lda #>buffer	; c64: #$ce
 	sta varbuf+2	; c64: $63
 	ldy L_c006
 	lda #$8b

@@ -115,6 +115,8 @@ def operand(t):
     if low.split()[0] == '#' or '#$' in low:
         if base >> 8 <= v <= (end - 1) >> 8 and len(s) == 2:
             note = '; HI? (the overlay\'s own page)'
+        elif v in (0xcd, 0xce, 0xcf) and len(s) == 2:
+            note = '; HI? (Image\'s interface or buffer page: buf2, buffer...)'
         return low, note
     if len(s) == 4 and base <= v < end:
         # an operand in the middle of an instruction: label + offset
