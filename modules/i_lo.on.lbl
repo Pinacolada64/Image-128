@@ -13,8 +13,8 @@
 4004 dr=5:b$="i/lo-"+a$:a$=b$:gosub4:close2:ife%then:&"{f6}{white}[Module {pound}$b Failed]{f6}":return
 4006 new4500:cm$=b$:gosub9:loaddr$+b$,dv%:goto4500
 4010 an$=d5$:&,15:lp=1:&"{f6:2}{lt. blue}At the end of your last call, on {cyan}{pound}v7M{lt. blue}, you "
-4012 lp=1:&"didn't properly logoff.  Do you want your message scan date set to"
-4014 lp=1:&" that time? ":gosub96:ifathenld$=d5$
+4012 lp=1:&"didn't properly log off.  Do you want your message scan date set to "
+4014 lp=1:&"that time? ":gosub96:ifathenld$=d5$
 4016 return
 4020 a$="index":gosub28:dr=6:gosub3:b$=dr$+"u.weedinfo":a$=b$:&,16,1:gosub5
 4022 ife%thena$=b$:&,16,3:b%=1:goto4026
@@ -67,7 +67,7 @@
 4164 b%=val(mid$(fl$,18,2)):b%=b%-101*(b%=.):onpt%+1goto4172
 4166 fory=1to5:&,69,26,y+16,mid$("PRIME",y,1),135:next
 4168 on-(b%<p1%)goto4172:b%=p1%:&"{f6}{green}{pound}vj{yellow}   Please Note: It is now PRIME TIME."
-4170 &"      all callers limited to {white}{pound}%b {yellow}minutes!{f6}{green}{pound}vj":goto4174
+4170 &"      All callers limited to {white}{pound}%b {yellow}minutes!{f6}{green}{pound}vj":goto4174
 4172 ifb%<101then:&"{f6}{green}{pound}vj   {yellow}Time allowed for this call{white}: {pound}%b {yellow}Min.{f6}{green}{pound}vj"
 4174 tr%=b%:cn=cn+1:im=1:gosub443:im=6:iflen(uf$)<11thenim=4
 4176 gosub447:on-(mp%<1ormp%=40ormp%=80)gosub4030
@@ -77,7 +77,11 @@
 4183 ifnl=1thendr=1:a$="s.start"+left$(d1$,1):mm=13:gosub3000
 4184 dr=1:a$="s.welcome"+str$(nl):ifll%=80thena$=a$+" 80"
 4186 gosub14
-4190 &,28,1:dimlm%(15,40):dr=3:gosub3:&,60,2,.,lm%(.,.),dr$+"e.loginmods",dv%
+' 10/29/2026: gosub 5 reads the load's own status into e%, as i/lo.instant
+' does after its &,60,2 (4005): &,60,2 is a KERNAL LOAD and sets no e%, so
+' 4192 tested the last disk error before it, and a missing s.welcome (4184,
+' through im line 14: ?62) skipped every login module
+4190 &,28,1:dimlm%(15,40):dr=3:gosub3:&,60,2,.,lm%(.,.),dr$+"e.loginmods",dv%:gosub5
 4191 lh=lm%(2,.)
 4192 on-(e%>.)goto4220:rk=.:ad=.:&,52,45,3:m%=a%:ifm%then:&,52,44,3:m%=a%
 4193 ifm%thenm%=m%andlm%(1,.):ifm%thena$="menu2":gosub28:n=lm%(.,.)+1:dimmo%(16,n)
