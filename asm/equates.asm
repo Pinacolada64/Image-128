@@ -415,6 +415,13 @@
 	; leave it there), and trace0 copies it into a string of its own before
 	; the next statement. BASIC 7's x$=an$ copies only the descriptor
 	anfix	= $0af4	; 2804
+	; 10/29/2026: the BBS serial number, which boot 128 sets and swap3 shows
+	; under the copyright message at logon ("S# A0001"). c64: 765-767, below
+	; the cassette buffer; on the 128 they were in cassbuff, which setup
+	; clears. bsnpre: the prefix letter (A alpha, B beta, G general
+	; release), 0 for none; bsnval: 0-9999, low byte first
+	bsnpre	= $0af5	; 2805. c64: 765 / $02fd
+	bsnval	= $0af6	; 2806-2807. c64: 766-767 / $02fe-$02ff
 	keychk	= $033c	; 128 only: KEYCHK, the editor's vector for each decoded key
 			; on its way into the buffer (.a: the key; default $c6ad)
 
@@ -539,8 +546,9 @@
 ;
 ; serial # stuff
 ;
-	bsnpre	= cassbuff + 196 ; 6340 / $18c4.   c64:     765 / $02fd. BBS serial # prefix (a/b/g...)
-	bsnval	= cassbuff + 197 ; 6341 / $18c5-6. c64: 766-767 / $02fe. BBS serial #: 766=lo byte, 767=hi byte
+	; 10/29/2026: bsnpre and bsnval moved to $0af5-$0af7 (below): here,
+	; setup's zero_cassbuff (intro.asm) cleared them after boot 128 set them
+	; cassbuff + 196-198: unused
 ;
 ; Message Command Interpreter variables: 24 bytes
 ;

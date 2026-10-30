@@ -153,8 +153,55 @@ movdly:
 	dey
 	bpl <@
 
-	lda #copymsg_end-copymsg
-	sta varbuf
+; 10/29/2026: then the BBS serial number on a line of its own, "S# A0001":
+; the prefix letter from bsnpre and bsnval as four digits (boot 128 sets
+; them). Nothing when bsnpre is 0 (a boot 128 from before serials)
+	ldy #copymsg_end-copymsg
+	lda bsnpre
+	beq serial_done
+	ldx #0
+serial_text:
+	lda serialmsg,x
+	sta buffer,y
+	iny
+	inx
+	cpx #serialmsg_end-serialmsg
+	bne serial_text
+	lda bsnpre
+	sta buffer,y
+	iny
+	lda bsnval
+	sta serial_work
+	lda bsnval+1
+	sta serial_work+1
+	ldx #0
+serial_digit:
+	lda #'0'
+	sta serial_char
+serial_sub:
+	lda serial_work
+	cmp serial_lo,x
+	lda serial_work+1
+	sbc serial_hi,x
+	bcc serial_put
+	sta serial_work+1
+	lda serial_work
+	sbc serial_lo,x
+	sta serial_work
+	inc serial_char
+	bne serial_sub		; always
+serial_put:
+	lda serial_char
+	sta buffer,y
+	iny
+	inx
+	cpx #4
+	bne serial_digit
+	lda #function_key_6
+	sta buffer,y
+	iny
+serial_done:
+	sty varbuf
 	lda #<buffer
 	sta varbuf+1
 	lda #>buffer
@@ -175,6 +222,21 @@ copymsg:
 	ascii {usedef:version_number}
 	ascii "{f6}"
 copymsg_end:
+
+; 10/29/2026: the serial number's line: tab to column 7, then "S# "
+serialmsg:
+	ascii "{pound}"
+	byte $5f	; back arrow (MCI tab)
+	ascii "07S# "
+serialmsg_end:
+serial_lo:
+	byte <1000, <100, <10, <1
+serial_hi:
+	byte >1000, >100, >10, >1
+serial_work:
+	word 0
+serial_char:
+	byte 0
 
 mult3:
 	tya

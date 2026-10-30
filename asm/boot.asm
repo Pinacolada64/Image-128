@@ -21,6 +21,15 @@ loader_run = $0b00	; cassette buffer
 ; BASIC stub: 10 SYS7181
 	byte $0b,$1c,$0a,$00,$9e,$37,$31,$38,$31,$00,$00,$00
 
+; 10/29/2026: the BBS serial number, for swap3's logon message: from
+; serial (below) to bsnpre and bsnval
+	ldx #2
+serial_copy:
+	lda serial,x
+	sta bsnpre,x
+	dex
+	bpl serial_copy
+
 ; copy the loader to loader_run and go (counting up: it's over 128 bytes)
 	ldy #0
 copy:
@@ -30,6 +39,16 @@ copy:
 	cpy #loader_end-loader
 	bne copy
 	jmp loader_run
+
+; the BBS serial number: tools/serial.py finds the marker and changes the
+; three bytes after it. The prefix letter (PETSCII: $c1 A for alpha, $c2 B
+; beta, $c7 G general release), then 0-9999, low byte first. A0001 is
+; the default; serial.py issues the next ones
+serial_marker:
+	byte $00,$ff,$53,$4e	; "SN"
+serial:
+	byte $c1	; A
+	word 1
 
 ; ----- assembled here, runs at loader_run: below this line, only
 ; relative branches, and addresses written as loader_run+(label-loader)
