@@ -29,6 +29,10 @@ TCPSER_TRACE=${TCPSER_TRACE:-}
 LOG=build/tcpser.log
 
 die() { echo "start-image-128: $*" >&2; exit 1; }
+
+# the paths below (build/...) are the repo's: run from there, wherever
+# this was started from (x128 also makes its stray files, below, there)
+cd "$(dirname "$0")" || die "can't cd to $(dirname "$0")"
 port_in_use() { ss -ltn 2>/dev/null | grep -q ":$1\b"; }
 
 [ -x "$TCPSER" ] || die "tcpser not found: $TCPSER"
@@ -54,12 +58,22 @@ done
 port_in_use "$MODEM_PORT" || die "tcpser isn't listening on port $MODEM_PORT"
 echo "tcpser: callers telnet to port $TELNET_PORT (log: $LOG)"
 
+# 10/29/2026: a file named like the modem address (127.0.0.1:25232) in
+# the directory x128 starts in makes it write the RS-232 data into that
+# file instead of to tcpser, so the BBS gets no modem. What first makes
+# x128 create one is still unknown (modules/TODO.md); move one aside
+stray="127.0.0.1:$MODEM_PORT"
+if [ -e "$stray" ]; then
+	mv "$stray" "build/$stray.$(date +%Y%m%d-%H%M%S)"
+	echo "start-image-128: moved a stray \"$stray\" file to build/ (x128 would write to it, not to tcpser)" >&2
+fi
+
 # DS12C887 RTC cartridge at $d700 (x128 allows $d700, $de00, $df00; $d500
 # is the MMU on the 128, and the SwiftLink is at $de00): sub.clocks'
 # DS12C887 method (ck=4, cp=55040), chosen in IM's clock settings.
 # -ds12c887rtcsave keeps its time between runs.
 # SwiftLink: ACIA at $de00, mode 1, NMI (irq 1), on RS-232 device 3 (myaciadev 2)
-x128 -80col -drive8type 1581 -drive9type 1581 \
+x128 -ntsc -80col -drive8type 1581 -drive9type 1581 \
 	-kernal "$JIFFYDOS/JDOS128.rom" -dos1581 "$JIFFYDOS/Jiffy1581.rom" \
 	-9 "build/s_files.d81" \
 	-ds12c887rtc -ds12c887rtcbase 0xd700 -ds12c887rtcrunning -ds12c887rtcsave \
