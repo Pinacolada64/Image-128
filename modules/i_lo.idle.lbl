@@ -113,48 +113,25 @@
 ' 3 i. (mm; replaces i.lo, so it quits to the main prompt), 4 i/ (lm, back
 ' to idle through mm=8), 5 sub. (im, back here), 6 i/lo- (as 4)
 4220 x=wc%(1,b):a=wc%(9,b):on-(a=3)-2*(a=5)-3*(a=6)goto4226,4227,4228:lm=x:mm=8:goto{$37}2
-' 10/27/2026: the keys by instr(), not a test for each: x is the key's place
-' in the string, so 1-8 are their own digits (4465 needs x 2-4). + and - step
-' the colour once: 4226 and 4227 each called 4250 or 4252 before, so twice.
-' ? (21) draws the menu (4270), as any other key not here does from 4230
-4222 x=instr("12345678RFWCDITA{back arrow}+-{pound}?",a$):ifx=.then4230
-4223 onxgoto4450,4465,4465,4465,4462,4464,4452,4454,4225,4482,4488,4486,4498,4499,4256,4258,4260
-4224 onx-17gosub4250,4252,4254,4270:goto4232
-4225 b$="reload":x=11:mm=4:gosub{$33}000:f1=3:pr$="":goto{$33}02
+' 10/27/2026: the keys by instr(), not a test for each
+' 10/29/2026: each key's code is a block of 10 lines at 4600+10*x (x: its
+' place in the string), run by a%=line:&,66: 1 (GOSUB) for x 1-13, which
+' return, then 4200 for 1-3 (i/lo.misc redraws the screen) or 4204 (the
+' loop) for 4-13; 0 (GOTO) for 14-21, the modules, which don't come back.
+' ? draws the menu (4730), as any other key not here does from 4230
+4222 x=instr("17823456T+-{pound}?RFWCDIA{back arrow}",a$):ifx=.then4230
+4223 a%=4600+10*x:ifx>13then:&,66,0
+4224 &,66,1:on-(x<4)goto4200:goto4204
 4226 mm=x:goto{$37}0
 4227 im=x:gosub{$37}4:goto4200
 4228 lm=x:mm=8:a$="lo-"+a$:goto{$37}2
 4230 k=k+(k>.):on-(a$=" "ork=1)goto4200:on-(a$<>""and(a$<"{f1}"ora$>"{f8}"))gosub4270
 4231 &,52,43,3:ona%goto4204
 4232 im=5:gosub{$34}46:onagoto4006,4264,4266:gosub4040:goto4204
-4250 gosub4474:n=n+1:ifn>15thenn=1
-4251 goto4476
-4252 gosub4474:n=n-1:ifn<1thenn=15
-4253 goto4476
-' 10/27/2026: status line messages (cm$, im line 9) for the keys that showed
-' nothing: {pound} answer, T, + and -, 5 garbage collect, 6 reset modem. The loop
-' puts "System Idle" back on nearly every pass (4232, 4040), so T, + and -
-' and the ends of 5 and 6 show theirs through 4043, which holds it 30 seconds
-4254 cm$="Answering Call":gosub{$39}:im=7:goto{$34}46
-' toggle carrier status:
-' 4256 poke53258,16-peek(53258):return
-' 10/28/2026: T toggles lightbar flag 58 ($3a), Invert DCD (the ML's
-' carrier_update then sets carrst and the check mark from it). Poking 53258
-' (mxor) didn't reach the flag until the ML's mxor_compat was fixed, and
-' poking carrst only changed the check mark until the next pass
-' 10/28/2026: the message says the flag as the lightbar names it (DCD
-' Inverted/Normal) and whether the result is right: at the idle screen
-' nobody is connected, so Carrier Present (59, $3b; the check mark) should
-' be off. "Wrong": the check mark is on with no caller, so press T again.
-' &,22,3 lets the ML's carrier_update (irq5, every 8th frame) run first; b%
-' keeps flag 58
-4256 &,52,$3a,2:&,22,3:&,52,$3a,3:b%=a%:&,52,$3b,3:cm$="DCD "+mid$("Normal  Inverted",1+8*b%,6+2*b%)+": "+mid$("OKWrong",1+2*a%,2+3*a%):gosub4043:goto4204
-4258 mm=7:goto{$33}000
-4260 poke{sym:clock},.:poke53248,1:&"{clear}{f6:2}Loading Image-Term..{f6}":gosub{$33}04:b$="term":x=11
-4262 mm=4:gosub{$33}000:a$="t":goto{$37}0
 4264 cm$="Ring Detected":gosub{$39}:&,69,5,21,cm$,$83:goto4202
 4266 gosub4040:goto4204
 ' 10/27/2026: ? comes here from 4224 now, so no test for it (and no 4300)
+' 10/29/2026: from ?'s block (4730) now, and from 4230 for a key not listed
 4270 poke53248,1:poke{sym:usrlin},16:&"{clear}{f6}{cyan}{$ac}{pound}o{$a2}{pound}o{$a2}{pound}h1{blue}{$bb}{f6}"
 ' 10/27/2026: the menu, two items to a row: each item ("key)text") through 4292,
 ' which puts it in the left column or the right by p. The built-in keys are
@@ -202,14 +179,6 @@
 4436 b$="Program":d$="User":gosub4438:&"{f6:2}":poke53248,.:poke{sym:ndx},.:goto4040
 4438 c$=str$(bf(dr)):f$=str$(bf(dr+1))
 4440 a$="{lt. red} {pound}$b {gray3}Disk{white}:{pound}{back arrow}15{pound}$c{f6}{lt. red} {pound}$d {gray3}Disk{white}:{pound}{back arrow}15{pound}$f{f6}":&:dr=dr+2:return
-4450 lm=1:goto4460
-4452 lm=2:goto4460
-4454 lm=3:goto4460
-' 10/28/2026: 4460-4464 back (1, 7, 8: i/lo.misc; 5: Garbage Collect; 6: Reset Modem)
-4460 z$="lo."+"misc":gosub{$38}0:goto4200
-4462 cm$="Garbage Collecting":gosub{$39}:&,40:cm$="Garbage Collected":gosub4043:goto4204
-4464 cm$="Resetting Modem":gosub{$39}:mm=6:gosub{$33}000:cm$="Modem Reset":gosub4043:goto4204
-4465 onxgosub,4420,4430,4400:goto4204
 ' SuperCPU detection / enable:
 ' 10/27/2026: as 4480-4482 did: with flag $34 set, 4470 sets flag $35 (and
 ' pokes 53371), 4472 clears it (and pokes 53370); with $34 clear, neither
@@ -225,27 +194,6 @@
 ' read/set default text color:
 4474 gosub{$33}3:x=40:gosub{$31}:&,2,2:n=val(a$):close2:return
 4476 gosub{$33}3:x=40:gosub{$31}:print#2,n:close2:df%=n:&"{pound}q"+chr$(df%+48):&,16:cm$="Default Color"+str$(n):goto4043
-' 10/28/2026: consolidate disabling SuperCPU, taking modem off-hook, time remaining, disabling clock display, setting idletool flag here:
-4480 gosub 4470:print#131,"ath1":tr%=101:poke{sym:clock},.:poke 53248,1:poke {sym:idletool},1:return
-' 10/27/2026: i/lo.idle's 4480 is 4470 now (it gave ?undef'd statement in 3233:
-' F at the idle screen). i.VF itself, not i.lo.vf: peek(idletool)=1 tells it it was
-' started from idle, and tr%=101 passes its carrier checks (as C and D do)
-4482 gosub 4480:a$="VF":goto {$37}0
-' 10/27/2026: i.CP and i.RF themselves, not their i.lo.cp and i.lo.rf copies:
-' idletool tells them to go back to idle when they quit
-4486 gosub 4480:a$="CP":goto {$37}0
-4488 gosub 4470:c=a:a=.:lt$=d1$+"":poke{sym:carrst},.:&,52,16,1:&,52,4,1:zz=1
-4489 &,52,17,1:&,52,5,1
-4490 &,52,10,3:fl=-(a%=1):poke 53251,101:poke{sym:clock},.:nl=1
-4491 poke 53248,1:&,52,16,1:k=.:i%=1:id=i%:gosub{$33}5:x=id:gosub{$31}
-4492 input#2,na$,pw$,ff$,ll$,ph$,ld$,ac%,ct%:close2:co%=1:ll%=sw:ul=1:lf=.
-4493 le=100:em=val(left$(i2$,1)):ld$=d1$+"":d5$=d1$+"":tc%=1:&,52,20,em:poke 53252,20
-4495 fl$=fl$(9):co$=str$(co%):im=15:gosub{$34}45
-4496 ch$=co$:d5$=lt$:fori=1to10:st(i)=.:next:&,18,0:gosub{$31}2
-' FIXME:
-4497 a$="lo."+"wf":goto{$37}0
-4498 gosub 4480:a$="RF":goto{$37}0
-4499 gosub 4470:print#131,"ath1":tr%=101:poke{sym:clock},.:poke53248,1:zz=1:a$="lo."+"im":goto{$37}0
 ' 10/27/2026: lightbar Trc right (Time: Reset Clock) re-reads the clock with
 ' sub.clocks im=11, as in Image 3.0 (22c8d09, 4d6018d): whatever the method saved
 ' in e.data record 37 (CMD device, DS12C887, Ultimate, TeensyROM), quietly;
@@ -254,4 +202,72 @@
 ' method. sub.clocks takes sub.modem's place at 60000; the idle loop loads it
 ' again
 4500 &,52,25,.:b$="update time":x=11:gosub{$33}080:close2:im=11:a$="clocks":gosub{$37}4:return
-4530 rem "i/lo.idle (c)nissa 2023-07-11, 2026-10-22 rs"
+' 10/29/2026: the keys' blocks (4222-4224), 10 lines each at 4600+10*x
+' 1, 7, 8 (x 1-3): i/lo.misc's Set Time, Set Password, View Logs (lm 1-3);
+' im line 80 runs it, then loads this module again (on to 4200)
+4610 lm=1:goto4632
+4620 lm=2:goto4632
+4630 lm=3
+4632 z$="lo."+"misc":gosub{$38}0:return
+' 2, 3, 4 (x 4-6): the views (BAR, Blocks Free, Clock/Calls); f3 keeps the one
+' shown for 4200 to draw again
+4640 goto4420
+4650 goto4430
+4660 goto4400
+' 10/27/2026: status line messages (cm$, im line 9) for the keys that showed
+' nothing: 5 garbage collect, 6 reset modem, T, + and -, {pound} answer. The loop
+' puts "System Idle" back on nearly every pass (4232, 4040), so the ends of
+' 5 and 6, T, + and - show theirs through 4043, which holds it 30 seconds
+4670 cm$="Garbage Collecting":gosub{$39}:&,40:cm$="Garbage Collected":goto4043
+4680 cm$="Resetting Modem":gosub{$39}:mm=6:gosub{$33}000:cm$="Modem Reset":goto4043
+' T, toggle carrier status:
+' poke53258,16-peek(53258):return
+' 10/28/2026: T toggles lightbar flag 58 ($3a), Invert DCD (the ML's
+' carrier_update then sets carrst and the check mark from it). Poking 53258
+' (mxor) didn't reach the flag until the ML's mxor_compat was fixed, and
+' poking carrst only changed the check mark until the next pass
+' 10/28/2026: the message says the flag as the lightbar names it (DCD
+' Inverted/Normal) and whether the result is right: at the idle screen
+' nobody is connected, so Carrier Present (59, $3b; the check mark) should
+' be off. "Wrong": the check mark is on with no caller, so press T again.
+' &,22,3 lets the ML's carrier_update (irq5, every 8th frame) run first; b%
+' keeps flag 58
+4690 &,52,$3a,2:&,22,3:&,52,$3a,3:b%=a%:&,52,$3b,3:cm$="DCD "+mid$("Normal  Inverted",1+8*b%,6+2*b%)+": "+mid$("OKWrong",1+2*a%,2+3*a%):goto4043
+' + and -: the default colour, stepped once (4474 reads it, 4476 saves it)
+4700 gosub4474:n=n+1:ifn>15thenn=1
+4702 goto4476
+4710 gosub4474:n=n-1:ifn<1thenn=15
+4712 goto4476
+' {pound}: answer the modem
+4720 cm$="Answering Call":gosub{$39}:im=7:goto{$34}46
+' ?: the menu
+4730 goto4270
+' the modules (x 14-21, &,66,0): R reloads i.lo; F, C, D and I run i.VF,
+' i.CP, i.RF and i.IM themselves through 4890, which sets idletool, so they
+' come back to idle when they quit
+4740 b$="reload":x=11:mm=4:gosub{$33}000:f1=3:pr$="":goto{$33}02
+4750 gosub4890:a$="VF":goto{$37}0
+' W: the sysop logged in locally, then i.lo.wf
+4760 gosub4470:c=a:a=.:lt$=d1$+"":poke{sym:carrst},.:&,52,16,1:&,52,4,1:zz=1
+4761 &,52,17,1:&,52,5,1
+4762 &,52,10,3:fl=-(a%=1):poke 53251,101:poke{sym:clock},.:nl=1
+4763 poke 53248,1:&,52,16,1:k=.:i%=1:id=i%:gosub{$33}5:x=id:gosub{$31}
+4764 input#2,na$,pw$,ff$,ll$,ph$,ld$,ac%,ct%:close2:co%=1:ll%=sw:ul=1:lf=.
+4765 le=100:em=val(left$(i2$,1)):ld$=d1$+"":d5$=d1$+"":tc%=1:&,52,20,em:poke 53252,20
+4766 fl$=fl$(9):co$=str$(co%):im=15:gosub{$34}45
+4767 ch$=co$:d5$=lt$:fori=1to10:st(i)=.:next:&,18,0:gosub{$31}2
+' FIXME:
+4768 a$="lo."+"wf":goto{$37}0
+4770 gosub4890:a$="CP":goto{$37}0
+4780 gosub4890:a$="RF":goto{$37}0
+' 10/29/2026: I: i.IM itself, not i.lo.im (zz: local, as 4499 had it)
+4790 gosub4890:zz=1:a$="IM":goto{$37}0
+' A: AutoMaintenance
+4800 mm=7:goto{$33}000
+' {back arrow}: Image Terminal
+4810 poke{sym:clock},.:poke53248,1:&"{clear}{f6:2}Loading Image Terminal...":gosub{$33}04:b$="term":x=11
+4812 mm=4:gosub{$33}000:a$="t":goto{$37}0
+' 10/28/2026: before F, C, D and I: SuperCPU off (4470), modem off hook, time
+' left 101 (their carrier checks pass), no clock display, idletool set
+4890 gosub 4470:print#131,"ath1":tr%=101:poke{sym:clock},.:poke 53248,1:poke {sym:idletool},1:return
+4990 rem "i/lo.idle (c)nissa 2023-07-11, 2026-10-22 rs"

@@ -495,7 +495,7 @@ them.
 `&,27` and drops with `&,28` (`arrmark` marked only the dropped *plain*
 variables' strings then; `arrmarka` does the arrays now). Their strings stay live, linked to memory that is
 other variables or arrays later. Login runs modules that do that (e.g.
-`i.lo.im`: `dt$()`, `ed$()`, `b$()`, `c$()`).
+`i.IM`, as `i.lo.im` did: `dt$()`, `ed$()`, `b$()`, `c$()`).
 
 **Ruled out:**
 

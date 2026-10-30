@@ -6,8 +6,12 @@
 
 {uses:..\3_0-preface.lbl}
 {alpha:alt}
+' 10/29/2026: for {sym:idletool}
+{include:"..\asm\equates.asm"}
 
-4000 onlmgoto4100,4300,4500,4600
+' 10/29/2026: from the idle screen (i.IM with idletool), inputs 10 wide, as
+' i/IM.lo.logon, which this replaces, had them (4009)
+4000 onpeek({sym:idletool})gosub4009:onlmgoto4100,4300,4500,4600
 4001 return
 4002 &"{f6}There Are NO Modules Active.":return
 4003 tt$(a)=right$("0000"+mid$(str$(b%),2),4)+mid$(" *",c%+1,1)+b$:fl=1:return
@@ -16,6 +20,7 @@
 4006 a%=f:return
 4007 a%=.:fori=.to9:b%=i:&"Group {pound}%b? ":gosub96:a%=a%+a*2^i:next:f=a%:return
 4008 close1:open1,dv%,.,"$"+dr$+an$:&"{f6}":&,8,1:close1:return
+4009 poke53252,10:return
 4100 &,27,3:dimlm%(15,40):&"{clear} {white}New Image {yellow}Login Editor v2.0{f6}"
 4102 dr=3:gosub3:&,60,2,.,lm%(.,.),dr$+"e.loginmods",dv%:gosub5:fl=.
 4104 lo=lm%(.,.):ife%thenlo=.:lm%(.,.)=.:lm%(1,.)=.:gosub4002

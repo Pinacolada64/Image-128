@@ -6,9 +6,17 @@
 
 {uses:..\3_0-preface.lbl}
 {alpha:alt}
+' 10/29/2026: for {sym:idletool}
+{include:"..\asm\equates.asm"}
 {crunch:on}
 
 3000 zz%=8:pr$="":lm$="":&,52,44,3:mm=a%:&,52,45,3:gm=gmand a%:fl=.:&,18,0
+' 10/29/2026: started from the idle screen (I; idletool), it does what
+' i.lo.im, which this replaces, did: inputs 20 wide (16 in Netmail Config,
+' 3044; 10 in the Logon Editor, i/IM.logon 4000), and back to idle on
+' quitting (3043). Its SM (3192) is i.SM, which quits back to here, so
+' i.lo.sm isn't needed either
+3001 if peek({sym:idletool}) then poke 53252,20
 3002 a$="menu2":gosub 28
 3004 if flthen return
 3006 &,28,1:n=15:dim m%(16,n),dt$(60),ed$(60),a%(60):if tr%<1 then return
@@ -32,8 +40,9 @@
 3036 gosub 3348:if tr%<1 or lm=nor lm=.then 3042
 3038 on lmgoto 3204,3187,3208,3068,3189,3190,3206,3084,3128,3188
 3040 on lm-10 goto 3282,3104,3044,3192
-3042 &,18,1:goto 300
-3044 &,28,1:n=8:dim m%(16,n)
+3042 &,18,1:on peek({sym:idletool}) goto 3043:goto 300
+3043 &,28,1:f1=3:a$="lo":goto 70
+3044 &,28,1:n=8:dim m%(16,n):if peek({sym:idletool}) then poke 53252,16
 3046 &,16,.,34,m%(.,1),"A","","Local Info"
 3048 &,16,.,34,m%(.,2),"B","","Modem Specs"
 3050 &,16,.,34,m%(.,3),"C","","Calling Hours"
