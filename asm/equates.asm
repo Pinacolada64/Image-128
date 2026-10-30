@@ -904,6 +904,10 @@
 ;
 	glue			= $3600	; $3600-$3fff: glue.asm, visible in every
 					; configuration (shared bottom 16K)
+	; 10/30/2026: glue.asm's charrom8, at a fixed address for the editor
+	; (assembled apart): copies 8 bytes of the character ROM to charbuf8
+	charrom8		= $3780
+	charbuf8		= charrom8 + 40
 	romtab			= $c000	; romtab.asm, then the resident ML:
 	resident_lo_end		= $d000	;   $c000-$cfff
 	resident_hi		= $e000	;   and $e000-$feff ($ff00-: MMU, and the
@@ -923,7 +927,12 @@
 	rs232_exec_address	= $2c00	; $2c00-$2eff (the KERNAL's RS-232
 					; buffers stay at $0c00-$0dff)
 	wedge_exec_address	= $2f00
-	editor_exec_address	= protostart
+	; 10/30/2026: the editor runs where it loads, in its bank 1 slot
+	; ($9000, seen in cfg_ml), not swapped in at protostart: swap1's
+	; useeditr, which calls it, runs at protostart itself, so swapping the
+	; editor there put it over the code that was calling it (c64: $1800,
+	; apart from protostart, $c000). swap1's editswap no longer swaps
+	editor_exec_address	= editor_load_address
 
 ; address of modules when they are "swapped out," waiting to be used:
 ; where they load (bank 1, seen at these addresses in cfg_ml)
@@ -1170,7 +1179,7 @@ flag_h2e_r_mask	= %10000000	; 47 Undefined
 
 flag_h38_addr	= chktbl + 7 	; Trb
 flag_h38_l_mask	= %00000001	; 56 ($38) On: Do not display BASIC variables
-flag_h38_r_mask	= %00000010	; 57 ($39) Undefined
+flag_h38_r_mask	= %00000010	; 57 ($39) On: Enable VIC-II border color change on error
 
 flag_dcd_addr	= chktbl + 7 	; DCD
 flag_dcd_l_mask	= %00000100	; 58 ($3a) invert DCD: off=normal, on=inverted
@@ -1180,8 +1189,8 @@ flag_dsr_addr	= chktbl + 7 	; DSR
 flag_dsr_l_mask	= %00010000	; 60 ($3c) DCD/DSR select: on = DSR, off = DCD
 flag_dsr_r_mask = %00100000	; 61 ($3d) enable RX/TX windows
 
-; editor input flags
-
+; editor input flags: &,1,x,y
+; x:
 editor_allow_cursor_controls	= %00000001 ; allow cursor movement and color characters in input
 editor_dot_on_column_one	= %00000010 ; dot on column one exits input
 editor_show_prompt		= %00000100 ; show prompt
@@ -1190,7 +1199,7 @@ editor_word_wrap		= %00010000 ; word wrap enabled
 editor_edit_mode		= %00100000 ; edit mode
 editor_ignore_time_remaining	= %01000000 ; ignore time remaining
 editor_backspace_on_column_one	= %10000000 ; backspace on column one exits input
-
+; y:
 passmode_off			= %00000000 ; all password flags off
 passmode_show_mask		= %00000001 ; password mask enabled for output
 passmode_no_output		= %00000010 ; no output

@@ -622,20 +622,13 @@ editjmp:
 ; target of self-modifying code
 	jsr editor_exec_address
 editswap:
-	pha
-	txa
-	pha
-	tya
-	pha
-	lda #>editor_exec_address
-	ldy #>editor_swap_address
-	ldx #>8		; FIXME: '8' was 'editor_module_size'; 4K = 8 pages
-	jsr swapper
-	pla
-	tay
-	pla
-	tax
-	pla
+; 10/30/2026: nothing to swap on the 128: the editor runs in its bank 1 slot
+; (editor_exec_address = editor_load_address, equates.asm). Swapping it in at
+; protostart put it over this module, which runs there and was calling it;
+; and the page count was #>8, which is 0, which the swapper takes as 256
+; pages: it swapped all 64K, e.g. the ECS definitions over glue at $3600.
+; c64: lda #>editor_exec_address, ldy #>editor_swap_address,
+; ldx #>editor_module_size, jsr swapper, the registers kept around it
 	rts
 
 edittbl:

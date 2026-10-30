@@ -1927,22 +1927,23 @@ quad:
 	clc
 	adc #>$d800
 	sta quad1+2
-	jsr rsdisab
-	php
-	lda mmucr
-	pha
-	sei
-	lda #cfg_charrom	; c64: r6510_char_rom in $01
-	sta mmucr
-	ldy #7
+	jmp quad1_go
 quad1:
-	lda $ffff,y
+	byte $ad,$ff,$ff	; the char ROM address, at quad1+1/+2 (was the lda's operand)
+quad1_go:
+	jsr rsdisab
+; 10/30/2026: the character ROM through glue's charrom8: this code runs in
+; bank 1 ($9000), which cfg_charrom covers with BASIC ROM (c64: r6510_char_rom
+; in $01, and the loop here)
+	lda quad1+1
+	ldx quad1+2
+	jsr charrom8
+	ldy #7
+quad1c:
+	lda charbuf8,y
 	sta bitbuf,y
 	dey
-	bpl quad1
-	pla
-	sta mmucr
-	plp
+	bpl quad1c
 	jsr rsinabl
 	ldy #3
 quad2:

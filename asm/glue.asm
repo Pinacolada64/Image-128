@@ -308,3 +308,30 @@ farjmp_run:
 	lda #0
 	jsr k_run
 	jmp k_newstt
+
+; 10/30/2026: 8 bytes of the character ROM (.a/.x: their address) to
+; charbuf8, for the editor's big letters (editor.asm quad1). The editor runs
+; in bank 1 at $9000, where cfg_charrom has BASIC ROM: it can't switch to it
+; itself, nor reach its own buffer under it, so the copy is here, in the
+; shared 16K, at a fixed address (equates.asm)
+	orig charrom8
+	sta charrom8_ld+1
+	stx charrom8_ld+2
+	php
+	sei
+	lda mmucr
+	pha
+	lda #cfg_charrom
+	sta mmucr
+	ldy #7
+charrom8_ld:
+	lda $ffff,y	; target of self-modifying code
+	sta charbuf8,y
+	dey
+	bpl charrom8_ld
+	pla
+	sta mmucr
+	plp
+	rts
+	orig charbuf8
+	byte 0,0,0,0,0,0,0,0
