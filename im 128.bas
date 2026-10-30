@@ -8,6 +8,7 @@
 ' BASIC 7.0 tokens, from C64List 4.06:
 {include:Basic70.bas}
 {alpha:alt}
+{crunch:on}
 ' for quote mode character replacements:
 {include:quoters.lbl}
 
@@ -47,7 +48,7 @@
 19 gosub 3:print#15,"s"dr$a$:return
 ' "scratch(dr$+a$) on u dr%(dr)" doesn't seem to work in basic 7.0
 28 cm$=a$:gosub 9:dr=5:gosub 3:if "++ "+a$=ml$ then e%=.:return
-29 ml$="++ "+a$:a$=dr$+ml$:&,7,dv%,2:goto 5
+29 ml$="++ "+a$:cm$=ml$:gosub 9:a$=dr$+ml$:&,7,dv%,2:goto 5
 30 dr=3:a$="e.stats":goto 4
 31 dr=3:a$="e.access":goto 4
 32 dr=2:a$="m."+left$(tt$,13)+",s,"+a$:goto 4
@@ -96,12 +97,8 @@
 ' line 60000 of its own, so C64List 4.06 wrote "gosub 60000" as "gosub [60000]"
 ' (?SYNTAX ERROR when a module returned); the {$36} hides it from C64List
 75 gosub {$36}0000:is=is-1:if is<1 then return:else a$=mid$(im$(is),5):goto 78
-'TODO: maybe?
-'76 a$="i."+a$:pr$=a$+"":p1$="":p2$="":delete 3000-3999:goto 79
-'77 a$="i/"+a$:p1$=a$+"":p2$="":delete 4000-59999:goto 79
 76 a$="i."+a$:pr$=a$+"":p1$="":p2$="":new 3000:goto 79
 77 a$="i/"+a$:p1$=a$+"":p2$="":new 4000:goto 79
-' 78 a$="sub."+a$:p2$=a$+"":delete 60000-
 78 a$="sub."+a$:p2$=a$+"":new 60000
 79 cm$=a$:gosub 9:gosub 2:load dr$+a$,dv%:return
 80 a$=z$:z$=mid$(p1$,3):gosub 72:a$=z$:dr=5:if lc<>1 then 77:else return
@@ -119,6 +116,7 @@
 
 ' TODO: rather than gosub 93 for "default no" and gosub 95 for "default yes"
 ' I'd rather go back to "a=0:gosub 94" for default yes, but this is a lot of change
+{undef:yesno_change}
 {ifdef:yesno_change}
 ' updated working code:
 94 &"{f6}Are You Sure?: ":if a then 96
@@ -426,17 +424,17 @@
 3104 dr=3:gosub 3:z3$="Loading System Defaults...":gosub 3414:gosub 3404:d$=" Definitions: "
 3106 &"{f6}{lt. blue}Extended Command Set{pound}$d":a$=dr$+"e.ecs.main":&,42,4:gosub 3192
 3108 &"Print Mode{pound}$d":a$=dr$+"e.printmodes":&,7,dv%,7:gosub 3192
-3110 &"Lightbar{pound}$d":a$=dr$+"e.lightbar":&,7,dv%,8:gosub 3192
+3110 &"Lightbar Checkmarks":a$=dr$+"e.lightbar":&,7,dv%,8:gosub 3192
 3111 z3$="Setting Alarm Tables...":gosub 3404
 3112 &"{f6:4}{lt. blue}Alarm Table: ":a$=dr$+"e.alarms":&,7,dv%,9:gosub 3192
 3114 :
 3116 &"{lt. blue}Network Alarm Table: ":dr=2:gosub 3:a$=dr$+"nm.times":&,7,dv%,12:gosub 3192
 3118 dr=3:a$="e.fkeys,s,r":gosub 4:if e% then close 2:goto 3128
 3120 z3$="Enabling Function Keys...":gosub 3404
-3122 fori=1to8:&,2,2:ifright$(a$,1)="{back arrow}"thena$=left$(a$,len(a$)-1)+r$
-3124 tt$(i)=a$:next:close2:f1$=tt$(1):f2$=tt$(2):f3$=tt$(3):f4$=tt$(4)
+3122 for i=1 to 8:&,2,2:if right$(a$,1)="{back arrow}" then a$=left$(a$,len(a$)-1)+r$
+3124 tt$(i)=a$:next:close 2:f1$=tt$(1):f2$=tt$(2):f3$=tt$(3):f4$=tt$(4)
 3126 f5$=tt$(5):f6$=tt$(6):f7$=tt$(7):f8$=tt$(8)
-3128 z3$="Setting Up Variables... (e.data)":gosub 3404:gosub 33:if e% then close2:gosub 3240:goto 3128
+3128 z3$="Reading System Configuration...":gosub 3404:gosub 33:if e% then close2:gosub 3240:goto 3128
 3130 x=1:gosub 1:&,2,2:ca=val(a$):x=12:gosub 1:&,2,2:ur=val(a$)-1
 3132 x=17:gosub 1:&,2,2:d3$=a$:x=18:gosub 1:&,2,2:pp$=a$
 ' date/time of last user logoff, prime time data
@@ -593,7 +591,7 @@
 ' FIX: remove z=z+1 stuff. this does not delay 1/2 second on a SuperCPU system. use timer instead:
 ' 'i=not i' does not work
 
-' i=color index (0=gray, 1=yellow)
+' FIXME: i=color index (0=gray, 1=yellow)
 3406 gosub 3414:i=1:&"1) Option 1{f6}2) Option 2{f6}3) Option 3{f6}{back arrow}) Abort{f6:2}Option: "
 
 ' NOTE: Immutable line number
@@ -628,6 +626,7 @@
 ' rows 6-23, as Image BBS 3.0 (24 is the status line)
 ' 10/20/2026: on an 80-column screen, also clear columns 39-78 (the MCI
 ' tab stops short of column 40)
+' TODO: it would be nice to expand MCI tab to 80 columns
 3414 for i=6 to 23:&,70,0,i:&"{pound}{back arrow}38"+left$("{space:40}",-40*(sw=80)):next:&,70,0,6:return
 
 
@@ -676,12 +675,12 @@
 4038 a$=a$+"Pfile : "+pr$+r$+"Area  : "+cm$+r$+".":remgosub 51
 4040 close 2:&,37:for x=1 to 4:&,11,x:next:sy$="":sb$="":sg=.
 4042 p2$="":is=.:p1$="":pr$="":ml$="":pr=-1:pf=.
-' peek(2033) is carrst (modem carrier status)
+' carrst = modem carrier status
 ' 4044 if ac%<>16 then:&,52,4,3:if a% or if (peek(2033) and 1)=. then 4050
 ' 10/21/2026: "if a% or if (...)" was a ?syntax error, here in the error handler
 ' itself: every error ended in it (trapped again by the &,37 on 4040, until
 ' break in 5). As the c64: local (a%), or the carrier lost latch clear
-4044 if ac%<>16 then:&,52,4,3:on a% goto 4050:if (peek({sym:carrst}) and 1)=. then 4050
+4044 if ac%<>16 then:&,52,4,3:if a% or (peek({sym:carrst}) and 1)=. then 4050
 4046 f1=2:goto 302
 ' 65418: RESTOR through the KERNAL jump table ($ff8a), as on the C64
 4048 a$="FATAL ERROR!!":gosub 51:sys 65418:print"{clear}{$0b}{white}{lowercase}{down:2}"a$:end
@@ -692,7 +691,8 @@
 '    kk=kk+1:&,2,2:s=(64andst):tt$(kk)=a$:ifs=.then4054
 ' 10/22/2026: stop at the end of the file or any error (st<>0), not only at EOF (64):
 ' a read error without bit 6 ran on until tt$() gave ?bad subscript
-4054 do while st=.:kk=kk+1:&,2,2:tt$(kk)=a$:loop
+' 10/27/2026: kk<254, not 255: tt$() is DIMmed 254, and kk<255 let it reach 255
+4054 do while st=. and kk<254:kk=kk+1:&,2,2:tt$(kk)=a$:loop
 4056 close 2:tt$=na$:a$="a":gosub 32:if e% then a$="w":gosub 32
 4058 a$="[System Error ("+d$+")]":a=.:print#2,i1$r$1;r$d1$r$a$r$
 4060 gosub 39:close 15
@@ -732,6 +732,5 @@
 ' 4094 data"BAD DISK","BEND NOT FOUND","LINE # TOO LARGE"
 ' 39-41
 ' 4096 data"UNRESOLVED REFERENCE","UNIMPLEMENTED COMMAND","FILE READ"
-4098 rem copr. 1996 new image 5/6/96-jlf
-4100 rem im (c)nissa 2020-09-29 lh-ad, 2026-10-21 rs
-4102 rem {usedef:__BuildDate} {usedef:__BuildTime} rs
+4100 rem "im: copr. 1996 new image 5/6/96-jlf"
+4102 rem "im 128" {usedef:__BuildDate} {usedef:__BuildTime} rs

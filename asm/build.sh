@@ -105,7 +105,10 @@ h=$(date +%-H)
 h12=$(( h % 12 == 0 ? 12 : h % 12 ))
 [ "$h" -ge 12 ] && h12=$(( h12 + 80 ))
 imdate="$(( $(date +%w) + 1 ))$(date +%y%m%d)$(printf %02d $h12)$(date +%M)"
-log=$(WINEDEBUG=-all wine "$C64LIST_406" "im 128.bas" "-prg:build\\im 128.prg" "-def:imdate=\"$imdate\"" -ovr 2>&1) || true
+# 10/29/2026: -crunch when the file asks for it, as for the modules below:
+# C64List 4.06 ignores {crunch:on} too
+imcrunch=; grep -q '{crunch:on}' "im 128.bas" && imcrunch=-crunch
+log=$(WINEDEBUG=-all wine "$C64LIST_406" "im 128.bas" "-prg:build\\im 128.prg" "-def:imdate=\"$imdate\"" $imcrunch -ovr 2>&1) || true
 if ! grep -q "^0 Errors" <<<"$log"; then
 	grep -E "^Error|Errors;" <<<"$log" | sed 's/.*\\//' >&2
 	echo "build.sh: im 128.bas failed" >&2
