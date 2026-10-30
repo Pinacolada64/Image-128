@@ -443,10 +443,17 @@ strr_keep: byte 0
 ; making: makeroom can start a garbage collection, which uses zero page
 ; ($11, $14, $24/$25, $50-$5f, $61/$62...) that ML in the middle of its own
 ; work may be holding, so it isn't done inside putvar (tried: ?syntax and
-; ?type mismatch errors in struct and MCI calls). swap3's reader calls
-; dskin itself and keeps it as it was.
+; ?type mismatch errors in struct and MCI calls). ML callers (swap3's
+; reader, the ++ overlays) get the read alone: see amp_basic below.
+; 10/30/2026: only for BASIC's &,2 (amp_basic, glue.asm). An overlay or
+; swap module calling &,2 through usetbl1 takes the bytes from buf2 itself,
+; as on the C64, and strfix would take $fb/$fc from it (++ post keeps its
+; index pointer there: its headers came out as stale a$ text) and could start
+; a garbage collection in the middle of its work
 dskina:
 	jsr dskin
+	lda amp_basic
+	beq strc9	; called from ML: just the read
 	ldx #var_a_string
 ; strfix: if string variable .x points at text in RAM every configuration
 ; shares (below $4000, or $c000 up: Image's buffers), copy it into a new

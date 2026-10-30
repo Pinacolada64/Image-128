@@ -114,11 +114,23 @@ gate_fc:  byte 0
 
 ; usetbl1 (the interface page's "&" entry, which the wedge calls in
 ; cfg_rom): run usetbl0 in cfg_ml
+; 10/30/2026: amp_basic says whether this & call came from BASIC (the
+; wedge, in cfg_rom) or from ML (usetbl1, in cfg_ml): dskina copies a$ for
+; BASIC only (miscl.asm). .a .x .y and the flags go on as they came
 usetbl_far:
+	php
+	pha
+	lda mmucr
+	eor #cfg_ml	; 0: an ML caller
+	sta amp_basic
+	pla
+	plp
 	jsr farcall
 	byte cfg_ml
 	word usetbl0
 	rts
+amp_basic:
+	byte 0
 
 ; the KERNAL's CHROUT vector (ICHROUT, $0326), set by iosetup
 newout_far:
