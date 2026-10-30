@@ -83,7 +83,10 @@
 4242 fl=1:goto4106
 4280 on-(lo=.)goto4120:&"{f6} {blue}## {lt. blue}Accs {cyan}i/lo-Filename {white}Description{f6}{purple}{pound}vj"
 4282 forx=1tolo:a$=mid$(" >",lm%(1,x)+1,1):&"{purple}{pound}$a{blue}{pound}#2{pound}# 0{pound}!x{lt. blue}"+str$(lm%(.,x))
-4284 &,60,1,11,lm%(2,x),a$:&,60,1,16,lm%(8,x),b$:&"{pound}{back arrow}09{cyan}{f5}{pound}$a{f5}{pound}{back arrow}23{white}{pound}$b{pound}{back arrow}39 "
+' 10/29/2026: each item ends with {f6}, not a tab to column 39 and a space:
+' that wrapped to the next line only on a 40-column screen, so at 80
+' columns the items ran on into one line
+4284 &,60,1,11,lm%(2,x),a$:&,60,1,16,lm%(8,x),b$:&"{pound}{back arrow}09{cyan}{f5}{pound}$a{f5}{pound}{back arrow}23{white}{pound}$b{f6}"
 4286 x=-x*(sh+rc=.)-(lo+1)*(sh+rc>.):next
 4288 &"{purple}{pound}vj {yellow}({f5}{purple}>{yellow}{f5} Indicates Forced Item{yellow}){f6}":return
 4290 &"{f6}{gray2}Graphic Menu is {gray3}":&mid$("OFFON",3*lm%(1,.)+1,3)+"."
