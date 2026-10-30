@@ -373,10 +373,13 @@
 3044 dimt$,t%,t1,tc%,tf,tk$,tr%,tt,tt$,tz$
 3046 dimu$,u%,uc,uh,ul,ur,uf$,uu$
 3048 dimv$,v%
-3050 dimw$,w%
-3052 dimx$,x%
-3054 dimy$,y%
-3056 dimz$,z%,zz
+' 10/30/2026: ww%, xx%, yy%, zz%: i.SB's (3470-3471: a post's response count
+' and its file's record numbers). Not DIMmed, they went at the next &,28:
+' xx% read 0 at i/MM.sb-post 4018, and responses were never shown
+3050 dimw$,w%,ww%
+3052 dimx$,x%,xx%
+3054 dimy$,y%,yy%
+3056 dimz$,z%,zz,zz%
 ' sw: sysop screen width, 40 or 80
 3058 ac%=16:sw=rwindow(2):x=rnd(-ti):hx$="0123456789ABCDEF"+""
 3060 c3$="{f6}Returning To The Editor"+"{f6:2}"
