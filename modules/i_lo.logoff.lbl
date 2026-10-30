@@ -1,0 +1,42 @@
+' imported from i_lo.lof.prg with:
+'   tools/detok.sh (C64List4_04.exe -txt -autospace -keycase -varcase -alpha:alt)
+' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
+' resolve through 3_0-preface.lbl. unchanged, this builds a program identical
+' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
+
+' BASIC 7.0 tokens, from C64List 4.06:
+' 10/29/2026: built with C64List 4.06 and Basic70.bas, for instr() (4120)
+' and else (4130); 4.06 can't take 3_0-preface.lbl's line numbers, so
+' jumps to lines in im are written as {$39}0 for 90, {$34} for 4 and so on
+{include:..\Basic70.bas}
+{include:..\quoters.lbl}
+{alpha:alt}
+{crunch:on}
+
+4000 goto 4100:rem "i/lo.logoff - a logoff    211103        menu for image 128"
+4002 gosub {$39}0:goto 4100
+4004 dr=5:b$="i/lo-"+a$:a$=b$:gosub {$34}:close 2:if e%then:&"{f6}{white}[{lt. red}Module {gray3}{pound}$b {lt. red}Failed]{f6}":return
+4006 new 4500:cm$=b$:gosub {$39}:load dr$+b$,dv%:goto {$34}500
+4100 &"{pound}f1Logoff menu by Hoy Brothers{comma} 13th floor @ bbs.hoyvision.com{colon}6400"
+4102 &"{f6}{white}{pound}$qYour Activity This Call:{f6}{yellow}{pound}$q{$a3:4} {$a3:8} {$a3:4} {$a3:5}"
+4104 &"{f6}{pound}$q{red}{rvrs on}[ Feedback   ]{rvrs off}{white}:"+str$(st(1))
+4106 &"{f6}{pound}$q{orange}{rvrs on}[ Mail Sent  ]{rvrs off}{white}:"+str$(st(3))
+4108 &"{f6}{pound}$q{yellow}{rvrs on}[ New Posts  ]{rvrs off}{white}:"+str$(st(4))
+4110 &"{f6}{pound}$q{lt. green}{rvrs on}[ Responses  ]{rvrs off}{white}:"+str$(st(5))
+4112 &"{f6}{pound}$q{cyan}{rvrs on}[ Uploads    ]{rvrs off}{white}:"+str$(st(6))
+4114 &"{f6}{pound}$q{gray3}{rvrs on}[ Downloads  ]{rvrs off}{white}:"+str$(st(7))
+4116 &"{f6:2}{gray3}[{white}D{gray3}]{yellow}isconnect{f6}{gray3}[{white}F{gray3}]{green}eedback{f6}{gray3}[{white}L{gray3}]ast Chance Lotto"
+4118 &"{f6}{gray3}[{white}R{gray3}]{lt. blue}eturn to BBS{f6}{gray3}[{white}O{gray3}]{gray1}MG Logoff Already"
+4120 &"{f6:2}{gray3}Cmd{white}: {pound}g1{pound}v7{f6}":if tr%<1 then:&"{f6}{gray1}This is a no-camping zone.{f6}":goto 4146
+' a%=4140, 4142, 4144, 4146, 4148
+' 10/29/2026: &,66,0, a GOTO: the targets return to i.lo (D, O, R) or go
+' elsewhere (F, L). &,66 without the 0 or 1 took whatever was in .x
+4130 x=instr("FDLOR",an$):if x then a%=4138+(x*2):&,66,0
+4132 goto 4100
+4140 dr=3:gosub {$36}1:if bf<35 then x=2:goto {$33}90:else im=1:gosub {$34}44:goto 4100:rem f
+4142 f1=1:return:rem d
+4144 a$="Lotto":goto 4004:rem l
+4146 f1=2:return:rem o
+4148 f1=5:bl=.:return:rem r
+4498 rem ported from ds2 by hoy brothers   13th floor @ bbs.hoyvision.com:6400
+4499 rem "i/lo.logoff (c)nissa 2021-11-10 hb lh, 2026-10-29 rs"

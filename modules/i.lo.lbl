@@ -46,7 +46,7 @@
 3119 a$="lo."+"mail":gosub72:ifa=.then3122
 3120 a$="EM":goto70
 3122 goto300
-3200 &,52,51,3:on-(a%=.)goto3201:a$="lo."+"lof":gosub72:onf1goto3202:goto3004
+3200 &,52,51,3:if a% then a$="lo."+"logoff":gosub72:onf1goto3202:goto3004
 3201 ifi%=.then:&"{f6}Leave Feedback? : ":gosub94:onagosub3418
 3202 &,52,$22,.:an$=ff$:&,15,1:&"{f6:2} {green}Bye{comma} {lt. green}{pound}v7{green}!{f6:2}":dr=1:a$="s.end":gosub3050
 3203 oni%ork%goto3204:im=3:gosub446:ll%=40:gosub90
