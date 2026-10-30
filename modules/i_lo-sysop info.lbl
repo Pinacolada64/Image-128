@@ -1,3 +1,7 @@
+' 10/29/2026: i/lo-sysop info, was i/lo-question (renamed; i/lo-sysop.quest,
+' an older copy with 12 fields, is gone). Callers who run an Image BBS of
+' their own fill in or check their record in e.sysop (PROGRAMMING.md,
+' "e.sysop").
 ' imported from i_lo-question.prg with:
 '   tools/detok.sh (C64List4_04.exe -txt -keycase -varcase -alpha:alt)
 ' line numbers are kept as they were; jumps to lines in im (gosub 3, goto 5, ...)
@@ -56,4 +60,4 @@
 4592 x=30:gosub16:close2:return
 4594 copr. 1994 new image 9/6/94
 4596 rem fixes 181220 x-tec
-4598 rem "i/lo-question (c)nissa 190514 lh"
+4598 rem "i/lo-sysop info (c)nissa 2019-05-14 lh, 2026-10-29 rs"

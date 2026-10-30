@@ -334,6 +334,39 @@ onto the fact before them, and prints each fact word-wrapped with
 A fact stays in pieces in the file, since `&,2,2` reads at most 80
 characters and a joined fact can run to about 215.
 
+## The sysop information file: `e.sysop`
+
+`e.sysop`, on drive 3, holds what callers who run an Image BBS of their own
+say about it. `SF` (`i.SF`, Sysop File Maintenance) creates and edits
+it, the new user application (`i/lo.new`) writes a new caller's record,
+and the login module `i/lo-sysop info` has callers fill theirs in and
+check it (SYSOP_COMMANDS.md).
+
+A REL file of 250-byte records; record _n_ is user ID _n_'s. `SF`'s
+Create (or `i/lo.new`, when there's no file) writes `^` to a record for
+each user. A record is one of:
+
+- `^`: nothing yet; `i/lo-sysop info` asks the caller to fill it in.
+- `n`: the caller doesn't run an Image BBS; never asked. `SF`'s Delete and
+  "Change file to n" write this.
+- 14 fields, each ended by a carriage return:
+
+| Field | Holds |
+|---|---|
+| 0 | when it was last written or checked: an 11-digit date (`d1$`) |
+| 1-3 | handle, first name, last name |
+| 4-7 | address, city, state, zip code |
+| 8 | the BBS's Image serial number ("IMAGES#") |
+| 9 | the board's name |
+| 10 | voice phone number |
+| 11 | the board's telnet address; the board's phone number in older records (`i/lo.new` still writes that here, and `i/lo-sysop.quest`, the older login module, called it "Board No.") |
+| 12 | its network (`SF` writes `None` when blank) |
+| 13 | its node ID (`SF`: `N/A` when blank) |
+
+`i/lo-sysop info` compares field 0's month (characters 4-5) with
+today's, to ask once a month. `SF` drops one leading space from each
+field it reads.
+
 ## Test programs
 
 `tests/standin/` programs are petcat source, not C64List: `\` is the `£`

@@ -206,6 +206,49 @@ whether to delete it.
 `e.zz log` shows who has used local maintenance and when. Delete it
 when you've read it, or it keeps growing.
 
+## Other sysops: `i/lo-sysop info` and `SF`
+
+Image keeps a file of what callers who run an Image BBS of their own say about
+it: their name and address, the board's name, its Image serial number,
+telnet address, network and node ID. It's `e.sysop` on the Etcetera
+drive, a record for each user (the format is in PROGRAMMING.md).
+
+### The login module `i/lo-sysop info`
+
+Add it to the login modules (`IM`, `D` Module Editors, `A` Login Mods)
+as `sysop info`. As a caller logs in, it looks at their record:
+
+| Record | What happens |
+|---|---|
+| empty (`^`) | asks them to fill it in: fields 1-3 come from their user record, then address to node ID; they check it and say if it's correct |
+| `n` | nothing: they don't run an Image BBS |
+| filled in | once a month, for callers above access group 3: shows it, asks "Is This Correct?", and lets them change any field |
+
+Each time, it writes the record back with today's date. When the caller
+has changed something, it also sends "Changed Sysop Data", with the new
+information, to Feedback.
+
+Until 10/29/2026 it was `i/lo-question`. The release also had
+`i/lo-sysop.quest`, an older copy with 12 fields (a "Board No." where
+the telnet address is, and no network); it's gone.
+
+### `SF`: Sysop File Maintenance
+
+`SF` at the main prompt (an Extended Command Set command) runs `i.SF`:
+
+| Option | Does |
+|---|---|
+| 1. Create Sysop File | makes a new `e.sysop`, every record empty (`^`): it erases what's there |
+| 2. Edit Sysop Record | by handle or ID: shows the fields, and changes one at a time |
+| 3. Delete Sysop | by ID: the record becomes `n` |
+| 4. Change File to `n` | the same, without asking |
+| 5. Add Sysop | by handle or ID: asks for every field |
+| 6. Quit | |
+
+The new user application (`i/lo.new`) asks "Are You An IMAGE BBS
+Owner?", and writes the new caller's record (or `n`); it creates
+`e.sysop` if it isn't there.
+
 ## The idle screen
 
 What the BBS shows while nobody is connected (`i/lo.idle`). `?` lists

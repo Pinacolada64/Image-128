@@ -170,6 +170,7 @@ application form) aren't opened by name by any module.
 | `e.i.modem` | REL | the modem's settings | `IM` Modem Config (`i/IM.modem`) |
 | `e.menu` _n_ | PRG | graphic menus | `i.menuedit` |
 | `e.anagram` | REL | the anagram game's words | `i/SM.make anagra` |
+| `e.sysop` | REL | what callers who run an Image BBS of their own say about it, a record each (SYSOP_COMMANDS.md; format in PROGRAMMING.md) | `SF` (`i.SF`), `i/lo.new`, `i/lo-sysop info` |
 | `e.errlog` | SEQ | the errors the BBS has trapped | `im 128` |
 | `e.zz log` | SEQ | who turned local maintenance on, and when (SYSOP_COMMANDS.md) | `sub.local` |
 
