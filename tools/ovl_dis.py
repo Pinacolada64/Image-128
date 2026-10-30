@@ -2,7 +2,7 @@
 """ovl_dis.py: turn a C64 "++" overlay (a .prg that loads at $c000) into
 C64List source, as a start for porting it to the 128.
 
-    tools/ovl_dis.py overlay.prg [--entry $c0xx ...] > asm/name.asm
+    tools/ovl_dis.py overlay.prg [--entry $c0xx ...] [--label $c0xx ...] > asm/name.asm
 
 It follows the code from the load address (and any --entry addresses: a
 jump table's targets, routines reached through self-modified jumps) through
@@ -11,7 +11,9 @@ as data (byte lines). Addresses inside the overlay get labels (L_c0xx);
 those past its end (its variables) become equates after it. Everything
 else is written as the C64 number with "; EXT <what's there>", the list to
 port; immediates that look like the overlay's own high byte, a pointer into
-itself, are marked "; HI?" for checking.
+itself, are marked "; HI?" for checking. --label puts a label at an address
+even in the middle of data (what such a pointer points at), so the port can
+write #<L_c0xx and #>L_c0xx.
 
 Needs py65 (TADA's virtualenv has it).
 """
@@ -22,6 +24,7 @@ from py65.disassembler import Disassembler
 ap = argparse.ArgumentParser()
 ap.add_argument('prg')
 ap.add_argument('--entry', action='append', default=[])
+ap.add_argument('--label', action='append', default=[], help='an address to label (data a pointer points at)')
 ap.add_argument('--name', default=None)
 args = ap.parse_args()
 
@@ -76,8 +79,9 @@ while todo:
         if op in ('RTS', 'RTI', 'JMP', 'BRK'):
             break
 
-# labels: code targets, plus anything in the overlay an operand refers to
-labels = set(targets)
+# labels: code targets, --label addresses, plus anything in the overlay an
+# operand refers to
+labels = set(targets) | {int(v.replace('$', ''), 16) for v in args.label}
 refs_beyond = set()
 a = base
 while a < end:
