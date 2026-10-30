@@ -173,7 +173,7 @@ In local maintenance mode, more, all about the sender's account:
 
 When a caller leaves feedback (`sub.feedback`), the QuickList decides
 who it's for and where it's kept. The QuickList is up to 15 accounts in
-`e.sysoplist`, edited in `IM`, then `D` (Logon Editor), then `D`
+`e.sysoplist`, edited in `IM`, then `D` (Module Editors), then `D`
 (Quicklist). Each entry has a handle, a description and eight Yes/No
 flags:
 

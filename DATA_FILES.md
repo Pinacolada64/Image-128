@@ -110,7 +110,7 @@ load's own status.
 | `s.menu 7` | directory system commands |
 | `s.menu 8` | end-of-message commands |
 | `s.menu 9` | exchange (U/X) commands |
-| `s.menu 10` | the days of the week (Maint Mods) |
+| `s.menu 10` | the days of the week (AutoMaint Mods) |
 | `s.menu 12` | login commands |
 | `s.menu t1` ... `t4` | Image Term's menus |
 
@@ -164,7 +164,7 @@ application form) aren't opened by name by any module.
 | `e.idle 1` ... `e.idle 7` | SEQ | idle and used time, one for each day of the week | `i.lo`; reset by `i/lo.automaint` |
 | `e.idle cmds` | PRG | the idle screen's own commands | `i.edit idlecmds` |
 | `e.loginmods` | PRG | the login modules | `IM` Login Mods (`i/IM.logon`) |
-| `e.maintmods` | SEQ | the modules AutoMaint runs | `IM` Maint Mods (`i/IM.logon`) |
+| `e.maintmods` | SEQ | the modules AutoMaint runs | `IM` AutoMaint Mods (`i/IM.logon`) |
 | `e.sysoplist` | PRG | the accounts Instant Login offers | `i/IM.logon` |
 | `e.macros` | REL | the macros | `IM` Macros Editor (`i/IM.macros`) |
 | `e.i.modem` | REL | the modem's settings | `IM` Modem Config (`i/IM.modem`) |
@@ -188,7 +188,7 @@ application form) aren't opened by name by any module.
 
 ## Today in History: `today.` _Mon_ and `s.today/hist`
 
-Each night, AutoMaint's `i/lo/today` (from Maint Mods) reads this month's
+Each night, AutoMaint's `i/lo/today` (from AutoMaint Mods) reads this month's
 `today.` file from the Etcetera drive, picks out today's facts, and writes
 them to `s.today/hist` on the System drive. The login module `i/lo-today`
 shows `s.today/hist` to callers, each fact word-wrapped to their screen.
