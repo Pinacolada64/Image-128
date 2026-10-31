@@ -380,10 +380,10 @@
 3052 dimx$,x%,xx%
 3054 dimy$,y%,yy%
 3056 dimz$,z%,zz,zz%
-' sw: sysop screen width, 40 or 80
-3058 ac%=16:sw=rwindow(2):x=rnd(-ti):hx$="0123456789ABCDEF"+""
+3058 ac%=16:x=rnd(-ti):hx$="0123456789ABCDEF"+""
 3060 c3$="{f6}Returning To The Editor"+"{f6:2}"
-3062 ak$=left$(" {192:78}",sw-1)+"{f6}"
+' sw: sysop screen width, 40 or 80
+3062 sw=rwindow(2):ak$=left$(" {192:78}",sw-1)+"{f6}"
 3064 r$=chr$(13):nl$=chr$(.):qt$=chr$(34)
 ' 650 [c64], 2594/$0a22 [c128]: key repeat
 ' FIXME: 836 is in datebuf, may be no longer needed (y2k fix?)
