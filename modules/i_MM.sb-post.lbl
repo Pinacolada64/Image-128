@@ -8,7 +8,7 @@
 {uses:..\3_0-preface.lbl}
 {alpha:alt}
 
-4000 rem "i/ออ.sb-post"
+4000 rem "i/MM.sb-post"
 4002 rt=1:gosub4178:onlmgoto4004,4006,4012,4036,4080,4082
 4004 sh=.:gosub{$33}010:ifa<1ora>rnthena=br:goto4008
 4006 br=a
@@ -24,8 +24,9 @@
 4025 gosub4173:d$=an$:ifqthen4028
 4026 on-(asc(d$)<>42and(f2and3)<>2)goto4028:ifq=.or(f2and3)=2thend$=l$
 4028 gosub12:a%=xx%:&"{f6:2}{down}{blue}[{yellow}{pound}$k #{white}{pound}#0{pound}%b {yellow}Of {white}{pound}%a{blue}]{f6}{lt. green} By {white}{pound}$d{pound}q0{pound}{back arrow}39":kk=sh
-4030 on-(d$=l$)goto4032:&"{lt. green}  On {white}{$04}"+z$:kk=kk+sh:&"{f6}{blue}{pound}vj"
+4030 ifd$<>l$then:&"{lt. green}  On {white}{$04}"+z$:kk=kk+sh:&"{f6}{blue}{pound}vj"
 4032 gosub4154:&"{f6:2}{pound}q0":on-(kk+sh<>.)goto4036:gosub4078
+' &,16,6: next index - the value after position b%. returns a% and b% the new one
 4034 on-((b%=xx%)or(sh<>.))goto4036:&,16,6:goto4024
 4036 close2:rq=.:gosub{$33}504:gosub12:ifpm=.thenreturn
 4038 sh=.:fl=.:p$="{f6:2}{pound}q0End Of {pound}$j. Command?":pl=1:&,1:gosub{$33}026:a$=left$(an$,1)
@@ -46,6 +47,7 @@
 4068 a=val(mid$(np$,br,1))or1:np$=left$(np$,br-1)+mid$(str$(a),2,1)+mid$(np$,br+1)
 4070 gosub62
 4072 gosub30:i=1:x=5:gosub16:x=16:gosub16:x=27:gosub16:x=34:gosub16:close2
+' &,16,10: numindx: returns a%, the index's count
 4074 &,16,10:d%(br)=a%:xx%=a%:a=br:gosub{$33}052:dt$(br)=b$+d1$:s=br:gosub{$33}146:goto4038
 4076 x=zz%:gosub1:gosub5:ife%thenreturn
 4078 rc=.:sh=.:&"{pound}q0":&,57,2:return
@@ -69,7 +71,7 @@
 4114 x=zz%:gosub{$33}446:gosub4142:gosub62:np$=np$+"2":np=np+1:rn=rn+1
 4116 dt$(rn)=d1$+"10001011200"
 4118 ed$(rn)=tt$:nn$(rn)=zz$:c%(rn)=.:d%(rn)=.:s=rn:gosub{$33}146:return
-4120 f1=.:&"{f6}Your Title Must Be Unique{f6}To This {pound}$h.{f6}":goto4090
+4120 f1=.:lp=1:&"{f6}Your Title Must Be Unique To This {pound}$h.{f6}":goto4090
 4122 lm=1:goto{$33}402
 4124 on-(q=.)goto{$33}228:z$="SM":a$=z$:goto70
 4126 if(na$<>nn$(br)and"*"+na$<>nn$(br)ord%(br))andq=.then4036
@@ -87,7 +89,7 @@
 4150 fortt=1tokk:print#2,tt$(tt):next:print#2,z1$:close2:&,11:goto{$33}350
 4152 rt$="":poke53252,20:p$="{f6}Enter The Title Of Your {pound}$a:{f6:2}Title"
 4153 pl=.:poke53249,pl:lp=.:&,1:return
-4154 &,2,2:on-(left$(a$,1)<>"*")goto4156:a$=mid$(a$,2):&"{f6} {lt. green}Subtopic: {white}{pound}$a{pound}q0"
+4154 &,2,2:ifleft$(a$,1)="*"thena$=mid$(a$,2):&"{f6} {lt. green}Subtopic: {white}{pound}$a{pound}q0"
 4156 goto1
 4158 gosub33:x=50:gosub1:&,2,2:k=val(a$):k=k+1:gosub1:print#2,k:close2
 4160 dr=2:a$="nm.P.count,s,a":gosub4:ife%thena$="nm.P.count,s,w":gosub4
