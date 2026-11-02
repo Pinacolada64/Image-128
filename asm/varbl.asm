@@ -34,10 +34,15 @@ prtln:
 ;* store buffer in memory
 putarr:
 	jsr findarr
+	lda free_fb	; 128: strold/strnew use these (see strold)
+	pha
+	lda free_fc
+	pha
 	jsr stroldx	; 128: see strold (an array element: no name)
 	ldy #2
 	jsr putvar1
-	jmp strnewx
+	jsr strnewx
+	jmp fbpull
 
 ;* put and store string
 putln:
@@ -157,10 +162,15 @@ putvar:
 putvar0:
 	jsr findvar
 putvar2:
+	lda free_fb	; 128: strold/strnew use these (see strold)
+	pha
+	lda free_fc
+	pha
 	jsr strold	; 128: the string it held is garbage now
 	ldy #4
 	jsr putvar1
-	jmp strnew	; 128: and its new one points back to it
+	jsr strnew	; 128: and its new one points back to it
+	jmp fbpull
 putvar1:
 	lda var,y
 	sta (varpnt),y	; c64: $47
@@ -180,7 +190,12 @@ putvar1:
 ;	and points back to it, mark that string garbage;
 ; strnew: if its new string is in the string area, point it back.
 ; The -x entries skip the check that it's a string variable (an array
-; element has no name in front). Uses free_fb/fc (farcall keeps them).
+; element has no name in front). Uses free_fb/fc.
+; 11/02/2026: putvar and putarr put the caller's free_fb/fc back after
+; (fbpull): farcall puts them back only on the way in, and C64 code holds
+; a pointer there across these calls (++ post's postload: it copied the
+; response index to wherever putvar for dskin's a$ left $fb/$fc, and the
+; response count read 0)
 strold:
 	jsr strvar
 	bcs strnw9
@@ -214,6 +229,16 @@ strnewx:
 	lda varpnt+1
 	sta (free_fb),y
 strnw9:
+	rts
+
+; the end of putvar and putarr (jmp, not jsr): pull the caller's
+; free_fb/fc, which they pushed, and return to the caller (.a and the
+; flags not kept)
+fbpull:
+	pla
+	sta free_fc
+	pla
+	sta free_fb
 	rts
 
 ; carry clear if the variable at varpnt is a string: its name, just

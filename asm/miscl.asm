@@ -119,14 +119,8 @@ gets3:
 	iny
 	bne gets3
 gets4:
-	jsr strold	; 128: see varbl.asm's strold/strnew
-	ldy #4
-gets5:
-	lda var,y	; $61,y
-	sta (varpnt),y	; ($47),y
-	dey
-	bpl gets5
-	jmp strnew
+	jmp putvar2	; 128: strold, the descriptor, strnew (varbl.asm), as
+			; putvar; keeps free_fb/fc
 
 putfloat:
 	jsr fnvar1
