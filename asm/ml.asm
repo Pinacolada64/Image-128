@@ -514,6 +514,12 @@ usetbl0:
 	tax
 	plp
 
+; 11/02/2026: whether BASIC made this call (amp_basic, glue.asm), kept on
+; the stack: an ML call inside it, through usetbl1, sets amp_basic to 0
+
+	lda amp_basic
+	pha
+
 ; if the target is in a swapped-out module (bank 1, gc_swap_address up to
 ; the ML at romtab), call it through caller (calls.asm), which swaps it in;
 ; anything else is visible as it is
@@ -539,6 +545,12 @@ jump:
 ; the result in sareg, for BASIC's peek (sub.modem: &,4 then
 ; peek({sym:sareg})), and the flags from it, as the c64 left them
 	sta sareg	; c64: 780
+; 11/02/2026: a call from BASIC ends with strfixes (miscl.asm): the
+; strings it left in Image's buffers become strings of their own
+	pla		; amp_basic
+	beq usetbl9
+	jsr strfixes
+usetbl9:
 	lda sareg	; c64: 780
 nothing:
 	rts

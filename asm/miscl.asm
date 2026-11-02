@@ -486,6 +486,24 @@ strc9:
 strc_len: byte 0
 strc_var: byte 0
 
+; 11/02/2026: run by usetbl0 (ml.asm) as each & call from BASIC ends:
+; strfix for the string variables Image's ML hands back in its buffers
+; (buf2, buffer: &,15,6's a$, &,1's an$, ecs's b$, swap1's w$ and others).
+; BASIC 7 copies only the pointer when x$=a$ takes such a string, and when
+; it moves the arrays (a new variable) it adds the distance to the two
+; bytes after each string array element's text, wherever that is: an
+; element still pointing into buf2 changed the next a$ read there (i.SB's
+; "By:" name, 3520-3526). d1$ stays: the IRQ keeps it up to date in place
+strfixes:
+	ldx #var_a_string
+	jsr strfix
+	ldx #var_an_string
+	jsr strfix
+	ldx #var_b_string
+	jsr strfix
+	ldx #var_w_string
+	jmp strfix
+
 arrays1:
 ; 0: tt$()	6: c%()
 ; 1: bb$()	7: d%()
