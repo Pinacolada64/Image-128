@@ -67,9 +67,9 @@
 3080 n=5:gosub 3348:if tr%<1 or lm=nor lm=.then 3006
 3082 a$="logon":gosub 3198:fl=1:gosub 3002:fl=.:goto 3068
 3084 &,28,1:n=4:zz%=8:dim am%(3,15),m%(16,n),b$(zz%*16-1),c$(60),a%(60)
-3086 &"{f6}Reading Checkmark Definitions...":if tr%<1 then 3006
-3088 dr=1:a$="s.lightdefs,s,r":gosub 4:x=.:if e%then close 2:&:goto 3092
-3090 for x=.to 16*zz%-1:&,2,2:b$(x)=a$:next:close 2:&"Done{f6}"
+' 11/02/2026: the lightbar help text (s.lightdefs, b$()) is read by
+' i/IM.lightbar's lightbar editor (4090), the one part that shows it, not
+' here for every Lightbar/Alarms choice (3100 checks tr% after the menu)
 3092 &,16,.,34,m%(.,1),"A","","LightBar Defs"
 3094 &,16,.,34,m%(.,2),"B","","Alarms"
 3096 &,16,.,34,m%(.,3),"C","","NetMail Alarms"
