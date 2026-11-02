@@ -11,7 +11,7 @@
 ; byte), then ported on 2026-10-29 as index.asm was (the C64's values are
 ; in the comments):
 ; - runs at protostart ($1c00), where &,7,dv%,2 loads it; the index it
-;   loads and saves starts at L_c5bf, its last byte (#<L_c5bf/#>L_c5bf;
+;   loads and saves starts at last, its last byte (#<last/#>last;
 ;   c64 #$bf/#$c5)
 ; - Image's variable buffer is varbuf ($63-$65; c64 $61-$63), its buffers
 ;   buf2 and buffer ($0e27, $0e77; c64 $ce27, $ce77), its & dispatcher
@@ -26,267 +26,303 @@
 {include:"equates.asm"}
 
 	orig protostart	; c64: $c000
-L_c000:
-	jmp L_c015
-	byte $08
-L_c004:
+proto4_entry:
+	jmp proto4
+	byte $08	; the overlay's number (c64 source: 255)
+
+; the binary search's indices: high, low and current
+
+h_msb:
 	byte $00
-L_c005:
+h_lsb:
 	byte $00
-L_c006:
+l_msb:
 	byte $00
-L_c007:
+l_lsb:
 	byte $00
-L_c008:
+x_msb:
 	byte $00
-L_c009:
+x_lsb:
 	byte $00
-L_c00a:
-	byte $50
-L_c00b:
+
+; the command that positions the REL file to a record ("p", the channel,
+; the record low and high, the position in it, CR). The release keeps the
+; data file's number in the channel byte, ptrchan, and uses it for its
+; reads and writes too (setfile sets it; the 1990 source had 2 everywhere)
+
+ptrcom:
+	byte $50	; "p"
+ptrchan:
 	byte $02
-L_c00c:
+ptr_lsb:
 	byte $00
-L_c00d:
-	byte $00,$01,$0d
-L_c010:
+ptr_msb:
 	byte $00
-L_c011:
+ptrpos:
+	byte $01,$0d
+
+xx_lsb:
 	byte $00
-L_c012:
+xx_msb:
 	byte $00
-L_c013:
+ptr2_lsb:
 	byte $00
-L_c014:
+ptr2_msb:
+	byte $00
+
+; the command channel's file number (15; setcmd sets it), in place of the
+; 1990 source's copy0, copy1 and fake (the serial-number copy check's)
+cmdchan:
 	byte $0f
-L_c015:
+
+; FIND      &,16      binary search for an$ in the REL file (file ptrchan,
+;                     command channel cmdchan): if found a%=the value,
+;                     b%=its position; if not, a%=0, b%=where to insert
+; LOADINDX  &,16,1    load an index file (a$, dv%) to "last"
+; SAVEINDX  &,16,2    save it
+; MAKEINDX  &,16,3    clear the index
+; INSTINDX  &,16,4    insert a% at position b%
+; DELTINDX  &,16,5    delete position b%
+; NEXTINDX  &,16,6    the value after position b%: a%, and b% the new one
+; SETCRSKP  &,16,7    CRs to skip when reading a record (.y): to index a
+;                     field other than the first
+; LOADPOST  &,16,8    read a post's index from its REL file, from record b%
+;                     (a chain: next record, length, bytes); a% = its count
+; SAVEPOST  &,16,9    write it back, from record a%, b% = where it starts
+; NUMBINDX  &,16,10   a% = the index's count
+; READPOST  &,16,11   release: &,59 (farerr); post reading is swap3's
+;                     relread (&,57) now (1990 source: postread, here)
+; SETCMD    &,16,12   cmdchan = .y (new in the release)
+; SETFILE   &,16,13   ptrchan = .y (new in the release)
+; &,16,255            a% = 8, the overlay's number (new in the release)
+proto4:
 	cpx #$ff
-	beq L_c06b
+	beq identify
 	txa
-	beq L_c06e
+	beq find
 	dex
-	beq L_c044
+	beq loadindx
 	dex
-	beq L_c047
+	beq saveindx
 	dex
-	beq L_c04a
+	beq makeindx
 	dex
-	beq L_c04d
+	beq instindx
 	dex
-	beq L_c050
+	beq deltindx
 	dex
-	beq L_c053
+	beq nextindx
 	dex
-	beq L_c056
+	beq setcrskp
 	dex
-	beq L_c059
+	beq loadpost
 	dex
-	beq L_c05c
+	beq savepost
 	dex
-	beq L_c05f
+	beq numbindx
 	dex
-	beq L_c062
+	beq readpost
 	dex
-	beq L_c065
+	beq setcmd
 	dex
-	beq L_c068
+	beq setfile
 	rts
-L_c044:
-	jmp L_c1c3
-L_c047:
-	jmp L_c1f7
-L_c04a:
-	jmp L_c23c
-L_c04d:
-	jmp L_c27a
-L_c050:
-	jmp L_c2d8
-L_c053:
-	jmp L_c322
-L_c056:
-	jmp L_c33f
-L_c059:
-	jmp L_c345
-L_c05c:
-	jmp L_c3b0
-L_c05f:
-	jmp L_c1e8
-L_c062:
-	jmp L_c532
-L_c065:
-	jmp L_c539
-L_c068:
-	jmp L_c53d
-L_c06b:
-	jmp L_c541
-L_c06e:
-	ldx #$00
-	jsr L_c54d
+loadindx:
+	jmp loadfile
+saveindx:
+	jmp savefile
+makeindx:
+	jmp makefile
+instindx:
+	jmp insert
+deltindx:
+	jmp delete
+nextindx:
+	jmp getnext
+setcrskp:
+	jmp setskip
+loadpost:
+	jmp postload
+savepost:
+	jmp postsave
+numbindx:
+	jmp indxcnt
+readpost:
+	jmp postread
+setcmd:
+	jmp setcmdch
+setfile:
+	jmp setfilech
+identify:
+	jmp ident
+find:
+	ldx #var_an_string
+	jsr usevar
 	ldy #$00
-L_c075:
+findloop:
 	lda (varbuf+1),y	; c64: $62
 	sta buffer,y	; c64: $ce77
 	iny
 	cpy varbuf	; c64: $61
-	bcc L_c075
+	bcc findloop
 	lda #$00
 	sta buffer,y	; c64: $ce77
-	sty L_c1c2
-	lda L_c5bf
-	ldx L_c5c0
-	sta L_c004
-	stx L_c005
+	sty xlen1
+	lda last
+	ldx last+1
+	sta h_msb
+	stx h_lsb
 	lda #$00
 	ldx #$01
-	sta L_c006
-	stx L_c007
-	lda L_c006
-	ldx L_c007
-	sta L_c008
-	stx L_c009
-	jsr L_c14b
-	beq L_c0db
-	bcs L_c0b3
-	jmp L_c24d
-L_c0b3:
-	lda L_c004
-	ldx L_c005
-	sta L_c008
-	stx L_c009
-	jsr L_c14b
-	beq L_c0db
-	bcc L_c0de
-	lda L_c004
-	ldx L_c005
+	sta l_msb
+	stx l_lsb
+	lda l_msb
+	ldx l_lsb
+	sta x_msb
+	stx x_lsb
+	jsr check
+	beq found_it
+	bcs find1
+	jmp xputavar
+find1:
+	lda h_msb
+	ldx h_lsb
+	sta x_msb
+	stx x_lsb
+	jsr check
+	beq found_it
+	bcc find2
+	lda h_msb
+	ldx h_lsb
 	inx
-	bne L_c0d2
+	bne find1a
 	clc
 	adc #$01
-L_c0d2:
-	sta L_c008
-	stx L_c009
-	jmp L_c24d
-L_c0db:
-	jmp L_c255
-L_c0de:
-	lda L_c006
-	cmp L_c004
-	bne L_c0f1
-	lda L_c007
-	cmp L_c005
-	bne L_c0f1
-	jmp L_c24d
-L_c0f1:
+find1a:
+	sta x_msb
+	stx x_lsb
+	jmp xputavar
+found_it:
+	jmp putavar
+find2:
+	lda l_msb
+	cmp h_msb
+	bne find3
+	lda l_lsb
+	cmp h_lsb
+	bne find3
+	jmp xputavar
+find3:
 	clc
-	lda L_c007
-	adc L_c005
-	sta L_c009
-	lda L_c006
-	adc L_c004
-	sta L_c008
-	lsr L_c008
-	ror L_c009
-	lda L_c008
-	cmp L_c006
-	bne L_c12c
-	lda L_c009
-	cmp L_c007
-	bne L_c12c
-	lda L_c004
-	ldx L_c005
-	sta L_c006
-	stx L_c007
-	sta L_c008
-	stx L_c009
-L_c12c:
-	jsr L_c14b
-	beq L_c0db
-	lda L_c008
-	ldx L_c009
-	bcc L_c142
-	sta L_c006
-	stx L_c007
-	jmp L_c0de
-L_c142:
-	sta L_c004
-	stx L_c005
-	jmp L_c0de
-L_c14b:
-	jsr L_c169
-	lda L_c343
-	sta L_c344
-	beq L_c159
-L_c156:
-	dec L_c344
-L_c159:
-	ldx L_c00b
+	lda l_lsb
+	adc h_lsb
+	sta x_lsb
+	lda l_msb
+	adc h_msb
+	sta x_msb
+	lsr x_msb
+	ror x_lsb
+	lda x_msb
+	cmp l_msb
+	bne find4
+	lda x_lsb
+	cmp l_lsb
+	bne find4
+	lda h_msb
+	ldx h_lsb
+	sta l_msb
+	stx l_lsb
+	sta x_msb
+	stx x_lsb
+find4:
+	jsr check
+	beq found_it
+	lda x_msb
+	ldx x_lsb
+	bcc find11
+	sta l_msb
+	stx l_lsb
+	jmp find2
+find11:
+	sta h_msb
+	stx h_lsb
+	jmp find2
+check:
+	jsr sendptr
+	lda skip
+	sta skip2
+	beq check2
+check1:
+	dec skip2
+check2:
+	ldx ptrchan
 	ldy #$00
-	jsr L_c557
-	lda L_c344
-	bne L_c156
-	jmp L_c1a6
-L_c169:
-	jsr L_c183
-L_c16c:
-	ldx L_c014
+	jsr dskin
+	lda skip2
+	bne check1
+	jmp compare
+sendptr:
+	jsr calcptr
+sendcom:
+	ldx cmdchan
 	jsr chkout	; c64: $ffc9 (the ROM is out in cfg_ml)
 	ldy #$00
 	ldx #$06
-L_c176:
-	lda L_c00a,y
+sendloop:
+	lda ptrcom,y
 	jsr chrout	; c64: $ffd2 (the ROM is out in cfg_ml)
 	iny
 	dex
-	bne L_c176
+	bne sendloop
 	jmp clrchn	; c64: $ffcc (the ROM is out in cfg_ml)
-L_c183:
-	lda L_c009
+calcptr:
+	lda x_lsb
 	asl
 	tay
-	lda L_c008
+	lda x_msb
 	rol
 	tax
 	clc
 	tya
-	adc #<L_c5bf	; c64: #$bf
+	adc #<last	; c64: #$bf
 	sta $fb
 	txa
-	adc #>L_c5bf	; c64: #$c5
+	adc #>last	; c64: #$c5
 	sta $fc
 	ldy #$00
 	lda ($fb),y
-	sta L_c00d
+	sta ptr_msb
 	iny
 	lda ($fb),y
-	sta L_c00c
+	sta ptr_lsb
 	rts
-L_c1a6:
+compare:
 	ldy #$00
-L_c1a8:
+comploop:
 	lda buffer,y	; c64: $ce77
 	cmp buf2,y	; c64: $ce27
-	bne L_c1c1
+	bne compare1
 	iny
-	cpy L_c1c2
-	beq L_c1bb
+	cpy xlen1
+	beq compare2
 	cpy index	; c64: $d00f, the same on the 128
-	bne L_c1a8
-L_c1bb:
-	ldy L_c1c2
+	bne comploop
+compare2:
+	ldy xlen1
 	cpy index	; c64: $d00f, the same on the 128
-L_c1c1:
+compare1:
 	rts
-L_c1c2:
+xlen1:
 	byte $00
-L_c1c3:
-	ldx #$01
-	jsr L_c54d
+loadfile:
+	ldx #var_a_string
+	jsr usevar
 	lda varbuf	; c64: $61
 	ldx varbuf+1	; c64: $62
 	ldy varbuf+2	; c64: $63
 	jsr setnam	; c64: $ffbd (the ROM is out in cfg_ml)
-	ldx #$20
-	jsr L_c54d
+	ldx #var_dv_integer
+	jsr usevar
 	lda #$08
 	ldx varbuf+1	; c64: $62
 	ldy #$00
@@ -295,25 +331,25 @@ L_c1c3:
 	ldx #1		; the filename a BASIC string, in bank 1
 	jsr setbnk
 	lda #$00
-	ldx #<L_c5bf	; c64: #$bf
-	ldy #>L_c5bf	; c64: #$c5
+	ldx #<last	; c64: #$bf
+	ldy #>last	; c64: #$c5
 	jsr loadf	; c64: $ffd5 (the ROM is out in cfg_ml)
-L_c1e8:
-	lda L_c5bf
-	ldx L_c5c0
+indxcnt:
+	lda last
+	ldx last+1
 	sta varbuf	; c64: $61
 	stx varbuf+1	; c64: $62
-	ldx #$1e
-	jmp L_c55c
-L_c1f7:
-	ldx #$01
-	jsr L_c54d
+	ldx #var_a_integer
+	jmp putvar
+savefile:
+	ldx #var_a_string
+	jsr usevar
 	lda varbuf	; c64: $61
 	ldx varbuf+1	; c64: $62
 	ldy varbuf+2	; c64: $63
 	jsr setnam	; c64: $ffbd (the ROM is out in cfg_ml)
-	ldx #$20
-	jsr L_c54d
+	ldx #var_dv_integer
+	jsr usevar
 	lda #$08
 	ldx varbuf+1	; c64: $62
 	ldy #$00
@@ -321,22 +357,22 @@ L_c1f7:
 	lda #0		; 128: the data in bank 0 (just past this),
 	ldx #1		; the filename a BASIC string, in bank 1
 	jsr setbnk
-	lda #<L_c5bf	; c64: #$bf
-	ldx #>L_c5bf	; c64: #$c5
+	lda #<last	; c64: #$bf
+	ldx #>last	; c64: #$c5
 	sta varbuf	; c64: $61
 	stx varbuf+1	; c64: $62
-	lda L_c5c0
+	lda last+1
 	asl
 	tax
-	lda L_c5bf
+	lda last
 	rol
 	tay
 	clc
 	txa
-	adc #<L_c5bf	; c64: #$bf
+	adc #<last	; c64: #$bf
 	tax
 	tya
-	adc #>L_c5bf	; c64: #$c5
+	adc #>last	; c64: #$c5
 	tay
 	clc
 	txa
@@ -347,92 +383,93 @@ L_c1f7:
 	tay
 	lda #varbuf	; the start pointer for SAVE (c64: #$61)
 	jmp savef	; c64: $ffd8 (the ROM is out in cfg_ml)
-L_c23c:
+makefile:
 	lda #$00
-	sta L_c5bf
-	sta L_c5c1
+	sta last
+	sta last+2
 	lda #$00
-	sta L_c5c0
-	sta L_c5c2
+	sta last+1
+	sta last+3
 	rts
-L_c24d:
+xputavar:
+; enter with value in .x
 	lda #$00
-	sta L_c00c
-	sta L_c00d
-L_c255:
-	lda L_c00d
-	ldx L_c00c
+	sta ptr_lsb
+	sta ptr_msb
+putavar:
+	lda ptr_msb
+	ldx ptr_lsb
 	sta varbuf	; c64: $61
 	stx varbuf+1	; c64: $62
-	ldx #$1e
-	jsr L_c55c
-	lda L_c008
-	ldx L_c009
+	ldx #var_a_integer
+	jsr putvar
+	lda x_msb
+	ldx x_lsb
 	sta varbuf	; c64: $61
 	stx varbuf+1	; c64: $62
-	ldx #$1f
-	jsr L_c55c
-	lda L_c00c
-	ora L_c00d
+	ldx #var_b_integer
+	jsr putvar
+	lda ptr_lsb
+	ora ptr_msb
 	rts
-L_c27a:
-	ldx #$1f
-	jsr L_c54d
+insert:
+	ldx #var_b_integer
+	jsr usevar
 	lda varbuf	; c64: $61
 	ldx varbuf+1	; c64: $62
-	sta L_c008
-	stx L_c009
-	inc L_c5c0
-	bne L_c291
-	inc L_c5bf
-L_c291:
-	ldx #$1e
-	jsr L_c54d
+	sta x_msb
+	stx x_lsb
+	inc last+1
+	bne insert1a
+	inc last
+insert1a:
+	ldx #var_a_integer
+	jsr usevar
 	lda varbuf	; c64: $61
 	ldx varbuf+1	; c64: $62
-	sta L_c00d
-	stx L_c00c
-L_c2a0:
-	lda L_c00c
-	ldx L_c00d
-	sta L_c005
-	stx L_c004
-	jsr L_c183
+	sta ptr_msb
+	stx ptr_lsb
+insert2:
+	lda ptr_lsb
+	ldx ptr_msb
+	sta h_lsb
+	stx h_msb
+	jsr calcptr
 	ldy #$00
-	lda L_c004
+	lda h_msb
 	sta ($fb),y
 	iny
-	lda L_c005
+	lda h_lsb
 	sta ($fb),y
-	lda L_c009
-	cmp L_c5c0
-	bne L_c2cd
-	lda L_c008
-	cmp L_c5bf
-	bne L_c2cd
+	lda x_lsb
+	cmp last+1
+	bne insert3
+	lda x_msb
+	cmp last
+	bne insert3
 	rts
-L_c2cd:
-	inc L_c009
-	bne L_c2d5
-	inc L_c008
-L_c2d5:
-	jmp L_c2a0
-L_c2d8:
-	ldx #$1f
-	jsr L_c54d
+insert3:
+	inc x_lsb
+	bne insert3a
+	inc x_msb
+insert3a:
+	jmp insert2
+delete:
+	ldx #var_b_integer
+	jsr usevar
 	lda varbuf	; c64: $61
 	ldx varbuf+1	; c64: $62
-	sta L_c008
-	stx L_c009
-L_c2e7:
-	lda L_c008
-	cmp L_c5bf
-	bne L_c2f7
-	lda L_c009
-	cmp L_c5c0
-	beq L_c316
-L_c2f7:
-	jsr L_c183
+	sta x_msb
+	stx x_lsb
+delete1:
+	lda x_msb
+	cmp last
+	bne delete2
+	lda x_lsb
+	cmp last+1
+	beq delete3
+delete2:
+	jsr calcptr
 	ldy #$03
 	lda ($fb),y
 	pha
@@ -445,100 +482,100 @@ L_c2f7:
 	dey
 	txa
 	sta ($fb),y
-	inc L_c009
-	bne L_c313
-	inc L_c008
-L_c313:
-	jmp L_c2e7
-L_c316:
-	lda L_c5c0
-	bne L_c31e
-	dec L_c5bf
-L_c31e:
-	dec L_c5c0
+	inc x_lsb
+	bne delete2a
+	inc x_msb
+delete2a:
+	jmp delete1
+delete3:
+	lda last+1
+	bne delete3a
+	dec last
+delete3a:
+	dec last+1
 	rts
-L_c322:
-	ldx #$1f
-	jsr L_c54d
+getnext:
+	ldx #var_b_integer
+	jsr usevar
 	lda varbuf	; c64: $61
 	ldx varbuf+1	; c64: $62
-	sta L_c008
-	stx L_c009
-	inc L_c009
-	bne L_c339
-	inc L_c008
-L_c339:
-	jsr L_c183
-	jmp L_c255
-L_c33f:
-	sty L_c343
+	sta x_msb
+	stx x_lsb
+	inc x_lsb
+	bne getnext1
+	inc x_msb
+getnext1:
+	jsr calcptr
+	jmp putavar
+setskip:
+	sty skip
 	rts
-L_c343:
+skip:
 	byte $00
-L_c344:
+skip2:
 	byte $00
-L_c345:
-	jsr L_c23c
-	ldx #$1f
-	jsr L_c54d
+postload:
+	jsr makefile
+	ldx #var_b_integer
+	jsr usevar
 	lda varbuf+1	; c64: $62
-	sta L_c00c
+	sta ptr_lsb
 	lda varbuf	; c64: $61
-	sta L_c00d
-	lda #<L_c5bf	; c64: #$bf
+	sta ptr_msb
+	lda #<last	; c64: #$bf
 	sta $fb
-	lda #>L_c5bf	; c64: #$c5
+	lda #>last	; c64: #$c5
 	sta $fc
-L_c35f:
-	jsr L_c16c
-	ldx L_c00b
+postld1:
+	jsr sendcom
+	ldx ptrchan
 	ldy #$03
-	jsr L_c557
+	jsr dskin
 	lda buf2	; c64: $ce27
-	sta L_c00c
+	sta ptr_lsb
 	lda buf2+1	; c64: $ce28
-	sta L_c00d
+	sta ptr_msb
 	ldy buf2+2	; c64: $ce29
-	sty L_c006
-	ldx L_c00b
+	sty l_msb
+	ldx ptrchan
 	cpy #$00
-	beq L_c39f
-	jsr L_c557
+	beq postld3
+	jsr dskin
 	ldy #$00
-L_c388:
+postld2:
 	lda buf2,y	; c64: $ce27
 	sta ($fb),y
 	iny
-	cpy L_c006
-	bne L_c388
+	cpy l_msb
+	bne postld2
 	lda $fb
 	clc
-	adc L_c006
+	adc l_msb
 	sta $fb
-	bcc L_c39f
+	bcc postld3
 	inc $fc
-L_c39f:
-	lda L_c00c
+postld3:
+	lda ptr_lsb
 	cmp #$00
-	bne L_c35f
-	lda L_c00d
+	bne postld1
+	lda ptr_msb
 	cmp #$00
-	bne L_c35f
-	jmp L_c1e8
-L_c3b0:
-	ldx #$1e
-	jsr L_c54d
+	bne postld1
+	jmp indxcnt
+postsave:
+	ldx #var_a_integer
+	jsr usevar
 	lda varbuf+1	; c64: $62
-	sta L_c010
-	sta L_c00c
+	sta xx_lsb
+	sta ptr_lsb
 	lda varbuf	; c64: $61
-	sta L_c011
-	sta L_c00d
-	jsr L_c16c
+	sta xx_msb
+	sta ptr_msb
+	jsr sendcom
 	ldx #$01
-	jsr L_c552
-	jsr L_c16c
-	ldx L_c00b
+	jsr tenwait
+	jsr sendcom
+	ldx ptrchan
 	jsr chkout	; c64: $ffc9 (the ROM is out in cfg_ml)
 	lda #$00
 	jsr chrout	; c64: $ffd2 (the ROM is out in cfg_ml)
@@ -546,79 +583,79 @@ L_c3b0:
 	jsr chrout	; c64: $ffd2 (the ROM is out in cfg_ml)
 	lda #$0d
 	jsr chrout	; c64: $ffd2 (the ROM is out in cfg_ml)
-	jsr L_c16c
-	ldx #$1f
-	jsr L_c54d
+	jsr sendcom
+	ldx #var_b_integer
+	jsr usevar
 	lda varbuf+1	; c64: $62
-	sta L_c00c
+	sta ptr_lsb
 	lda varbuf	; c64: $61
-	sta L_c00d
-	lda #<L_c5bf	; c64: #$bf
-	sta L_c4cb+1
-	lda #>L_c5bf	; c64: #$c5
-	sta L_c4cb+2
-	lda L_c5c0
+	sta ptr_msb
+	lda #<last	; c64: #$bf
+	sta postsv2+1
+	lda #>last	; c64: #$c5
+	sta postsv2+2
+	lda last+1
 	asl
 	tax
-	lda L_c5bf
+	lda last
 	rol
 	tay
 	clc
 	txa
-	adc #<L_c5bf	; c64: #$bf
+	adc #<last	; c64: #$bf
 	tax
 	tya
-	adc #>L_c5bf	; c64: #$c5
+	adc #>last	; c64: #$c5
 	tay
 	clc
 	txa
 	adc #$02
-	sta L_c006
+	sta l_msb
 	tya
 	adc #$00
-	sta L_c007
-L_c422:
-	jsr L_c16c
-	ldx L_c00b
+	sta l_lsb
+postsv0:
+	jsr sendcom
+	ldx ptrchan
 	ldy #$02
-	jsr L_c557
-	jsr L_c16c
-	lda L_c00c
-	sta L_c012
-	lda L_c00d
-	sta L_c013
+	jsr dskin
+	jsr sendcom
+	lda ptr_lsb
+	sta ptr2_lsb
+	lda ptr_msb
+	sta ptr2_msb
 	ldx #$01
-	jsr L_c552
-	jsr L_c16c
-	lda L_c00c
+	jsr tenwait
+	jsr sendcom
+	lda ptr_lsb
 	sta varbuf+1	; c64: $62
-	lda L_c00d
+	lda ptr_msb
 	sta varbuf	; c64: $61
-	ldx #$1f
-	jsr L_c55c
+	ldx #var_b_integer
+	jsr putvar
 	lda buf2	; c64: $ce27
-	sta L_c00c
+	sta ptr_lsb
 	lda buf2+1	; c64: $ce28
-	sta L_c00d
+	sta ptr_msb
 	cmp #$00
-	bne L_c4c9
-	lda L_c00c
+	bne postsv1
+	lda ptr_lsb
 	cmp #$00
-	bne L_c4c9
-	lda L_c010
+	bne postsv1
+	lda xx_lsb
 	sta buf2	; c64: $ce27
-	lda L_c011
+	lda xx_msb
 	sta buf2+1	; c64: $ce28
-	inc L_c010
-	bne L_c47e
-	inc L_c011
-L_c47e:
-	lda L_c010
-	sta L_c00c
-	lda L_c011
-	sta L_c00d
-	jsr L_c16c
-	ldx L_c00b
+	inc xx_lsb
+	bne postsv1a
+	inc xx_msb
+postsv1a:
+	lda xx_lsb
+	sta ptr_lsb
+	lda xx_msb
+	sta ptr_msb
+	jsr sendcom
+	ldx ptrchan
 	jsr chkout	; c64: $ffc9 (the ROM is out in cfg_ml)
 	lda #$00
 	jsr chrout	; c64: $ffd2 (the ROM is out in cfg_ml)
@@ -626,116 +663,127 @@ L_c47e:
 	jsr chrout	; c64: $ffd2 (the ROM is out in cfg_ml)
 	lda #$0d
 	jsr chrout	; c64: $ffd2 (the ROM is out in cfg_ml)
-	jsr L_c16c
-	lda L_c012
-	sta L_c00c
-	lda L_c013
-	sta L_c00d
-	jsr L_c16c
+	jsr sendcom
+	lda ptr2_lsb
+	sta ptr_lsb
+	lda ptr2_msb
+	sta ptr_msb
+	jsr sendcom
 	ldx #$01
-	jsr L_c552
-	jsr L_c16c
+	jsr tenwait
+	jsr sendcom
 	lda buf2	; c64: $ce27
-	sta L_c00c
+	sta ptr_lsb
 	lda buf2+1	; c64: $ce28
-	sta L_c00d
-L_c4c9:
+	sta ptr_msb
+postsv1:
 	ldy #$00
-L_c4cb:
-	lda $ffff	; the address is put here (L_c4cb+1/+2): self-modifying
+postsv2:
+	lda $ffff	; the address is put here (postsv2+1/+2): self-modifying
 	sta buf2+3,y	; c64: $ce2a
 	iny
-	inc L_c4cb+1
-	bne L_c4da
-	inc L_c4cb+2
-L_c4da:
-	lda L_c4cb+1
-	cmp L_c006
-	bne L_c4fb
-	lda L_c4cb+2
-	cmp L_c007
-	bne L_c4fb
+	inc postsv2+1
+	bne postsv3
+	inc postsv2+2
+postsv3:
+	lda postsv2+1
+	cmp l_msb
+	bne postsv4
+	lda postsv2+2
+	cmp l_lsb
+	bne postsv4
 	lda #$00
-	sta L_c00c
-	sta L_c00d
+	sta ptr_lsb
+	sta ptr_msb
 	sta buf2	; c64: $ce27
 	sta buf2+1	; c64: $ce28
-	jmp L_c4ff
-L_c4fb:
+	jmp postsv5
+postsv4:
 	cpy #$4c
-	bne L_c4cb
-L_c4ff:
+	bne postsv2
+postsv5:
 	sty buf2+2	; c64: $ce29
 	iny
 	iny
 	iny
-	sty L_c004
+	sty h_msb
 	ldy #$00
-	ldx L_c00b
+	ldx ptrchan
 	jsr chkout	; c64: $ffc9 (the ROM is out in cfg_ml)
-L_c510:
+postsv6:
 	lda buf2,y	; c64: $ce27
 	jsr chrout	; c64: $ffd2 (the ROM is out in cfg_ml)
 	iny
-	cpy L_c004
-	bne L_c510
+	cpy h_msb
+	bne postsv6
 	lda #$0d
 	jsr chrout	; c64: $ffd2 (the ROM is out in cfg_ml)
 	jsr clrchn	; c64: $ffcc (the ROM is out in cfg_ml)
-	lda L_c00c
-	bne L_c52f
-	lda L_c00d
-	bne L_c52f
+	lda ptr_lsb
+	bne postsv7
+	lda ptr_msb
+	bne postsv7
 	rts
-L_c52f:
-	jmp L_c422
-L_c532:
+postsv7:
+	jmp postsv0
+postread:
 	lda #$3b
 	ldx #$00
 	jmp usetbl1	; c64: $cd03
-L_c539:
-	sty L_c014
+setcmdch:
+	sty cmdchan
 	rts
-L_c53d:
-	sty L_c00b
+setfilech:
+	sty ptrchan
 	rts
-L_c541:
-	jsr L_c561
+ident:
+	jsr zero
 	lda #$08
 	sta varbuf+1	; c64: $62
-	ldx #$1e
-	jmp L_c55c
-L_c54d:
+	ldx #var_a_integer
+	jmp putvar
+usevar:
 	lda #$1d
 	jmp usetbl1	; c64: $cd03
-L_c552:
+tenwait:
 	lda #$16
 	jmp usetbl1	; c64: $cd03
-L_c557:
+dskin:
 	lda #$02
 	jmp usetbl1	; c64: $cd03
-L_c55c:
+putvar:
 	lda #$1e
 	jmp usetbl1	; c64: $cd03
-L_c561:
+zero:
 	lda #$1f
 	jmp usetbl1	; c64: $cd03
-	byte $a9,$20,$4c,$03,$cd,$a9,$03,$4c
-	byte $03,$cd,$30,$31,$2f,$30,$38,$2f
-	byte $39,$31,$20,$20,$31,$3a,$33,$39
-	byte $41,$0d,$d4,$c8,$c5,$d2,$c5,$27
-	byte $d3,$20,$ce,$cf,$20,$ce,$c5,$c5
-	byte $c4,$20,$d4,$cf,$20,$c6,$c5,$c1
-	byte $d2,$2e,$2e,$2e,$d5,$ce,$c4,$c5
-	byte $d2,$c4,$cf,$c7,$0d,$c9,$d3,$20
-	byte $c8,$c5,$d2,$c5,$21,$0d,$c3,$4f
-	byte $50,$52,$2e,$31,$39,$39,$30,$20
-	byte $ce,$45,$57,$20,$c9,$4d,$41,$47
-	byte $45
-L_c5bf:
+
+; load "-1" into the variable buffer, and the file reader: no caller left in
+; the release (they were left as data by the disassembler, with the C64's
+; $cd03); usetbl1 here, so they'd work if one came back
+minusone:
+	lda #32
+	jmp usetbl1	; c64: $cd03
+reader:
+	lda #3
+	jmp usetbl1	; c64: $cd03
+
+; the version, and the release's message in place of the 1990 source's
+; "So long, and thanks for all the fish!"
+vers:
+	byte $30,$31,$2f,$30,$38,$2f,$39,$31	; "01/08/91  1:39A"
+	byte $20,$20,$31,$3a,$33,$39,$41,$0d
+	byte $d4,$c8,$c5,$d2,$c5,$27,$d3,$20	; "There's no need to fear..."
+	byte $ce,$cf,$20,$ce,$c5,$c5,$c4,$20
+	byte $d4,$cf,$20,$c6,$c5,$c1,$d2,$2e
+	byte $2e,$2e,$d5,$ce,$c4,$c5,$d2,$c4	; "Underdog"
+	byte $cf,$c7,$0d,$c9,$d3,$20,$c8,$c5	; "is here!"
+	byte $d2,$c5,$21,$0d,$c3,$4f,$50,$52	; "Copr.1990 New Image"
+	byte $2e,$31,$39,$39,$30,$20,$ce,$45
+	byte $57,$20,$c9,$4d,$41,$47,$45
+
+; the index is kept here, from the last byte on (the C64's "last"):
+; struct indexdata { uint16 count (high byte first); uint16 data() }
+last:
 	byte $00
-L_end:
-L_c5c0 = L_end + 0	; past the end: a variable
-L_c5c1 = L_end + 1	; past the end: a variable
-L_c5c2 = L_end + 2	; past the end: a variable
 
