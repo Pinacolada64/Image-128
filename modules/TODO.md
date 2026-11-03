@@ -40,6 +40,7 @@
 
 - [ ] Alarms by weekday: a mask in each alarm's spare byte (the checkmark's high byte, alarmtb+6, which the IRQ never reads): bit 0 Sunday ... bit 6 Saturday, 0 = every day (as every e.alarms has it now). irqhn.asm's alarm loop skips an alarm's on time on a day not in its mask; the alarm editor (i/IM.lightbar) gets option 5, Days. The DST alarm (sub.clocks im=15) could then be Sundays only
 - [ ] Alarms by date (day of the month, month): no room in alarmtb ($1660-$16DF, then date1 at $16E0): a second 32-byte table elsewhere and its own file (or a longer e.alarms, which &,7 would load over date1 today, so im's loader would change too). After the weekdays
+- [ ] Alarm resync: an alarm acts only at its exact minute, so one is missed when the BBS is off then, or the clock jumps over it (DST in spring, a hand-set clock, Trc's re-read from a chip; in autumn 1:00-1:59 alarms act twice). After a gap (at boot, once e.alarms is loaded, and whenever sub.clocks sets the clock), set each active alarm's checkmark if now is inside its window (on to off, across midnight too, on its days) and clear it otherwise; alarms with no off time (--:--: DST, Trc) keep their edge-only behaviour. A loop over the 16 alarms, in ML beside irqhn.asm's alarm (an & call) or in sub.clocks; perhaps a call log line for each checkmark it changes
 
 ## Duplicate Code:
 
