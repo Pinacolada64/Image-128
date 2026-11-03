@@ -432,3 +432,59 @@ On the release's `e.lightbar`, pages 5 to 7 and the last label on page 4
 have placeholder labels: the left checkmark's number in hex (`$3E`,
 `$40`...). Naming one changes only its label, not what uses the
 checkmarks.
+
+## Daylight saving time
+
+The BBS can move its clock forward and back for daylight saving time by
+itself, and show each caller their own local time, DST included.
+
+**Turning it on.** Choose the system's time zone, during setup (Part II,
+after the clock) or in `IM`, Misc. Features, `G` (Time Zone). The list
+has the places that don't use DST as zones of their own (Arizona,
+Saskatchewan, Puerto Rico, Queensland...). Choosing a zone with DST:
+
+- notes whether the clock is on daylight time now, taking it as right
+- adds an alarm (or two) that sets the `DST` checkmark (64, page 5) at the
+  minute the clock changes, on the weekday it changes (Sundays, for every
+  rule shipped)
+
+At that minute, the idle screen sees the checkmark, clears it, and checks
+the clock: on the change days it moves it an hour, on other days nothing.
+If a call is on then, the check waits until the call ends. The BBS also
+checks at boot, in case it was off at the change.
+
+**Turning it off:** choose a zone without DST; its alarm is taken out.
+
+**Callers** choose their own zone (Personal Information), and times are
+shown to them in it, with their own DST: a caller in Arizona or in Europe
+sees the right time all year, and the zone's name follows (`PST`, `PDT`).
+A caller whose zone was chosen before this is asked to choose again, once.
+
+**Clocks.** A CMD or DS12C887 clock is set too when the BBS's clock moves.
+A clock the BBS can't set (Lt. Kernal, Ultimate, TeensyROM) is taken to
+keep standard time: the BBS adds the hour when it reads one on daylight
+time.
+
+### `IM` Misc. Features `H`: DST Rules
+
+The rules say when DST starts and ends; each zone names its rule by letter.
+The list shows each rule in words, with this year's dates:
+
+```
+1) U US and Canada (since 2007)
+   Starts Mar 2nd Sun, 2:00 AM
+   Ends   Nov 1st Sun, 2:00 AM
+   2026: Mar 8 to Nov 1
+```
+
+| Key | Does |
+|---|---|
+| `1`... | edit that rule, a field at a time (Return keeps each): its letter, its description, then for the start and the end the month, the week (1-4, or `L` for the last), the weekday (1 = Sunday), the time and whether it's local (`L`) or UTC (`U`) |
+| `A` | add a rule, starting from the US one |
+| `D` | delete a rule, after saying how many time zones use it (they'd have no DST) |
+| `S` | save; if the BBS's zone has a rule, its DST and alarms are set again by the rule as saved |
+| `Q` | back (offering to save changes) |
+
+A local end time is asked and shown as the clock reads it then, on daylight
+time (2:00 AM for the US). When a country changes its dates, this is where
+to change them.

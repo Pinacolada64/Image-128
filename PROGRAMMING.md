@@ -334,6 +334,84 @@ onto the fact before them, and prints each fact word-wrapped with
 A fact stays in pieces in the file, since `&,2,2` reads at most 80
 characters and a joined fact can run to about 215.
 
+## Time zones and daylight saving time
+
+The BBS's clock shows local time, and moves an hour for daylight saving
+time by itself (SYSOP_COMMANDS.md, "Daylight saving time"). Three things
+describe it: the time zones (`s.timezones`), the rules (`s.dstrules`), both
+on the System drive and written by `tools/dstfiles.py`, and the BBS's state
+(`e.data` records 45 and 46).
+
+### A time zone: `s.timezones`
+
+A line per zone; `sub.info` lists them. A zone is kept as its first 11
+characters: in `e.data` record 45 (`tz$`) for the BBS, and in
+`mid$(uf$,6)` for a caller.
+
+```
+PST0400UPDT(US/CA) Pacific Time
+```
+
+| Columns | Holds |
+|---|---|
+| 1-3 | standard time's name: 3 characters, all the date display has room for |
+| 4-7 | the offset, `hhmm`, from UTC-12: GMT is `1200`, UTC-8 `0400`, UTC+9:30 `2130` |
+| 8 | the rule's letter in `s.dstrules`; `-` for no DST |
+| 9-11 | daylight time's name (spaces for none) |
+| 12- | the description (28 characters show) |
+
+The ML converts times between zones with the hour and minute of the offset
+(`tzoneh`/`tzonem` for the BBS, `uzoneh`/`uzonem` for the caller, swap3's
+`timezone`). On daylight time, the hour poked there is one more.
+
+Image 3.0's zones were 7 characters (no rule). A BBS zone like that has no
+DST until the sysop chooses the zone again; a caller with one is asked to
+choose again at their next login (`i/lo.on` 4174).
+
+### A rule: `s.dstrules`
+
+A line per rule:
+
+```
+U03210200L11110100LUS and Canada (since 2007)
+```
+
+| Columns | Holds |
+|---|---|
+| 1 | the letter |
+| 2-3 | when DST starts: the month |
+| 4 | the week: 1-4, or 5 for the last |
+| 5 | the weekday, 1 (Sunday) to 7 |
+| 6-9 | the time, `hhmm`, in standard time |
+| 10 | `L` local time, or `U` UTC |
+| 11-19 | when it ends, the same way (its time in standard time too: the US's 2:00 AM daylight time is `0100`) |
+| 20- | a description |
+
+A start month after the end month (Australia, New Zealand) means DST over
+New Year. The four shipped: `U` US and Canada, `E` the EU and the UK (1:00
+AM UTC), `A` south-eastern Australia, `N` New Zealand.
+
+### The BBS's state: `e.data` records 45 and 46
+
+Record 45 is the BBS's zone (above). Record 46 is `1,` when the clock is on
+daylight time (`0,` when not), then a copy of the zone's rule line, so the
+check needn't read `s.dstrules` each time. A different letter, or no copy,
+makes the next check read the rule and take the clock as right.
+
+### `sub.clocks`: entries 12-15
+
+| `im` | Does | Called by |
+|---|---|---|
+| 12 | the check: the clock in standard time (by the flag), whether DST should be on, and if that differs, the clock moved an hour (a CMD or DS12C887 clock written too), the flag saved and `tzoneh` set | `im` at boot (3158); `i/lo.idle` when checkmark 64 is set |
+| 13 | the flag from the rule, taking the clock as right, and the alarms (15) | `i/IM.misc` (Time Zone), `i/IM.dstrules` after saving |
+| 14 | the caller's zone by their rule: `uzoneh` and the name shown (`PST` or `PDT`) | `i/lo.on` at login |
+| 15 | the alarms that set checkmark 64 at the minutes the rule changes the clock, on its change weekdays; old ones (checkmark 64) taken out first; `e.alarms` saved | `i/su.config`, 13 |
+
+The check uses the rule's start and end in standard time, so the autumn's
+hour that happens twice is never set back twice. Clocks `sub.clocks` can't
+write (Lt. Kernal, Ultimate, TeensyROM) are taken to keep standard time:
+reading one adds the hour while record 46 says `1`.
+
 ## The sysop information file: `e.sysop`
 
 `e.sysop`, on drive 3, holds what callers who run an Image BBS of their own

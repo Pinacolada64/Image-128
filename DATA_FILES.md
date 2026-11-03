@@ -119,12 +119,13 @@ load's own status.
 | File | Shown | By |
 |---|---|---|
 | `s.m.info` | Personal Information | `sub.info` |
-| `s.timezones` | the time zones to choose from | `sub.info` |
+| `s.timezones` | the time zones to choose from, each with its daylight saving time rule (format in PROGRAMMING.md) | `sub.info`, `sub.clocks` |
+| `s.dstrules` | the daylight saving time rules (format in PROGRAMMING.md) | `sub.clocks`; edited by `IM` DST Rules (`i/IM.dstrules`) |
 | `s.m.params`, `s.m.modes` | terminal parameters and modes | `sub.param1` |
 | `s.m.protos`, `s.protos` | transfer protocols | `sub.protos` |
 | `s.m.reledit` | SM's REL file editor | `i/SM.reledit` |
 | `s.logon info` | the Login Editor's help | `i/IM.logon` |
-| `s.lightdefs` | the lightbar checks' names, for the Lightbar editor | `i.IM` |
+| `s.lightdefs` | the lightbar checks' names, for the Lightbar editor | `i/IM.lightbar` (Lightbar Defs) |
 
 `s.config` (a "System Configuration" screen), `s.idle` (Image 2.0's idle
 screen commands: `i/lo.idle` draws its own menu) and `s.netapp` (a network
@@ -154,7 +155,7 @@ application form) aren't opened by name by any module.
 
 | File | Type | Holds | Written by |
 |---|---|---|---|
-| `e.data` | REL | the system's settings, a record each | `i/su.config`, `IM` |
+| `e.data` | REL | the system's settings, a record each (45: the system time zone; 46: its daylight saving time state, PROGRAMMING.md) | `i/su.config`, `IM`, `sub.clocks` |
 | `e.stats` | REL | the statistics (`st()`) | `im 128` |
 | `e.daily stats` | REL | each day's statistics | `i/lo.automaint` |
 | `e.access` | REL | the access groups | `IM` Access Groups (`i/IM.access`) |
