@@ -90,7 +90,8 @@
 3122 gosub 3268:goto 3104
 3124 b$=right$("   "+str$(dv%(a)),3)+","+mid$(str$(dr%(a)),2)
 3126 &,16,.,42,m%(.,a),chr$(192+a),"",left$(a$+" Disk:     ",15)+b$:return
-3128 &,28,1:n=14:dim m%(22,n):gosub 33
+' 11/02/2026: H, DST Rules (i/IM.dstrules), after G (Time Zone): n=15
+3128 &,28,1:n=15:dim m%(22,n):gosub 33
 3129 x=20:gosub 1:&,2,2:pt$=a$
 3130 x=38:gosub 1:&,2,2:lk%=val(a$)
 3132 x=39:gosub 1:&,2,2:a%(2)=val(a$)
@@ -110,15 +111,18 @@
 3160 &,16,.,46,m%(.,5),"E","","Printer Linefeeds:  "+a$
 3162 &,16,.,46,m%(.,6),"F","","Password Masks:     "+mm$
 3164 &,16,.,46,m%(.,7),"G","","Time Zone:          "+left$(tz$,3):a$=po$
-3166 &,16,.,46,m%(.,8),"H","","Main Prompt:        "+left$(po$,15)
-3168 &,16,.,46,m%(.,9),"I","","BBS Name:           "+left$(bn$,15)
-3170 &,16,.,46,m%(.,10),"J","","System ID           "+cc$
-3172 &,16,.,46,m%(.,11),"K","","New User Credits:  "+str$(nc)
-3173 &,16,.,46,m%(.,12),"L","","Prime Time         "+pt$
-3174 &,16,.,46,m%(.,13),"M","","Chat Messages"
-3176 &,16,.,46,m%(.,14),"N","","Main Menu"
-3178 n=14:gosub 3360:a=lm:if tr%<1 or lm=nor lm=.then 3006
-3180 a$="misc":gosub 3198:goto 3128
+3165 &,16,.,46,m%(.,8),"H","","DST Rules"
+3166 &,16,.,46,m%(.,9),"I","","Main Prompt:        "+left$(po$,15)
+3168 &,16,.,46,m%(.,10),"J","","BBS Name:           "+left$(bn$,15)
+3170 &,16,.,46,m%(.,11),"K","","System ID           "+cc$
+3172 &,16,.,46,m%(.,12),"L","","New User Credits:  "+str$(nc)
+3173 &,16,.,46,m%(.,13),"M","","Prime Time         "+pt$
+3174 &,16,.,46,m%(.,14),"N","","Chat Messages"
+3176 &,16,.,46,m%(.,15),"O","","Main Menu"
+3178 n=15:gosub 3360:a=lm:if tr%<1 or lm=nor lm=.then 3006
+' H loads i/IM.dstrules; the items after it are i/IM.misc's 8-14, as before
+3180 if lm=8 then a$="dstrules":gosub 3198:goto 3128
+3181 lm=lm+(lm>8):a=lm:a$="misc":gosub 3198:goto 3128
 3182 data "White","Red","Cyan","Purple","Green","Blue","Yellow","Orange","Brown"
 3184 data "Light Red","Dark Gray","Medium Gray","Light Green","Light Blue"
 3186 data "Light Gray"
