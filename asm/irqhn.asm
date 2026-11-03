@@ -1346,6 +1346,17 @@ alarm3:
 	lda alarmtb+3,x
 	cmp minlo
 	bne alarm4
+; 11/02/2026: the on time acts only on the alarm's days: alarmtb+6 (the
+; checkmark's high byte, unused before) is a mask, bit 0 Sunday ... bit 6
+; Saturday; 0 is every day, as every e.alarms had it. The off time acts on
+; any day, so an alarm on late one day and off early the next still clears
+; its checkmark
+	lda alarmtb+6,x
+	beq alarm3a
+	ldy bootdate	; today, 1 (Sunday) to 7
+	and daybits-1,y
+	beq alarm6	; not one of its days
+alarm3a:
 	ldy #1
 	bne alarm5
 alarm4:
@@ -1389,6 +1400,10 @@ alarm9:
 	ora #flag_net_r_mask
 	sta flag_net_addr
 	rts
+
+; an alarm's day bits, by weekday (alarm3)
+daybits:
+	byte 1,2,4,8,16,32,64
 
 	ldx bootdate+5 ; minute
 	ldy bootdate+4 ; hours

@@ -410,13 +410,18 @@
 ' (the US: 2:00 both). They're on every day, with no off time: the check
 ' does nothing on other days. Then the table is saved to e.alarms
 	dr=3:gosub 3:a$=dr$+"e.alarms":&,7,dv%,9:gosub 5:if e% then e%=1:return
-	for i=. to 15:b={sym:alarmtb}+i*8:if peek(b+7)=64 and peek(b+6)=. then poke b,1:poke b+1,.:poke b+7,.
+' (11/02/2026: by checkmark 64 alone: +6 is the days now)
+	for i=. to 15:b={sym:alarmtb}+i*8:if peek(b+7)=64 then poke b,1:poke b+1,.:poke b+6,.:poke b+7,.
 	next
 	dz=val(mid$(tz$,4,2))*60+val(mid$(tz$,6,2))-720:c$=mid$(tz$,8,1)
 	if c$="" or c$="-" or c$=" " then {:sub.dst_alarms_save}
 	gosub {:sub.dst_rule}:if e% then {:sub.dst_alarms_save}
 	dx=6:gosub {:sub.dst_alarm_time}:u=b:dx=15:gosub {:sub.dst_alarm_time}:v=b+60:v=v+1440*(v>1439)
-	b=u:gosub {:sub.dst_alarm_set}:if v<>u then b=v:gosub {:sub.dst_alarm_set}
+' 11/02/2026: on the rule's weekdays only (dh, the start's day bit; di,
+' the end's; one alarm for both if they're the same minute)
+	dh=2^(val(mid$(dq$,5,1))-1):di=2^(val(mid$(dq$,14,1))-1)
+	b=u:dm=dh:if v=u then dm=dh or di
+	gosub {:sub.dst_alarm_set}:if v<>u then b=v:dm=di:gosub {:sub.dst_alarm_set}
 {:sub.dst_alarms_save}
 ' its load address from the file, then the 128 bytes
 	dr=3:a$="e.alarms,p,r":gosub 4:get# 2,a$,b$:close 2:h$=chr$(asc(a$+chr$(.)))+chr$(asc(b$+chr$(.)))
@@ -431,11 +436,13 @@
 
 {:sub.dst_alarm_set}
 ' an alarm at minute b, triggering 64, in the first one that's off and
-' triggers nothing (none free: none set)
+' triggers nothing (none free: none set). 11/02/2026: on the days dm (+6:
+' bit 0 Sunday ... bit 6 Saturday), so the check, and loading this module,
+' comes once a week (Sundays, for the rules shipped), not every night
 	for i=. to 15:a={sym:alarmtb}+i*8:if peek(a)=1 and peek(a+1)=. and peek(a+7)=. then i=99
 	next:if i<99 then return
 	poke a,1:poke a+1,1:poke a+2,int(b/256):poke a+3,b-int(b/256)*256
-	poke a+4,255:poke a+5,255:poke a+6,.:poke a+7,64:return
+	poke a+4,255:poke a+5,255:poke a+6,dm:poke a+7,64:return
 
 {:sub.dst_load}
 ' tz$ -> dz (its standard offset from UTC, in minutes) and c$ (its rule

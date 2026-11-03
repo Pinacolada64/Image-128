@@ -38,6 +38,9 @@
 - [ ] the `an$+""` copies (im 220, i.main, i/NM.netsub4, i/lo/cp maint...) aren't needed since the ML copies `an$` out of the input buffer (`anfix`, 07cb870); drop them as those lines are touched
 - [x] Today in History: word-wrap the text to the user's screen width. Done: `i/lo-today` reads `s.today/hist` a line at a time, joins a fact's continuation lines (7 spaces and `{yellow}`) back onto it, and prints it with `lp=1:&`; the maker's on-screen lists do the same (4084-4096). The file format is unchanged (`&,2,2` reads at most 80 characters), so a release-made `s.today/hist` wraps too.
 
+- [ ] Alarms by weekday: a mask in each alarm's spare byte (the checkmark's high byte, alarmtb+6, which the IRQ never reads): bit 0 Sunday ... bit 6 Saturday, 0 = every day (as every e.alarms has it now). irqhn.asm's alarm loop skips an alarm's on time on a day not in its mask; the alarm editor (i/IM.lightbar) gets option 5, Days. The DST alarm (sub.clocks im=15) could then be Sundays only
+- [ ] Alarms by date (day of the month, month): no room in alarmtb ($1660-$16DF, then date1 at $16E0): a second 32-byte table elsewhere and its own file (or a longer e.alarms, which &,7 would load over date1 today, so im's loader would change too). After the weekdays
+
 ## Duplicate Code:
 
 - [ ] i_EM.extra.lbl:4044 / i.FM.lbl:3038 "Enter date suspension ends" - make a sub.* module to handle forced mail creation

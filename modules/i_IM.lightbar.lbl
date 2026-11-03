@@ -5,6 +5,7 @@
 ' to the original, except that capitals in rem text are $61-$7a, not $c1-$da.
 
 {uses:..\3_0-preface.lbl}
+{uses:quoters.lbl}
 {alpha:alt}
 {crunch:on}
 
@@ -14,6 +15,7 @@
 4004 if b<0 then a$="--:-- ":return
 4006 a%=b/60:b%=b-a%*60:a$="A":if a%>11 then a$="P":a%=a%-12
 4008 a%=a%-12*(a%=0):a$=right$(str$(a%),2)+":"+right$(str$(100+b%),2)+a$:return
+' TODO: do this only when editing lightbar labels
 ' 11/02/2026: read the lightbar help text: s.lightdefs into b$(), the name
 ' 4142 shows for each checkmark (moved here from i.IM 3086-3090, which
 ' read it for every Lightbar/Alarms menu choice); once, while b$() is set
@@ -89,10 +91,12 @@
 4234 if a%=256 then:&" 3) Disabled{f6}"
 4236 if a%>256 then:&" 3) Enabled{f6}"
 4238 if a%<256 then:&" 3) Enabled By Checkmark {pound}%a{f6}"
-4240 a%=am%(3,a):&" 4) Checkmark {pound}%a is Triggered{f6}"
+' 11/02/2026: am%(3,a)'s high byte is the alarm's days (the IRQ's alarm3:
+' bit 0 Sunday ... bit 6 Saturday, 0 every day), its low byte the checkmark
+4240 a%=am%(3,a)and 127:&" 4) Checkmark {pound}%a is Triggered{f6}":gosub 4295:&" 5) Days: {pound}$a{f6}"
 4242 &"{pound}$kChange Which (RETURN to Abort)? {pound}i1":if an$="" then i=a:gosub 4282:goto 4220
 ' 11/02/2026: 2 (Off Time) to 4248, its prompt (4250 skipped it)
-4244 &"{f6}":x=val(an$):on xgosub 4246,4248,4258,4270:goto 4228
+4244 &"{f6}":x=val(an$):on xgosub 4246,4248,4258,4270,4297:goto 4228
 4246 p$="Turn On Time":goto 4250
 4248 p$="Turn Off Time"
 4250 b=am%(x,a):gosub 4004:w$=a$:poke 53252,6:&,1,32:if an$="" then return
@@ -110,8 +114,9 @@
 4266 if am%(0,a)=bthen return
 4268 am%(0,a)=b:tz=1:return
 4270 &"Which Check do you want triggered? {pound}i1":if an$="" then return
-4272 b=val(an$):if am%(3,a)=bthen return
-4274 am%(3,a)=b:tz=1:return
+' the checkmark changed, the days kept
+4272 b=val(an$):if (am%(3,a)and 127)=bthen return
+4274 am%(3,a)=(am%(3,a)and 32512)+b:tz=1:return
 4276 a=0:if tzthen:&"Changes Made! Save? ":gosub 94
 4278 if athen gosub 4214:&"Activate Saved Table? ":gosub 96:on agosub 4216
 4280 return
@@ -120,8 +125,20 @@
 4286 if a=256 then a$=a$+"No":goto 4292
 4288 if a>256 then a$=a$+"Yes":goto 4292
 4290 a$=a$+"if "+left$(b$(aand 127),5)
-4292 c$(i)=a$:return
-4294 rem
+' in the list, * after an alarm with days
+4292 c$(i)=a$+left$(" *",-2*(am%(3,i)>255)):return
+' the days d into am%(3,a)'s high byte; none is every day (the mask 0)
+4293 am%(3,a)=(am%(3,a)and 127)+256*d:tz=1:if d=. then:&"Every day.{f6}"
+4294 return
+' alarm a's days -> a$: Every day, or S-----S (the days it has)
+4295 d=int(am%(3,a)/256):a$="Every day":if d=. then return
+4296 a$="":for j=0 to 6:a$=a$+mid$("-"+mid$("SMTWTFS",j+1,1),1-((d and 2^j)>.),1):next:return
+' 5: the days, as digits 1-7 (Sunday-Saturday): 17 is weekends, 0 every day;
+' or ? for a day at a time, Yes or No to each, as the access groups are asked
+4297 lp=1:&"Days: 1-7 = Sun...Sat (17{colon} weekends), 0 = every day, ? = one day at a time: {pound}i1":if an$="" then return
+4298 if an$="{question}" then d=.:p=1:for j=. to 6:l=val(mid$("6679868",j+1,1)):a$=mid$("SundayMondayTuesdayWednesdayThursdayFridaySaturday",p,l):p=p+l:&"{pound}$a? ":gosub 96:d=d+a*2^j:next:goto 4293
+' (a digit outside 1-7 adds nothing: 2^(b-1) times 0)
+4299 d=.:for j=1 to len(an$):b=val(mid$(an$,j,1)):d=d or -(b>. and b<8)*2^(b-1):next:goto 4293
 4300 &"Loading NetMail Alarm Table..."
 4302 for i=0 to 23:a%(i)=i*60:next:gosub 4308:tz=-(e%<>0)
 4304 for i=0 to 23:b=a%(i):gosub 4004:c$(i)=a$:next:goto 4314
