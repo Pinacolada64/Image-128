@@ -11,14 +11,15 @@
 ' 11/02/2026: 4400, Lightbar Labels (i.IM's H menu, D)
 4000 on lmgoto 4100,4200,4300,4400
 4002 return
-4004 if b<0 then a$="--:--":return
+4004 if b<0 then a$="--:-- ":return
 4006 a%=b/60:b%=b-a%*60:a$="A":if a%>11 then a$="P":a%=a%-12
 4008 a%=a%-12*(a%=0):a$=right$(str$(a%),2)+":"+right$(str$(100+b%),2)+a$:return
 ' 11/02/2026: read the lightbar help text: s.lightdefs into b$(), the name
 ' 4142 shows for each checkmark (moved here from i.IM 3086-3090, which
 ' read it for every Lightbar/Alarms menu choice); once, while b$() is set
 4090 if b$(.)<>"" then return
-4092 &"{f6}Reading Lightbar Help Text...":dr=1:a$="s.lightdefs,s,r":gosub 4:if e% then close 2:&:return
+' gosub 5: this open's status (line 4 leaves e% as it was), and a$ for &
+4092 &"{f6}Reading Lightbar Help Text...":dr=1:a$="s.lightdefs,s,r":gosub 4:gosub 5:if e% then close 2:&:return
 4094 for x=.to 16*zz%-1:&,2,2:b$(x)=a$:next:close 2:&"Done{f6}":return
 4100 gosub 4090:gosub 4128:p%=1
 4102 p%=p%+zz%*(p%>zz%)-zz%*(p%<1)
