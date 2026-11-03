@@ -318,6 +318,49 @@ Lightbar Defs reads the lightbar help text (`s.lightdefs`, a line for
 each checkmark) when it starts, the first time in each visit to this
 menu ("Reading Lightbar Help Text...").
 
+### `B`: Alarms
+
+Image keeps 16 alarms. Each one sets a lightbar checkmark at one time of
+day and clears it at another; modules and the idle screen act on those
+checkmarks. The list:
+
+```
+ ##  OnTime OffTime Check Active?
+
+  1) 12:00A 12:00A  At1-R if At1-L
+  9)  2:00A --:--   DST-L  Yes
+ 16)  4:00A  5:00A  ...    No
+```
+
+- **OnTime:** at this minute the checkmark is set (if the alarm is active)
+- **OffTime:** at this minute it's cleared
+- **Check:** the checkmark the alarm sets and clears
+- **Active?:** `Yes` (always on), `No` (off), or `if` and a checkmark: on
+  only while that checkmark is set (alarms 1-8 come that way, each switched
+  on by one of page 8's `At1`-`At8` left checkmarks)
+
+The BBS checks the alarms once a minute, so an alarm acts on the minute it
+names, not over a range: 2:00 to 3:00 means "set at 2:00, clear at 3:00".
+
+**`--:--` means never.** As an on time, the alarm never sets its
+checkmark. As an off time, it never clears it: the checkmark stays set
+until something else clears it. That's how the daylight saving time alarm
+works: it sets `DST` (checkmark 64) at 2:00, and the idle screen clears it
+when it has run the check, even if a call was on at 2:00 and the check had
+to wait for it to end. To enter `--:--`, type `-` for the time.
+
+Pick an alarm by number, then:
+
+| Key | Changes |
+|---|---|
+| `1` | the on time (`h:mm` and `A` or `P`, e.g. `2:00 A`; `-` for `--:--`) |
+| `2` | the off time, the same way |
+| `3` | active: `E` always, `D` never, `C` while a checkmark (its number) is set |
+| `4` | the checkmark it sets |
+
+Return at the list asks to save the table to `e.alarms`, and then whether to
+make it active now (otherwise it's loaded at the next boot).
+
 ### `D`: Lightbar Labels
 
 The lightbar has 8 pages of 8 labels, three characters each (`Sys`,
