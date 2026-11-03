@@ -13,7 +13,7 @@
 ' again, by the rule as saved.
 '
 ' Variables: n (rules), tt$(1-n) (them), tz (changed), dn$ (the rule being
-' edited), ds$ (a start or end, 9 characters); temporary: a b c d h i j m r
+' edited), dp$ (a start or end, 9 characters); temporary: a b c d h i j m r
 ' t v w y dd dj dl dx, a$ b$ c$ an$
 
 {uses:..\3_0-preface.lbl}
@@ -106,12 +106,12 @@
 	next:if i>98 then {:edit_letter}
 ' each answer into dn$ at once (ask_point uses a$ and c$)
 	dn$=a$+mid$(dn$,2):b$=mid$(dn$,20):p$="Description"+"":c=30:gosub {:ask}:dn$=left$(dn$,19)+an$
-	&"{f6}{lt. blue}When DST starts{colon}{f6}{white}":dx=2:gosub {:ask_point}:dn$=left$(dn$,1)+ds$+mid$(dn$,11)
-	&"{f6}{lt. blue}When DST ends{colon}{f6}{white}":dx=11:gosub {:ask_point}:dn$=left$(dn$,10)+ds$+mid$(dn$,20)
+	&"{f6}{lt. blue}When DST starts{colon}{f6}{white}":dx=2:gosub {:ask_point}:dn$=left$(dn$,1)+dp$+mid$(dn$,11)
+	&"{f6}{lt. blue}When DST ends{colon}{f6}{white}":dx=11:gosub {:ask_point}:dn$=left$(dn$,10)+dp$+mid$(dn$,20)
 	tt$(r)=dn$:tz=1:return
 
 {:ask_point}
-' dn$'s start or end at dx -> ds$, asked a field at a time
+' dn$'s start or end at dx -> dp$, asked a field at a time
 	gosub {:point}:if dx=11 and mid$(dn$,19,1)="L" then t=t+60
 {:ask_month}
 	b$=mid$(str$(m),2):p$="Month (1-12)"+"":c=2:gosub {:ask}:m=val(an$):if m<1 or m>12 then {:ask_month}
@@ -134,7 +134,7 @@
 ' a local end: the clock's daylight time -> standard time, as kept
 	if dx=11 and an$="L" then t=t-60:t=t-1440*(t<.)
 	h=int(t/60):a=t-h*60
-	ds$=right$(str$(100+m),2)+mid$(str$(w),2)+mid$(str$(d),2)+right$(str$(100+h),2)+right$(str$(100+a),2)+an$
+	dp$=right$(str$(100+m),2)+mid$(str$(w),2)+mid$(str$(d),2)+right$(str$(100+h),2)+right$(str$(100+a),2)+an$
 	return
 
 {:ask}
