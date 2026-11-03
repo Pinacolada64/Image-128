@@ -37,3 +37,7 @@
 - [ ] i/lo.idle 4041: "System Idle" isn't padded to the field's width (21) any more, so a longer message's tail stays after it; pad it again, or have `gosub 9`/4043 clear the field first
 - [ ] the `an$+""` copies (im 220, i.main, i/NM.netsub4, i/lo/cp maint...) aren't needed since the ML copies `an$` out of the input buffer (`anfix`, 07cb870); drop them as those lines are touched
 - [x] Today in History: word-wrap the text to the user's screen width. Done: `i/lo-today` reads `s.today/hist` a line at a time, joins a fact's continuation lines (7 spaces and `{yellow}`) back onto it, and prints it with `lp=1:&`; the maker's on-screen lists do the same (4084-4096). The file format is unchanged (`&,2,2` reads at most 80 characters), so a release-made `s.today/hist` wraps too.
+
+## Duplicate Code:
+
+- [ ] i_EM.extra.lbl:4044 / i.FM.lbl:3038 "Enter date suspension ends" - make a sub.* module to handle forced mail creation
