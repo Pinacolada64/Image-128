@@ -25,6 +25,20 @@
 ' im=11: the same, for the idle screen's periodic re-read (lightbar Trc
 '       right, Time: Reset Clock): also nothing for the last AutoMaint date,
 '       which would set the clock back every time
+' im=12: daylight saving time: if the BBS's time zone (tz$, e.data record 45)
+'       has a DST rule and the clock is on the wrong side of it, set the
+'       clock forward or back an hour (and a CMD or DS12C887 clock with it).
+'       Quiet. For im at boot, and the idle screen when checkmark 64 is set
+'       (by an alarm at the hour the clock changes; never during a call).
+'       e%=0 if it changed the clock
+' im=13: the same rule, but only record whether the clock is on daylight
+'       time now, taking the clock as right; and the alarms, as im=15: after
+'       the sysop chooses the system time zone (i/IM.misc)
+' im=14: the caller's own time zone (mid$(uf$,6)): the hour the ML adds for
+'       it (uzoneh) and the name shown (PST or PDT) as their rule says now.
+'       At login, after sub.info sets them (i/lo.on)
+' im=15: the alarms that set checkmark 64 at the hours tz$'s rule changes
+'       the clock (e.alarms, and the ML's table): i/su.config, im=13
 '
 ' After im=1 sets the BBS clock, if record 37 names a CMD device or a
 ' DS12C887, it offers to write the time to that clock too (as im=9 does).
@@ -33,6 +47,24 @@
 '   e%=0: the BBS clock was set from z$ (an 11-digit Image date string)
 '   e%<>0: it was not; the BBS clock is unchanged (im=1: e%=2, timed out)
 ' After im=0, ck and cp hold the method and parameter that were used.
+'
+' 11/02/2026: daylight saving time. A time zone in s.timezones (11 characters
+' kept: record 45 for the BBS, mid$(uf$,6) for a caller) is
+'   PST0400UPDT   standard name, standard offset (hhmm, UTC+12 hours: GMT
+'                 is 1200), rule letter ("-": no DST), daylight name
+' and its rule letter's line in s.dstrules says when DST starts and ends:
+'   U03210200L11110100L US and Canada (since 2007)
+'   1    letter                 11-12 end month
+'   2-3  start month            13    end week, 14 end weekday
+'   4    week (1-4, 5 = last)   15-18 end time, hhmm, 19 L or U
+'   5    weekday (1 = Sunday)   20-   description
+'   6-9  time, hhmm, in standard time
+'   10   L: local, U: UTC
+' A start month after the end month (Australia) means DST across New Year.
+' e.data record 46 keeps the BBS's state: "1," (the clock is on daylight
+' time; "0," not) and the rule line, so each check needn't read the file.
+' A clock this can't write (Lt. Kernal, Ultimate, TeensyROM) is taken to
+' keep standard time: reading it adds the hour while record 46 says 1.
 '
 ' e.data record 37 (clock setting method). Image BBS 3.0's im reads it with
 ' val(), and treats 4 like 0 (manual), so new methods are stored after "4,":
@@ -60,7 +92,7 @@
 {include:quoters.lbl}
 {:60000}
 {step:2}
-	on im+1 goto {:sub.from_record_37},{:sub.manual},{:sub.cmd},{:sub.ltk},{:sub.ds12c887},{:sub.ultimate},{:sub.teensyrom},{:sub.automaint},{:sub.save_method},{:sub.write},{:sub.auto},{:sub.auto}
+	on im+1 goto {:sub.from_record_37},{:sub.manual},{:sub.cmd},{:sub.ltk},{:sub.ds12c887},{:sub.ultimate},{:sub.teensyrom},{:sub.automaint},{:sub.save_method},{:sub.write},{:sub.auto},{:sub.auto},{:sub.dst},{:sub.dst_init},{:sub.dst_caller},{:sub.dst_alarms}
 	return
 
 {nice:100}
@@ -186,7 +218,7 @@
 	dr=5:gosub 3:a$=dr$+"swr.ml":&,7,dv%,2:gosub 5:if e% then on -(im>9) goto {:sub.return}:&"{f6}{lt. red}swr.ml not loaded.{f6}":return
 	if cp=2 then sys 49152
 	sys 49155:z$="":for i=49159 to 49169:z$=z$+chr$(peek(i)):next
-	goto {:sub.set_clock}
+	goto {:sub.set_clock_std}
 
 ' --- 4: DS12C887 RTC chip (cp = base address) ---
 
@@ -232,7 +264,7 @@
 	poke u,2:if len(a$)<19 then e%=1:on -(im>9) goto {:sub.return}:&"{f6}{lt. red}The Ultimate didn't send the time.{f6}":return
 	y=val(mid$(a$,3,2)):n=val(mid$(a$,6,2)):d=val(mid$(a$,9,2))
 	h=val(mid$(a$,12,2)):m=val(mid$(a$,15,2))
-	gosub {:sub.build_z$}:goto {:sub.set_clock}
+	gosub {:sub.build_z$}:goto {:sub.set_clock_std}
 
 ' --- 6: TeensyROM (time only) ---
 
@@ -250,7 +282,7 @@
 ' the date: the last saved date
 	gosub 33:x=19:gosub 1:&,2,2:close 2:b$=a$
 	y=val(mid$(b$,2,2)):n=val(mid$(b$,4,2)):d=val(mid$(b$,6,2))
-	gosub {:sub.build_z$}:goto {:sub.set_clock}
+	gosub {:sub.build_z$}:goto {:sub.set_clock_std}
 
 ' --- 7: last AutoMaint date and time ---
 
@@ -287,8 +319,11 @@
 ' the BBS clock (d1$) -> w (weekday 1-7, 1=Sun), y, n (month), d, m (minute),
 ' h (hour 1-12), k (1=PM) and j (hour 0-23). In d1$, hours 80-91 are PM, and
 ' 12 and 92 are 12 AM and 12 PM
-	w=val(left$(d1$,1)):y=val(mid$(d1$,2,2)):n=val(mid$(d1$,4,2)):d=val(mid$(d1$,6,2))
-	a=val(mid$(d1$,8,2)):k=-(a>79):h=a-80*k:m=val(mid$(d1$,10,2)):j=h+12*(h=12)+12*k
+	b$=d1$
+{:sub.parse_time}
+' 11/02/2026: the same for any date string in b$
+	w=val(left$(b$,1)):y=val(mid$(b$,2,2)):n=val(mid$(b$,4,2)):d=val(mid$(b$,6,2))
+	a=val(mid$(b$,8,2)):k=-(a>79):h=a-80*k:m=val(mid$(b$,10,2)):j=h+12*(h=12)+12*k
 	return
 
 {:sub.cmd_write}
@@ -299,7 +334,7 @@
 	gosub {:sub.bbs_time}
 	open 15,cp,15:print# 15,"t-wd"chr$(w-1)chr$(y)chr$(n)chr$(d)chr$(h)chr$(m)chr$(.)chr$(k)
 	print# 15,"t-ra":&,2,15:close 15
-	e%=.:&"{f6}{lt. blue}CMD clock{colon} {white}"+a$+"{f6}":return
+	e%=.:on -(im>9) goto {:sub.return}:&"{f6}{lt. blue}CMD clock{colon} {white}"+a$+"{f6}":return
 
 {:sub.ds_write}
 ' register B (11): bit 7 stops the clock updating while it's set; bit 2 =
@@ -316,7 +351,7 @@
 	b=j:if (f and 2)=. then b=h
 	gosub {:sub.ds_value_out}:if (f and 2)=. then b=b+128*k
 	poke cp,4:poke cp+1,b:poke cp,11:poke cp+1,f and 127
-	e%=.:&"{f6}{lt. blue}DS12C887 clock set.{f6}":return
+	e%=.:on -(im>9) goto {:sub.return}:&"{f6}{lt. blue}DS12C887 clock set.{f6}":return
 
 {:sub.ds_put}
 ' a = register number, b = value
@@ -326,23 +361,191 @@
 	if (f and 4)=. then b=int(b/10)*16+b-int(b/10)*10
 	return
 
+' --- 12-14: daylight saving time ---
+
+{nice:100}
+{:sub.dst}
+' im=12: the BBS's rule (dq$) and state (dg); the clock in standard time; and
+' whether DST should be on now (a). A first check (no rule kept yet in record
+' 46, or another rule letter) takes the clock as right, as im=13 does
+	gosub {:sub.dst_load}:if e% then {:sub.dst_bbs_zone}
+	if du then {:sub.dst_init_now}
+	gosub {:sub.bbs_time}:gosub {:sub.dst_std}:gosub {:sub.dst_eval}:if a=dg then e%=1:goto {:sub.dst_bbs_zone}
+' on: standard time + 1 hour; off: the standard time itself
+	dg=a:if dg then s=60:gosub {:sub.min_shift}
+	h=j:gosub {:sub.build_z$}:gosub {:sub.set_bbs_clock}:gosub {:sub.dst_save}:gosub {:sub.dst_bbs_zone}
+	gosub {:sub.read_record_37}:if ck=2 or ck=4 then gosub {:sub.write_clock}
+	e%=.:return
+
+{:sub.dst_init}
+' im=13: the clock is right: is it on daylight time? First as if it showed
+' standard time; if that says DST, an hour back (of the autumn's hour that
+' happens twice, this takes the first, daylight one)
+	gosub {:sub.dst_alarms}:gosub {:sub.dst_load}:if e% then {:sub.dst_bbs_zone}
+{:sub.dst_init_now}
+	gosub {:sub.bbs_time}:gosub {:sub.dst_eval}:if a then s=-60:gosub {:sub.min_shift}:gosub {:sub.dst_eval}
+	dg=a:gosub {:sub.dst_save}:goto {:sub.dst_bbs_zone}
+
+{:sub.dst_caller}
+' im=14: the caller's zone (b$): their standard time from the BBS's, moved by
+' the difference in offsets; their rule; then the ML's hour and the name
+	if len(uf$)<12 then e%=1:return
+	gosub {:sub.dst_load}:gosub {:sub.bbs_time}:gosub {:sub.dst_std}
+	b$=mid$(uf$,6):c$=mid$(b$,8,1):s=val(mid$(b$,4,2))*60+val(mid$(b$,6,2))-720-dz:dz=dz+s:gosub {:sub.min_shift}
+	a=.:if c$="" or c$="-" or c$=" " then {:sub.dst_caller_set}
+	if left$(dq$,1)<>c$ then gosub {:sub.dst_rule}:if e% then a=.:goto {:sub.dst_caller_set}
+	gosub {:sub.dst_eval}
+{:sub.dst_caller_set}
+	b=val(mid$(b$,4,2))+a:b=b+24*(b>23):poke {sym:uzoneh},b:poke {sym:uzonem},val(mid$(b$,6,2))
+	an$=left$(b$,3):if a then an$=mid$(b$,9,3)
+	for i=. to 2:poke {sym:date1}+26+i,asc(mid$(an$+"   ",i+1,1)):next:poke {sym:date1}+29,.:e%=.:return
+
+{:sub.dst_alarms}
+' im=15: e.alarms into the ML's table (alarmtb, 16 alarms of 8 bytes:
+' condition, on time, off time, checkmark, each high byte first; condition
+' 256 off, 257 on). Alarms that trigger checkmark 64 are taken out (off,
+' triggering nothing). With a rule: one at the minute the clock jumps from
+' in spring (the start, in standard time) and one at the daylight minute it
+' goes back from in autumn (the end + 60), or one if those are the same
+' (the US: 2:00 both). They're on every day, with no off time: the check
+' does nothing on other days. Then the table is saved to e.alarms
+	dr=3:gosub 3:a$=dr$+"e.alarms":&,7,dv%,9:gosub 5:if e% then e%=1:return
+	for i=. to 15:b={sym:alarmtb}+i*8:if peek(b+7)=64 and peek(b+6)=. then poke b,1:poke b+1,.:poke b+7,.
+	next
+	dz=val(mid$(tz$,4,2))*60+val(mid$(tz$,6,2))-720:c$=mid$(tz$,8,1)
+	if c$="" or c$="-" or c$=" " then {:sub.dst_alarms_save}
+	gosub {:sub.dst_rule}:if e% then {:sub.dst_alarms_save}
+	dx=6:gosub {:sub.dst_alarm_time}:u=b:dx=15:gosub {:sub.dst_alarm_time}:v=b+60:v=v+1440*(v>1439)
+	b=u:gosub {:sub.dst_alarm_set}:if v<>u then b=v:gosub {:sub.dst_alarm_set}
+{:sub.dst_alarms_save}
+' its load address from the file, then the 128 bytes
+	dr=3:a$="e.alarms,p,r":gosub 4:get# 2,a$,b$:close 2:h$=chr$(asc(a$+chr$(.)))+chr$(asc(b$+chr$(.)))
+	gosub 3:print# 15,"s"dr$"e.alarms":a$="e.alarms,p,w":gosub 4:gosub 5:if e% then close 2:return
+	print# 2,h$;:for i=. to 127:print# 2,chr$(peek({sym:alarmtb}+i));:next:close 2:e%=.:return
+
+{:sub.dst_alarm_time}
+' dq$'s time at dx (hhmm, then L or U) -> b, its minute of the day, local
+' standard time
+	b=val(mid$(dq$,dx,4)):b=int(b/100)*60+b-int(b/100)*100:if mid$(dq$,dx+4,1)="U" then b=b+dz
+	b=b-1440*(b<.)+1440*(b>1439):return
+
+{:sub.dst_alarm_set}
+' an alarm at minute b, triggering 64, in the first one that's off and
+' triggers nothing (none free: none set)
+	for i=. to 15:a={sym:alarmtb}+i*8:if peek(a)=1 and peek(a+1)=. and peek(a+7)=. then i=99
+	next:if i<99 then return
+	poke a,1:poke a+1,1:poke a+2,int(b/256):poke a+3,b-int(b/256)*256
+	poke a+4,255:poke a+5,255:poke a+6,.:poke a+7,64:return
+
+{:sub.dst_load}
+' tz$ -> dz (its standard offset from UTC, in minutes) and c$ (its rule
+' letter); record 46 -> dg (1: the clock is on daylight time) and dq$ (the
+' rule kept with it). du=1 if the rule had to be read from s.dstrules (none
+' kept yet, or another letter). e%=1 if the zone has no rule (dg=0 then)
+	dz=val(mid$(tz$,4,2))*60+val(mid$(tz$,6,2))-720:c$=mid$(tz$,8,1):du=.
+	gosub 33:x=46:gosub 1:&,2,2:close 2:dg=val(a$):dq$=mid$(a$,3)
+	if c$="" or c$="-" or c$=" " then e%=1:if dg then dg=.:dq$="":goto {:sub.dst_save_no}
+	if c$="" or c$="-" or c$=" " then e%=1:return
+	e%=.:if left$(dq$,1)=c$ then return
+	du=1:gosub {:sub.dst_rule}:if e% then dg=.:return
+	return
+
+{:sub.dst_rule}
+' c$'s line in s.dstrules -> dq$; e%=1 if there isn't one
+	dr=1:a$="s.dstrules,s,r":gosub 4:gosub 5:dq$="":if e% then close 2:e%=1:return
+	e%=1
+{:sub.dst_rule_line}
+	&,2,2:if left$(a$,1)=c$ then dq$=a$:e%=.
+	if e% and st=. and a$<>"{^}" then {:sub.dst_rule_line}
+	close 2:return
+
+{:sub.dst_save}
+' dg and dq$ -> record 46
+	gosub 33:x=46:gosub 1:print# 2,mid$(str$(dg),2)+","+dq$:close 2:e%=.:return
+{:sub.dst_save_no}
+	gosub {:sub.dst_save}:e%=1:return
+
+{:sub.dst_bbs_zone}
+' the BBS's offset for the ML's time conversions (swap3's timezone): its
+' standard hour, plus 1 on daylight time
+	b=val(mid$(tz$,4,2))+dg:b=b+24*(b>23):poke {sym:tzoneh},b:poke {sym:tzonem},val(mid$(tz$,6,2)):return
+
+{:sub.dst_std}
+' y n d j m, the clock -> standard time: an hour back while on daylight time
+	if dg then s=-60:gosub {:sub.min_shift}
+	return
+
+{:sub.dst_eval}
+' y n d j m (standard time), dq$ (the rule), dz (offset, for UTC times) ->
+' a=1 if DST is on. Northern rules (start month before end month): between
+' the start and the end; southern: from the start, or before the end
+	dt=j*60+m:dx=2:gosub {:sub.dst_reached}:dk=a:dx=11:gosub {:sub.dst_reached}
+	if val(mid$(dq$,2,2))<val(mid$(dq$,11,2)) then a=dk*(1-a):return
+	a=1-(1-dk)*a:return
+
+{:sub.dst_reached}
+' has the change at dq$'s position dx (month, week, weekday, hhmm, L/U)
+' come yet this year? a=1 or 0. The date: the first such weekday in the
+' month, then a week on for each week after the first (5: the last)
+	b=val(mid$(dq$,dx,2)):a=.:if n<b then return
+	a=1:if n>b then return
+	i=d:d=1:gosub {:sub.weekday}:d=i
+	dw=val(mid$(dq$,dx+3,1))-w+7:dw=dw-int(dw/7)*7+1
+	dy=val(mid$(dq$,dx+2,1)):dw=dw+7*(dy-1)+7*(dy=5)
+	if dy=5 then gosub {:sub.month_days}:if dw+7<=b then dw=dw+7
+	b=val(mid$(dq$,dx+4,4)):b=int(b/100)*60+b-int(b/100)*100:if mid$(dq$,dx+8,1)="U" then b=b+dz
+	a=-(d>dw or (d=dw and dt>=b)):return
+
+{:sub.min_shift}
+' y n d j m, s minutes on (s<0: back), across days, months and years
+	dt=j*60+m+s
+{:sub.min_shift_again}
+	if dt<. then dt=dt+1440:gosub {:sub.day_back}:goto {:sub.min_shift_again}
+	if dt>1439 then dt=dt-1440:gosub {:sub.day_on}:goto {:sub.min_shift_again}
+	j=int(dt/60):m=dt-j*60:return
+
+{:sub.day_on}
+	d=d+1:gosub {:sub.month_days}:if d<=b then return
+	d=1:n=n+1:if n>12 then n=1:y=y+1:if y>99 then y=.
+	return
+
+{:sub.day_back}
+	d=d-1:if d>. then return
+	n=n-1:if n<1 then n=12:y=y-1:if y<. then y=99
+	gosub {:sub.month_days}:d=b:return
+
+{:sub.month_days}
+' b = the days in month n of year y (2000-2099: every fourth year is a leap year)
+	b=31+(n=4 or n=6 or n=9 or n=11):if n=2 then b=28-((y and 3)=.)
+	return
+
 ' --- setting the BBS clock ---
 
 {nice:100}
 {:sub.build_z$}
 ' y (0-99), n (month), d (date), h (0-23), m (minute) -> z$ (w yr mo dt hr mi)
-' weekday (1=Sun...7=Sat) by Zeller's congruence
-	j=n:k=y+2000:if y>79 then k=y+1900
-	if j<3 then j=j+12:k=k-1
-	w=d+int(13*(j+1)/5)+(k-int(k/100)*100)+int((k-int(k/100)*100)/4)+int(k/400)+5*int(k/100)
-	w=w-int(w/7)*7:if w=. then w=7
+	gosub {:sub.weekday}
 ' hour: 12 = 12 AM, 1-11 AM, 92 = 12 PM, 81-91 PM
 	c=h-12*(h=.):if h=12 then c=92
 	if h>12 then c=h+68
 	z$=mid$(str$(w),2)+right$(str$(100+y),2)+right$(str$(100+n),2)+right$(str$(100+d),2)
 	z$=z$+right$(str$(100+c),2)+right$(str$(100+m),2):return
 
+{:sub.weekday}
+' y, n, d -> w, the weekday (1=Sun...7=Sat), by Zeller's congruence (dj, dl:
+' its own, since the DST code keeps the hour in j)
+	dj=n:dl=y+2000:if y>79 then dl=y+1900
+	if dj<3 then dj=dj+12:dl=dl-1
+	w=d+int(13*(dj+1)/5)+(dl-int(dl/100)*100)+int((dl-int(dl/100)*100)/4)+int(dl/400)+5*int(dl/100)
+	w=w-int(w/7)*7:if w=. then w=7
+	return
+
 {nice:100}
+{:sub.set_clock_std}
+' 11/02/2026: from a clock that keeps standard time (Lt. Kernal, Ultimate,
+' TeensyROM): an hour on while record 46 says it's daylight time
+	gosub 33:x=46:gosub 1:&,2,2:close 2:if val(a$)=. then {:sub.set_clock}
+	b$=z$:gosub {:sub.parse_time}:s=60:gosub {:sub.min_shift}:h=j:gosub {:sub.build_z$}
 {:sub.set_clock}
 	gosub {:sub.set_bbs_clock}:poke {sym:timeset},1:e%=.:return
 

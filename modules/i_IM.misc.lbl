@@ -11,7 +11,10 @@
 {:4000}
 	onlmgoto {:4010},{:4004},{:4016},{:4030},{:4036},{:4040},{:4002},{:4046},{:4054},{:4082},{:4090},{:4108},{:4062}:return
 {:4002}
-	im=3:gosub 447:tz$=an$:return
+' 11/02/2026: sub.info sets tz$ itself (60070) when a zone is chosen; tz$=an$
+' here blanked it when none was (a=0). Then whether the clock is on daylight
+' time, by the new zone's rule (sub.clocks im=13)
+	im=3:gosub 447:im=13:a$="clocks":on -(a<>.) gosub 74:return
 {:4004}
 	p$="Autoweed Cutoff in Months"+"":w$=str$(a%(2)):l=.:h=48:t=1:gosub {:sub.input_range}
 	gosub {:sub.check_change}:if tz then x=39:gosub {:sub.write_e_data}:a%(2)=n

@@ -10,7 +10,7 @@
 {alpha:alt}
 {include:"..\asm\equates.asm"}
 
-60000 onimgoto60002,60030,60068,60074,60072,60078,60100:return
+60000 onimgoto60002,60030,60068,60074,60072,60078,60100,60106:return
 60002 an$=ff$:&,15,1:f$=an$:an$=ll$:&,15,1:l$=an$:rn$=ff$+" "+ll$
 60004 t$=mid$(uf$,6,3)
 60006 dr=1:a$="s.m.info":gosub13:poke53252,2:&"{white}  > {pound}i1":a=val(an$)
@@ -54,15 +54,22 @@
 60084 dr=1:a$="s.timezones,s,r":gosub4:n=.:ife%thenclose2:return
 60086 &,2,2:ifa$<>"{^}"thenn=n+1:tt$(n)=a$:on-(st=.)goto60086
 60088 close2:&"{f6}Select {pound}$d Time Zone:{f6:2}"
-60090 fori=1ton:b$=left$(tt$(i),3):c$=mid$(tt$(i),8):a%=i:ifi<10then:&" "
+' 11/02/2026: s.timezones' lines have the DST rule letter and daylight name
+' at 8-11 (sub.clocks): the description starts at 12, and a zone is kept as
+' its first 11 characters
+60090 fori=1ton:b$=left$(tt$(i),3):c$=mid$(tt$(i),12):a%=i:ifi<10then:&" "
 60091 &" {white}{pound}%a) ({lt. red}{pound}$b{white}) {green}{pound}$c{pound}{back arrow}39 ":ifll%<80andi=20then:&" {white}<Hit any key>{pound}g1{f6}"
 60092 next
 60093 poke53252,2:&"{f6}{white} Which One? {pound}i1"
 60094 a=val(an$):ifan$=""ora<1ora>nthena=.:return
-60096 c$=mid$(tt$(a),8):an$=left$(tt$(a),7):return
+60096 c$=mid$(tt$(a),12):an$=left$(tt$(a),11):return
 60098 copr. 1994 new image 9/18/94
 60100 o%=val(mid$(fl$,18,2))-tr%:st(10)=o%:st(21)=st(21)+o%:st(11)=0
 60102 tv$="":tu$=mid$(str$(o%),2):forx=1to(4-len(tu$)):tv$=tv$+"0":next
 60104 tu$=tv$+tu$:return
+' 11/02/2026: im=8, for i/su.config: choose the system time zone into tz$,
+' without writing e.data (a new setup makes e.data afterwards)
+60106 d$="System":gosub60084:ifathentz$=an$
+60108 return
 60110 &"{f6}Incorrect password entered {pound}w2{f6}":return
 60150 rem "sub.info (c)nissa 230406 lh"

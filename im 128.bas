@@ -480,7 +480,10 @@
 ' 10/20/2026: ptrlinm and usrlin (c64 970, 971): on the 128, 970 ($03ca)
 ' is in the routines BASIC 7 keeps in RAM, and poking it stopped the
 ' boot with ?SYNTAX ERROR
-3158 poke {sym:ptrlinm},.:poke {sym:usrlin},23:mp$=" ...More? (Y/n) "+"":im=5:gosub 447:gosub 3250
+' 11/02/2026: then daylight saving time (sub.clocks im=12): the clock moved
+' an hour if the BBS was off when DST started or ended, and the BBS's zone
+' (tzoneh) with daylight time's hour in it
+3158 poke {sym:ptrlinm},.:poke {sym:usrlin},23:mp$=" ...More? (Y/n) "+"":im=5:gosub 447:im=12:a$="clocks":gosub 74:gosub 3250
 
 3160 gosub 30:for x=1 to 40:gosub 1:&,2,2:st(x)=val(a$):next:close 2
 3162 an$=am$:lt$=am$:tk$=left$(am$,1):gosub 3300

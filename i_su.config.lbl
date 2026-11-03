@@ -95,7 +95,8 @@
 ' record #37: y%=clock set method
 	x=36:gosub 1:print#2,"0":x=37:gosub 1:print#2,ck$
 	x=38:gosub 1:print#2,"0":for x=39 to 42:gosub 1:print#2,"{^}":next
-	x=43:gosub 1:print#2,"X":for x=44 to 46:gosub 1:print#2,"{^}":next
+' 11/02/2026: record 45, the system time zone (tz$, chosen in Part II)
+	x=43:gosub 1:print#2,"X":x=44:gosub 1:print#2,"{^}":x=45:gosub 1:print#2,tz$:x=46:gosub 1:print#2,"{^}"
 	x=47:gosub 1:print#2,bn$:x=48:gosub 1:print#2,c1$
 ' x=50: NetSub transfer index: don't overwrite existing value
 	x=49:gosub 1:print#2,c2$:b$="0":x=50:gosub 1:&,2,2
@@ -181,7 +182,9 @@
 	x=35:gosub 1:print#2,d1$:x=36:gosub 1:print#2,.:x=37:gosub 1:print#2,ck$
 	print#2,.:print#2,.:print#2,"3"
 	print#2,"7"
-	fori=1to6:x=51+i:gosub 1:print#2,dv%(i);r$;dr%(i):next:close2
+	fori=1to6:x=51+i:gosub 1:print#2,dv%(i);r$;dr%(i):next
+' 11/02/2026: record 45, the time zone chosen with the clock (4270)
+	x=45:gosub 1:print#2,tz$:close2
 	&"{f6:2}{white}Updating of 'e.data' {yellow}SUCCESSFUL{white}!":return
 {:4250}
 	z3$="Creating 'e.access' file...":gosub 3404
@@ -209,7 +212,11 @@
 	if a>5 then ck$="4,"+mid$("uta",a-5,1)
 	dv%(8)=.:if a=2 then gosub {:sub.clock_cmd}
 	if a=5 then gosub {:sub.clock_ds12c887}
-	y%=val(ck$):return
+' 11/02/2026: the system time zone (sub.info im=8: into tz$, which e.data
+' record 45 gets below), and the alarms that make the idle screen check
+' daylight saving time at the hours its rule changes the clock (sub.clocks
+' im=15: none if the zone has no DST)
+	y%=val(ck$):im=8:gosub 447:im=15:a$="clocks":gosub 74:return
 {:sub.clock_cmd}
 	lp=1:&"{lt. blue}Which Device has the CMD RTC Option Installed?{f6:2}":gosub {:sub.clock_device}
 	ck$=mid$(str$(b),2):return
