@@ -17,7 +17,10 @@ Warnings:
   file left open across a reset or a detach leaves it)
 - a directory block count that isn't the chain's length
 - an entry with a name of control characters (a garbage entry: its chain
-  is checked like any other, as the DOS would scratch it like any other)
+  is checked like any other, as the DOS would scratch it like any other).
+  Bytes 133-140 don't count: they're Image's encoded , : " * ? = ^ (the
+  quoter bytes), which a name made from typed text can hold, e.g. a post's
+  title in a message base's REL file name
 - blocks the BAM marks used that no file has ("leaked": a validate frees
   them)
 
@@ -97,7 +100,8 @@ def check(path, verbose):
         kind = TYPES[typ & 7] if typ & 7 < len(TYPES) else '?%d' % (typ & 7)
         who = '"%s" %s' % (show(raw), kind.lower())
         count = d[e + 30] + 256 * d[e + 31]
-        if any(c < 0x20 or 0x80 <= c < 0xa0 or c == 0xff for c in raw) or not raw:
+        if any(c < 0x20 or (0x80 <= c < 0xa0 and not 0x85 <= c <= 0x8c) or c == 0xff
+               for c in raw) or not raw:
             k.warnings.append('%s: a name of control characters (directory entry at %d/%d, slot %d): a garbage entry?'
                               % (who, (e // 256) // SECTORS + 1, (e // 256) % SECTORS, (e % 256) // 32))
         if not typ & 0x80:
