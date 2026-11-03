@@ -57,9 +57,12 @@
 ' 11/02/2026: s.timezones' lines have the DST rule letter and daylight name
 ' at 8-11 (sub.clocks): the description starts at 12, and a zone is kept as
 ' its first 11 characters
-60090 fori=1ton:b$=left$(tt$(i),3):c$=mid$(tt$(i),12):a%=i:ifi<10then:&" "
-60091 &" {white}{pound}%a) ({lt. red}{pound}$b{white}) {green}{pound}$c{pound}{back arrow}39 ":ifll%<80andi=20then:&" {white}<Hit any key>{pound}g1{f6}"
-60092 next
+60089 fori=1ton:b$=left$(tt$(i),3):c$=mid$(tt$(i),12):a%=i:ifi<10then:&" "
+' 11/02/2026: a zone a line (40 columns), or two (80: the odd ones tab to
+' column 40), each line ended with Return, not left to wrap at the tab
+60090 &" {white}{pound}%a) ({lt. red}{pound}$b{white}) {green}{pound}$c":a$="{f6}":ifll%>79and(iand1)thena$="{pound}{back arrow}40"
+60091 &a$:ifll%<80andi=20then:&" {white}<Hit any key>{pound}g1{f6}"
+60092 next:ifll%>79and(nand1)then:&"{f6}"
 60093 poke53252,2:&"{f6}{white} Which One? {pound}i1"
 60094 a=val(an$):ifan$=""ora<1ora>nthena=.:return
 60096 c$=mid$(tt$(a),12):an$=left$(tt$(a),11):return
