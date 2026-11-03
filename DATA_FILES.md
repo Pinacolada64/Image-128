@@ -136,7 +136,7 @@ application form) aren't opened by name by any module.
 
 | File | Type | Holds | Read by |
 |---|---|---|---|
-| `e.lightbar` | PRG | the lightbar's 64 three-letter labels | `im 128`, at boot |
+| `e.lightbar` | PRG | the lightbar's 64 three-letter labels | `im 128`, at boot; `i/IM.lightbar` (Lightbar Labels) |
 | `e.lightdefs` | SEQ | the lightbar checks the BBS starts with | `im 128`, at boot; saved by `i/IM.lightbar` |
 | `e.printmodes` | PRG | the MCI print modes | `im 128`, at boot |
 | `e.alarms` | PRG | the alarm table | `im 128`, at boot; `i/IM.lightbar` |

@@ -297,6 +297,71 @@ too. Until 10/28/2026 the ML put it back off every few moments (the
 **To keep it:** `T` changes the setting only until the BBS restarts,
 which sets the lightbar's checks from `e.lightdefs` (`im 128` line
 3250). Once `T` says `OK`, set the `DCD` left checkmark the same way in
-`IM`: **H** Lightbar/Alarms, **A** LightBar Defs, then save; `i/IM.lightbar`
+`IM`: **H** Lightbar/Alarms, **A** Lightbar Defs, then save; `i/IM.lightbar`
 offers to make the saved table active. (Modem Config has no carrier
 setting: its flag 9 is DTR, the BBS's own line to the modem.)
+
+## `IM` H: Lightbar/Alarms
+
+`IM`, then `H`. `i.IM` draws the menu; each choice but the last loads
+`i/IM.lightbar` and runs its part.
+
+| Key | Item | Edits | File |
+|---|---|---|---|
+| `A` | Lightbar Defs | the checkmarks the BBS starts with | `e.lightdefs` |
+| `B` | Alarms | the alarm table | `e.alarms` |
+| `C` | NetMail Alarms | the network alarm times | `nm.times` |
+| `D` | Lightbar Labels | the lightbar's 64 labels | `e.lightbar` |
+| `E` | Main Menu | back to `IM`'s menu | |
+
+Lightbar Defs reads the lightbar help text (`s.lightdefs`, a line for
+each checkmark) when it starts, the first time in each visit to this
+menu ("Reading Lightbar Help Text...").
+
+### `D`: Lightbar Labels
+
+The lightbar has 8 pages of 8 labels, three characters each (`Sys`,
+`Acs`, `Loc`...), and each label has two checkmarks, a left and a right.
+This edits the labels themselves.
+
+It starts with "Copying Lightbar Labels...Done", then shows page 1:
+
+```
+Lightbar Labels: Page 1
+
+1) Sys  Checks 0/1
+2) Acs  Checks 2/3
+...
+8) U/D  Checks 14/15
+
+Load/Save/Next/Prev/#/Quit:
+```
+
+`Checks` are the label's two checkmark numbers, its left then its right
+(label 1 on page 1 is 0 and 1, label 1 on page 2 is 16 and 17): the
+numbers modules use for the flag (`&,52,`*number*`,`...).
+
+| Key | Does |
+|---|---|
+| `1`-`8` | edit that label on this page |
+| `N`, `P` | next or previous page (page 8 wraps to 1) |
+| `L` | load the labels from `e.lightbar` again, dropping unsaved changes |
+| `S` | save them to `e.lightbar` |
+| `Q`, Return | back to the menu |
+
+**Editing a label:** it shows the label and asks for a new one; type up
+to three characters, in upper and lower case as they should show (`DSR`,
+`Dbg`). A shorter one is padded with spaces; Return alone leaves it as it
+was. The lightbar shows the new label at once, so you can see it before
+saving.
+
+**Saving:** `S` saves the labels to `e.lightbar` on the system drive
+(drive 3); `im 128` loads that file at boot, so saved labels come back
+after a restart. Leaving with changes not saved asks "Save Changes?": No
+puts the labels back as they were ("Restoring Lightbar Labels..."), as
+they were when the editor started or were last loaded or saved.
+
+On the release's `e.lightbar`, pages 5 to 7 and the last label on page 4
+have placeholder labels: the left checkmark's number in hex (`$3E`,
+`$40`...). Naming one changes only its label, not what uses the
+checkmarks.
