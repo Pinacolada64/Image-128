@@ -66,15 +66,17 @@
 3078 &,16,.,34,m%(.,5),"E","","Main Menu"
 3080 n=5:gosub 3348:if tr%<1 or lm=nor lm=.then 3006
 3082 a$="logon":gosub 3198:fl=1:gosub 3002:fl=.:goto 3068
-3084 &,28,1:n=4:zz%=8:dim am%(3,15),m%(16,n),b$(zz%*16-1),c$(60),a%(60)
+' 11/02/2026: D, Lightbar Labels (i/IM.lightbar 4400): n=5
+3084 &,28,1:n=5:zz%=8:dim am%(3,15),m%(16,n),b$(zz%*16-1),c$(60),a%(60)
 ' 11/02/2026: the lightbar help text (s.lightdefs, b$()) is read by
 ' i/IM.lightbar's lightbar editor (4090), the one part that shows it, not
 ' here for every Lightbar/Alarms choice (3100 checks tr% after the menu)
-3092 &,16,.,34,m%(.,1),"A","","LightBar Defs"
+3092 &,16,.,34,m%(.,1),"A","","Lightbar Defs"
 3094 &,16,.,34,m%(.,2),"B","","Alarms"
 3096 &,16,.,34,m%(.,3),"C","","NetMail Alarms"
-3098 &,16,.,34,m%(.,4),"D","","Main Menu"
-3100 n=4:gosub 3348:if tr%<1 or lm=nor lm=.then 3006
+3098 &,16,.,34,m%(.,4),"D","","Lightbar Labels"
+3099 &,16,.,34,m%(.,5),"E","","Main Menu"
+3100 n=5:gosub 3348:if tr%<1 or lm=nor lm=.then 3006
 3102 a$="lightbar":gosub 3198:goto 3100
 3104 &,28,1:n=7:zz%=6:dim m%(20,n)
 3106 a=1:a$="System":gosub 3124

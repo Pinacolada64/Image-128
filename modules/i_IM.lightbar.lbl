@@ -8,7 +8,8 @@
 {alpha:alt}
 {crunch:on}
 
-4000 on lmgoto 4100,4200,4300
+' 11/02/2026: 4400, Lightbar Labels (i.IM's H menu, D)
+4000 on lmgoto 4100,4200,4300,4400
 4002 return
 4004 if b<0 then a$="--:--":return
 4006 a%=b/60:b%=b-a%*60:a$="A":if a%>11 then a$="P":a%=a%-12
@@ -135,4 +136,49 @@
 4338 &"{f6}Save Changes? ":gosub 94:if athen gosub 4306
 4340 &"{f6}Activate Saved Table? ":gosub 96:if athen gosub 4312
 4342 return
-4344 rem "i/IM.lightbar (c)nissa 201031 lh"
+' 11/02/2026: Lightbar Labels: edit the lightbar's 64 three-letter labels,
+' 8 to a page, in place (bartbl, $1310 = 4880: 3 screen codes each, two
+' checkmarks per label), so the lightbar shows a change at once; S saves
+' them to e.lightbar (drive 3, which im loads at boot with &,7,dv%,8), L
+' loads them from it again. c$(41)-c$(48) back up each page's 24 bytes
+' (4426) on entry and after L or S; a No to Save Changes? puts them back
+' (4428)
+4400 p%=1:tz=.:&"{f6}Copying Lightbar Labels...":gosub 4426:&"Done{f6}"
+4402 p%=p%+zz%*(p%>zz%)-zz%*(p%<1)
+4404 &"{clear}{lt. blue}Lightbar Labels: Page{white} {pound}%p{f6:2}":for i=1 to 8:gosub 4440
+4406 &"{white}{pound}%a) {pound}$a  {lt. blue}Checks {pound}%b/{pound}%c{f6}":next
+4408 &"{f6}{white}L{lt. blue}oad{blue}/{white}S{lt. blue}ave{blue}/{white}N{lt. blue}ext{blue}/{white}P{lt. blue}rev{blue}/{white}#{blue}/{white}Q{lt. blue}uit{blue}:{white} {pound}i1"
+4410 if an$="N" or an$="P" then p%=p%+(an$="P")-(an$="N"):goto 4402
+4412 if an$="L" then gosub 4434:goto 4404
+4414 if an$="S" then gosub 4436:goto 4404
+4416 a=val(an$):if a>0 and a<9 then gosub 4420:goto 4404
+4418 if tz then:&"Save Changes? ":gosub 94:if a then gosub 4436
+4419 on-(tz<>.)gosub 4424:return
+' one label: what's typed (f-key codes decoded), padded to 3 characters
+4420 i=a:gosub 4440:&"{f6}Label {pound}%a is {pound}$a. New label (3 characters): {pound}i0":if an$="" then return
+4422 &,15,4:a$=left$(an$+"   ",3):for j=1 to 3:c=asc(mid$(a$,j,1)):gosub 4450:poke 4880+l*3+j-1,c:next:tz=1:return
+' back up the table in c$(41)-c$(48), a page each, and put it back
+4424 &"Restoring Lightbar Labels...":gosub 4428:&"Done{f6}":return
+4426 for x=1 to zz%:a$="":for j=0 to 23:a$=a$+chr$(peek(4856+x*24+j)):next:c$(40+x)=a$:next:return
+4428 for x=1 to zz%:for j=0 to 23:poke 4856+x*24+j,asc(mid$(c$(40+x),j+1,1)):next:next:return
+' L: load e.lightbar again; S: save it (scratch, then the load address it
+' has, $4610, and the 192 bytes)
+4434 dr=3:gosub 3:a$=dr$+"e.lightbar":&,7,dv%,8:gosub 5:if e% then:&:return
+4435 tz=.:goto 4426
+4436 dr=3:gosub 3:print# 15,"s"dr$"e.lightbar":a$="e.lightbar,p,w":gosub 4:gosub 5:if e% then close 2:&:return
+4438 print# 2,chr$(16)chr$(70);:for i=0 to 191:print# 2,chr$(peek(4880+i));:next:close 2:tz=.:&"{f6}Saved.{pound}w2":goto 4426
+' label i of page p% into a$ (l: its number, 0-63), a%=i, b% and c% its
+' two checkmarks
+4440 l=(p%-1)*8+i-1:a$="":for j=0 to 2:c=peek(4880+l*3+j):gosub 4444:a$=a$+chr$(c):next
+4442 a%=i:b%=l*2:c%=b%+1:return
+' screen code c to PETSCII (lower/upper case)
+4444 c=c and 127:if c<32 then c=c+64:return
+4446 if c>63 then c=c+64-64*(c<96)
+4448 return
+' PETSCII c to a screen code (anything else, a space)
+4450 if c>191 and c<224 then c=c-128:return
+4452 if c>159 and c<192 or c>63 and c<96 then c=c-64:return
+4454 if c>95 and c<128 then c=c-32:return
+4456 if c<32 or c>127 then c=32
+4458 return
+4500 rem "i/IM.lightbar (c)nissa 2020-10-31 lh, 2026-11-02 rs"
