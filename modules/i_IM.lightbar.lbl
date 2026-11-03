@@ -69,9 +69,7 @@
 4172 &"Activate Saved Table? ":gosub 96:if a=. then return
 4174 for x=1 to zz%:for i=1 to 16:a$=mid$(c$(x),i,1):if a$<>"-" then:&,52,(x-1)*16+i-1,val(a$)
 4176 next:next:return
-' 11/02/2026: the help text too (4090): the Check column names checkmarks from
-' b$(), which i.IM read for both editors before it moved here
-4200 gosub 4090:gosub 4212:on-(e%=0) goto 4218:for i=8 to 15:am%(0,i)=256:next
+4200 gosub 4212:on-(e%=0) goto 4218:for i=8 to 15:am%(0,i)=256:next
 4202 for i=0 to 7:am%(0,i)=112+i*2:am%(3,i)=113+i*2:next:gosub 4214:goto 4218
 4204 tz=0:dr=3:gosub 3:a$=dr$+"e.alarms":return
 4206 &"{clear}Alarm Time/Checkmark Editor 1.3{f6}{pound}$k":return
@@ -90,10 +88,11 @@
 4232 b=am%(2,a):gosub 4004:&" 2) Off Time: {pound}$a{f6}":a%=am%(0,a)
 4234 if a%=256 then:&" 3) Disabled{f6}"
 4236 if a%>256 then:&" 3) Enabled{f6}"
-4238 if a%<256 then:&" 3) Enabled By Checkmark {pound}%a{f6}"
+' 11/02/2026: each checkmark with its label and side, e.g. At1-R (4460)
+4238 if a%<256 then k=a%:gosub 4460:&" 3) Enabled By Checkmark {pound}%a ({pound}$c){f6}"
 ' 11/02/2026: am%(3,a)'s high byte is the alarm's days (the IRQ's alarm3:
 ' bit 0 Sunday ... bit 6 Saturday, 0 every day), its low byte the checkmark
-4240 a%=am%(3,a)and 127:&" 4) Checkmark {pound}%a is Triggered{f6}":gosub 4295:&" 5) Days: {pound}$a{f6}"
+4240 a%=am%(3,a)and 127:k=a%:gosub 4460:&" 4) Checkmark {pound}%a ({pound}$c) is Triggered{f6}":gosub 4295:&" 5) Days: {pound}$a{f6}"
 4242 &"{pound}$kChange Which (RETURN to Abort)? {pound}i1":if an$="" then i=a:gosub 4282:goto 4220
 ' 11/02/2026: 2 (Off Time) to 4248, its prompt (4250 skipped it)
 4244 &"{f6}":x=val(an$):on xgosub 4246,4248,4258,4270,4297:goto 4228
@@ -121,10 +120,10 @@
 4278 if athen gosub 4214:&"Activate Saved Table? ":gosub 96:on agosub 4216
 4280 return
 4282 a=am%(0,i):b=am%(1,i):gosub 4004:b$=a$:b=am%(2,i):gosub 4004:c$=a$:a%=am%(3,i)
-4284 a$=b$+" "+c$+"  "+left$(b$(am%(3,i) and 127),5)+"  "
+4284 a$=b$+" "+c$+"  ":k=am%(3,i)and 127:gosub 4460:a$=a$+c$+"  "
 4286 if a=256 then a$=a$+"No":goto 4292
 4288 if a>256 then a$=a$+"Yes":goto 4292
-4290 a$=a$+"if "+left$(b$(aand 127),5)
+4290 k=a and 127:gosub 4460:a$=a$+"if "+c$
 ' in the list, * after an alarm with days
 4292 c$(i)=a$+left$(" *",-2*(am%(3,i)>255)):return
 ' the days d into am%(3,a)'s high byte; none is every day (the mask 0)
@@ -206,4 +205,10 @@
 4454 if c>95 and c<128 then c=c-32:return
 4456 if c<32 or c>127 then c=32
 4458 return
+' 11/02/2026: checkmark k -> c$: its label as the lightbar shows it (bartbl,
+' $1310 = 4880: 3 screen codes a label, two checkmarks to a label; Lightbar
+' Labels can rename them) and its side, -L or -R
+4460 c$="":for j=0 to 2:c=peek(4880+int(k/2)*3+j):gosub 4444:c$=c$+chr$(c):next
+4462 c$=c$+mid$("-L-R",(k and 1)*2+1,2):return
+
 4500 rem "i/IM.lightbar (c)nissa 2020-10-31 lh, 2026-11-02 rs"
