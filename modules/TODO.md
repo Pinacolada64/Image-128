@@ -37,6 +37,7 @@
 - [ ] i/lo.idle 4041: "System Idle" isn't padded to the field's width (21) any more, so a longer message's tail stays after it; pad it again, or have `gosub 9`/4043 clear the field first
 - [ ] the `an$+""` copies (im 220, i.main, i/NM.netsub4, i/lo/cp maint...) aren't needed since the ML copies `an$` out of the input buffer (`anfix`, 07cb870); drop them as those lines are touched
 - [x] Today in History: word-wrap the text to the user's screen width. Done: `i/lo-today` reads `s.today/hist` a line at a time, joins a fact's continuation lines (7 spaces and `{yellow}`) back onto it, and prints it with `lp=1:&`; the maker's on-screen lists do the same (4084-4096). The file format is unchanged (`&,2,2` reads at most 80 characters), so a release-made `s.today/hist` wraps too.
+- [ ] Today in History: don't show "Don't Forget:" (or "Born Today:", "Happened Today:") when its section has no facts. `i/lo/today`'s on-screen list (`i_lo_today.lbl` 4048-4052) prints all three headings every time; `s.today/hist`, what callers see, already leaves out an empty section (4060-4072, `if tt(3)=0 then 4078`)
 
 ## Duplicate Code:
 
