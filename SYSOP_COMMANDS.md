@@ -328,8 +328,8 @@ checkmarks. The list:
  ##  OnTime OffTime Check Active?
 
   1) 12:00A 12:00A  At1-R if At1-L
-  9)  2:00A --:--   DST-L  Yes
- 16)  4:00A  5:00A  ...    No
+  9)  2:00A --:--   DST-L  Yes *
+ 16)  4:00A  5:00A  Res-R  No
 ```
 
 - **OnTime:** at this minute the checkmark is set (if the alarm is active)
@@ -338,6 +338,11 @@ checkmarks. The list:
 - **Active?:** `Yes` (always on), `No` (off), or `if` and a checkmark: on
   only while that checkmark is set (alarms 1-8 come that way, each switched
   on by one of page 8's `At1`-`At8` left checkmarks)
+- **`*`** at the end: this alarm runs on specific days only (option 5)
+
+Checkmarks are shown by their label as the lightbar has it, and the side:
+`At1-R` is `At1`'s right checkmark. A label renamed in Lightbar Labels
+(`D`) shows here at once.
 
 The BBS checks the alarms once a minute, so an alarm acts on the minute it
 names, not over a range: 2:00 to 3:00 means "set at 2:00, clear at 3:00".
@@ -349,7 +354,25 @@ works: it sets `DST` (checkmark 64) at 2:00, and the idle screen clears it
 when it has run the check, even if a call was on at 2:00 and the check had
 to wait for it to end. To enter `--:--`, type `-` for the time.
 
-Pick an alarm by number, then:
+**Days.** An alarm can run on certain days of the week only: at its on
+time, it sets its checkmark only on those days. Its off time clears the
+checkmark on any day, so an alarm on at 10 PM Saturday and off at 2 AM
+still clears on Sunday. The DST alarm runs on the days its rule changes
+the clock: Sundays, for every rule shipped in `s.dstrules`.
+
+Pick an alarm by number. Its screen shows the checkmarks with their labels:
+
+```
+Alarm #9:
+
+ 1) On Time:   2:00A
+ 2) Off Time: --:--
+ 3) Enabled
+ 4) Checkmark 64 (DST-L) is Triggered
+ 5) Days: S------
+```
+
+Then:
 
 | Key | Changes |
 |---|---|
@@ -357,6 +380,7 @@ Pick an alarm by number, then:
 | `2` | the off time, the same way |
 | `3` | active: `E` always, `D` never, `C` while a checkmark (its number) is set |
 | `4` | the checkmark it sets |
+| `5` | the days it runs: digits `1`-`7` for Sunday to Saturday (`17` is weekends), `0` every day, or `?` to answer Yes or No for each day in turn |
 
 Return at the list asks to save the table to `e.alarms`, and then whether to
 make it active now (otherwise it's loaded at the next boot).
