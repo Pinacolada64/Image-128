@@ -635,9 +635,9 @@
 ; $1a00-$1bff: $1ff / 511 bytes. room for IRQ/& jump tables?
 
 ; Image '&' jump table:
-	jmptbl	= $1a00	; 72 * 2 = 144 bytes => 6800 / $1A90
+	jmptbl	= $1a00	; 73 * 2 = 146 bytes => 6802 / $1A92 (&,72: 11/05/2026)
 
-; 369 bytes free
+; 367 bytes free
 
 ; $1bff: end of Application Program Area
 

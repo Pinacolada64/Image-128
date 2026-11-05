@@ -13,6 +13,10 @@
 ;   and color RAM are where the C64 has them
 ; - the C64 KERNAL's routine that clears a screen line ($e9ff) isn't in the
 ;   128's: rows 7-21 are cleared directly
+; - 80 columns (11/05/2026): the "BLKS:" label and each digit of the count
+;   that changes go to the VDC too, through usetbl1 and &,72 (vdccell), which
+;   farcall reaches from sys as from &; the block buffers (rows 7-13) stay
+;   on the VIC screen only
 
 {alpha:alt}	; c64: KickAss's petscii_mixed: capitals $c1-$da, lowercase $41-$5a
 {include:"equates.asm"}
@@ -129,6 +133,13 @@ L_c0c6:
 	sta $0748,y	; the VIC screen (same on the 128)
 	lda #$01
 	sta $db48,y	; color RAM (same on the 128)
+	tya		; 128: and on the VDC, white, in 80 columns
+	pha
+	ldx #21+128	; (row 21 and its color: &,72, vdccell)
+	lda #72
+	jsr usetbl1
+	pla
+	tay
 	dey
 	bpl L_c0c6
 	rts
@@ -199,9 +210,33 @@ L_c14d:
 	bne L_c160
 	lda #$30
 	sta $0700,x	; the VIC screen (same on the 128)
+	jsr showcell	; 128: each digit changed, on the VDC too
 	dex
 	dey
 	bpl L_c14d
+	rts
 L_c160:
+	jmp showcell	; c64: rts
+
+; 128, 11/05/2026: in 80 columns the VIC screen isn't seen, so each digit
+; of the count that changes goes to the VDC too (&,72, vdccell; nothing in
+; 40 columns): showcell the cell at $0700+.x (row 21, column .x-$48).
+; Keeps .x .y. Through usetbl1, so from sys too (farcall into cfg_ml)
+showcell:
+	txa
+	pha
+	tya
+	pha
+	txa
+	sec
+	sbc #$48
+	tay
+	ldx #21
+	lda #72
+	jsr usetbl1
+	pla
+	tay
+	pla
+	tax
 	rts
 L_end:

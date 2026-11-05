@@ -508,8 +508,9 @@ disk file `2`, which the module opens first.
 
 Before a transfer the module prints a counter line on row 15
 (`" Good: 00000  Bad: 00000  Bytes: 000000"`, `i.NM_auto` 3660), and
-`++ net` counts in it by writing straight into the 40-column screen, so in
-80 columns the counters stay at 0 (`modules/TODO.md`).
+`++ net` counts in it, in the 40-column screen's row 15 as on the C64; in
+80 columns it first copies the line the module printed from the VDC into
+that row, and each cell that changes goes to the VDC too (`&,72`, below).
 
 The protocol is Punter's. Its codes are three characters (`GOO`, `BAD`,
 `ACK`, `S/B`, `SYN`, and three Ctrl-X to abort). A block is at most 255
@@ -597,6 +598,25 @@ A NetSub (a sub-board shared through the network) is defined in the file
   the 128's keeps a 121st byte for it (11/05/2026). A file saved by the
   release (or the C64) hasn't that byte, so it loads as it always did,
   with `a%(60)`'s low byte 0.
+
+## VIC screen cells to the VDC: `&,72`
+
+ML that draws on the VIC screen as it works (`++ net`'s and `++ copier`'s
+counters on row 15, `++ 2`'s `BLKS:` on row 21) isn't seen in 80 columns.
+`&,72` (`vdccell`, `asm/vdc.asm`) copies a cell across; in 40 columns it
+does nothing.
+
+| Call | Does |
+|---|---|
+| `&,72,r,c` | the character at VIC row `r` (0-24), column `c` (0-39) to the same row and column of the VDC |
+| `&,72,r+128,c` | that, and the cell's color (VIC color RAM) as a VDC attribute, in the lowercase set |
+| `&,72,r+64,c` | the other way: the VDC's characters from column `c` to 39 into that VIC row, so a module's line printed in 80 columns can be counted in by ML |
+
+From ML: `ldx #row`, `ldy #column`, `lda #72`, `jsr usetbl1` (`$192a`).
+That goes through `farcall`, so an overlay started with `sys` (`++ 2`)
+can call it too. Each call is a farcall, so a counter that changes every
+byte goes across now and then (`++ copier`'s `Bytes:`: every 64 bytes,
+and when the call ends).
 
 ## Test programs
 

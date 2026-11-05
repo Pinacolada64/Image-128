@@ -34,6 +34,84 @@ vdcrowhi:
 vdccolor:
 	byte $00,$0f,$08,$07,$0b,$04,$02,$0d,$0a,$0c,$09,$06,$01,$05,$03,$0e
 
+; &,72 (vdccell), 11/05/2026: a cell of the VIC screen to the VDC's, for
+; ML that draws on the VIC screen as it works (++ net's counters, ++ 2's
+; block count), which isn't seen in 80 columns. .x = the row (0-24), .y =
+; the column (0-39); nothing in 40 columns:
+;   row       the cell's character to the same row and column of the VDC
+;   row+128   and its color, as an attribute (vdccolor; the lowercase set)
+;   row+64    the other way: the VDC's characters from column .y to 39
+;             into that VIC row, so what a module printed in 80 columns
+;             can be counted in
+; From an overlay: ldx/ldy, lda #72, jsr usetbl1 (from & code and from
+; sys alike); from BASIC: &,72,row,column. Keeps nothing.
+vdccell:
+	bit mode
+	bmi vdcc0
+	rts
+vdcc0:
+	txa
+	and #$1f
+	sta vdcc_row
+	stx vdcc_flag
+	sty vdcc_col
+	tax
+	jsr calcscn2	; the VIC row: .y low, .a high
+	sty vdcc_v1+1
+	sta vdcc_v1+2
+	sty vdcc_v2+1
+	sta vdcc_v2+2
+	jsr calccol2	; and its colors
+	sty vdcc_c1+1
+	sta vdcc_c1+2
+	ldx vdcc_row	; the VDC cell: row * 80 + column
+	lda vdcrowlo,x
+	clc
+	adc vdcc_col
+	sta vdcc_off
+	lda vdcrowhi,x
+	adc #0
+	sta vdcc_off+1
+	adc vdcscrn
+	ldy vdcc_off
+	jsr vdc_set_update
+	ldy vdcc_col
+	bit vdcc_flag
+	bvs vdcc_pull
+vdcc_v1:
+	lda $ffff,y	; (the VIC row, set above)
+	jsr vdc_put
+	bit vdcc_flag
+	bpl vdcc9
+	lda vdcc_off+1	; its color, as an attribute
+	clc
+	adc vdcattr
+	ldy vdcc_off
+	jsr vdc_set_update
+	ldy vdcc_col
+vdcc_c1:
+	lda $ffff,y	; (the VIC row's colors, set above)
+	and #$0f
+	tax
+	lda vdccolor,x
+	ora #VDC_ATTR_ALT
+	jsr vdc_put
+vdcc9:
+	rts
+vdcc_pull:
+	jsr vdc_get	; (reading moves the update address on too)
+vdcc_v2:
+	sta $ffff,y	; (the VIC row, set above)
+	iny
+	cpy #40
+	bcc vdcc_pull
+	rts
+
+vdcc_row:	byte 0
+vdcc_col:	byte 0
+vdcc_flag:	byte 0
+vdcc_off:	word 0
+
 ; ----- TADA vdc.asm from here on (vdc_detect_ram's note about sitting
 ; below $4000 applies to TADA's memory map; it isn't called by Image yet)
 ;

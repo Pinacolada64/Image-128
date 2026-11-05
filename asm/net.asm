@@ -21,8 +21,10 @@
 ;   $cd03)
 ; - the block buffers are still in the 40-column screen, as on the C64:
 ;   pbuf1 and pbuf2 ($0400, $0500, rows 0-12) and the counters at pbuf0
-;   ($0658, row 15), which &,52,16 (screen) sets up. In 80 columns the
-;   sysop doesn't see the counters (see modules/TODO.md)
+;   ($0658, row 15), which &,52,16 (screen) sets up. In 80 columns
+;   (11/05/2026) screen copies the module's counter line from the VDC
+;   into that row first, and each counter cell that changes goes to the
+;   VDC too (&,72, vdccell in vdc.asm; showcell)
 ; - unchanged: $96 (the result code, as mcicm.asm uses it), 512 (BASIC's
 ;   input buffer, $0200 on both), $fe (xchrout's character)
 ; - the timeouts count loop passes (tmer1, dod2's delay), so they depend
@@ -63,6 +65,7 @@ bcount = 23
 ncount = 38
 
 pbuf0= $658
+pbufrow = 15	; 128: pbuf0's row on the screen (for &,72)
 pbuf1= $400
 pbuf2= $500
 
@@ -385,6 +388,7 @@ rch4:
 	jsr recmodem
 	ldx $96
 	stx pbuf0+1
+	jsr showstat	; 128: and on the VDC, in 80 columns
 	cpx #2
 	beq rch3
 	cpx #4
@@ -975,6 +979,10 @@ screen:
 	lda #52
 	ldx #16
 	ldy #0
+	jsr usetbl1	; c64: jmp
+	ldx #pbufrow+64	; 128: in 80 columns the module printed the counter
+	ldy #0		; line on the VDC: copy it into pbuf0's row, where the
+	lda #72		; counters count (&,72, vdccell)
 	jmp usetbl1
 
 nobytes:
@@ -1240,8 +1248,39 @@ counter:
 	bne counter1
 	lda #'0'
 	sta pbuf0,x
+	jsr showcell	; 128: each digit changed, on the VDC too
 	dex
 	dey
 	bne counter
+	rts
 counter1:
+	jmp showcell	; c64: rts
+
+; 128, 11/05/2026: in 80 columns the VIC screen isn't seen, so each cell
+; of the counter line that changes goes to the VDC too (&,72, vdccell;
+; nothing in 40 columns): showcell column .x, showstat the status cell
+; (column 1). Both keep .a .x .y
+showstat:
+	pha
+	txa
+	pha
+	ldx #1
+	bne showc1
+showcell:
+	pha
+	txa
+	pha
+showc1:
+	tya
+	pha
+	txa
+	tay
+	ldx #pbufrow
+	lda #72
+	jsr usetbl1
+	pla
+	tay
+	pla
+	tax
+	pla
 	rts
