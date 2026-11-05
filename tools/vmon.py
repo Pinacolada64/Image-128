@@ -7,9 +7,10 @@ PROMPT = re.compile(rb'\(C:\$[0-9a-f]{4}\) $')
 
 
 class X128:
-    def __init__(self, args=(), cols=80, wait=4):
+    def __init__(self, args=(), cols=80, wait=4, port=MON):
+        self.port = port   # another for each x128 run at once (tools/netpair.py)
         self.p = subprocess.Popen(['x128', f'-{cols}col', '+sound', '-remotemonitor', '-remotemonitoraddress',
-                                   f'127.0.0.1:{MON}', *args], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                                   f'127.0.0.1:{port}', *args], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         time.sleep(wait)
 
     @staticmethod
@@ -32,7 +33,7 @@ class X128:
     def cmd(self, *cmds, resume=True):
         """send monitor commands, each answered once its prompt comes back; then
         resume the emulation ('x') unless resume=False. Returns the text."""
-        s = socket.create_connection(('127.0.0.1', MON), timeout=5)
+        s = socket.create_connection(('127.0.0.1', self.port), timeout=5)
         s.settimeout(0.05)
         out = b''                                   # whatever the stop printed first:
         end = time.time() + 0.5                     # take it until 0.1 s of quiet
