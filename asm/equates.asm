@@ -1190,6 +1190,11 @@ flag_dsr_addr	= chktbl + 7 	; DSR
 flag_dsr_l_mask	= %00010000	; 60 ($3c) DCD/DSR select: on = DSR, off = DCD
 flag_dsr_r_mask = %00100000	; 61 ($3d) enable RX/TX windows
 
+flag_mhz_addr	= chktbl + 7 	; mHz (128; the lightbar's label, 11/05/2026)
+flag_mhz_l_mask	= %01000000	; 62 ($3e) 128: on = the CPU at 2 MHz ($d030 bit 0;
+			; setup.asm's speed_update sets it from the speed)
+flag_mhz_r_mask	= %10000000	; 63 ($3f) Undefined
+
 ; editor input flags: &,1,x,y
 ; x:
 editor_allow_cursor_controls	= %00000001 ; allow cursor movement and color characters in input

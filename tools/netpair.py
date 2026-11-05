@@ -19,6 +19,8 @@ its direction and time: build/nullmodem.log. --keep leaves both x128s running.
 does it when it finds the file t.fast on its disk). ++ net's waits count
 passes of a loop, so at 2 MHz they end in half the time: a mixed pair
 shows whether the protocol copes. 80 columns only (2 MHz blanks the VIC).
+++ net itself runs its calls at 2 MHz in 80 columns (11/05/2026), so for a
+1 MHz side run it in 40: --answer-cols 40.
 """
 import argparse, os, re, subprocess, sys, time
 
@@ -31,13 +33,15 @@ ap.add_argument('--cols', type=int, default=80)
 ap.add_argument('--timeout', type=int, default=600)
 ap.add_argument('--keep', action='store_true')
 ap.add_argument('--fast', choices=['caller', 'answer', 'both'])
+ap.add_argument('--answer-cols', type=int, choices=[40, 80],
+                help='the answering side in these columns (++ net goes to 2 MHz in 80 only)')
 args = ap.parse_args()
 
 os.chdir(repo)
 for n in ('netcall', 'netans'):
     subprocess.run(['tools/standin.sh', f'tests/standin/{n}.bas'], check=True, stdout=subprocess.DEVNULL)
 if args.fast:
-    if args.cols != 80:
+    if args.cols != 80 or args.answer_cols == 40:
         sys.exit('netpair.py: --fast needs 80 columns (2 MHz blanks the VIC)')
     flag = os.path.join('build', 'netpair-fast.seq')
     with open(flag, 'w') as f:
@@ -52,18 +56,18 @@ null = subprocess.Popen([sys.executable, 'tools/nullmodem.py', '--ports', '25250
 time.sleep(1)
 
 
-def x128(name, port, mon):
+def x128(name, port, mon, cols=None):
     # the SwiftLink as im's "tcpser (VICE)" profile has it: $de00, NMI
     return X128(['-drive8type', '1581', '-acia1', '-acia1base', '0xde00', '-acia1irq', '1',
                  '-acia1mode', '1', '-myaciadev', '0', '-rsdev1', f'127.0.0.1:{port}', '-rsdev1ip232',
                  '-rsdev1baud', '19200', '-userportdevice', '0',
                  '-autostart-warp', '-autostart', f'build/standin-{name}.d81:boot 128'],
-                cols=args.cols, port=mon)
+                cols=cols or args.cols, port=mon)
 
 
 machines = {}
 try:
-    machines['answer'] = x128('netans', 25251, 6538)
+    machines['answer'] = x128('netans', 25251, 6538, args.answer_cols)
     machines['caller'] = x128('netcall', 25250, 6537)
     end = time.time() + args.timeout
     screens = {}

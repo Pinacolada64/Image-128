@@ -42,7 +42,7 @@ irqtbl:
 	word irq2 ;time
 	word irq3 ;blanker
 	word irq4 ;handle lightbar f-keys?
-	word irq5 ;carrier
+	word irq5_128 ;carrier (128: and the speed first: setup.asm)
 	word irq6 ;flag
 	word irq7 ;display lightbar checkmarks
 	word irq4 ;handle lightbar f-keys?

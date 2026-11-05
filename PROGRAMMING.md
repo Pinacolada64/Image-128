@@ -500,6 +500,12 @@ disk file `2`, which the module opens first.
   from `$60` up. The module compares `b$` with the prompt it expects:
   `&,16,6,len(c$)`, then `b$<>c$`. `rc` is 1, not -1: Image's "minus one"
   (`&,32`) is `$81,0,0,0,0`, which is +1, on the C64 too.
+- **2 MHz:** in 80 columns each `++ net` call runs at 2 MHz (`$d030`),
+  the VIC not being seen there, and reads the modem straight from the
+  driver: at 1 MHz, and through `&,4`, a 128 lost the odd byte from a
+  sender at the full 19200 line rate. Afterwards the speed is the screen
+  blanker's (2 MHz while it has the screen off). The lightbar's mHz
+  checkmark (flag 62) shows the speed whatever set it.
 - **Relaxed timing** waits longer for the other side: 100 rather than 35
   for a code, 30 rather than 16 for a block (in units of 256 passes of its
   wait loop). `&,16,4`/`&,16,5` agree on it, or a module sets it itself:

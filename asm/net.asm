@@ -31,6 +31,9 @@
 ;   on the CPU's speed and on how long the ML's calls take; the 128's go
 ;   through farcall and the ROM stubs, so a pass takes longer than on the
 ;   C64 (and half as long at 2 MHz)
+; - 11/05/2026: 2 MHz in 80 columns (entry), and the modem read straight
+;   from the driver (getmdm): a 1 MHz receiver lost bytes from a sender at
+;   the full 19200 line rate
 
 {alpha:alt}	; c64: KickAss's petscii_mixed: capitals $c1-$da, lowercase $41-$5a
 {include:"equates.asm"}
@@ -88,7 +91,35 @@ t1:
 t2:
 	byte 16,30
 
+; 128, 11/05/2026: in 80 columns each call runs at 2 MHz (the VIC isn't
+; seen there): at 1 MHz this side read a byte from the modem in about the
+; time one takes at 19200 baud, and a sender at the full line rate (a
+; 2 MHz 128, a C64, a PC) had blocks sent again (tools/netpair.py --fast
+; caller). The abort (ext1) puts the stack back to entry1's frame, so it
+; comes back here too. Afterwards the speed is the screen blanker's
+; (blnkflag: blanked is 2 MHz, irqhn.asm), not the one saved, as the sysop
+; may blank or unblank it meanwhile
 entry:
+	bit mode
+	bpl entry1	; 40 columns: 1 MHz, as on the C64
+	lda $d030
+	ora #1
+	sta $d030
+	jsr entry1
+	pha
+	lda blnkflag
+	and #1
+	sta speed
+	lda $d030
+	and #$fe
+	ora speed
+	sta $d030
+	pla
+	rts
+speed:
+	byte 0
+
+entry1:
 	txa
 	tsx
 	stx stack
@@ -1101,9 +1132,27 @@ getln:
 putln:
 	lda #36
 	jmp usetbl1
+; 128, 11/05/2026: the driver directly, as the ML's getmdm (chrio.asm,
+; &,4) does it, rather than &,4 through usetbl1: a byte read costs less
+; (c64: lda #4 / jmp usetbl1)
 getmdm:
-	lda #4
-	jmp usetbl1
+	jsr rsinabl
+	sec
+	jsr rsget
+	bcs getmdm6
+	pha
+	lda flag_asc_addr	; ASCII translation: 7 bits
+	and #flag_asc_l_mask
+	beq getmdm1
+	pla
+	and #$7f
+	pha
+getmdm1:
+	pla
+	rts
+getmdm6:
+	lda #0
+	rts
 usevar:
 	lda #29
 	jmp usetbl1
