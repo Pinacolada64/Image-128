@@ -52,8 +52,8 @@
 250 next
 260 goto 800
 700 rem the files: t.small, two lines; t.big, 1500 bytes of every value
-710 open 2,8,2,"@0:t.small,s,w":print#2,"hello from aaa";chr$(13);"second line";chr$(13);:close 2
-720 print "writing t.big":open 2,8,2,"@0:t.big,s,w"
+710 open 15,8,15,"s0:t.small,t.big":close 15:open 2,8,2,"0:t.small,s,w":print#2,"hello from aaa";chr$(13);"second line";chr$(13);:close 2
+720 print "writing t.big":open 2,8,2,"0:t.big,s,w"
 730 for k=0 to 1499:print#2,chr$((k*7+3)and255);:next:close 2:return
 800 print:if f=0 then print "caller all passed":end
 810 print f;"caller failed":end

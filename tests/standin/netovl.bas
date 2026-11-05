@@ -32,7 +32,8 @@
 60 sys 7171:poke 2794,0:poke 2787,1:poke 53252,60
 70 print chr$(147);"network overlays":dv%=8:f=0
 100 rem ++ path: a 3-node list, aaa-bbb-ccc, as a prg (count, 8 bytes a node)
-110 open 2,8,2,"@0:t.nodes,p,w"
+110 open 15,8,15,"s0:t.nodes,t.netsub,t.netlist,t.oldlist":close 15
+115 open 2,8,2,"0:t.nodes,p,w"
 120 print#2,chr$(0);chr$(0);chr$(3);
 130 print#2,"aaa";chr$(0);chr$(2);chr$(0);chr$(0);chr$(0);
 140 print#2,"bbb";chr$(0);chr$(1);chr$(3);chr$(0);chr$(0);
@@ -59,13 +60,19 @@
 500 rem ++ netlist: a name, a list and a%(1)-a%(60)
 510 dim a%(60):a$="0:++ netlist":&,7,8,2
 520 a%=0:&,16,255:t$="netlist version":ok=a%=9:gosub 900
-530 a$="my bbs":an$="abc":a%(1)=100:a%(30)=-5:a%(59)=1234:&,16,1
+530 a$="my bbs":an$="abc":a%(0)=60:a%(1)=100:a%(30)=-5:a%(59)=1234:a%(60)=-2:&,16,1
 540 a$="0:t.netlist":&,16,3,dv%
 550 a$="":an$="":for i=0 to 60:a%(i)=0:next
 560 a$="0:t.netlist":&,16,2,dv%:&,16:x$=a$:y$=an$
 570 t$="netlist name "+x$:ok=x$="my bbs":gosub 900
 580 t$="netlist list":ok=y$="abc"+left$("------------------------------------------------",45):gosub 900
 590 t$="netlist a%()":ok=a%(1)=100 and a%(30)=-5 and a%(59)=1234:gosub 900
+592 t$="netlist a%(0), a%(60)"+str$(a%(60)):ok=a%(0)=60 and a%(60)=-2:gosub 900
+593 rem a file as the release saves it, 198 bytes: a%(60) has no low byte
+594 open 2,8,2,"0:t.oldlist,p,w":print#2,chr$(0);chr$(0);"old";:for i=1 to 27:print#2,chr$(0);:next
+595 print#2,"xyz";:for i=1 to 45:print#2,"-";:next:print#2,chr$(2);chr$(0);chr$(7);:for i=1 to 117:print#2,chr$(0);:next:close 2
+596 a$="0:t.oldlist":&,16,2,dv%:a%(60)=999:&,16:x$=a$
+597 t$="netlist old file "+x$+str$(a%(0))+str$(a%(1)):ok=x$="old" and a%(0)=2 and a%(1)=7 and a%(60)=0:gosub 900
 600 rem ++ net: loads; &,16,6 (the modem chat) with no carrier returns, rc 1:
 605 rem image's "minusone" (&,32) is $81,0,0,0,0, +1, on the c64 too
 610 a$="0:++ net":&,7,8,2

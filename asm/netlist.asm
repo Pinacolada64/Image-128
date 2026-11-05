@@ -10,9 +10,13 @@
 ;   &,16,2,dv%  load a definition from file a$ (cleared first)
 ;   &,16,3,dv%  save it to file a$
 ;   &,16,255  a% = the version (9)
-; The release copies the 120 bytes of numbers from a%(0)'s low byte on, so
-; a%(0) keeps only its low byte, a%(1)-a%(59) are whole, and a%(60) keeps
-; only its high byte
+; The release copies 120 bytes of numbers from a%(0)'s low byte on, so
+; a%(0) keeps only its low byte (enough for the count), a%(1)-a%(59) are
+; whole, and a%(60) kept only its high byte: a 60th sub-board's number was
+; lost. 11/05/2026: a%(60)'s low byte is copied too, as a 121st byte
+; (nlnums+120); a file saved before has 0 there, as a C64 one does, so
+; it loads as it always did (and the C64 overlay loads a 128 one, the
+; extra byte landing past its area)
 ;
 ; No source survives: disassembled from the 3.0 release's "++ netlist"
 ; ("01/09/91  4:39P", 3 blocks) by tools/ovl_dis.py, then ported on
@@ -186,7 +190,8 @@ noarray:
 	jsr putvar
 	jmp prta
 
-; 60 numbers from ($fb) to (varbuf)
+; the numbers from ($fb) to (varbuf): 60 pairs of bytes, then a%(60)'s
+; low byte
 copynums:
 	ldy #$00
 	lda (free_fb),y
@@ -212,6 +217,9 @@ copynums:
 	lda free_fd
 	cmp #$3d
 	bne copynums
+	ldy #$00	; 11/05/2026: and a%(60)'s low byte (the release
+	lda (free_fb),y	; stopped at its high byte)
+	sta (varbuf),y	; c64: ($61),y
 	rts
 
 ; 1: a$ into the name, an$ into the list, a%() into the numbers
@@ -343,9 +351,10 @@ errmsg:
 	byte $c3,$8b
 
 ; the setup, from the last byte on: the name (30 bytes), the list (48),
-; the sub-boards (120 bytes, a%(0)'s low byte to a%(60)'s high byte)
+; the sub-boards (121 bytes, a%(0)'s low byte to a%(60)'s low byte; the
+; release had 120, ending at a%(60)'s high byte)
 nlname:
 	byte $00
 nllist	= nlname + 30	; c64: $c22b
 nlnums	= nllist + 48	; c64: $c25b
-nlend	= nlnums + 120	; c64: $c2d3
+nlend	= nlnums + 121	; c64: nlnums + 120, $c2d3

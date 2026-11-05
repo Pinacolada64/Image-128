@@ -44,7 +44,7 @@
 160 print "called":print#131,chr$(2);chr$(2);chr$(2);chr$(2);chr$(2);chr$(2);chr$(2);chr$(2);chr$(2);chr$(2);
 170 for i=1 to 2
 180 b$="":&,16,3:n$=mid$(b$,11):t$="name "+b$:ok=peek(512)=0 and n$=nm$(i):gosub 900
-190 open 2,8,2,"@0:"+nm$(i)+",s,w":&,16,1:close 2:x=b%
+190 open 15,8,15,"s0:"+nm$(i):close 15:open 2,8,2,"0:"+nm$(i)+",s,w":&,16,1:close 2:x=b%
 200 t$="receive "+nm$(i)+","+str$(x)+" blocks":ok=peek(512)=0:gosub 900
 210 next
 300 rem compare: t.small, then t.big

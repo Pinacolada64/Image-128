@@ -591,10 +591,12 @@ A NetSub (a sub-board shared through the network) is defined in the file
   padded too).
 - `a%()` must be DIMmed (`dim a%(60)`), or `&,16` and `&,16,1` print
   "Error-Sec?" and do nothing more.
-- The release keeps 120 bytes of `a%()` starting at `a%(0)`'s low byte, so
-  `a%(0)` keeps only its low byte (enough for a count), `a%(1)`-`a%(59)`
-  are kept whole, and `a%(60)` keeps only its high byte: a 60th sub-board's
-  number is lost.
+- `a%(0)` keeps only its low byte (enough for a count); `a%(1)`-`a%(60)`
+  are kept whole. The release kept 120 bytes from `a%(0)`'s low byte on,
+  so `a%(60)` lost its low byte, and a 60th sub-board's number was lost;
+  the 128's keeps a 121st byte for it (11/05/2026). A file saved by the
+  release (or the C64) hasn't that byte, so it loads as it always did,
+  with `a%(60)`'s low byte 0.
 
 ## Test programs
 
