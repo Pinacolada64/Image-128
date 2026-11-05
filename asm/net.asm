@@ -1,8 +1,41 @@
-{alpha:alt}	; .encoding "petscii_mixed"
+; net.asm -- "++ net": NetMail's transfer protocol, for i.NM_auto and
+; i/NM.netsub4 (a$="net":gosub 28, then &,16,x): 0 send the open disk file
+; (2) to the other BBS, 1 receive one into it, 2 send b$ as a name block,
+; 3 receive a name block into b$, 4 and 5 the "relaxed" handshake (send,
+; receive), 6 the modem chat: send a$, then collect the reply into b$
+; until Return, an$'s length (y) or a timeout (rc=-1 on no carrier).
+; Returns: 0, 1, 4, 5 peek(512) 0 = done; 0, 1 b% the blocks sent or
+; received.
+;
+; Ported on 2026-11-05 from source/net.s, which builds the 3.0 release's
+; "++ net" byte for byte (C64 values in the comments):
+; - runs at protostart ($1c00; c64 $c000), where &,7,dv%,2 loads it
+; - no 6510 port to set (c64: lda #r6510_normal / sta $01): it runs in
+;   cfg_ml and reaches the KERNAL through the ML's ROM stubs
+; - the shift flags are shflag ($d3; c64 653/$028d): 2 = C= on both
+; - the RS-232 receive buffer's indices are ridbe/ridbs ($0a18/$0a19;
+;   c64 667/668), which both 128 drivers keep
+; - Image's variable buffer is varbuf ($63-$65; c64 $61-$63), and the
+;   block pointer just past it, bufptr ($66/$67; c64 $64/$65, FAC1 too);
+;   its buffer $0e77 (c64 $ce77), its & dispatcher usetbl1 ($192a; c64
+;   $cd03)
+; - the block buffers are still in the 40-column screen, as on the C64:
+;   pbuf1 and pbuf2 ($0400, $0500, rows 0-12) and the counters at pbuf0
+;   ($0658, row 15), which &,52,16 (screen) sets up. In 80 columns the
+;   sysop doesn't see the counters (see modules/TODO.md)
+; - unchanged: $96 (the result code, as mcicm.asm uses it), 512 (BASIC's
+;   input buffer, $0200 on both), $fe (xchrout's character)
+; - the timeouts count loop passes (tmer1, dod2's delay), so they depend
+;   on the CPU's speed and on how long the ML's calls take; the 128's go
+;   through farcall and the ROM stubs, so a pass takes longer than on the
+;   C64 (and half as long at 2 MHz)
 
+{alpha:alt}	; c64: KickAss's petscii_mixed: capitals $c1-$da, lowercase $41-$5a
 {include:"equates.asm"}
 
-* = protostart "net.prg"
+bufptr	= varbuf+3	; c64: $64/$65
+
+	orig protostart	; c64: $c000
 
 t3 = 70
 
@@ -16,6 +49,14 @@ bad = 2
 ack = 3
 snb = 4
 syn = 5
+
+; each code's bit in accept's pattern (c64 source: 1<<code; C64List has
+; no shift operator)
+b_goo = 2	; 1<<goo
+b_bad = 4	; 1<<bad
+b_ack = 8	; 1<<ack
+b_snb = 16	; 1<<snb
+b_syn = 32	; 1<<syn
 
 gcount = 11
 bcount = 23
@@ -33,7 +74,7 @@ relaxflg:
 	byte 0
 
 ;serialp:
-;	asciiA"
+;	ascii "A"
 ;serialn:
 ;	word 3
 
@@ -51,8 +92,7 @@ entry:
 	tax
 	lda #0
 	sta tcount
-	lda #r6510_normal
-	sta r6510
+			; c64: lda #r6510_normal / sta r6510
 	tya
 	inx
 	dex
@@ -90,7 +130,7 @@ jmodemx:
 exit:
 ;	txa
 ;	pha
-	lda $28d
+	lda shflag	; c64: $28d
 	cmp #2
 	beq ext1
 ;	ldx #4
@@ -247,8 +287,8 @@ getnum1:
 	sta $96
 	lda #0
 	sta $0200
-	lda 667
-	cmp 668
+	lda ridbe	; c64: 667
+	cmp ridbs	; c64: 668
 	beq getnum2
 	tya
 	pha
@@ -273,7 +313,7 @@ tranrelx:
 trx1:
 	ldx #syn
 	jsr sendcode
-	lda #(1<<syn) | (1<<goo)
+	lda #b_syn  | b_goo
 	jsr accept
 	beq trx3
 	dec repeat
@@ -295,7 +335,7 @@ recvrelx:
 	lda #128
 	sta repeat
 rrx1:
-	lda #(1<<syn) | (1<<goo)
+	lda #b_syn  | b_goo
 	jsr accept
 	beq rrx2
 	dec repeat
@@ -327,7 +367,7 @@ rch1:
 	ldx gbsave
 	jsr sendcode
 rch2:
-	lda #1<<ack
+	lda #b_ack
 	jsr accept
 	beq rch3
 	dec repeat
@@ -353,7 +393,7 @@ rch5:
 	lda $96
 	rts
 rch6:
-	lda #1<<syn
+	lda #b_syn
 	jsr accept
 	bne rch1
 	lda #3
@@ -361,7 +401,7 @@ rch6:
 rch7:
 	ldx #syn
 	jsr sendcode
-	lda #1<<snb
+	lda #b_snb
 	jsr accept
 	beq rch8
 	dec repeat
@@ -384,7 +424,7 @@ trh1:
 	ldx #goo
 	jsr sendcode
 trh2:
-	lda #(1<<goo) | (1<<bad) | (1<<snb)
+	lda #b_goo  | b_bad  | b_snb
 	jsr accept
 	bne trh1
 	lda #0
@@ -399,7 +439,7 @@ trh2:
 trh3:
 	jsr thisbuf
 	ldy #5+1
-	lda ($64),y
+	lda (bufptr),y
 	cmp #$ff
 	bne trh4
 	lda #$01
@@ -429,19 +469,19 @@ trh6a:
 trh6b:
 	ldx #ack
 	jsr sendcode
-	lda #1<<snb
+	lda #b_snb
 	jsr accept
 	bne trh6a
 	jsr thisbuf
 	ldy #4
-	lda ($64),y
+	lda (bufptr),y
 	sta bufcount
 	jsr altbuf
 	ldx #mfile
 	jsr chkout
 	ldy #0
 trh7:
-	lda ($64),y
+	lda (bufptr),y
 	jsr chrout
 	iny
 	cpy bufcount
@@ -454,7 +494,7 @@ trh8:
 	jsr prtdash
 	ldx #ack
 	jsr sendcode
-	lda #1<<snb
+	lda #b_snb
 	jsr accept
 	bne trh8
 ; lda #10
@@ -462,7 +502,7 @@ trh8:
 trh9:
 	ldx #syn
 	jsr sendcode
-	lda #1<<syn
+	lda #b_syn
 	jsr accept
 ; bne trha
 ; dec bufcount
@@ -558,17 +598,17 @@ dummyblk:
 	lda blocknum
 	clc
 	adc #$01
-	sta ($64),y
+	sta (bufptr),y
 	iny
 	lda blocknum+1
 	adc #$00
-	sta ($64),y
+	sta (bufptr),y
 	ldx #dfile
 	jsr chkin
 	ldy #7
 dum1:
 	jsr chrin
-	sta ($64),y
+	sta (bufptr),y
 	iny
 	jsr readst
 	bne dum2
@@ -582,7 +622,7 @@ dum2:
 	pha
 	ldy #5+1
 	lda #$ff
-	sta ($64),y
+	sta (bufptr),y
 	jmp dum3
 dummybl1:
 	pha
@@ -592,32 +632,32 @@ dum3:
 	jsr dod2
 	jsr reset
 	ldy #$04
-	lda ($64),y
+	lda (bufptr),y
 	sta bufcount
 	jsr altbuf
 	pla
 	ldy #$04
-	sta ($64),y
+	sta (bufptr),y
 	jsr checksum
 	rts
 
 thisbuf:
 	lda #<pbuf1
-	sta $64
+	sta bufptr	; c64: $64
 	lda bufpnt
 	clc
 	adc #>pbuf1
-	sta $65
+	sta bufptr+1	; c64: $65
 	rts
 
 altbuf:
 	lda #<pbuf1
-	sta $64
+	sta bufptr	; c64: $64
 	lda bufpnt
 	eor #1
 	clc
 	adc #>pbuf1
-	sta $65
+	sta bufptr+1	; c64: $65
 	rts
 
 checksum:
@@ -630,13 +670,13 @@ checksum:
 chk1:
 	lda check1
 	clc
-	adc ($64),y
+	adc (bufptr),y
 	sta check1
 	bcc chk2
 	inc check1+1
 chk2:
 	lda check1+2
-	eor ($64),y
+	eor (bufptr),y
 	sta check1+2
 	lda check1+3
 	rol
@@ -648,7 +688,7 @@ chk2:
 	ldy #3
 l1:
 	lda check1,y
-	sta ($64),y
+	sta (bufptr),y
 	dey
 	bpl l1
 	rts
@@ -667,13 +707,13 @@ transmit:
 	jsr altbuf
 	ldy #4
 	lda #7
-	sta ($64),y
+	sta (bufptr),y
 	jsr thisbuf
 	ldy #5
 	lda #0
-	sta ($64),y
+	sta (bufptr),y
 	iny
-	sta ($64),y
+	sta (bufptr),y
 tra1:
 	jsr tranhand
 	beq tra1
@@ -801,13 +841,13 @@ trantype:
 	jsr altbuf
 	ldy #4
 	lda #7+32
-	sta ($64),y
+	sta (bufptr),y
 	jsr thisbuf
 	ldy #5
 	lda #$ff
-	sta ($64),y
+	sta (bufptr),y
 	iny
-	sta ($64),y
+	sta (bufptr),y
 	jsr var2buf
 	lda #1
 	sta specmode
@@ -819,9 +859,9 @@ trt1:
 	rts
 
 var2buf:
-	lda $64
+	lda bufptr	; c64: $64
 	sta var2buf3+1
-	lda $65
+	lda bufptr+1	; c64: $65
 	sta var2buf3+2
 	ldx #var_b_string
 	jsr usevar
@@ -840,11 +880,11 @@ var2buf4:
 	txa
 	tay
 	lda var2buf3+1
-	sta $64
+	sta bufptr	; c64: $64
 	lda var2buf3+2
-	sta $65
+	sta bufptr+1	; c64: $65
 	lda #13
-	sta ($64),y
+	sta (bufptr),y
 	iny
 	rts
 

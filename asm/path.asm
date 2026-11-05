@@ -1,16 +1,36 @@
-.var version = "07/05/90 11:34p"
+; path.asm -- "++ path": the network's node list (nm.nodelist) in memory,
+; for i.NM_*, i/NM.*, i/IM.netmail, i.EM, i/MM.sb-mail and i/SM.netfile:
+; &,16 (a$ the file) loads it just past itself; &,16,1 finds the path
+; from node a$ (or a%) to node b$ (or b%) into an$; &,16,2 gives node a$'s
+; number in a%; &,16,3 cuts the path in an$ short at node a$.
+;
+; Ported on 2026-11-05 from source/path.s ("07/05/90 11:34p"), which
+; builds the 3.0 release's "++ path" byte for byte (C64 values in the
+; comments):
+; - runs at protostart ($1c00; c64 $c000), where &,7,dv%,2 loads it; the
+;   node list starts at last, its last byte
+; - Image's variable buffer is varbuf ($63-$65; c64 $61-$63), its buffer
+;   $0e77 (c64 $ce77), its & dispatcher usetbl1 ($192a; c64 $cd03)
+; - the node pointer is linnum ($16/$17; c64 20/21, its linnum), and
+;   shortcut keeps the node name in scbuf, not in zero page (c64 105-107,
+;   FAC2, which is $6a-$6e on the 128 and may be used by usevar)
+; - the KERNAL through the ML's ROM stubs; setbnk before LOAD: the list in
+;   bank 0, the filename (a$) in bank 1 (the TODO's warning: without it
+;   the KERNAL reads the name from whatever bank the last setbnk left)
+; - each node record is 8 bytes: its 3-letter name, then the nodes it
+;   links to in bytes 4-7 (0 = none)
 
-.encoding "petscii_mixed"
-
+{alpha:alt}	; c64: KickAss's petscii_mixed: capitals $c1-$da, lowercase $41-$5a
 {include:"equates.asm"}
 
-* = $c000 "path.prg"
+ptr	= linnum	; c64: 20/21
+
+	orig protostart	; c64: $c000
 
 	jmp pathfind
 
 	byte 255
-	ascii version
-
+	ascii "07/05/90 11:34p"
 src:
 	byte 0
 dst:
@@ -49,6 +69,9 @@ loadfile:
 	ldx varbuf+1
 	ldy #0
 	jsr setlfs
+	lda #0		; 128: the list in bank 0 (just past this),
+	ldx #1		; the filename a BASIC string, in bank 1
+	jsr setbnk
 	lda #0
 	ldx #<last
 	ldy #>last
@@ -127,7 +150,7 @@ srch03:
 	jsr calc
 	lda dir,x
 	tay
-	lda (20),y
+	lda (ptr),y
 	beq srch02
 	cpx #0
 	beq srch04
@@ -143,7 +166,7 @@ srch04:
 	jsr calc
 	ldy #4
 srch05:
-	lda (20),y
+	lda (ptr),y
 	cmp nod-1,x
 	bne srch06
 	tya
@@ -170,7 +193,7 @@ srch08:
 	jsr calc
 	ldy #0
 srch09:
-	lda (20),y
+	lda (ptr),y
 	jsr srch12
 	iny
 	cpy #3
@@ -196,7 +219,7 @@ find01:
 	jsr calc
 	ldy #0
 find02:
-	lda (20),y
+	lda (ptr),y
 	cmp (varbuf+1),y
 	bne find03
 	iny
@@ -214,22 +237,22 @@ find03:
 
 calc:
 	lda #0
-	sta 21
+	sta ptr+1
 	lda src
 	sec
 	sbc #1
 	asl
-	rol 21
+	rol ptr+1
 	asl
-	rol 21
+	rol ptr+1
 	asl
-	rol 21
+	rol ptr+1
 	sec
 	adc #<last
-	sta 20
-	lda 21
+	sta ptr
+	lda ptr+1
 	adc #>last
-	sta 21
+	sta ptr+1
 	rts
 
 shortcut:
@@ -238,7 +261,7 @@ shortcut:
 	ldy #2
 shortcut_loop:
 	lda (varbuf+1),y
-	sta 105,y
+	sta scbuf,y
 	dey
 	bpl shortcut_loop
 	ldx #var_an_string
@@ -250,7 +273,7 @@ shortc0:
 	bcs shortc3
 shortc0_loop:
 	lda (varbuf+1),y
-	cmp 105,x
+	cmp scbuf,x
 	bne shortc1
 	iny
 	inx
@@ -285,10 +308,15 @@ shortc2:
 shortc3:
 	rts
 
+scbuf:			; c64: 105-107 (zero page)
+	area 3, 0
+
 usevar:
 	lda #29
 	jmp usetbl1
 putvar:
 	lda #30
 	jmp usetbl1
+; the node list is kept here, from the last byte on: its count of nodes,
+; then 8 bytes a node (calc: last+1+8*(node-1))
 last:

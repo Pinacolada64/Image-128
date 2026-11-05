@@ -1062,6 +1062,7 @@ var_d1_string	= 4
 var_lp_float	= 15
 var_pl_float	= 16
 var_rc_float	= 17
+var_qe_float	= 22
 var_sh_float	= 18
 var_ac_integer	= 24
 var_w_string	= 27
