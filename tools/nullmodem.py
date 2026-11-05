@@ -13,13 +13,16 @@ when one goes, the other is told carrier is down ($ff $00). Each side's
 DTR is logged, not passed on.
 
 --log writes each burst of data with its direction (A>B, B>A) in hex, for
-seeing the protocol's codes and blocks go by.
+seeing the protocol's codes and blocks go by; with --times each one says
+when it arrived, in seconds from the start (A>B@12.345 ...), for seeing
+how fast each side sends.
 """
 import argparse, select, socket, sys, time
 
 ap = argparse.ArgumentParser()
 ap.add_argument('--ports', nargs=2, type=int, default=[25250, 25251])
 ap.add_argument('--log', default=None)
+ap.add_argument('--times', action='store_true')
 args = ap.parse_args()
 
 log = open(args.log, 'w') if args.log else None
@@ -42,6 +45,7 @@ for p in args.ports:
 say(f'listening on 127.0.0.1:{args.ports[0]} (A) and :{args.ports[1]} (B)')
 
 conns = [None, None]
+start = time.monotonic()
 pending = [b'', b'']   # a $ff split across reads
 names = 'AB'
 
@@ -96,6 +100,7 @@ while True:
         if not data:
             continue
         if log:
-            log.write(f'{names[i]}>{names[o]} {data.hex(" ")}\n'); log.flush()
+            when = f'@{time.monotonic() - start:.3f}' if args.times else ''
+            log.write(f'{names[i]}>{names[o]}{when} {data.hex(" ")}\n'); log.flush()
         if conns[o]:
             conns[o].sendall(data.replace(b'\xff', b'\xff\xff'))

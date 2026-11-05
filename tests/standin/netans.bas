@@ -32,7 +32,9 @@
 40 dim nm$(2):nm$(1)="t.small":nm$(2)="t.big"
 60 sys 7171:poke 2794,0:poke 2787,1:poke 53252,60
 65 poke 56328,0:rem start the tod clock as im does: tenwait counts its tenths
-70 print chr$(147);"netmail answer":dv%=8:f=0
+66 rem 2 mhz (fast) if tools/netpair.py --fast put t.fast on this disk
+67 open 15,8,15:open 2,8,2,"0:t.fast,s,r":input#15,e:close 2:close 15:if e=0 then fast
+70 print chr$(147);"netmail answer":dv%=8:f=0:if e=0 then print "2 mhz"
 80 a$="0:ml.rs232":&,7,8,2:&,16,1:open 131,2,134,chr$(6):&,41,6
 100 print "waiting for carrier"
 110 if (peek(6352)and128)=0 then 110
@@ -42,6 +44,7 @@
 150 t=t-1:if t>0 then 140
 155 print "fail no call":f=f+1:goto 800
 160 print "called":print#131,chr$(2);chr$(2);chr$(2);chr$(2);chr$(2);chr$(2);chr$(2);chr$(2);chr$(2);chr$(2);
+165 gosub 950:rem the counter line, as i.nm_auto 3660 prints it
 170 for i=1 to 2
 180 b$="":&,16,3:n$=mid$(b$,11):t$="name "+b$:ok=peek(512)=0 and n$=nm$(i):gosub 900
 190 open 15,8,15,"s0:"+nm$(i):close 15:open 2,8,2,"0:"+nm$(i)+",s,w":&,16,1:close 2:x=b%
@@ -60,3 +63,5 @@
 810 print f;"answer failed":end
 900 if ok then print "pass ";t$:return
 910 print "fail ";t$:f=f+1:return
+950 print chr$(19);:for k=1 to 15:print:next:print " Good: 00000  Bad: 00000  Bytes: 000000";
+955 print chr$(19);:return

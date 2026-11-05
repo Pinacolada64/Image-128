@@ -308,8 +308,21 @@ still reaches its label (a `$ff` offset is the giveaway).
   (IESCEX), and USR's is `$1219` (`usrpok`). The wedge set `$0311`: `usr()`
   gave `?illegal quantity` and IESCEX pointed at junk.
 - **The `++` overlays** are assembled on their own: they reach the ML
-  only through names in `equates.asm` (`++ clock` carries its own VDC
-  register writes and colour table).
+  only through names in `equates.asm` and `usetbl1` (`++ clock` carries
+  its own VDC register writes and colour table, from before `&,72`).
+- **`usetbl1` from ML is a plain jump** (11/05/2026): a caller already in
+  `cfg_ml` (the overlays' `usevar`, `putvar`, `getmdm`...) goes straight to
+  `usetbl0`, as on the C64; only BASIC's side (`cfg_rom`, or `sys` code)
+  goes through `farcall`. Through `farcall`, `++ net` took about 450
+  cycles to read a byte from the modem, nearly a byte's time at 19200
+  baud: the driver's receive buffer overflowed in 255-byte blocks, and
+  `tools/netpair.py` counted 16-24 blocks sent again (none at 9600, none
+  since).
+- **ML that draws on the VIC screen** (`++ net`'s and `++ copier`'s
+  counters, `++ 2`'s `BLKS:`) isn't seen in 80 columns: each cell it
+  changes goes to the VDC through `&,72` (`vdccell`, `vdc.asm`), which
+  `usetbl1` reaches by farcall from `&` code and `sys` code alike
+  (PROGRAMMING.md, "VIC screen cells to the VDC").
 
 ## Keys and the status line at the idle screen
 

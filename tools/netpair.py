@@ -2,7 +2,7 @@
 """netpair.py: a NetMail exchange between two x128s, each running ++ net.
 
     asm/build.sh            (or asm/build.sh ml, after an ML change)
-    tools/netpair.py [--cols 80|40] [--timeout 600] [--keep]
+    tools/netpair.py [--cols 80|40] [--fast caller|answer|both] [--timeout 600] [--keep]
 
 Makes the stand-in disks (tests/standin/netcall.bas, the caller, and
 netans.bas, the answering BBS), starts tools/nullmodem.py, then both
@@ -13,9 +13,14 @@ at the timeout), and exits 0 if both said "all passed".
 
 Ports (none of them the BBSes'): null modem 25250 (caller) and 25251
 (answer), monitors 6537 and 6538. The null modem's log, every byte with
-its direction: build/nullmodem.log. --keep leaves both x128s running.
+its direction and time: build/nullmodem.log. --keep leaves both x128s running.
+
+--fast runs that side (or both) at 2 MHz (BASIC 7's fast: the stand-in
+does it when it finds the file t.fast on its disk). ++ net's waits count
+passes of a loop, so at 2 MHz they end in half the time: a mixed pair
+shows whether the protocol copes. 80 columns only (2 MHz blanks the VIC).
 """
-import argparse, os, subprocess, sys, time
+import argparse, os, re, subprocess, sys, time
 
 repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(repo, 'tools'))
@@ -25,14 +30,25 @@ ap = argparse.ArgumentParser()
 ap.add_argument('--cols', type=int, default=80)
 ap.add_argument('--timeout', type=int, default=600)
 ap.add_argument('--keep', action='store_true')
+ap.add_argument('--fast', choices=['caller', 'answer', 'both'])
 args = ap.parse_args()
 
 os.chdir(repo)
 for n in ('netcall', 'netans'):
     subprocess.run(['tools/standin.sh', f'tests/standin/{n}.bas'], check=True, stdout=subprocess.DEVNULL)
+if args.fast:
+    if args.cols != 80:
+        sys.exit('netpair.py: --fast needs 80 columns (2 MHz blanks the VIC)')
+    flag = os.path.join('build', 'netpair-fast.seq')
+    with open(flag, 'w') as f:
+        f.write('2 mhz\r')
+    for n, side in (('netcall', 'caller'), ('netans', 'answer')):
+        if args.fast in (side, 'both'):
+            subprocess.run(['c1541', f'build/standin-{n}.d81', '-write', flag, 't.fast,s'],
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 null = subprocess.Popen([sys.executable, 'tools/nullmodem.py', '--ports', '25250', '25251',
-                         '--log', 'build/nullmodem.log'], stdout=subprocess.DEVNULL)
+                         '--log', 'build/nullmodem.log', '--times'], stdout=subprocess.DEVNULL)
 time.sleep(1)
 
 
@@ -61,6 +77,12 @@ try:
         print(f'--- {k} ---')
         print('\n'.join(l for l in s.split('\n') if l.strip()))
         ok = ok and 'all passed' in s
+        # ++ net's counters (row 15) on the screen, in 80 columns too
+        # (&,72): the good blocks counted there
+        good = re.search(r'ood: (\d{5})', s)  # column 1 is ++ net's receive status (A-D), over the G, as on the C64
+        if not good or int(good.group(1)) == 0:
+            print(f'{k}: no good blocks counted on the screen')
+            ok = False
     print('PASSED' if ok else 'FAILED (log: build/nullmodem.log)')
 finally:
     if not args.keep:
