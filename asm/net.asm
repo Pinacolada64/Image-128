@@ -2,10 +2,10 @@
 ; i/NM.netsub4 (a$="net":gosub 28, then &,16,x): 0 send the open disk file
 ; (2) to the other BBS, 1 receive one into it, 2 send b$ as a name block,
 ; 3 receive a name block into b$, 4 and 5 the "relaxed" handshake (send,
-; receive), 6 the modem chat: send a$, then collect the reply into b$
-; until Return, an$'s length (y) or a timeout (rc=-1 on no carrier).
-; Returns: 0, 1, 4, 5 peek(512) 0 = done; 0, 1 b% the blocks sent or
-; received.
+; receive), 6,n the modem chat: send a$, then keep the last n characters
+; that arrive in b$ until the line is quiet (rc 1 and b$ "" if the
+; carrier goes or C= is held). Returns: peek(512) 0 done, 1 aborted; 0
+; and 1 leave a block count in b%. PROGRAMMING.md has the details.
 ;
 ; Ported on 2026-11-05 from source/net.s, which builds the 3.0 release's
 ; "++ net" byte for byte (C64 values in the comments):

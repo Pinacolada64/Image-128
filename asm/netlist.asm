@@ -1,15 +1,18 @@
-; netlist.asm -- "++ netlist": this BBS's network setup (nm.netlist) in
-; memory, for i/NM.netsub1, 3 and 4, i/lo/ns and i/SM.reledit
-; (a$="netlist":gosub 28, then &,16,x): a 30-character name, a
-; 48-character list (padded with "-"), and 60 numbers, kept just past
-; this:
-;   &,16    a$ the name, an$ the list, and a%(1)-a%(60) the numbers
-;           (a%() must be DIMmed: "Error-Sec?" if it isn't)
-;   &,16,1  the reverse: a$ into the name, an$ into the list, a%(1)-a%(60)
-;           into the numbers
-;   &,16,2,dv%  load the setup from file a$ (cleared first)
+; netlist.asm -- "++ netlist": one NetSub's definition (a file
+; nm.netsub1-nm.netsub60) in memory, for i/NM.netsub1, 3 and 4, i/lo/ns
+; and i/SM.reledit (a$="netlist":gosub 28, then &,16,x): its name (30
+; characters), its nodes' IDs (48 characters, 3 a node, padded with "-")
+; and its sub-boards (a%(0) how many, a%(1)... their numbers), kept just
+; past this:
+;   &,16    a$ the name, an$ the nodes, a%() the sub-boards (a%() must be
+;           DIMmed: "Error-Sec?" if it isn't)
+;   &,16,1  the reverse: a$, an$ and a%() into the definition
+;   &,16,2,dv%  load a definition from file a$ (cleared first)
 ;   &,16,3,dv%  save it to file a$
 ;   &,16,255  a% = the version (9)
+; The release copies the 120 bytes of numbers from a%(0)'s low byte on, so
+; a%(0) keeps only its low byte, a%(1)-a%(59) are whole, and a%(60) keeps
+; only its high byte
 ;
 ; No source survives: disassembled from the 3.0 release's "++ netlist"
 ; ("01/09/91  4:39P", 3 blocks) by tools/ovl_dis.py, then ported on
@@ -340,7 +343,7 @@ errmsg:
 	byte $c3,$8b
 
 ; the setup, from the last byte on: the name (30 bytes), the list (48),
-; the numbers (60, 2 bytes each, as a%() keeps them)
+; the sub-boards (120 bytes, a%(0)'s low byte to a%(60)'s high byte)
 nlname:
 	byte $00
 nllist	= nlname + 30	; c64: $c22b

@@ -445,6 +445,157 @@ each user. A record is one of:
 today's, to ask once a month. `SF` drops one leading space from each
 field it reads.
 
+## NetMail's overlays: `++ net`, `++ path`, `++ netsub`, `++ netlist`
+
+NetMail (the `i.NM_*` and `i/NM.*` modules, `i/IM.netmail`, `i/SM.netfile`
+and others) does its heavy work in four "++" overlays. A module loads one
+with `a$="<name>":gosub 28` (`im` loads the file `++ <name>` at protostart,
+`$1c00`, with `&,7`; `e%` is nonzero if it couldn't), then calls it with
+`&,16`, `&,16,x` or `&,16,x,y`: `x` picks the routine, `y` is a number some
+of them take (a device, a length, a record). Only one overlay is in memory
+at a time, and each keeps its data just past itself, so loading another
+loses that data (`++ path`'s node list, `++ netsub`'s tables): load the one
+you need again before using it.
+
+They read and set the ML's own variables (`a$`, `an$`, `b$`, `a%`, `b%`,
+`dv%`, `qe`, `rc`: BASIC_VARIABLES.md). The source is `asm/net.asm`,
+`asm/path.asm`, `asm/netsub.asm` and `asm/netlist.asm`; each one's header
+says what changed from the C64's. `tests/standin/netovl.bas` tries `++ path`,
+`++ netsub` and `++ netlist`; `tools/netpair.py` runs a NetMail exchange with
+`++ net` between two x128s (`tests/standin/README.md`).
+
+### `++ net`: the transfer protocol
+
+`i.NM_auto` (calling another BBS, and answering one) and `i/NM.netsub4`.
+Everything goes through the modem file, `131`; files go to and from the
+disk file `2`, which the module opens first.
+
+| Call | Does | Takes | Gives |
+|---|---|---|---|
+| `&,16` | sends file 2 to the other BBS | file 2 open for reading | `peek(512)`, `b%` |
+| `&,16,1` | receives a file into file 2 | file 2 open for writing | `peek(512)`, `b%` |
+| `&,16,2` | sends a name block | `b$`: up to 31 characters (the rest is cut) | `peek(512)` |
+| `&,16,3` | receives a name block | | `b$` (to its Return, at most 79 characters), `peek(512)` |
+| `&,16,4` | the sending side of the relaxed handshake | | `peek(512)`: 0 agreed, 1 no answer |
+| `&,16,5` | its receiving side: relaxed timing stays on if the other side asks for it | | `peek(512)`: 0 agreed, 1 no answer |
+| `&,16,6,n` | the modem chat: sends `a$` (if not empty), then keeps the last `n` characters that arrive | `a$`, `n` | `b$`; `rc` 1 and `b$` `""` if the carrier went or C= was held |
+
+- **`peek(512)`** (BASIC's input buffer, `$0200` on both machines) is 0
+  when the transfer finished and 1 when it was aborted: the sysop held C=
+  (`shflag` 2), the carrier went (`carrst` bit 7 clear), the other side
+  sent three Ctrl-X, or `++ net` gave up waiting (it sends three Ctrl-X
+  then).
+- **`b%`** after `&,16` and `&,16,1` is a block count, but not the file's
+  size: it counts one for each good block and one for each 254 bytes (a
+  1500-byte file gave 15).
+- **The name block** is what `i.NM_auto` sends before each file:
+  `"<to>/<from>/<A or R>/<file name>"` (node IDs of 3 characters, so the
+  file name starts at character 11, `mid$(b$,11)`); `A` appends to a file
+  already there, `R` replaces it.
+- **The modem chat** (`&,16,6,n`) is how `i.NM_auto` logs in through
+  another BBS's modem or a packet switch (3400-3418): it sends `a$`, then
+  collects what arrives in `b$` until nothing has come for a while
+  (25600 empty polls), keeping only the last `n` characters; control
+  characters other than Return are dropped, and 32 is taken off characters
+  from `$60` up. The module compares `b$` with the prompt it expects:
+  `&,16,6,len(c$)`, then `b$<>c$`. `rc` is 1, not -1: Image's "minus one"
+  (`&,32`) is `$81,0,0,0,0`, which is +1, on the C64 too.
+- **Relaxed timing** waits longer for the other side: 100 rather than 35
+  for a code, 30 rather than 16 for a block (in units of 256 passes of its
+  wait loop). `&,16,4`/`&,16,5` agree on it, or a module sets it itself:
+  `poke {sym:protostart}+3,1` (`i.NM_auto` 3196, for a node whose dial
+  string starts with `*`).
+
+Before a transfer the module prints a counter line on row 15
+(`" Good: 00000  Bad: 00000  Bytes: 000000"`, `i.NM_auto` 3660), and
+`++ net` counts in it by writing straight into the 40-column screen, so in
+80 columns the counters stay at 0 (`modules/TODO.md`).
+
+The protocol is Punter's. Its codes are three characters (`GOO`, `BAD`,
+`ACK`, `S/B`, `SYN`, and three Ctrl-X to abort). A block is at most 255
+bytes: a 4-byte checksum, the next block's size, the block's number (low,
+high; a high byte of `$ff` marks the last block), then up to 248 bytes of
+data. A name block is 39 bytes. Its waits count passes of a loop and, after
+each code it sends, a tenth of a second on the TOD clock (`tenwait`,
+`$dc08`); with the clock stopped that wait never ends. `im` starts the
+clock at boot; a test program must `poke 56328,0`.
+
+Before the protocol starts, `i.NM_auto` uses the modem itself: the caller
+sends `chr$(1)` until the answering side sends back `chr$(2)` (ten of them),
+reading each character with `&,4` and `peek({sym:sareg})` (3204-3210,
+3292-3296).
+
+### `++ path`: routes through the network
+
+`i.NM_*`, `i/NM.*`, `i/IM.netmail`, `i.EM`, `i/MM.sb-mail` and
+`i/SM.netfile`. It keeps the node list (`nm.nodelist`, drive
+2) in memory and finds the way from one node to another through the nodes
+each one links to.
+
+| Call | Does | Takes | Gives |
+|---|---|---|---|
+| `&,16` | loads the node list | `a$` the file (with `dr$`), `dv%` | `a%` the number of nodes |
+| `&,16,1` | the path from one node to another | from: `a%` (a node's number), or `a$` (its ID) when `a%` is 0; to: `b%`, or `b$` when `b%` is 0 | `an$` the path; `""` if there's none or a node isn't known |
+| `&,16,2` | a node's number | `a$` its ID | `a%`; 0 if it isn't known |
+| `&,16,3` | shortens a path | `an$` a path, `a$` a node's ID | `an$` from that node on |
+
+A path is each node's ID after a `/`, with one more `/` at the end:
+`/AAA/BBB/CCC/`. A node's ID is the first 3 characters of `a$` or `b$`.
+
+`nm.nodelist` is a PRG file, loaded just past the overlay: a byte with the
+number of nodes (up to 255), then 8 bytes for each node, numbered from 1:
+its 3-character ID, a byte not used, and the numbers of up to 4 nodes it
+links to (0 for none).
+
+### `++ netsub`: the NetSubs' repeat check
+
+`i/NM.netsub2` keeps, for each board ID (3 characters) that NetSub messages
+come from, the number of the last message taken from it, and rejects a
+message whose number isn't higher ("Repeat Rejected!"). The numbers are in
+two tables of 128 records each, saved together in the files
+`nm.P.track<NetSub><n>` on drive 2 (when one is full, the next `n`). The
+first table is updated as messages come in; the second is the copy that
+`i/NM.netsub1` makes when a run starts (`&,16,7`).
+
+| Call | Does | Takes | Gives |
+|---|---|---|---|
+| `&,16` | a board's numbers | `a$` the board ID | `rc` from the second table, `qe` from the first |
+| `&,16,1` | sets a board's number in the first table | `a$`, `qe` | `qe` -1 if the table is full |
+| `&,16,2,dv%` | loads both tables (cleared first) | `a$` the file | |
+| `&,16,3,dv%` | saves both tables | `a$` the file | |
+| `&,16,4` | takes a board out of the first table (later ones move up) | `a$` | `qe` its number; -1 if it wasn't there |
+| `&,16,5,n` | the first table's record `n` (from 0) | `n` | `an$` the board ID and `qe` its number; `an$` `""` and `qe` -1 past the last |
+| `&,16,6` | clears both tables | | |
+| `&,16,7` | copies the first table over the second | | |
+| `&,16,255` | the version | | `a%` = 10 |
+
+A board not in a table yet is added to it with the number 0, so `&,16`
+gives 0 for a new board, and -1 only when a table is full.
+
+### `++ netlist`: a NetSub's definition
+
+A NetSub (a sub-board shared through the network) is defined in the file
+`nm.netsub<n>`, _n_ 1 to 60, on drive 2. `i/SM.reledit` edits them;
+`i/NM.netsub1`, `3` and `4` and `i/lo/ns` read them.
+
+| Call | Does | Takes | Gives |
+|---|---|---|---|
+| `&,16` | the definition | `a%()` DIMmed | `a$` its name, `an$` its nodes, `a%(0)` how many sub-boards and `a%(1)`... their numbers |
+| `&,16,1` | sets the definition | `a$`, `an$`, `a%()` | |
+| `&,16,2,dv%` | loads a definition (cleared first) | `a$` the file | |
+| `&,16,3,dv%` | saves it | `a$` the file | |
+| `&,16,255` | the version | | `a%` = 9 |
+
+- The name is up to 30 characters. The nodes are their 3-character IDs one
+  after another, up to 16 (48 characters), padded with `-` (`an$` comes back
+  padded too).
+- `a%()` must be DIMmed (`dim a%(60)`), or `&,16` and `&,16,1` print
+  "Error-Sec?" and do nothing more.
+- The release keeps 120 bytes of `a%()` starting at `a%(0)`'s low byte, so
+  `a%(0)` keeps only its low byte (enough for a count), `a%(1)`-`a%(59)`
+  are kept whole, and `a%(60)` keeps only its high byte: a 60th sub-board's
+  number is lost.
+
 ## Test programs
 
 `tests/standin/` programs are petcat source, not C64List: `\` is the `£`
