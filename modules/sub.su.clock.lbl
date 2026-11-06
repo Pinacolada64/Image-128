@@ -40,7 +40,7 @@
 	gosub 3414:&"{f6}{lt. blue}Set the Image BBS 128 System Clock{colon}{f6:2}"
 	restore {:names}:for i=1 to 8:read a$:a%=i
 	&"{blue}({lt. blue}{pound}%a{blue}) {cyan}{pound}$a{f6}":next
-	&"{f6}{lt. blue}]> {white}{pound}g1{f6:2}":m=val(an$):if m<1 or m>8 then m=1
+	&"{f6}{lt. blue}]> {white}{pound}g1{pound}v7{f6:2}":m=val(an$):if m<1 or m>8 then m=1
 	ck$="0":if m=3 then ck$="2"
 	if m=4 then ck$="3"
 	if m>5 then ck$="4,"+mid$("uta",m-5,1)
@@ -66,8 +66,9 @@
 ' and $d600 the VDC here (the C64's setup offered both); $de00 is the
 ' SwiftLink's, so only for a BBS without one
 {:ds12c887}
-	&"{lt. blue}DS12C887 Base Address{colon} {blue}({lt. blue}1{blue}) {cyan}$D700 {blue}({lt. blue}2{blue}) {cyan}$DE00 {blue}({lt. blue}3{blue}) {cyan}$DF00{f6}"
-	&"{lt. blue}($DE00 is the SwiftLink's{colon} only without one){f6:2}]> {white}{pound}g1{f6:2}":a=val(an$):if a<1 or a>3 then a=1
+	&"{lt. blue}DS12C887 Base Address{colon}{f6:2}{blue}({lt. blue}1{blue}) {cyan}$D700 (Default){f6}{blue}({lt. blue}2{blue}) {cyan}$DE00{f6}"
+	lp=1:&"{lt. red}(only select $DE00 if not using the SwiftLink/Turbo232 RS232 interfaces){f6}"
+	&"{blue}({lt. blue}3{blue}) {cyan}$DF00{f6:2}]> {white}{pound}g1{pound}v7{f6:2}":a=val(an$):if a<1 or a>3 then a=1
 	ck$="4,d,"+mid$("550405683257088",a*5-4,5):return
 {:names}
 	data "Manually","CMD Device w/RTC Option","Lt. Kernal Port 1","Lt. Kernal Port 2"
