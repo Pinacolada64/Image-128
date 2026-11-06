@@ -78,7 +78,9 @@
 	gosub 3414:gosub {:found}:restore {:names}:for i=1 to j:read l$:next:pl=1
 {:askdev}
 	p$=l$+" Device":w$=mid$(str$(su%(10+j)),2):ln=2:gosub 4900
-	v=val(an$):if v<8 or v>30 then v=su%(10)
+' 11/06/2026: a number outside 8-30 keeps the device shown (Return's), not
+' the boot device; one that doesn't answer may not be on yet: asked below
+	v=val(an$):if v<8 or v>30 then v=su%(10+j)
 	if tt$(v)="" then:&"{f6}{yellow}Device {pound}!v didn't answer. Use it anyway{question} ":gosub 94:if a=. then {:askdev}
 	su%(10+j)=v:&"{f6}"
 {:askdrv}

@@ -39,7 +39,9 @@
 {:choose}
 	gosub 3414:&"{f6}{lt. blue}Set the Image BBS 128 System Clock{colon}{f6:2}"
 	restore {:names}:for i=1 to 8:read a$:a%=i
-	&"{blue}({lt. blue}{pound}%a{blue}) {cyan}{pound}$a{f6}":next
+' 11/06/2026: the one any other key picks marked, as the DS12C887's $D700
+	&"{blue}({lt. blue}{pound}%a{blue}) {cyan}{pound}$a":if i=1 then:&" (Default)"
+	&"{f6}":next
 	&"{f6}{lt. blue}]> {white}{pound}g1{pound}v7{f6:2}":m=val(an$):if m<1 or m>8 then m=1
 	ck$="0":if m=3 then ck$="2"
 	if m=4 then ck$="3"
