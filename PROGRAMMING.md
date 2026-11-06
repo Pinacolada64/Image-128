@@ -251,6 +251,21 @@ the statement after the `&`); `&,66,0` is a GOTO. The line must be under
 - With `lp=1` before it, a string is printed with word wrap, and the ML
   ends the line itself unless the string ends with a space; `lp` is back
   to 0 after each string, so set it before each one.
+- The 128 screen editor's Esc sequences work in `&` output (11/05/2026),
+  in 40 and 80 columns: Esc goes to the editor's own print (`$c72d`), and
+  so does the character after it, so the editor runs the sequence on the
+  cursor Image uses. Write the Esc as `{$1b}` in the string (or
+  `chr$(27)` in `a$`). Clearing:
+  - `&"{$1b}q"` clears from the cursor to the end of its line;
+  - `&"{$1b}@"` clears from the cursor to the end of the window: the
+    editor's window, whose bottom Image keeps at `botline` (row 23, or 15
+    with the screen mask on: `setwin`), so the mask's rows stay.
+
+  Put the cursor first with `&,70,column,row`. `im` 3414 clears under the
+  boot frame this way (`&,70,0,6:&"{$1b}@"`). Only on the console: a
+  caller's terminal doesn't know the 128's Esc codes, so leave them out
+  of text that callers see. `tests/standin/escq.bas` and `escq80.bas`
+  try both.
 
 ## Today in History files: `today.<Mon>` and `s.today/hist`
 
