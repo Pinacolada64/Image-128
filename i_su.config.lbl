@@ -16,6 +16,9 @@
 ' Setup's own variables (DIMmed in init, after im 3200's &,27,1, so im
 ' 3087's &,28,1 drops the arrays when setup is over):
 '   su%(1-4)   1 when part 1-4 is done; su%(9) clock follow-ups wanted
+'   su%(31-36), (37-38), (43-47), (49-53): 1 when that item of part 1-4
+'              (drives, clock, sysop, BBS) has been asked; ib = the part's
+'              base (24+6*part), nx/nx$ its first item not asked yet
 '   su%(10)    the boot device; su%(11-16), su%(21-26) the chosen device and
 '              drive of drives 1-6 (dv%() and dr%() stay the boot drive
 '              until sub.su.write, so modules load from the boot disk)
@@ -39,7 +42,7 @@
 ' 11/05/2026: the window's top at row 6 for all of setup, so nothing printed
 ' under im's boot frame (rows 2-5) can scroll it away: Image's console scrolls
 ' from sctop, and im 3404 redraws only the frame's two lines, not its border
-	poke {sym:sctop},6:on lm gosub {:new},{:conv12},{:conv20}:poke {sym:sctop},.:return
+	poke {sym:sctop},6:on lm gosub {:new},{:conv12},{:conv20}:poke {sym:sctop},.:poke {sym:timeset},su%(7):return
 
 {nice:100}
 ' 1: a new system
@@ -50,13 +53,13 @@
 ' every prompt)
 {:menu}
 	gosub 3414:z3$="Image BBS 128 Setup":gosub 3404:&"{f6}{white}"
-	n=.:restore {:names}:for i=1 to 4:read a$:a%=i:b$=mid$(" {$ba}",su%(i)+1,1)
+	n=.:restore {:names}:for i=1 to 4:read a$:a%=i:b$=mid$(" {$ba}",su%(i)+1,1)+" "
 	if n=. and su%(i)=. then n=i
 	&"{white}{pound}$b{yellow}{pound}%a{lt. blue}) {pound}$a{f6}":next
-	&"{yellow} R{lt. blue}) Review{comma} then write the files{f6:2}":a$="Review"
+	&"{yellow}  R{lt. blue}) Review{comma} then write the files{f6:2}":a$="Review"
 	if n then restore {:names}:for i=1 to n:read a$:next
-	&"{lt. green}Return{colon} {pound}$a{f6}{yellow}Your choice{colon} {white}{pound}g1{f6}"
-	a=val(an$):if an$=r$ then a=n:if n=. then an$="R"
+	&"{lt. green}Return{colon} {pound}$a{f6}{yellow}Your choice{colon} {white}{pound}i1{f6}"
+	a=val(an$):if an$=r$ or an$="" then a=n:if n=. then an$="R"
 	if an$="R" or an$="r" then gosub {:review}:on a goto {:menu}:return
 	if a<1 or a>4 then {:menu}
 	on a gosub {:drives},{:clock},{:sysop},{:bbs}:goto {:menu}
@@ -83,7 +86,9 @@
 {:clock}
 	su%(9)=.:im=1:a$="su.clock":gosub 74:if su%(9)=. then return
 	y%=val(su$(11)):gosub 3414:im=8:gosub 447:su$(12)=tz$
-	im=15:a$="clocks":goto 74
+' 11/06/2026: then back to the Clock part's menu (it returns when done);
+' the zone is asked only once one was chosen (Return at Which One? leaves it)
+	im=15:a$="clocks":gosub 74:su%(37)=1:su%(38)=-(su$(12)<>""):goto {:clock}
 
 {nice:100}
 ' R: a part not done yet is done first; then the answers, and the files
@@ -102,7 +107,8 @@
 	gosub 3414:gosub {:su.copr}:lp=1:&"{f6:2}Be sure to enter {quotation}IM{quotation} once online to complete the configuration of "
 	lp=1:&"your BBS. Message bases{comma} U/D and U/X libraries can be configured by using "
 	lp=1:&"the {quotation}Base Editors{quotation} option.{f6:2}"+c$+"{f6:2}"
-	lp=1:&"Hit any key to continue{colon} {pound}g1":a=.:return
+' esc-p: clear to start of line
+	lp=1:&"Hit any key to continue{colon} {pound}g1"+es$+"p":a=.:return
 
 {nice:100}
 ' 2, 3: convert an Image BBS 64 system (sub.su.convert). Its d.data not
@@ -121,7 +127,16 @@
 ' just loaded this from: bootdev ($1800) is 0 by now (a ?load error,
 ' 11/05/2026)
 {:init}
-	dim su%(30),su$(20):bv=dv%:if bv<8 then bv=8
+' define esc for screen editor tricks:
+' esc-@: clear from cursor position to bottom of screen
+' esc-p: clear from cursor position to beginning of line
+' esc-q: clear from cursor position to end of line
+	es$=chr$(27)
+	dim su%(60),su$(20):bv=dv%:if bv<8 then bv=8
+' stop the status line flashing "set time" during setup (timeset: 0 flashes,
+' irqhn.asm irq1); its old value kept in su%(7) (after the dim) and put back at 4000's exit,
+' as i/lo.idle reads it as "the clock is set" (AutoMaint, 4210-4211)
+	su%(7)=peek({sym:timeset}):poke {sym:timeset},1
 	su%(10)=bv:d1%=bv:d2%=.
 	for i=1 to 6:dv%(i)=bv:dr%(i)=.:su%(10+i)=bv:su%(20+i)=.:next
 	d1$="12011111201":return
@@ -132,15 +147,23 @@
 {:su.ask}
 	poke 53252,ln:b$=w$:&,1,32:if an$="" then an$=b$
 	return
-' su.item: a summary line: a% its number, a$ its label, b$ its value
+' su.item: a part's menu line: a% its number, a$ its label, b$ its value;
+' a check if asked (su%(ib+a%)); the first not asked is nx, nx$ its label
+' (set nx=. first)
 {number:4910}
 {:su.item}
-	&"{yellow}{pound}%a{lt. blue}) "+left$(a$+"..................",18)+"{colon} {white}{pound}$b{f6}":return
-' su.pick: a = the number typed (1-h), or 0 for Return
+	ic=su%(ib+a%):if ic=. and nx=. then nx=a%:nx$=a$
+	&"{white}"+mid$(" {$ba}",ic+1,1)+"{yellow}{pound}%a{lt. blue}) "+left$(a$+"..................",18)+"{colon} {white}{pound}$b{f6}":return
+' su.pick: a = the item to ask: the number typed (1-h), or Return's: the
+' first not asked (nx); 0 = done (D, or Return when all were asked: the
+' rest keep their defaults). 11/06/2026: Return walks the items in order
 {number:4920}
 {:su.pick}
-	&"{f6}{yellow}Number to change (1-{pound}!h){comma} or Return{colon} {white}{pound}g1{f6}":a=val(an$):if a<1 or a>h then a=.
-	return
+	a$="Done":if nx then a$=nx$
+	&"{f6}{yellow}1-{pound}!h{comma} D(one){comma} Return{equal}{lt. green}{pound}$a{yellow}{colon} {white}{pound}i1{f6}":a=val(an$)
+	if an$="" then a=nx:return
+	if an$="D" or an$="d" then a=.:return
+	on -(a<1 or a>h) goto {:su.pick}:return
 ' su.create, su.done: 'Creating "f$"...', then "Done!"
 {number:4930}
 {:su.create}
@@ -154,4 +177,4 @@
 	c$="Image 128 Copyright 2026 New Image Software":return
 
 	rem copr. 1996 new image 5/5/96-rwp
-	rem "i/su.config (c)nissa 2020-06-14 lh+ad, 2022-10-11 rs, 2026-11-05"
+	rem "i/su.config (c)nissa 2020-06-14 lh+ad. 2022-10-11, 2026-11-05 rs"

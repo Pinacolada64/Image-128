@@ -1,7 +1,8 @@
 ' sub.su.drives -- the new-system setup's Drives part (i/su.config, 1): the
-' device and drive (or partition) of Image's six drives. First visit: each
-' asked, Return taking the one shown (the boot drive at first); then the
-' summary, where a number asks that drive again and Return is done.
+' device and drive (or partition) of Image's six drives. A menu (the
+' table) from the start, each the boot drive at first: a number asks that
+' drive, Return the next not asked yet, D (or Return when all were) is
+' done (11/06/2026).
 ' The answers go in su%(11-16) and su%(21-26); dv%() and dr%() stay the
 ' boot drive until sub.su.write (i/su.config's notes). 11/05/2026.
 ' Phase 2 (11/05/2026): i/su.config has just scanned the bus (sub.sysdos
@@ -16,24 +17,29 @@
 {step:2}
 
 {number:60000}
-	on im goto {:drives},{:table}:return
+	on im goto {:drives},{:review}:return
 ' im=1: the Drives part; im=2: just the table, for i/su.config's review (after
 ' a scan: tt$(8-30), as here)
 {:drives}
-	z3$="Drives":gosub 3404:if su%(1) then {:summary}
-	for j=1 to 6:gosub {:ask}:next
+	z3$="Drives":gosub 3404:ib=30
 ' 11/05/2026: a table: number, drive, device, drive number, model, and the
 ' disk's name from its directory header (under it in 40 columns, at the end
 ' of the line in 80: sw). 18 rows: Found, a blank line, the heading, 12
 ' lines, the prompt
 {:summary}
-	gosub 3414:gosub {:found}:gosub {:table}
-	h=6:gosub 4920:if a then j=a:gosub {:ask}:goto {:summary}
+	gosub 3414:gosub {:found}:nx=.:gosub {:table}
+	h=6:gosub 4920:if a then j=a:gosub {:ask}:su%(ib+j)=1:goto {:summary}
 	su%(1)=1:return
+' the review's table: no checks (ib=.)
+{:review}
+	ib=.
+' a row's check (ib: the Drives part): asked (su%(ib+j)); nx, nx$ the first
+' not asked, as su.item
 {:table}
 	&"{lt. blue}  #  Drive      Dev Dr  Type{f6}":pd=-1
 	restore {:names}:for j=1 to 6:read l$:d=su%(10+j):r=su%(20+j)
-	a$="{yellow}"+right$("  "+mid$(str$(j),2),3)+"  {lt. blue}"+left$(l$+"          ",10)+"{white}"
+	ic=.:if ib then ic=su%(ib+j):if ic=. and nx=. then nx=j:nx$=l$
+	a$="{white}"+mid$(" {$ba}",ic+1,1)+"{yellow}"+right$(" "+mid$(str$(j),2),2)+"  {lt. blue}"+left$(l$+"          ",10)+"{white}"
 	a$=a$+right$("   "+mid$(str$(d),2),3)+right$("   "+mid$(str$(r),2),3)+"   {cyan}"+tt$(d):&
 	gosub {:dname}:if n$="" then {:sum1}
 	a$="{lt. green}{quotation}"+n$+"{quotation}":if sw<80 then a$="{f6}       "+a$:goto {:sum0}

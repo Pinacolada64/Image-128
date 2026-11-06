@@ -7,8 +7,8 @@
 {assign:3404	=3404	} ' im: boot frame: show z3$
 {assign:3414	=3414	} ' im: boot frame: clear the lines under it
 {assign:4900	=4900	} ' su.ask: ask p$ (label), w$ (default), ln (length), pl (case): an$
-{assign:4910	=4910	} ' su.item: a summary line: a% number, a$ label, b$ value
-{assign:4920	=4920	} ' su.pick: "Number to change (1-h), or Return": a (0 = Return)
+{assign:4910	=4910	} ' su.item: a menu line: a% number, a$ label, b$ value; check from su%(ib+a%); sets nx, nx$
+{assign:4920	=4920	} ' su.pick: "1-h, D(one), Return=next": a (0 = done)
 {assign:4930	=4930	} ' su.create: 'Creating "f$"...'
 {assign:4932	=4932	} ' su.done: "Done!"
 {assign:4940	=4940	} ' su.copr: c$ = the copyright line (bd.data, the closing screen)

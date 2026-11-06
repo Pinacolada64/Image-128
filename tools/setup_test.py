@@ -17,7 +17,8 @@ on. x128 runs in warp mode through the remote monitor on port 6537 (not
 --drive9 1571 (say) adds a drive 9 with no disk, for the Drives part's bus
 scan; the scan's "Found:" line is logged too. --vice passes one argument
 to x128 (repeat it), e.g. --vice -drive9type --vice 4000 --vice -dos4000
---vice <rom> for a CMD FD-4000.
+--vice <rom> for a CMD FD-4000. x128 has a DS12C887 RTC at $d700, as
+start-image-128.sh has, and the Clock part chooses it (5, then base 1).
 """
 import os, shutil, sys, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -43,9 +44,16 @@ src = args[0] if args else os.path.join(repo, 'build', 'image128.d81')
 disk = out or os.path.join(repo, 'build', 'setup-test.d81')
 shutil.copyfile(src, disk)
 
+# a DS12C887 RTC at $d700, as start-image-128.sh has (not -ds12c887rtcsave:
+# the test leaves the saved RTC alone)
+rtc = ['-ds12c887rtc', '-ds12c887rtcbase', '0xd700', '-ds12c887rtcrunning']
 v = X128(['-drive8type', '1581'] + (['-drive9type', drive9] if drive9 else []) +
-         vice + ['-warp', '-autostart', disk + ':boot 128'], cols=cols, wait=2)
+         rtc + vice + ['-warp', '-autostart', disk + ':boot 128'], cols=cols, wait=2)
 t0 = time.time()
+# 11/06/2026: a crash in this script stops its x128 too (unless --keep), so
+# the next run can have port 6537
+import atexit
+atexit.register(lambda: keep or v.p.poll() is not None or v.p.kill())
 
 
 def ts():
@@ -62,6 +70,12 @@ def rows():
 
 def press(ch):
     v.cmd('bank ram', '> 034a %02x' % ord(ch), '> 00d0 01')
+
+
+def type_line(s):
+    """s and Return into the keyboard buffer (10 keys at most)"""
+    k = (s + '\r')[:10]
+    v.cmd('bank ram', '> 034a ' + ' '.join('%02x' % ord(c) for c in k), '> 00d0 %02x' % len(k))
 
 
 def buffer_empty():
@@ -89,16 +103,28 @@ press('1')
 # prompts run in im's subroutines too, lines 1-96, 3404 and 3414.)
 # Prompts that need a key other than Return, by text on the screen; each
 # is answered once.
-special = [('set the image bbs 128 system clock', '1', 'clock menu: 1 (Manually)')]
+# The clock: the DS12C887 at $d700, as start-image-128.sh runs x128 (11/06/2026)
+special = [('set the image bbs 128 system clock', '5', 'clock menu: 5 (DS12C887)'),
+           ('ds12c887 base address', '1', 'DS12C887 base: 1 ($D700)'),
+           ('which one?', '5', 'time zone: 5')]
+# The sysop's password (11/06/2026): typed at the Sysop part's Password
+# prompt, wrong at "Password again", then both again, matching. Each step
+# answers the prompt on the cursor's row; the Password item is reached by
+# Return (the 5th item)
+pw = [('password:', 'secret', 'password: typing secret'),
+      ('password again:', 'wrong', 'password again: typing wrong'),
+      ('password:', 'secret', 'password: typing secret again'),
+      ('password again:', 'secret', 'password again: typing secret')]
 answered = set()
-seen = set(); deadline = time.time() + 600
+seen = set(); deadline = time.time() + 900   # 11/06/2026: 15 minutes (80 columns on a busy host took 10+)
 while time.time() < deadline:
     for x in frame():
         if x and x not in seen:
             seen.add(x); print(ts(), 'frame:', x)
     screen = '\n'.join(rows()).lower()
     for r in screen.split('\n'):
-        if 'found:' in r and r.strip() not in seen:
+        # the parts' menus (su.pick, 11/06/2026): "1-5, D(one), Return=next item"
+        if ('found:' in r or 'return=' in r or 'time zone....' in r) and r.strip() not in seen:
             seen.add(r.strip()); print(ts(), 'screen:', r.strip())
     if ('time zone:' in screen or 'more?' in screen) and screen not in seen:
         seen.add(screen); print(ts(), 'time zone list:')
@@ -107,6 +133,10 @@ while time.time() < deadline:
         if 'hit any key to continue' in screen:
             press('\r'); print(ts(), 'Hit any key: pressing Return')
             break
+        cur = rows()[v.mem('ram00', 0xeb, 1)[0]].strip().lower()   # tblx: the cursor's row
+        if pw and cur == pw[0][0] and 'they don' not in cur:
+            text, keys, note = pw.pop(0); type_line(keys); print(ts(), note)
+            time.sleep(0.5); continue
         for text, key, note in special:
             if text in screen and text not in answered:
                 answered.add(text); press(key); print(ts(), note)
@@ -115,7 +145,7 @@ while time.time() < deadline:
             press('\r')
     time.sleep(0.5)
 else:
-    print(ts(), 'setup still running after 10 minutes; at line', line())
+    print(ts(), 'setup still running after 15 minutes; at line', line())
 
 # 3. im boots from the new configuration: wait until its line settles
 history = []
@@ -127,6 +157,8 @@ while time.time() < deadline:
     time.sleep(1)
 print(ts(), 'im settled at line', history[-1] if history else line())
 print('\n'.join(r for r in rows() if r.strip()))
+if pw:
+    print('password steps not reached:', [p[0] for p in pw])
 
 if keep:
     print('x128 left running (monitor on port 6537)')
