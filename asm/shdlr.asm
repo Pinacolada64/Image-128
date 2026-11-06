@@ -175,8 +175,8 @@ scroll:
 	pha
 	lda eal+1	; same: \$af
 	pha
-	ldx #0
-	jsr he9f0
+	ldx sctop	; 128: the window's top (c64: #0), 11/05/2026: a module
+	jsr he9f0	; can keep rows above it (setup's frame) from scrolling
 	jsr hea24
 scroll0:
 	inx
@@ -228,6 +228,8 @@ scroll3:
 scrollv:
 	lda scnmode
 	beq scrollm
+	lda sctop	; 128: a window top below row 0: a row at a time too
+	bne scrollm
 	lda vdcscrn
 	jsr scrollv1
 	lda vdcattr
@@ -250,7 +252,7 @@ scrollv1:
 	jmp vdc_copy
 
 scrollm:
-	ldx #0
+	ldx sctop	; 128: from the window's top (c64 had no window)
 scrollm1:
 	stx vdcm_row
 	jsr vdcrow	; destination: row .x

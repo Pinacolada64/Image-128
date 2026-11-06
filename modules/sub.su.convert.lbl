@@ -74,7 +74,9 @@
 	&"{f6:4}{white}...{lt. red}{rvrs on} Conversion Complete! {rvrs off}{white}...":return
 ' bd.data on the boot drive: where e.data is, and the prompt
 {:writebd}
-	dr=.:a$="bd.data":gosub 19:a$="bd.data,s,w":gosub 4:gosub 5:if e% then close 2:gosub 3200:goto 3084
+' (on an error setup is left by a goto, not i/su.config's return: the
+' window's top back to row 0 first, as i/su.config 4000 does)
+	dr=.:a$="bd.data":gosub 19:a$="bd.data,s,w":gosub 4:gosub 5:if e% then close 2:poke 229,.:gosub 3200:goto 3084
 	if po$="" then po$="Main{colon} "
 	gosub 4940:print#2,dv%(3);r$;dr%(3);r$;po$;r$;:print#2,c$:close 2:close 15:return
 

@@ -155,6 +155,11 @@ for m in Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec; do
 	todaywrites+=(-write "$repo/disk/today.$m.seq" "today.$m,s")
 done
 
+# 11/05/2026: s.timezones and s.dstrules (tools/dstfiles.py), which a new
+# system needs before any s.* files are copied: setup's Clock part lists the
+# zones from s.timezones (sub.info im=8), and sub.clocks reads s.dstrules
+python3 "$repo/tools/dstfiles.py" "$build/dst" >/dev/null
+
 cd "$build"
 rm -f image128.d64 image128.d71 image128.d81
 c1541 -format "image bbs 128,ib" d81 image128.d81 \
@@ -171,6 +176,8 @@ c1541 -format "image bbs 128,ib" d81 image128.d81 \
 	-write "$repo/disk/e.alarms.prg" e.alarms \
 	-write "$repo/disk/nm.times.prg" nm.times \
 	-write "$repo/disk/e.fkeys.seq" "e.fkeys,s" \
+	-write "$build/dst/s.timezones" "s.timezones,s" \
+	-write "$build/dst/s.dstrules" "s.dstrules,s" \
 	"${modwrites[@]}" "${ovlwrites[@]}" >/dev/null
 c1541 image128.d81 -list
 # 11/05/2026: the optional features' files on a disk of their own, which

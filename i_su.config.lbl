@@ -26,6 +26,7 @@
 ' take the numeric {assign}s).
 {alpha:alt}
 {include:quoters.lbl}
+{include:"asm\equates.asm"}
 {assign:3084	=3084	} ' im: reopen the command channel, read bd.data (c64 3.0: 3080)
 {assign:3200	=3200	} ' im: insert-disks menu
 {assign:3300	=3300	} ' im: start the daily log
@@ -35,20 +36,23 @@
 
 {number:4000}
 	rem "i/su.config" {usedef:__BuildDate} {usedef:__BuildTime}
-	on lm gosub {:new},{:conv12},{:conv20}:return
+' 11/05/2026: the window's top at row 6 for all of setup, so nothing printed
+' under im's boot frame (rows 2-5) can scroll it away: Image's console scrolls
+' from sctop, and im 3404 redraws only the frame's two lines, not its border
+	poke {sym:sctop},6:on lm gosub {:new},{:conv12},{:conv20}:poke {sym:sctop},.:return
 
 {nice:100}
 ' 1: a new system
 {:new}
 	gosub {:init}
-' the menu: the parts, each with a checkmark once done; Return takes the
+' the menu: the parts, each with a checkmark in front of its number once done; Return takes the
 ' first not done, then the review (tools/setup_test.py presses Return at
 ' every prompt)
 {:menu}
 	gosub 3414:z3$="Image BBS 128 Setup":gosub 3404:&"{f6}{white}"
 	n=.:restore {:names}:for i=1 to 4:read a$:a%=i:b$=mid$(" {$ba}",su%(i)+1,1)
 	if n=. and su%(i)=. then n=i
-	&"{yellow} {pound}%a{lt. blue}) {pound}$a {white}{pound}$b{f6}":next
+	&"{white}{pound}$b{yellow}{pound}%a{lt. blue}) {pound}$a{f6}":next
 	&"{yellow} R{lt. blue}) Review{comma} then write the files{f6:2}":a$="Review"
 	if n then restore {:names}:for i=1 to n:read a$:next
 	&"{lt. green}Return{colon} {pound}$a{f6}{yellow}Your choice{colon} {white}{pound}g1{f6}"
@@ -73,20 +77,27 @@
 ' im=8: into tz$, e.data record 45) and the alarms that make the idle screen
 ' check daylight saving time when its rule changes the clock (sub.clocks
 ' im=15: none if the zone has no DST)
+' the zone list (37 zones, more than the 18 rows under the frame) scrolls
+' under it only (sctop, 4000), and sub.info pauses it every 14 lines (the
+' More prompt is off on the console: moreprmt returns when local)
 {:clock}
 	su%(9)=.:im=1:a$="su.clock":gosub 74:if su%(9)=. then return
-	y%=val(su$(11)):im=8:gosub 447:su$(12)=tz$:im=15:a$="clocks":goto 74
+	y%=val(su$(11)):gosub 3414:im=8:gosub 447:su$(12)=tz$
+	im=15:a$="clocks":goto 74
 
 {nice:100}
 ' R: a part not done yet is done first; then the answers, and the files
 ' written (sub.su.write). a = 1: back to the menu; 0: setup is over
 {:review}
 	if n then a=n:on a gosub {:drives},{:clock},{:sysop},{:bbs}:a=1:return
-	gosub 3414:z3$="Review":gosub 3404:&"{f6}{lt. blue}Sysop{colon} {white}"+su$(1)+"{f6}"
+' 11/05/2026: the drives as the Drives part's table (sub.su.drives im=2:
+' labels, devices, models, disk names), after a scan (the zone list's tt$()
+' wrote over the last one's). 18 rows in 40 columns: 3 lines, the table's 13,
+' a blank line, the question
+	gosub 3414:z3$="Review":gosub 3404:&"{lt. blue}Sysop{colon} {white}"+su$(1)+"{f6}"
 	&"{lt. blue}BBS{colon} {white}"+su$(6)+"{f6}{lt. blue}Clock{colon} {white}"+su$(13)+" "+su$(12)+"{f6}"
-	&"{lt. blue}Drives{colon}{white}":for i=1 to 6
-	&" "+mid$(str$(su%(10+i)),2)+"{comma}"+mid$(str$(su%(20+i)),2):next
-	&"{f6:2}{yellow}Write the files now{question} ":gosub 96:if a=. then a=1:return
+	im=2:a$="sysdos":gosub 74:im=2:a$="su.drives":gosub 74
+	&"{f6}{yellow}Write the files now{question} ":gosub 96:if a=. then a=1:return
 	im=1:a$="su.write":gosub 74
 	gosub 3414:gosub {:su.copr}:lp=1:&"{f6:2}Be sure to enter {quotation}IM{quotation} once online to complete the configuration of "
 	lp=1:&"your BBS. Message bases{comma} U/D and U/X libraries can be configured by using "

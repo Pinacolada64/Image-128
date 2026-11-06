@@ -100,6 +100,9 @@ while time.time() < deadline:
     for r in screen.split('\n'):
         if 'found:' in r and r.strip() not in seen:
             seen.add(r.strip()); print(ts(), 'screen:', r.strip())
+    if ('time zone:' in screen or 'more?' in screen) and screen not in seen:
+        seen.add(screen); print(ts(), 'time zone list:')
+        print('\n'.join('   |' + r for r in rows()))
     if buffer_empty():
         if 'hit any key to continue' in screen:
             press('\r'); print(ts(), 'Hit any key: pressing Return')

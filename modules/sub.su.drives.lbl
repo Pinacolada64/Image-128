@@ -16,20 +16,50 @@
 {step:2}
 
 {number:60000}
+	on im goto {:drives},{:table}:return
+' im=1: the Drives part; im=2: just the table, for i/su.config's review (after
+' a scan: tt$(8-30), as here)
 {:drives}
 	z3$="Drives":gosub 3404:if su%(1) then {:summary}
 	for j=1 to 6:gosub {:ask}:next
+' 11/05/2026: a table: number, drive, device, drive number, model, and the
+' disk's name from its directory header (under it in 40 columns, at the end
+' of the line in 80: sw). 18 rows: Found, a blank line, the heading, 12
+' lines, the prompt
 {:summary}
-	gosub 3414:gosub {:found}:restore {:names}:for j=1 to 6:read a$:a%=j
-	b$=mid$(str$(su%(10+j)),2)+","+mid$(str$(su%(20+j)),2):d=su%(10+j)
-	if tt$(d)<>"" then b$=b$+" ("+tt$(d)+")"
-	gosub 4910:next
+	gosub 3414:gosub {:found}:gosub {:table}
 	h=6:gosub 4920:if a then j=a:gosub {:ask}:goto {:summary}
 	su%(1)=1:return
+{:table}
+	&"{lt. blue}  #  Drive      Dev Dr  Type{f6}":pd=-1
+	restore {:names}:for j=1 to 6:read l$:d=su%(10+j):r=su%(20+j)
+	a$="{yellow}"+right$("  "+mid$(str$(j),2),3)+"  {lt. blue}"+left$(l$+"          ",10)+"{white}"
+	a$=a$+right$("   "+mid$(str$(d),2),3)+right$("   "+mid$(str$(r),2),3)+"   {cyan}"+tt$(d):&
+	gosub {:dname}:if n$="" then {:sum1}
+	a$="{lt. green}{quotation}"+n$+"{quotation}":if sw<80 then a$="{f6}       "+a$:goto {:sum0}
+	a$=left$("          ",10-len(tt$(d)))+a$
+{:sum0}
+	&
+{:sum1}
+	&"{f6}":next:return
+
+' n$ = the name of the disk in device d drive r, from the first line of its
+' directory ("$0": the name between its first two quotes); "" if the device
+' didn't answer the scan. pd, pr, pn$: the last one read, for the next line
+' on the same drive
+{:dname}
+	n$="":if tt$(d)="" then return
+	if d=pd and r=pr then n$=pn$:return
+	close 2:open 2,d,0,"$"+mid$(str$(r),2):k=.
+{:dname1}
+	get#2,a$:k=k+1:if a$<>chr$(34) and k<12 and st=. then {:dname1}
+{:dname2}
+	get#2,a$:if a$<>chr$(34) and len(n$)<16 and st=. then n$=n$+a$:goto {:dname2}
+	close 2:pd=d:pr=r:pn$=n$:return
 
 ' the drives found: "Found: 8 (1581) 9 (1571)", or that none answered
 {:found}
-	&"{f6}{lt. blue}Found{colon}{white}":n=.:for d=8 to 30:if tt$(d)="" then {:found1}
+	&"{lt. blue}Found{colon}{white}":n=.:for d=8 to 30:if tt$(d)="" then {:found1}
 	n=n+1:&" {pound}!d ("+tt$(d)+")"
 {:found1}
 	next:if n=. then:&" no drives{question}"

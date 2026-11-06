@@ -545,8 +545,9 @@
 3224 z3$="Convert from Image BBS 64 v2.0":goto 3228
 ' [c64] sys 64738 (reset) = [128] sys 16384
 3226 z3$="Reset C128":gosub 3404:gosub 93:if a=. then return:else sys 16384
-' FIXME: ew. use &,69,0,x,"{space:39}",1 instead?
-3228 gosub 3404:&"{f6}{pound}{back arrow}39 {f6}{pound}{back arrow}39 {f6}{pound}{back arrow}39 {f6}{pound}{back arrow}39 {f6}"
+' 11/05/2026: the start-up menu's lines cleared with 3414's Esc @, not four
+' lines of spaces
+3228 gosub 3404:gosub 3414
 ' 3240 f$="i/setup 128":close 15:open 1,dv%,1,f$:s=ds:close15:ifsthen:&"{f6}Cannot find {quotation}{pound}$f{quotation}. Halting.{pound}w5":goto 4048
 ' ds=63: file exists
 ' the setup module (Image BBS 3.0's, ported): i/su.config

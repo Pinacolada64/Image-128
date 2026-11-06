@@ -267,6 +267,8 @@
 	rmargin	= $e7	; [128 OS] the editor window's right edge, where its
 			; print wraps (39 or 79 for the whole screen)
 	scbot	= $e4	; [128 OS] the editor window's bottom row: its
+	sctop	= $e5	; [128 OS] the editor window's top row (0); Image's console scroll
+			; starts there too (shdlr.asm, 11/05/2026)
 			; scrolls and line inserts stop there
 	graphm	= $d8	; [128 OS] graphic mode: $ff keeps the editor's IRQ off
 			; the VIC's $d018/$d011/$d016/$d012 (irq_far splits
