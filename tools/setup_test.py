@@ -3,10 +3,11 @@
 boot disk in x128, taking every default, then watch im boot from the new
 configuration.
 
-    tools/setup_test.py [disk.d81] [--cols 40|80] [--keep]
+    tools/setup_test.py [disk.d81] [--cols 40|80] [--out disk.d81] [--keep]
 
-Copies build/image128.d81 (or the disk given) to build/setup-test.d81 and
-works on that. It presses 1 at im's start-up menu, then Return at every
+Copies build/image128.d81 (or the disk given) to build/setup-test.d81 (or
+the --out disk: build/setup-test.d81 may be a configured run disk you want
+to keep) and works on that. It presses 1 at im's start-up menu, then Return at every
 prompt the setup shows (each takes its default), except the few in
 `special` below that want a key, and logs each new line of the setup's frame (the "Part I:
 Sysop Information" lines). After "Hit any key", it watches im until its
@@ -23,10 +24,13 @@ args = sys.argv[1:]
 cols = 40
 if '--cols' in args:
     i = args.index('--cols'); cols = int(args[i + 1]); del args[i:i + 2]
+out = None
+if '--out' in args:
+    i = args.index('--out'); out = args[i + 1]; del args[i:i + 2]
 keep = '--keep' in args
 args = [a for a in args if a != '--keep']
 src = args[0] if args else os.path.join(repo, 'build', 'image128.d81')
-disk = os.path.join(repo, 'build', 'setup-test.d81')
+disk = out or os.path.join(repo, 'build', 'setup-test.d81')
 shutil.copyfile(src, disk)
 
 v = X128(['-drive8type', '1581', '-warp', '-autostart', disk + ':boot 128'], cols=cols, wait=2)
@@ -74,7 +78,7 @@ press('1')
 # prompts run in im's subroutines too, lines 1-96, 3404 and 3414.)
 # Prompts that need a key other than Return, by text on the screen; each
 # is answered once.
-special = [('set the image 3.0 system clock', '1', 'clock menu: 1 (Manually)')]
+special = [('set the image bbs 128 system clock', '1', 'clock menu: 1 (Manually)')]
 answered = set()
 seen = set(); deadline = time.time() + 600
 while time.time() < deadline:

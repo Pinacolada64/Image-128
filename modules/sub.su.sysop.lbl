@@ -1,0 +1,35 @@
+' sub.su.sysop -- the new-system setup's Sysop Information part
+' (i/su.config, 3): the sysop's account, user 1. First visit: each asked,
+' Return taking the default; then the summary, where a number asks that one
+' again and Return is done. The answers go in su$(1-5) (handle, password,
+' first name, last name, e-mail), which sub.su.write makes the u.config
+' record of. 11/05/2026 (Part I of the old setup).
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{include:..\quoters.lbl}
+{include:su_helpers.lbl}
+{step:2}
+
+{number:60000}
+	z3$="Sysop Information":gosub 3404:if su%(3) then {:summary}
+	for j=1 to 5:gosub {:ask}:next
+{:summary}
+	gosub 3414:&"{f6}{white}":restore {:names}:for j=1 to 5:read a$,b$,k,ln,pl:a%=j
+	b$=su$(k):gosub 4910:next
+	h=5:gosub 4920:if a then j=a:gosub {:ask}:goto {:summary}
+	su%(3)=1:return
+
+' item j (in the summary's order): its label, default, su$() index, length
+' and case (pl 1: as typed, for the names; 0 for the e-mail address)
+{:ask}
+	gosub 3414:&"{f6}{white}":restore {:names}:for i=1 to j:read p$,w$,k,ln,pl:next
+	if su$(k)<>"" then w$=su$(k)
+	gosub 4900:su$(k)=an$:&"{f6}":return
+{:names}
+	data "Sysop Handle","IMAGE SYSOP",1,20,1
+	data "First Name","JOHN",3,20,1
+	data "Last Name","DOE",4,20,1
+	data "E-Mail Address","example@example.com",5,40,0
+	data "Password","PASS",2,20,1
+
+	rem "sub.su.sysop (c)nissa 2026-11-05"

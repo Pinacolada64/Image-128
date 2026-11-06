@@ -405,6 +405,30 @@ still reaches its label (a `$ff` offset is the giveaway).
 
 ## Open problems
 
+### A REL file can't grow on a nearly full 1581 (found 11/05/2026)
+
+Positioning past the end of a REL file and writing there (`record#2,2,1`
+then `print#2` on a new file, as `im` line 1 does for a record that isn't
+there yet: setup's `u.config`, a new user's record) hangs when the 1581's
+disk is nearly full: the KERNAL sits in its serial-bus wait (`$e569`,
+reading `$dd00`), the drive having released clock and data. Plain BASIC 7
+with no Image loaded does the same, so it isn't Image's ML. Tried in x128
+(VICE 3.8, `-drive8type 1581`) with `tests/standin/relwrite.bas`:
+
+| Disk | Blocks free | Result |
+|---|---|---|
+| empty | 3160 | works (status 50 "record not present", then carries on) |
+| `image128.d81` as built then | 82 | hangs |
+| the same, 7 files deleted | 353 | works |
+
+Writing the records in order without `record#` works even on the full
+disk. Not known yet: how much room is enough, and whether a real 1581
+does this or it's VICE's emulation. Meanwhile `asm/build.sh` puts the
+`today.*` files on `build/features.d81`, which left `image128.d81` 641
+blocks free. A BBS's drives near full could hit it when a new user signs
+on (`u.config` grows), so check on real hardware before relying on it.
+
+
 ### `&,2,2`'s `a$`, and `&,11` leaving strings linked (fixed 10/26/2026)
 
 `&,2` (`dskin`) left `a$` pointing at `buf2`, outside the string area, and

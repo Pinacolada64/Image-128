@@ -1,0 +1,34 @@
+' sub.su.bbs -- the new-system setup's BBS Information part (i/su.config,
+' 4): the board's name, main prompt, chat messages and new users' credits.
+' First visit: each asked, Return taking the default; then the summary,
+' where a number asks that one again and Return is done. The answers go in
+' su$(6-10), which sub.su.write puts in bd.data and e.data. 11/05/2026
+' (Part IV of the old setup).
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{include:..\quoters.lbl}
+{include:su_helpers.lbl}
+{step:2}
+
+{number:60000}
+	z3$="BBS Information":gosub 3404:if su%(4) then {:summary}
+	for j=1 to 5:gosub {:ask}:next
+{:summary}
+	gosub 3414:&"{f6}{white}":restore {:names}:for j=1 to 5:read a$,b$,k,ln:a%=j
+	b$=su$(k):gosub 4910:next
+	h=5:gosub 4920:if a then j=a:gosub {:ask}:goto {:summary}
+	su%(4)=1:return
+
+' item j: its label, default, su$() index and length
+{:ask}
+	gosub 3414:&"{f6}{white}":restore {:names}:for i=1 to j:read p$,w$,k,ln:next:pl=.
+	if su$(k)<>"" then w$=su$(k)
+	gosub 4900:su$(k)=an$:&"{f6}":return
+{:names}
+	data "BBS Name","IMAGE BBS 128",6,30
+	data "Main Prompt","IMAGE MAIN",7,30
+	data "Chat Entry","* Entering Chat Mode *",8,30
+	data "Chat Exit","* Exiting Chat Mode *",9,30
+	data "New User Credits","100",10,5
+
+	rem "sub.su.bbs (c)nissa 2026-11-05"

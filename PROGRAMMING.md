@@ -261,7 +261,9 @@ them to `s.today/hist` on drive 1. `i/lo-today` (`modules/i_lo-today.lbl`)
 shows `s.today/hist` to callers. Both are run from the logon and
 maintenance lists. The twelve `today.*` files come on the release's
 `MASTER D2` disk; `disk/today.<Mon>.seq` are those, fixed (see
-`disk/README.md`), and `asm/build.sh` writes them to `image128.d81`.
+`disk/README.md`), and `asm/build.sh` writes them to `build/features.d81`
+(11/05/2026; they were on `image128.d81`, which they left too full: setup's
+Optional Features part copies them from that disk when it's chosen).
 
 `tools/today.py` lists, checks and edits a `today.<Mon>` file, on a
 `.d81` or as a SEQ file (`tools/today.py --help`).

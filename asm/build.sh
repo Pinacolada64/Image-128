@@ -171,5 +171,12 @@ c1541 -format "image bbs 128,ib" d81 image128.d81 \
 	-write "$repo/disk/e.alarms.prg" e.alarms \
 	-write "$repo/disk/nm.times.prg" nm.times \
 	-write "$repo/disk/e.fkeys.seq" "e.fkeys,s" \
-	"${modwrites[@]}" "${ovlwrites[@]}" "${todaywrites[@]}" >/dev/null
+	"${modwrites[@]}" "${ovlwrites[@]}" >/dev/null
 c1541 image128.d81 -list
+# 11/05/2026: the optional features' files on a disk of their own, which
+# setup's Optional Features part copies from (Today in History's 12 files
+# are ~550 blocks; on image128.d81 they left 84 free, and a 1581 with that
+# little room hangs extending a REL file: setup's u.config write)
+rm -f features.d81
+c1541 -format "image bbs 128 features,if" d81 features.d81 "${todaywrites[@]}" >/dev/null
+c1541 features.d81 -list | tail -1

@@ -1,0 +1,14 @@
+' su_helpers.lbl -- the new-system setup's shared lines, in i/su.config
+' (i_su.config.lbl, {number:4900} on), for its parts (modules/sub.su.*),
+' which run at 60000 while i/su.config stays in memory at 4000 and gosub
+' these. Included by each part (an {include}, not a module: build.sh builds
+' only sub.*, i.* and i_* files). Keep the numbers in step with
+' i_su.config.lbl. 11/05/2026.
+{assign:3404	=3404	} ' im: boot frame: show z3$
+{assign:3414	=3414	} ' im: boot frame: clear the lines under it
+{assign:4900	=4900	} ' su.ask: ask p$ (label), w$ (default), ln (length), pl (case): an$
+{assign:4910	=4910	} ' su.item: a summary line: a% number, a$ label, b$ value
+{assign:4920	=4920	} ' su.pick: "Number to change (1-h), or Return": a (0 = Return)
+{assign:4930	=4930	} ' su.create: 'Creating "f$"...'
+{assign:4932	=4932	} ' su.done: "Done!"
+{assign:4940	=4940	} ' su.copr: c$ = the copyright line (bd.data, the closing screen)
