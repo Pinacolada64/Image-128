@@ -106,7 +106,8 @@ def check():
 
 
 def main():
-    if len(sys.argv) != 2:
+    # 11/06/2026: an option isn't a directory ("--help" made one called that)
+    if len(sys.argv) != 2 or sys.argv[1].startswith('-'):
         sys.exit(__doc__)
     check()
     out = sys.argv[1]
