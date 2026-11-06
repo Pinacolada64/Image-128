@@ -4,6 +4,11 @@
 ' summary, where a number asks that drive again and Return is done.
 ' The answers go in su%(11-16) and su%(21-26); dv%() and dr%() stay the
 ' boot drive until sub.su.write (i/su.config's notes). 11/05/2026.
+' Phase 2 (11/05/2026): i/su.config has just scanned the bus (sub.sysdos
+' im=2): tt$(8-30) each device's model, "?" for one that answers but isn't
+' recognized, "" for none. The drives found are listed above the questions;
+' a device that didn't answer, or a drive the device won't initialize
+' ("i" and the drive number), is used only if the sysop says so.
 {uses:..\3_0-preface.lbl}
 {alpha:alt}
 {include:..\quoters.lbl}
@@ -11,22 +16,44 @@
 {step:2}
 
 {number:60000}
+{:drives}
 	z3$="Drives":gosub 3404:if su%(1) then {:summary}
 	for j=1 to 6:gosub {:ask}:next
 {:summary}
-	gosub 3414:&"{f6}{white}":restore {:names}:for j=1 to 6:read a$:a%=j
-	b$=mid$(str$(su%(10+j)),2)+","+mid$(str$(su%(20+j)),2):gosub 4910:next
+	gosub 3414:gosub {:found}:restore {:names}:for j=1 to 6:read a$:a%=j
+	b$=mid$(str$(su%(10+j)),2)+","+mid$(str$(su%(20+j)),2):d=su%(10+j)
+	if tt$(d)<>"" then b$=b$+" ("+tt$(d)+")"
+	gosub 4910:next
 	h=6:gosub 4920:if a then j=a:gosub {:ask}:goto {:summary}
 	su%(1)=1:return
 
-' drive j: its device (8-30) and its drive or partition (0-254)
+' the drives found: "Found: 8 (1581) 9 (1571)", or that none answered
+{:found}
+	&"{f6}{lt. blue}Found{colon}{white}":n=.:for d=8 to 30:if tt$(d)="" then {:found1}
+	n=n+1:&" {pound}!d ("+tt$(d)+")"
+{:found1}
+	next:if n=. then:&" no drives{question}"
+	&"{f6:2}":return
+
+' drive j: its device (8-30) and its drive or partition (0-254), each
+' checked
 {:ask}
-	gosub 3414:&"{f6}{white}":restore {:names}:for i=1 to j:read a$:next:pl=1
-	p$=a$+" Device":w$=mid$(str$(su%(10+j)),2):ln=2:gosub 4900
-	a=val(an$):if a<8 or a>30 then a=su%(10)
-	su%(10+j)=a:p$=a$+" Drive":w$=mid$(str$(su%(20+j)),2):ln=3:gosub 4900
-	a=val(an$):if a<. or a>254 then a=.
-	su%(20+j)=a:&"{f6}":return
+' (l$ the label, v the device: gosub 94 sets a$, an$ and a)
+	gosub 3414:gosub {:found}:restore {:names}:for i=1 to j:read l$:next:pl=1
+{:askdev}
+	p$=l$+" Device":w$=mid$(str$(su%(10+j)),2):ln=2:gosub 4900
+	v=val(an$):if v<8 or v>30 then v=su%(10)
+	if tt$(v)="" then:&"{f6}{yellow}Device {pound}!v didn't answer. Use it anyway{question} ":gosub 94:if a=. then {:askdev}
+	su%(10+j)=v:&"{f6}"
+{:askdrv}
+	p$=l$+" Drive":w$=mid$(str$(su%(20+j)),2):ln=3:gosub 4900
+	b=val(an$):if b<. or b>254 then b=.
+	su%(20+j)=b:&"{f6}":if tt$(su%(10+j))="" then return
+' the drive initializes it ("i0", "i1"...: 00 or an error), as a check
+	d=su%(10+j):close 15:open 15,d,15,"i"+mid$(str$(b),2):input#15,e,e$:close 15
+	if e<20 then return
+	&"{yellow}Device {pound}!d drive {pound}!b{colon} {pound}!e "+e$+". Use it anyway{question} ":gosub 94:if a=. then {:askdrv}
+	return
 {:names}
 	data "System","E-Mail","Etcetera","Directory","Plus-File","User"
 

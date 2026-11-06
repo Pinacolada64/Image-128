@@ -3,7 +3,7 @@
 boot disk in x128, taking every default, then watch im boot from the new
 configuration.
 
-    tools/setup_test.py [disk.d81] [--cols 40|80] [--out disk.d81] [--keep]
+    tools/setup_test.py [disk.d81] [--cols 40|80] [--out disk.d81] [--drive9 TYPE] [--vice ARG ...] [--keep]
 
 Copies build/image128.d81 (or the disk given) to build/setup-test.d81 (or
 the --out disk: build/setup-test.d81 may be a configured run disk you want
@@ -14,6 +14,10 @@ Sysop Information" lines). After "Hit any key", it watches im until its
 line number stops changing, and prints the screen and the line it stopped
 on. x128 runs in warp mode through the remote monitor on port 6537 (not
 6510, which a VICE of your own may have); --keep leaves it running.
+--drive9 1571 (say) adds a drive 9 with no disk, for the Drives part's bus
+scan; the scan's "Found:" line is logged too. --vice passes one argument
+to x128 (repeat it), e.g. --vice -drive9type --vice 4000 --vice -dos4000
+--vice <rom> for a CMD FD-4000.
 """
 import os, shutil, sys, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -27,13 +31,20 @@ if '--cols' in args:
 out = None
 if '--out' in args:
     i = args.index('--out'); out = args[i + 1]; del args[i:i + 2]
+drive9 = None
+if '--drive9' in args:
+    i = args.index('--drive9'); drive9 = args[i + 1]; del args[i:i + 2]
+vice = []
+while '--vice' in args:
+    i = args.index('--vice'); vice.append(args[i + 1]); del args[i:i + 2]
 keep = '--keep' in args
 args = [a for a in args if a != '--keep']
 src = args[0] if args else os.path.join(repo, 'build', 'image128.d81')
 disk = out or os.path.join(repo, 'build', 'setup-test.d81')
 shutil.copyfile(src, disk)
 
-v = X128(['-drive8type', '1581', '-warp', '-autostart', disk + ':boot 128'], cols=cols, wait=2)
+v = X128(['-drive8type', '1581'] + (['-drive9type', drive9] if drive9 else []) +
+         vice + ['-warp', '-autostart', disk + ':boot 128'], cols=cols, wait=2)
 t0 = time.time()
 
 
@@ -86,6 +97,9 @@ while time.time() < deadline:
         if x and x not in seen:
             seen.add(x); print(ts(), 'frame:', x)
     screen = '\n'.join(rows()).lower()
+    for r in screen.split('\n'):
+        if 'found:' in r and r.strip() not in seen:
+            seen.add(r.strip()); print(ts(), 'screen:', r.strip())
     if buffer_empty():
         if 'hit any key to continue' in screen:
             press('\r'); print(ts(), 'Hit any key: pressing Return')

@@ -61,8 +61,10 @@
 
 {nice:100}
 ' the parts: each a sub.su.* module (goto 74: its return is this gosub's)
+' the bus scan first (sub.sysdos im=2: each device's model in tt$(8-30)),
+' which the Drives part lists and checks the picks against
 {:drives}
-	im=1:a$="su.drives":goto 74
+	im=2:a$="sysdos":gosub 74:im=1:a$="su.drives":goto 74
 {:sysop}
 	im=1:a$="su.sysop":goto 74
 {:bbs}

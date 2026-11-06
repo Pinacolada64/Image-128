@@ -626,6 +626,20 @@ can call it too. Each call is a farcall, so a counter that changes every
 byte goes across now and then (`++ copier`'s `Bytes:`: every 64 bytes,
 and when the call ends).
 
+## The bus scan: `sub.sysdos` im=2
+
+`im=2:a$="sysdos":gosub 74` lists the drives on the serial bus (devices
+8-30): `tt$(d)` is each device's model, `a%` how many answered. A device
+answers `open 15,d,15:close 15` (as `im` line 353 checks); its model comes
+from its own ROM with `m-r` (no reset, no disk access): CMD's ID at
+`$fea4` (`HD`, `FD`, `RL`, `RD`, as CMD's fcopy/mcopy/bcopy check), else
+the power-on message's model number (`$e5bb`: 1541, 1570, 1571; `$a6df`:
+1581). `tt$(d)` is `CMD HD`, `CMD FD`, `RAMLink`, `RAMDrive`, `1541`...,
+`?` for one that answers but isn't recognized (SD2IEC), `""` for none.
+About 0.1 s an absent device, 2-3 s a drive. The setup's Drives part uses
+it; tried in x128 with a 1541, 1571 and 1581, and a CMD FD-4000
+(`-drive9type 4000 -dos4000 ROMs/dos4000`, the ROM not in the repo).
+
 ## Test programs
 
 `tests/standin/` programs are petcat source, not C64List: `\` is the `£`

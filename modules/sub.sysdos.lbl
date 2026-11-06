@@ -8,10 +8,41 @@
 {alpha:alt}
 {crunch:on}
 
-60000 on imgoto 60004:return
+60000 on imgoto 60004,60020:return
 60004 gosub 350:on agoto 60012:&"{f6}Disk Command?: ":poke 53252,58
 60006 gosub 289:z$=an$:if z$="" or z$="@" then gosub 3:gosub 5:&:return
 60008 b$=left$(z$,1):if b$="n" or b$="s" then:gosub 93:if a=.then return
 60010 gosub 3:print# 15,z$:gosub 5:&:return
 60012 x=6:goto 390
+' 11/05/2026: im=2, the bus scan (the new-system setup's Drives part; ImageBBS3
+' TODO.md: kept in a sub.* so 3.0 can share it): devices 8-30, each that
+' answers (open 15,d,15:close 15, as im 353 checks) named from its own ROM
+' with "m-r" (no reset, no disk access, no error LED):
+' - CMD's ID at $fea4, two bytes, as CMD's fcopy, mcopy and bcopy (1993)
+'   identify their devices: "HD" CMD HD, "FD" CMD FD, "RL" RAMLink, "RD"
+'   RAMDrive (plain ASCII in the ROM: written in lower case here, which
+'   {alpha:alt} builds as $41-$5a)
+' - else, as TADA's drive_id.asm: 16 bytes at $e5bb (1541/1570/1571's 73
+'   message) or $a6df (1581's), the model the four digits ending at the
+'   first byte with bit 7 set
+' Out: tt$(d) = the model ("CMD HD", "1581"...), "?" for a drive that
+' answers but isn't recognized (SD2IEC...), "" for none; a% = how many
+' answered. Leaves file 15 closed
+60020 close 15:a%=.:for d=8 to 30:tt$(d)="":open 15,d,15:close 15:if st and 128 then 60034
+60022 a%=a%+1:tt$(d)="?":b=65188:n=2:gosub 60040
+60024 c$="":if w$="hd" then c$="CMD HD"
+60026 if w$="fd" then c$="CMD FD"
+60028 if w$="rl" then c$="RAMLink"
+60030 if w$="rd" then c$="RAMDrive"
+60031 if c$="" then n=16:b=58811:gosub 60044:if c$="" then b=42719:gosub 60044
+60032 if c$<>"" then tt$(d)=c$
+60034 next:return
+' n bytes at b into w$
+60040 w$="":open 15,d,15,"m-r"+chr$(b-int(b/256)*256)+chr$(b/256)+chr$(n)
+60042 for i=1 to n:get#15,a$:w$=w$+chr$(asc(a$+chr$(.))):next:close 15:return
+' a 16-byte window at b: c$ = the model, or ""
+60044 c$="":gosub 60040:for i=4 to 16:a=asc(mid$(w$,i,1)):if a>127 then c$=mid$(w$,i-3,3)+chr$(a-128):i=16
+60046 next:if c$="" then return
+60048 for i=1 to 4:a=asc(mid$(c$,i,1)):if a<48 or a>57 then c$="":i=4
+60050 next:return
 60100 rem "sub.sysdos (c)nissa 190104 lh"

@@ -4,3 +4,6 @@ asm/*.bin
 asm/*.prg
 asm/ml.sym
 __pycache__/
+
+# drive ROMs (CMD FD-2000/4000...) for VICE tests: not ours to publish
+ROMs/
