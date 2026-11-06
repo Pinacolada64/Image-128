@@ -595,11 +595,8 @@
 ' after a message starts under the frame
 3405 &,69,2,3,z1$,c:&,69,2,4,z2$,c:&,70,0,6:return
 
-' FIX: remove z=z+1 stuff. this does not delay 1/2 second on a SuperCPU system. use timer instead:
-' 'i=not i' does not work
-
-' FIXME: i=color index (0=gray, 1=yellow)
-3406 gosub 3414:i=1:&"1) Option 1{f6}2) Option 2{f6}3) Option 3{f6}{back arrow}) Abort{f6:2}Option: "
+' 11/06/2026: 3406, a test menu ("1) Option 1"... with no return) nothing
+' called, removed
 
 ' NOTE: Immutable line number
 ' flash z1$ and z2$ until a key, then return it in an$ (the caller acts on it),
