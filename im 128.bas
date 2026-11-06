@@ -633,7 +633,10 @@
 ' 10/20/2026: on an 80-column screen, also clear columns 39-78 (the MCI
 ' tab stops short of column 40)
 ' TODO: it would be nice to expand MCI tab to 80 columns
-3414 for i=6 to 23:&,70,0,i:&"{pound}{back arrow}38"+left$("{space:40}",-40*(sw=80)):next:&,70,0,6:return
+' 11/05/2026: one Esc @ (the 128 editor clears to the end of its window,
+' botline: & output passes Esc sequences to it now, shdlr.asm), not 18 lines
+' of spaces printed one at a time
+3414 &,70,0,6:&"{$1b}@":&,70,0,6:return
 
 
 ' computer types:

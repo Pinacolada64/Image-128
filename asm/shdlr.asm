@@ -322,6 +322,7 @@ chrtbl:
 	word scdn,scup
 	word scret,scdel
 	word scbell
+	word prtscn	; 128: Esc (11/05/2026: see chrs)
 chrs:
 	byte swlc, swuc
 	byte reverse_on, reverse_off
@@ -330,6 +331,13 @@ chrs:
 	byte cursor_down, cursor_up
 	byte carriage_return, cbm_backspace
 	byte ascii_bel
+; 128, 11/05/2026: Esc goes to the 128 editor's print ($c72d, prtscn), and
+; so does the character after it (a letter, through sc4/sc5's prtscn): the
+; editor runs the sequence when the character before was Esc ($f0), on its
+; own cursor (Image's sline/scnpos): "{esc}q" clears to the end of the line,
+; "{esc}@" to the end of the window (botline: the mask's rows stay). Esc
+; used to be dropped (not in chrs or colors) and its letter printed
+	byte ascii_escape
 chrs_end:
 
 cleanup:
@@ -367,8 +375,8 @@ fixlinks:
 	rts
 fixlinks_byte:
 	byte 0
-fixlinks_bits:
-	byte $80,$40,$20,$10,$08,$04,$02,$01
+; (fixlinks_bits, the line link bits, is in setup.asm: the resident ML
+; from $e000 was full, 11/05/2026)
 
 botline:
 	byte 22

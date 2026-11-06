@@ -44,3 +44,8 @@ speed_slow:
 speed_set:
 	sta flag_mhz_addr
 	rts
+
+; shdlr.asm's fixlinks' bits for row & 7 (moved here, 11/05/2026: the
+; resident ML from $e000 was full)
+fixlinks_bits:
+	byte $80,$40,$20,$10,$08,$04,$02,$01
