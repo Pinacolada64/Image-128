@@ -17,7 +17,7 @@
 ' default; Return asks the next not asked. Choosing a method asks the time
 ' zone too; i/su.config marks both asked (su%(37-38)) and comes back here.
 ' The zone is needed: D before it has been asked asks it
-	z3$="Clock":gosub 3404:ib=36:if su$(13)="" then su$(11)="0":su$(13)="Manually"
+	z3$="Clock and Time Zone":gosub 3404:ib=36:if su$(13)="" then su$(11)="0":su$(13)="Manually"
 	gosub 3414:&"{f6}{white}":nx=.:a%=1:a$="Set at boot by":b$=su$(13):gosub 4910
 	a%=2:a$="Time zone":b$="(none chosen)":if su$(12)<>"" then gosub {:zone}
 	gosub 4910
@@ -53,7 +53,14 @@
 {:cmddev}
 	poke 53252,2:pl=1:w$="8":p$="{yellow}CMD Device{white}"+"":&,1,32:b=val(an$)
 	if an$="" then b=val(w$)
-	&"{cyan}Is {pound}!b correct{question} ":gosub 96:if a=. then {:cmddev}
+' 11/06/2026: read its clock with T-RA (as sub.clocks' CMD method does):
+' the time it gives ("fri. 08/16/24 01:04:15 p", 24 characters), or why not
+	close 15:open 15,b,15:close 15:if st then:&"{f6}{yellow}No device {pound}!b.{f6}":goto {:cmdyes}
+	open 15,b,15:print# 15,"t-ra":&,2,15:close 15
+	if len(a$)<24 then:&"{f6}{yellow}No CMD clock on device {pound}!b ("+a$+").{f6}":goto {:cmdyes}
+	&"{f6}{lt. blue}Its clock{colon} {white}"+a$+"{f6}"
+{:cmdyes}
+	&"{cyan}Use device {pound}!b{question} ":gosub 96:if a=. then {:cmddev}
 	ck$=mid$(str$(b),2):return
 ' 11/05/2026: the 128's choices, as VICE's x128 has them: $d500 is the MMU
 ' and $d600 the VDC here (the C64's setup offered both); $de00 is the

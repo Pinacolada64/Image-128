@@ -56,15 +56,16 @@
 	n=.:restore {:names}:for i=1 to 4:read a$:a%=i:b$=mid$(" {$ba}",su%(i)+1,1)+" "
 	if n=. and su%(i)=. then n=i
 	&"{white}{pound}$b{yellow}{pound}%a{lt. blue}) {pound}$a{f6}":next
-	&"{yellow}  R{lt. blue}) Review{comma} then write the files{f6:2}":a$="Review"
+	&"{yellow}  R{lt. blue}) Review{comma} then write system files{f6:2}":a$="Review"
 	if n then restore {:names}:for i=1 to n:read a$:next
-	&"{lt. green}Return{colon} {pound}$a{f6}{yellow}Your choice{colon} {white}{pound}i1{f6}"
+' 11/06/2026: {pound}i1's length is 53252's: set here, not left from the last input
+	poke 53252,1:&"{lt. green}Return{colon} {pound}$a{f6}{yellow}Your choice{colon} {white}{pound}i1{f6}"
 	a=val(an$):if an$=r$ or an$="" then a=n:if n=. then an$="R"
 	if an$="R" or an$="r" then gosub {:review}:on a goto {:menu}:return
 	if a<1 or a>4 then {:menu}
 	on a gosub {:drives},{:clock},{:sysop},{:bbs}:goto {:menu}
 {:names}
-	data "Drives","Clock","Sysop Information","BBS Information"
+	data "Devices and Drives","Clock and Time Zone","Sysop Information","BBS Information"
 
 {nice:100}
 ' the parts: each a sub.su.* module (goto 74: its return is this gosub's)
@@ -153,13 +154,13 @@
 {number:4910}
 {:su.item}
 	ic=su%(ib+a%):if ic=. and nx=. then nx=a%:nx$=a$
-	&"{white}"+mid$(" {$ba}",ic+1,1)+"{yellow}{pound}%a{lt. blue}) "+left$(a$+"..................",18)+"{colon} {white}{pound}$b{f6}":return
+	&"{white}"+mid$(" {$ba}",ic+1,1)+" {yellow}{pound}%a{lt. blue}) "+left$(a$+"..................",18)+"{colon} {white}{pound}$b{f6}":return
 ' su.pick: a = the item to ask: the number typed (1-h), or Return's: the
 ' first not asked (nx); 0 = done (D, or Return when all were asked: the
 ' rest keep their defaults). 11/06/2026: Return walks the items in order
 {number:4920}
 {:su.pick}
-	a$="Done":if nx then a$=nx$
+	poke 53252,1:a$="Done":if nx then a$=nx$
 	&"{f6}{yellow}1-{pound}!h{comma} D(one){comma} Return{equal}{lt. green}{pound}$a{yellow}{colon} {white}{pound}i1{f6}":a=val(an$)
 	if an$="" then a=nx:return
 	if an$="D" or an$="d" then a=.:return

@@ -21,7 +21,7 @@
 ' im=1: the Drives part; im=2: just the table, for i/su.config's review (after
 ' a scan: tt$(8-30), as here)
 {:drives}
-	z3$="Drives":gosub 3404:ib=30
+	z3$="Devices and Drives":gosub 3404:ib=30
 ' 11/05/2026: a table: number, drive, device, drive number, model, and the
 ' disk's name from its directory header (under it in 40 columns, at the end
 ' of the line in 80: sw). 18 rows: Found, a blank line, the heading, 12
@@ -36,10 +36,10 @@
 ' a row's check (ib: the Drives part): asked (su%(ib+j)); nx, nx$ the first
 ' not asked, as su.item
 {:table}
-	&"{lt. blue}  #  Drive      Dev Dr  Type{f6}":pd=-1
+	&"{lt. blue}   #  Drive      Dev Dr  Type{f6}":pd=-1
 	restore {:names}:for j=1 to 6:read l$:d=su%(10+j):r=su%(20+j)
 	ic=.:if ib then ic=su%(ib+j):if ic=. and nx=. then nx=j:nx$=l$
-	a$="{white}"+mid$(" {$ba}",ic+1,1)+"{yellow}"+right$(" "+mid$(str$(j),2),2)+"  {lt. blue}"+left$(l$+"          ",10)+"{white}"
+	a$="{white}"+mid$(" {$ba}",ic+1,1)+" {yellow}"+right$(" "+mid$(str$(j),2),2)+"  {lt. blue}"+left$(l$+"          ",10)+"{white}"
 	a$=a$+right$("   "+mid$(str$(d),2),3)+right$("   "+mid$(str$(r),2),3)+"   {cyan}"+tt$(d):&
 	gosub {:dname}:if n$="" then {:sum1}
 	a$="{lt. green}{quotation}"+n$+"{quotation}":if sw<80 then a$="{f6}       "+a$:goto {:sum0}
