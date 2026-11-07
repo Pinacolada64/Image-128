@@ -29,6 +29,7 @@ They're petcat source (BASIC 7.0), not C64List: `chr$(92)` for `£`, no
 | `trap.bas` | BASIC 7's `trap`/`resume` with Image's trap off, then both on (Image's wins); `er`/`el` against what Image's trap saves (`peek(6)`, `peek(7)+256*peek(8)`) |
 | `fkey-macros.bas` | Ctrl/C= + f1/f3/f5/f7 typing `f1$`-`f8$` into an input line |
 | `anfix.bas` | `&,1` and `£g1` inputs kept with a plain `x$=an$`: each keeps its own value through the next input and a collection (the ML copies `an$` out of the input buffer before the next statement); the script types 123, 45, 7 and 8 |
+| `mcii.bas` | MCI input `£i1` with more text after it in the same `&`: `a: £i1{f6}`, `e: £i1xyz{f6}` (and `£i1` alone, `{f6}` in its own `&`, `£g1£v7{f6}`). Type 1, 2, 3 (each with Return), 4, 5, 6: each answer stays on its own line, and `e:`'s `xyz` follows it. Before 11/06/2026 the `{f6}` after `£i1` printed the answer again (`1b:`, `xyz5f:`): `inline`'s Return copied `an$` (`trace0`, `strfix`) over the temporary copy of the string the `&` was still printing |
 | `swiftlink.bas` | the SwiftLink driver (`ml.rs232`, `&,16,1`): sends a line, then shows and echoes back what arrives on device 2 |
 | `userport.bas` | the same with the user port driver (`&,16,0`) at 1200 baud |
 | `dskin.bas` | `&,2,2` into `a$`, then `g$=a$`, `h$=a$`, `u$=a$`: each keeps its own line (`dskina`/`strfix`), through `fre(1)` and 150 more reads. Reads `t.lines` (`dskin.t.lines.seq`, put on its disk by `standin.sh`) |
