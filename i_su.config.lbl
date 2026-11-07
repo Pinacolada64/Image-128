@@ -42,7 +42,11 @@
 ' 11/05/2026: the window's top at row 6 for all of setup, so nothing printed
 ' under im's boot frame (rows 2-5) can scroll it away: Image's console scrolls
 ' from sctop, and im 3404 redraws only the frame's two lines, not its border
-	poke {sym:sctop},6:on lm gosub {:new},{:conv12},{:conv20}:poke {sym:sctop},.:poke {sym:timeset},su%(7):return
+' 11/06/2026: dv% (the current device: the last gosub 2's) set back to the
+' boot device (su%(10)): im 3084 opens bd.data on dv%, and setup's last
+' steps (the daily log, drive 3) left it at a CMD HD's 9: no bd.data
+' there, so im showed the start-up menu again
+	poke {sym:sctop},6:on lm gosub {:new},{:conv12},{:conv20}:poke {sym:sctop},.:poke {sym:timeset},su%(7):dv%=su%(10):return
 
 {nice:100}
 ' 1: a new system
@@ -119,7 +123,9 @@
 	lp=1:&"your BBS. Message bases{comma} U/D and U/X libraries can be configured by using "
 	lp=1:&"the {quotation}Base Editors{quotation} option.{f6:2}"+c$+"{f6:2}"
 ' esc-p: clear to start of line
-	lp=1:&"Hit any key to continue{colon} {pound}g1"+es$+"p":a=.:return
+' (then the lines under the frame cleared: if im shows its start-up menu
+' again, the closing screen isn't left under it)
+	lp=1:&"Hit any key to continue{colon} {pound}g1"+es$+"p":gosub 3414:a=.:return
 
 {nice:100}
 ' 2, 3: convert an Image BBS 64 system (sub.su.convert). Its d.data not
@@ -154,16 +160,13 @@
 
 ' shared lines for the parts (modules/su_helpers.lbl numbers them for them)
 ' su.ask: ask p$, w$ the default (Return takes it), ln long, pl the case.
-' 11/06/2026: &,1,16 (word wrap), not 32 (edit mode): the default after
-' the prompt on its line, to Return, edit or backspace over, not shown
-' above an empty input line. A key past ln ends a word-wrap input and puts
-' the last word in w$: then it's asked again
+' &,1,32 (edit mode): the default shown after the prompt, then the prompt
+' again on the next line, for the answer: typing replaces the default.
+' (11/06/2026: &,1,16, the default in the input itself, was tried: typing
+' added to it, "8" then 9 gave "89")
 {number:4900}
 {:su.ask}
-	poke 53252,ln:b$=w$:&,1,16:if w$="" then {:su.ask1}
-	&"{f6}{yellow}At most "+mid$(str$(ln),2)+" characters{comma} try again.{f6}":w$=b$:goto {:su.ask}
-{:su.ask1}
-	if an$="" then an$=b$
+	poke 53252,ln:b$=w$:&,1,32:if an$="" then an$=b$
 	return
 ' su.item: a part's menu line: a% its number, a$ its label, b$ its value;
 ' a check if asked (su%(ib+a%)); the first not asked is nx, nx$ its label

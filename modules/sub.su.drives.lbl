@@ -59,11 +59,11 @@
 {:dname}
 	n$="":if tt$(d)="" then return
 	if d=pd and r=pr then n$=pn$:return
-	close 2:open 2,d,0,"$"+mid$(str$(r),2):k=.
-{:dname1}
-	get#2,a$:k=k+1:if a$<>chr$(34) and k<12 and st=. then {:dname1}
-{:dname2}
-	get#2,a$:if a$<>chr$(34) and len(n$)<16 and st=. then n$=n$+a$:goto {:dname2}
+' 11/06/2026: read with &,2,2,n (n bytes in one call), not a get# a byte:
+' the load address, then the header line as far as the name: its link and
+' drive number (4 bytes), reverse on, a quote, the 16-character name
+	close 2:open 2,d,0,"$"+mid$(str$(r),2):&,2,2,2:&,2,2,22
+	if mid$(a$,6,1)=chr$(34) then n$=mid$(a$,7,16)
 	close 2:pd=d:pr=r:pn$=n$:return
 
 ' the drives found: "Found: 8 (1581) 9 (1571)", or that none answered
@@ -86,16 +86,61 @@
 	v=val(an$):if v<8 or v>30 then v=su%(10+j)
 	if tt$(v)="" then:&"{f6}{yellow}Device {pound}!v didn't answer. Use it anyway{question} ":gosub 94:if a=. then {:askdev}
 	su%(10+j)=v:&"{f6}"
+' 11/06/2026: on a CMD device (the scan's "CMD HD", "CMD FD", "RAMLink",
+' "RAMDrive": hc) the drive number is a partition: its partitions are
+' listed ({:parts}), the one named like the drive (sg) offered the first
+' time, and the answer checked against them, not with "i"
 {:askdrv}
-	p$=l$+" Drive":w$=mid$(str$(su%(20+j)),2):ln=3:gosub 4900
-	b=val(an$):if b<. or b>254 then b=.
+	a$=left$(tt$(su%(10+j)),3):hc=-(a$="CMD" or a$="RAM"):sg=.:if hc then gosub {:parts}
+	p$=l$+" Drive":if hc then p$=l$+" Partition"
+	w$=mid$(str$(su%(20+j)),2):if sg and su%(ib+j)=. then w$=mid$(str$(sg),2)
+	ln=3:gosub 4900:b=val(an$):if b<. or b>254 then b=.
 	su%(20+j)=b:&"{f6}":if tt$(su%(10+j))="" then return
+	d=su%(10+j):if hc then {:askpart}
 ' the drive initializes it ("i0", "i1"...: 00 or an error), as a check
-	d=su%(10+j):close 15:open 15,d,15,"i"+mid$(str$(b),2):input#15,e,e$:close 15
+	close 15:open 15,d,15,"i"+mid$(str$(b),2):input#15,e,e$:close 15
 	if e<20 then return
 	&"{yellow}Device {pound}!d drive {pound}!b{colon} {pound}!e "+e$+". Use it anyway{question} ":gosub 94:if a=. then {:askdrv}
 	return
+{:askpart}
+	for i=1 to len(pt$):if asc(mid$(pt$,i,1)+nl$)=b then i=255
+	next:if i>255 then return
+	&"{yellow}Device {pound}!d has no partition {pound}!b for files. Use it anyway{question} ":gosub 94:if a=. then {:askdrv}
+	return
+
+' the partitions of CMD device su%(10+j), from its partition directory
+' ("$=p": a BASIC-style listing, each line's number the partition's, its
+' text the name in quotes and the type): listed but for the header (255)
+' and the system partition (0, "sys"); pt$ their numbers (a character
+' each), sg the first whose name starts with the drive's label l$ (case
+' ignored: "system files" for System)
+{:parts}
+	pt$="":lw$="":for i=1 to len(l$):lw$=lw$+chr$(asc(mid$(l$,i,1)) and 127):next
+' 11/06/2026: read with &,2,2,n (n bytes in one call), not a get# a byte:
+' a CMD HD's partition directory has a 30-byte header line, then 32-byte
+' lines (tests/standin/dirlines.bas): each read as its link (2: two 0s
+' end the listing), then the rest (30: the partition number, the text and
+' the 0 that ends it; a line that doesn't end there is passed over)
+	d=su%(10+j):close 2:open 2,d,0,"$=p":&,2,2,2:&,2,2,30
+{:parts1}
+	&,2,2,2:if a$=nl$+nl$ or st then {:parts9}
+	&,2,2,30:n=asc(a$)+256*asc(mid$(a$,2)):t$=mid$(a$,3,27)
+	if n<1 or n>254 or right$(a$,1)<>nl$ then {:parts1}
+' the name between the quotes, the type after them: &,15,6 splits an$ at
+' a character (a$ what was before it, an$ the rest; not there: a$ all of
+' it, an$ ""), so past the first quote, up to the second (the name), then
+' a space at a time until a$ is a word (the type)
+	an$=t$:&,15,6,34:if an$="" then {:parts1}
+	&,15,6,34:n$=a$
+{:parts3}
+	&,15,6,32:if a$="" and an$<>"" then {:parts3}
+	if a$="sys" then {:parts1}
+	pt$=pt$+chr$(n):if sg=. and left$(n$,len(lw$))=lw$ then sg=n
+	&"{yellow}"+right$("  "+mid$(str$(n),2),3)+"  {lt. blue}"+left$(n$+"                ",17)+"{cyan}"+a$+"{f6}":goto {:parts1}
+{:parts9}
+	close 2:if pt$="" then:&"{yellow}No partitions for files on device {pound}!d.{f6}"
+	&"{f6}":return
 {:names}
-	data "System","E-Mail","Etcetera","Directory","Plus-File","User"
+	data "System","E-Mail","Etcetera","Directory","Module","User"
 
 	rem "sub.su.drives (c)nissa 2026-11-05"
