@@ -92,18 +92,28 @@
 	im=15:a$="clocks":gosub 74:su%(37)=1:su%(38)=-(su$(12)<>""):goto {:clock}
 
 {nice:100}
-' R: a part not done yet is done first; then the answers, and the files
-' written (sub.su.write). a = 1: back to the menu; 0: setup is over
+' R: a part not done yet is done first (a = 1: back to the menu); then
+' the answers, to change or continue, and the files written (sub.su.write;
+' a = 0: setup is over)
 {:review}
 	if n then a=n:on a gosub {:drives},{:clock},{:sysop},{:bbs}:a=1:return
 ' 11/05/2026: the drives as the Drives part's table (sub.su.drives im=2:
 ' labels, devices, models, disk names), after a scan (the zone list's tt$()
-' wrote over the last one's). 18 rows in 40 columns: 3 lines, the table's 13,
-' a blank line, the question
-	gosub 3414:z3$="Review":gosub 3404:&"{lt. blue}Sysop{colon} {white}"+su$(1)+"{f6}"
-	&"{lt. blue}BBS{colon} {white}"+su$(6)+"{f6}{lt. blue}Clock{colon} {white}"+su$(13)+" "+su$(12)+"{f6}"
+' wrote over the last one's).
+' 11/06/2026: numbered as the menu's parts: a number runs that part and
+' comes back here; C (or Return) writes the files. 18 rows in 40 columns:
+' the table's 13 (its heading "1) Drive"), the Clock's 2 (the method, then
+' the zone: one line in 80 columns), Sysop, BBS, the question
+{:review1}
+	gosub 3414:z3$="Review":gosub 3404
 	im=2:a$="sysdos":gosub 74:im=2:a$="su.drives":gosub 74
-	&"{f6}{yellow}Write the files now{question} ":gosub 96:if a=. then a=1:return
+	b$="(none chosen)":if su$(12)<>"" then gosub {:su.zone}
+	a$="{f6}   ":if sw>79 then a$="{comma} "
+	&"{yellow}2{lt. blue}) Clock{colon} {white}"+su$(13)+a$+b$+"{f6}"
+	&"{yellow}3{lt. blue}) Sysop{colon} {white}"+su$(1)+"{f6}{yellow}4{lt. blue}) BBS{colon} {white}"+su$(6)+"{f6}"
+	poke 53252,1:&"{yellow}Number to change{comma} or [C]ontinue{colon} {white}{pound}i1{f6}":a=val(an$)
+	if a>. and a<5 then on a gosub {:drives},{:clock},{:sysop},{:bbs}:goto {:review1}
+	if an$<>"C" and an$<>"c" and an$<>"" then {:review1}
 	im=1:a$="su.write":gosub 74
 	gosub 3414:gosub {:su.copr}:lp=1:&"{f6:2}Be sure to enter {quotation}IM{quotation} once online to complete the configuration of "
 	lp=1:&"your BBS. Message bases{comma} U/D and U/X libraries can be configured by using "
@@ -143,10 +153,17 @@
 	d1$="12011111201":return
 
 ' shared lines for the parts (modules/su_helpers.lbl numbers them for them)
-' su.ask: ask p$, w$ the default (Return takes it), ln long, pl the case
+' su.ask: ask p$, w$ the default (Return takes it), ln long, pl the case.
+' 11/06/2026: &,1,16 (word wrap), not 32 (edit mode): the default after
+' the prompt on its line, to Return, edit or backspace over, not shown
+' above an empty input line. A key past ln ends a word-wrap input and puts
+' the last word in w$: then it's asked again
 {number:4900}
 {:su.ask}
-	poke 53252,ln:b$=w$:&,1,32:if an$="" then an$=b$
+	poke 53252,ln:b$=w$:&,1,16:if w$="" then {:su.ask1}
+	&"{f6}{yellow}At most "+mid$(str$(ln),2)+" characters{comma} try again.{f6}":w$=b$:goto {:su.ask}
+{:su.ask1}
+	if an$="" then an$=b$
 	return
 ' su.item: a part's menu line: a% its number, a$ its label, b$ its value;
 ' a check if asked (su%(ib+a%)); the first not asked is nx, nx$ its label
@@ -176,6 +193,16 @@
 {number:4940}
 {:su.copr}
 	c$="Image 128 Copyright 2026 New Image Software":return
+' su.zone: b$ = the time zone (su$(12)) readably: "MST -7:00/MDT", its UTC
+' offset and daylight name, not its code (s.timezones: name, hhmm from
+' UTC-12, DST rule letter, DST name): 13 characters, for a 40-column line.
+' 11/06/2026 (from sub.su.clock, for the review too)
+{number:4950}
+{:su.zone}
+	z$=su$(12):b=val(mid$(z$,4,2))*60+val(mid$(z$,6,2))-720:b$=mid$("-+",-(b>=.)+1,1):b=abs(b)
+	b$=left$(z$,3)+" "+b$+mid$(str$(int(b/60)),2)+":"+right$("0"+mid$(str$(b-int(b/60)*60),2),2)
+	if mid$(z$,8,1)<>"-" then b$=b$+"/"+mid$(z$,9,3)
+	return
 
 	rem copr. 1996 new image 5/5/96-rwp
 	rem "i/su.config (c)nissa 2020-06-14 lh+ad. 2022-10-11, 2026-11-05 rs"

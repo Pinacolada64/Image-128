@@ -34,15 +34,18 @@
 {:review}
 	ib=.
 ' a row's check (ib: the Drives part): asked (su%(ib+j)); nx, nx$ the first
-' not asked, as su.item
+' not asked, as su.item. 11/06/2026: the review's (ib=.) has no number
+' column (its own numbers are the parts'): "1) Drive" heads it instead
 {:table}
-	&"{lt. blue}   #  Drive      Dev Dr  Type{f6}":pd=-1
+	a$="{lt. blue}   #  ":if ib=. then a$="{yellow}1{lt. blue}) "
+	&a$+"Drive      Dev Dr  Type{f6}":pd=-1
 	restore {:names}:for j=1 to 6:read l$:d=su%(10+j):r=su%(20+j)
 	ic=.:if ib then ic=su%(ib+j):if ic=. and nx=. then nx=j:nx$=l$
-	a$="{white}"+mid$(" {$ba}",ic+1,1)+" {yellow}"+right$(" "+mid$(str$(j),2),2)+"  {lt. blue}"+left$(l$+"          ",10)+"{white}"
+	a$="   ":if ib then a$="{white}"+mid$(" {$ba}",ic+1,1)+" {yellow}"+right$(" "+mid$(str$(j),2),2)+"  "
+	a$=a$+"{lt. blue}"+left$(l$+"          ",10)+"{white}"
 	a$=a$+right$("   "+mid$(str$(d),2),3)+right$("   "+mid$(str$(r),2),3)+"   {cyan}"+tt$(d):&
 	gosub {:dname}:if n$="" then {:sum1}
-	a$="{lt. green}{quotation}"+n$+"{quotation}":if sw<80 then a$="{f6}       "+a$:goto {:sum0}
+	a$="{lt. green}{quotation}"+n$+"{quotation}":if sw<80 then a$="{f6}"+left$("       ",7+3*(ib=.))+a$:goto {:sum0}
 	a$=left$("          ",10-len(tt$(d)))+a$
 {:sum0}
 	&

@@ -11,4 +11,5 @@
 {assign:4920	=4920	} ' su.pick: "1-h, D(one), Return=next": a (0 = done)
 {assign:4930	=4930	} ' su.create: 'Creating "f$"...'
 {assign:4932	=4932	} ' su.done: "Done!"
+{assign:4950	=4950	} ' su.zone: b$ = the zone (su$(12)) readably, "MST -7:00/MDT"
 {assign:4940	=4940	} ' su.copr: c$ = the copyright line (bd.data, the closing screen)

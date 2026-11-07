@@ -109,22 +109,29 @@ special = [('set the image bbs 128 system clock', '5', 'clock menu: 5 (DS12C887)
            ('which one?', '5', 'time zone: 5')]
 # The sysop's password (11/06/2026): typed at the Sysop part's Password
 # prompt, wrong at "Password again", then both again, matching. Each step
-# answers the prompt on the cursor's row; the Password item is reached by
-# Return (the 5th item)
-pw = [('password:', 'secret', 'password: typing secret'),
-      ('password again:', 'wrong', 'password again: typing wrong'),
-      ('password:', 'secret', 'password: typing secret again'),
-      ('password again:', 'secret', 'password again: typing secret')]
+# answers the prompt on the cursor's row (by how it starts: the Password
+# prompt shows the current one, PASS, after it, which four DELs clear; the
+# keyboard buffer holds 10 keys); the Password item is reached by Return
+# (the 5th item)
+dels = '\x14' * 4
+pw = [('password:', dels + 'pw1', 'password: typing pw1'),
+      ('password again:', 'bad', 'password again: typing bad'),
+      ('password:', dels + 'pw1', 'password: typing pw1 again'),
+      ('password again:', 'pw1', 'password again: typing pw1')]
 answered = set()
 seen = set(); deadline = time.time() + 900   # 11/06/2026: 15 minutes (80 columns on a busy host took 10+)
 while time.time() < deadline:
     for x in frame():
         if x and x not in seen:
             seen.add(x); print(ts(), 'frame:', x)
+    # 11/06/2026: im's boot under way: the closing "Hit any key" was
+    # answered (by a Return pressed before this saw it, on a slow run)
+    if any(x.lower().startswith('reading drive configuration') for x in frame()):
+        print(ts(), 'im booting: setup is over'); break
     screen = '\n'.join(rows()).lower()
     for r in screen.split('\n'):
         # the parts' menus (su.pick, 11/06/2026): "1-5, D(one), Return=next item"
-        if ('found:' in r or 'return=' in r or 'time zone....' in r) and r.strip() not in seen:
+        if ('found:' in r or 'return=' in r or 'time zone....' in r or 'to change' in r) and r.strip() not in seen:
             seen.add(r.strip()); print(ts(), 'screen:', r.strip())
     if ('time zone:' in screen or 'more?' in screen) and screen not in seen:
         seen.add(screen); print(ts(), 'time zone list:')
@@ -134,7 +141,7 @@ while time.time() < deadline:
             press('\r'); print(ts(), 'Hit any key: pressing Return')
             break
         cur = rows()[v.mem('ram00', 0xeb, 1)[0]].strip().lower()   # tblx: the cursor's row
-        if pw and cur == pw[0][0] and 'they don' not in cur:
+        if pw and cur.startswith(pw[0][0]) and 'they don' not in cur:
             text, keys, note = pw.pop(0); type_line(keys); print(ts(), note)
             time.sleep(0.5); continue
         for text, key, note in special:
