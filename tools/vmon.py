@@ -34,14 +34,16 @@ class X128:
         """send monitor commands, each answered once its prompt comes back; then
         resume the emulation ('x') unless resume=False. Returns the text."""
         # 11/06/2026: a busy x128 can miss a connection: try again
-        for i in range(5):
+        # (12 tries: with a CMD HD busy in warp mode, x128 took over 30
+        # seconds to answer)
+        for i in range(12):
             try:
                 s = socket.create_connection(('127.0.0.1', self.port), timeout=5)
                 break
             except (TimeoutError, ConnectionRefusedError):
-                if i == 4:
+                if i == 11:
                     raise
-                time.sleep(1)
+                time.sleep(2)
         s.settimeout(0.05)
         out = b''                                   # whatever the stop printed first:
         end = time.time() + 0.5                     # take it until 0.1 s of quiet
