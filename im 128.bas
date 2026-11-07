@@ -641,7 +641,9 @@
 3500 data"Commodore 64","Commodore 128","Amiga","Apple/Comp."
 3502 data"IBM/Comp.","Macintosh","Atari/ST","Tandy Series","Other Type"
 ' system disk names:
-3504 data"System","E-Mail","Etcetera","Directory","Plus-File","User"
+' 11/06/2026: drive 5 is the Module disk (was "Plus-File": modules and plus
+' files, i/ and sub.*, are what it holds)
+3504 data"System","E-Mail","Etcetera","Directory","Module","User"
 ' TODO: move these lines into i/setup 128:
 ' 3510 rem &"{f6}RS232 Interface Type:{f6}Enter 0 for User Port{f6}Enter 1 for SwiftLink/Turbo232{f6}> {pound}i1"
 ' 3512 rem a=val(an$):ifa<0ora>1then3510

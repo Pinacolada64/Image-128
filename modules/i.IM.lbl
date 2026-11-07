@@ -83,7 +83,8 @@
 3108 a=2:a$="E-Mail":gosub 3124
 3110 a=3:a$="Etcetera":gosub 3124
 3112 a=4:a$="Directory":gosub 3124
-3114 a=5:a$="Program":gosub 3124
+' 11/06/2026: drive 5 is the Module disk, as im 3504 and setup name it
+3114 a=5:a$="Module":gosub 3124
 3116 a=6:a$="User":gosub 3124
 3118 &,16,.,42,m%(.,7),"G","","Main Menu"
 3120 n=7:gosub 3354:if tr%<1 or lm=nor lm=.then 3006
