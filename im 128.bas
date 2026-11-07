@@ -114,17 +114,10 @@
 91 return
 92 &"{f6}{lt. blue}>{cyan}>{white}Canceled!{f6}":return
 
-' TODO: rather than gosub 93 for "default no" and gosub 95 for "default yes"
-' I'd rather go back to "a=0:gosub 94" for default yes, but this is a lot of change
-{undef:yesno_change}
-{ifdef:yesno_change}
-' updated working code:
-94 &"{f6}Are You Sure?: ":if a then 96
-95 &"{cyan}[{white}No{cyan}]":gosub 7:&"{pound}h4":a=-(a$="Y"):goto 97
-96 &"{cyan}[{white}Yes{cyan}]":gosub 7:&"{pound}h5":a=(a$="N")+1
-97 &"{pound}q"+chr$(df%+48)+mid$("YesNo",4-a*3,3)+"{f6}":return
-{else:}
-' current code:
+' Yes/No: 93 "Are You Sure" then [No] (94), 95 "Are You Sure" then [Yes]
+' (96); 94 and 96 alone print just the default. a = 1 for Yes. 11/07/2026:
+' the unused alternative (an {ifdef:yesno_change} set of 94-97 with "a=0:
+' gosub 94" for default Yes) removed
 93 gosub 98
 94 &"{cyan}[{white}No{cyan}]":gosub 7:&"{pound}h4":a=-(a$="Y"):goto 97
 95 gosub 98
@@ -133,7 +126,6 @@
 97 &"{pound}q"+chr$(df%+48)+mid$("YesNo",4-a*3,3)+"{f6}":return
 ' appends " [Y/N]" if expert mode off (0):
 98 a$="{f6}Are You Sure [Y/N]":&left$(a$,len(a$)-6*em)+"?: ":return
-{endif}
 
 100 p2$="sub."+a$:gosub 110:is=is+1:im$(is)=im$
 ' FIXME: "new 60000": replace with delete 60000- ?

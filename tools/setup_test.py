@@ -41,7 +41,9 @@ USAGE = """usage: tools/setup_test.py [disk.d81] [options]
                     drive 8, and im loads s.* (1), nm.times (2), e.ecs.main
                     and the other e.* defaults (3) and the modules (5) at boot)
   --vice ARG        one more argument for x128 (repeat it for more)
-  --keep            leave x128 running at the end (monitor on port 6537)
+  --keep            leave x128 running at the end (on its monitor port)
+  --port N          the x128's remote monitor port: default 6537 (another
+                    for a second run at once)
   -h, --help        this list (the notes at the top of the script say more)
 """
 
@@ -60,6 +62,9 @@ if '--out' in args:
 drive9 = None
 if '--drive9' in args:
     i = args.index('--drive9'); drive9 = args[i + 1]; del args[i:i + 2]
+port = 6537
+if '--port' in args:
+    i = args.index('--port'); port = int(args[i + 1]); del args[i:i + 2]
 hddrives = None
 if '--hd-drives' in args:
     i = args.index('--hd-drives'); hddrives = args[i + 1]; del args[i:i + 2]
@@ -93,9 +98,9 @@ _s = socket.socket()
 # a listening one still does)
 _s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 try:
-    _s.bind(('127.0.0.1', 6537))
+    _s.bind(('127.0.0.1', port))
 except OSError:
-    sys.exit('setup_test.py: an x128 already has monitor port 6537 (another test run?): quit it first')
+    sys.exit('setup_test.py: an x128 already has monitor port %d (another test run?): quit it, or --port another' % port)
 finally:
     _s.close()
 d9 = ['-drive9type', drive9] if drive9 else []
@@ -118,7 +123,7 @@ if drive9 in ('4844', 'hd'):
 else:
     tohd = []
 v = X128(['-drive8type', '1581'] + d9 +
-         rtc + vice + ['-warp', '-autostart', disk + ':boot 128'], cols=cols, wait=2)
+         rtc + vice + ['-warp', '-autostart', disk + ':boot 128'], cols=cols, wait=2, port=port)
 t0 = time.time()
 # 11/06/2026: a crash in this script stops its x128 too (unless --keep), so
 # the next run can have port 6537
@@ -253,7 +258,7 @@ if pw:
     print('password steps not reached:', [p[0] for p in pw])
 
 if keep:
-    print('x128 left running (monitor on port 6537)')
+    print('x128 left running (monitor on port %d)' % port)
 else:
     v.cmd('quit', resume=False)
     v.p.wait(timeout=30)

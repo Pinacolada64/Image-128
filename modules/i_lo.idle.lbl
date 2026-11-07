@@ -180,7 +180,8 @@
 4430 f3=3:poke53248,1:poke{sym:clock},.:&"{clear}{f6} {rvrs on}{cyan} Blocks Free On System Disks {f6:2}"
 4432 dr=1
 4434 b$="System":d$="Mail":gosub4438:b$="Etc.":d$="Dir.":gosub4438
-4436 b$="Program":d$="User":gosub4438:&"{f6:2}":poke53248,.:poke{sym:ndx},.:goto4040
+' 11/07/2026: drive 5 is the Module disk (was Program), as im 3504 names it
+4436 b$="Module":d$="User":gosub4438:&"{f6:2}":poke53248,.:poke{sym:ndx},.:goto4040
 4438 c$=str$(bf(dr)):f$=str$(bf(dr+1))
 4440 a$="{lt. red} {pound}$b {gray3}Disk{white}:{pound}{back arrow}15{pound}$c{f6}{lt. red} {pound}$d {gray3}Disk{white}:{pound}{back arrow}15{pound}$f{f6}":&:dr=dr+2:return
 ' SuperCPU detection / enable:
