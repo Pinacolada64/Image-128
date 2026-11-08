@@ -47,8 +47,10 @@ ncount = 38	; last digit of "Bytes:"
 
 pbuf0	= $658	; screen memory, row 15
 pbufrow	= 15	; 128: its row (for &,72)
-pbuf1	= $400	; copy buffer (one block)
-pbuf2	= $500
+; 11/07/2026: the block buffer in protobuf ($2b00, the overlays' block
+; transfer area), not screen memory ($400, as the c64's): the 40-column
+; screen's top rows showed each block, over setup's own lines and frame
+pbuf1	= protobuf	; copy buffer (one block, up to 254 bytes)
 
 	orig protostart	; c64: $c000
 
@@ -118,6 +120,12 @@ copy:
 cp1:
 	ldx #3
 	jsr chkin
+; 11/07/2026: the status cleared for each block: nothing else clears it
+; between blocks, and writing a block to another drive (a CMD HD on the
+; bus) left a bit in it, which the next block's first read took for the
+; end of the file (setup's copies stopped after a few blocks)
+	lda #0
+	sta status
 	ldy #0
 	ldx #0
 cp2:
@@ -209,6 +217,8 @@ compare:
 cm1:
 	ldx #3
 	jsr chkin
+	lda #0		; 11/07/2026: as cp1: a clean status for this block
+	sta status
 	ldy #0
 cm2:
 	jsr chrin
@@ -224,6 +234,8 @@ cm3:
 	jsr clrchn
 	ldx #2
 	jsr chkin
+	lda #0		; 11/07/2026: #3's status (its end, or a bit another
+	sta status	; drive left) isn't #2's: the compare stopped at byte 1
 	ldy #0
 cm4:
 	jsr chrin
