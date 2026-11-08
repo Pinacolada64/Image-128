@@ -70,6 +70,9 @@ hcd24:
 
 	orig jmptbl
 {include:"jmptb.asm"}
+; 11/07/2026: after it, the 80-column lightbar's second page
+{include:"lbar2.asm"}
+	addrcheck protostart
 
 ;;;
 ;;; intro "protocol": runs at protostart, once, at boot (and setup again

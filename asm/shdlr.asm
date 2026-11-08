@@ -1193,6 +1193,8 @@ vdcs_d1:
 	iny
 	cpy #40
 	bcc vdcs3
+; 11/07/2026: row 16, the lightbar: the other page of the pair (lbar2.asm)
+	jsr lbar2_put
 	lda vdcr_atr+1	; and the 40 colors, as attributes
 	ldy vdcr_atr
 	jsr vdc_set_update
@@ -1216,17 +1218,11 @@ vdcs_d2:
 	iny
 	cpy #40
 	bcc vdcs5
+	jsr lbar2_putc	; (row 16: the other page's colors)
 vdcs9:
 	ldx vdcs_row
 	rts
-vdcsum:
-	clc
-	adc vdcs_a
-	sta vdcs_a
-	clc
-	adc vdcs_b
-	sta vdcs_b
-	rts
+; vdcsum: in lbar2.asm (11/07/2026: $e000-$fbff has no room)
 
 vdcr_scr:	word 0
 vdcr_atr:	word 0

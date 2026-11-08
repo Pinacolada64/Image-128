@@ -632,7 +632,13 @@
 	buffer	= bufpage + $77	; 80 bytes. c64: $ce77
 ;	longdate= buffer+ ?	; starts at $cec7? im 3170 $ce77 + $50 = $cf17
 
-; $194e-$19ff: free (buf2 and buffer are in the buffer page at $0e00)
+; $194e-$19ff: free (buf2 and buffer are in the buffer page at $0e00), but:
+; 11/07/2026: in 80 columns irq7n (lbar2.asm) draws the other page of the
+; lightbar's pair (1-2, 3-4, 5-6, 7-8) here, 40 characters and their 40 VIC
+; colors, which vdcsrow puts in row 16 beside the cursor's page
+	lbar2	= $194e	; 40 bytes: the other page's characters (0: not drawn yet)
+	lbar2c	= $1976	; 40 bytes: their colors
+; $199e-$19ff: free
 
 ; $1a00-$1bff: $1ff / 511 bytes. room for IRQ/& jump tables?
 

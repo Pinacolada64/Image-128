@@ -681,6 +681,9 @@ irq7c:
 	jsr irq7h
 	cpx #40
 	bcc irq7c
+; 11/07/2026: on the 80-column screen, the other page of the pair too (irq7n,
+; lbar2.asm, which looks at the mode itself: $e000-$fbff has no room)
+	jsr irq7n
 	pla
 	sta tmpbar
 irq7z:
@@ -707,12 +710,16 @@ irq7j:
 
 irq7f:
 	ora #$80
+irq7f1:
+; self-modifying code changes this (irq7n: lbar2)
 	sta ldisp,x
 irq7g:
 
 ; self-modifying code changes this
 
 	lda #15
+irq7g1:
+; self-modifying code changes this (irq7n: lbar2c)
 	sta lcolr,x
 	inx
 	rts
