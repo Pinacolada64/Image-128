@@ -123,6 +123,10 @@
 	poke 53252,1:&"{yellow}Number to change{comma} or [C]ontinue{colon} {white}{pound}i1{f6}":a=val(an$)
 	if a>. and a<=np then on a gosub {:drives},{:clock},{:sysop},{:bbs}:goto {:review1}
 	if an$<>"C" and an$<>"c" and an$<>"" then {:review1}
+' 11/07/2026: the files copied to the drives first (sub.su.copy, on its
+' own: a sub.* doesn't load another); su%(8): one failed and the sysop
+' chose not to go on, so back to the review
+	im=1:a$="su.copy":gosub 74:if su%(8) then {:review1}
 	im=1:a$="su.write":gosub 74
 	gosub 3414:gosub {:su.copr}:lp=1:&"{f6:2}Be sure to enter {quotation}IM{quotation} once online to complete the configuration of "
 	lp=1:&"your BBS. Message bases{comma} U/D and U/X libraries can be configured by using "
