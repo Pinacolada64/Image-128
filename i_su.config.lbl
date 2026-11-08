@@ -57,7 +57,7 @@
 ' every prompt)
 {:menu}
 	gosub 3414:z3$="Image BBS 128 Setup":gosub 3404:&"{f6}{white}"
-	n=.:restore {:names}:for i=1 to 4:read a$:a%=i:b$=mid$(" {$ba}",su%(i)+1,1)+" "
+	n=.:restore {:names}:for i=1 to np:read a$:a%=i:b$=mid$(" {$ba}",su%(i)+1,1)+" "
 	if n=. and su%(i)=. then n=i
 	&"{white}{pound}$b{yellow}{pound}%a{lt. blue}) {pound}$a{f6}":next
 	&"{yellow}  R{lt. blue}) Review{comma} then write system files{f6:2}":a$="Review"
@@ -66,10 +66,15 @@
 	poke 53252,1:&"{lt. green}Return{colon} {pound}$a{f6}{yellow}Your choice{colon} {white}{pound}i1{f6}"
 	a=val(an$):if an$=r$ or an$="" then a=n:if n=. then an$="R"
 	if an$="R" or an$="r" then gosub {:review}:on a goto {:menu}:return
-	if a<1 or a>4 then {:menu}
+	if a<1 or a>np then {:menu}
 	on a gosub {:drives},{:clock},{:sysop},{:bbs}:goto {:menu}
+' the parts, in the menu's order; "" ends them, and init counts them (np),
+' so a new part is a name here and its label in the two "on a gosub" lists
+' (the menu's and the review's). Room: su%(part) is its done flag (su%(7)
+' on are taken: parts 1-6), su%(24+6*part)+ its items' checks (su%() is
+' DIMmed 60: a sixth part needs more). 11/07/2026
 {:names}
-	data "Devices and Drives","Clock and Time Zone","Sysop Information","BBS Information"
+	data "Devices and Drives","Clock and Time Zone","Sysop Information","BBS Information",""
 
 {nice:100}
 ' the parts: each a sub.su.* module (goto 74: its return is this gosub's)
@@ -116,7 +121,7 @@
 	&"{yellow}2{lt. blue}) Clock{colon} {white}"+su$(13)+a$+b$+"{f6}"
 	&"{yellow}3{lt. blue}) Sysop{colon} {white}"+su$(1)+"{f6}{yellow}4{lt. blue}) BBS{colon} {white}"+su$(6)+"{f6}"
 	poke 53252,1:&"{yellow}Number to change{comma} or [C]ontinue{colon} {white}{pound}i1{f6}":a=val(an$)
-	if a>. and a<5 then on a gosub {:drives},{:clock},{:sysop},{:bbs}:goto {:review1}
+	if a>. and a<=np then on a gosub {:drives},{:clock},{:sysop},{:bbs}:goto {:review1}
 	if an$<>"C" and an$<>"c" and an$<>"" then {:review1}
 	im=1:a$="su.write":gosub 74
 	gosub 3414:gosub {:su.copr}:lp=1:&"{f6:2}Be sure to enter {quotation}IM{quotation} once online to complete the configuration of "
@@ -156,6 +161,10 @@
 	su%(7)=peek({sym:timeset}):poke {sym:timeset},1
 	su%(10)=bv:d1%=bv:d2%=.
 	for i=1 to 6:dv%(i)=bv:dr%(i)=.:su%(10+i)=bv:su%(20+i)=.:next
+' 11/07/2026: the number of parts (np), from the names, not written in
+	np=.:restore {:names}
+{:count}
+	read a$:if a$<>"" then np=np+1:goto {:count}
 	d1$="12011111201":return
 
 ' shared lines for the parts (modules/su_helpers.lbl numbers them for them)
