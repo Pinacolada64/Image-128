@@ -630,6 +630,7 @@
 			; (52935), which sub.clocks pokes
 	buf2	= bufpage + $27	; 80 bytes. c64: $ce27
 	buffer	= bufpage + $77	; 80 bytes. c64: $ce77
+	anrest	= bufpage + $100 ; 256 bytes ($0f00): strrest's an$ (11/08/2026)
 ;	longdate= buffer+ ?	; starts at $cec7? im 3170 $ce77 + $50 = $cf17
 
 ; $194e-$19ff: free (buf2 and buffer are in the buffer page at $0e00), but:
