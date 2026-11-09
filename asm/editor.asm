@@ -17,6 +17,7 @@ numy	= poker + 1	; c64: $15. 128: $17
 	jmp entry1 ;no text
 	jmp entry2 ;re-enter main
 	jmp entry3 ;re-enter not command
+	jmp entry4 ;128: run the dot command ++ visual left in viscmd
 
 ;exits:
 
@@ -24,11 +25,14 @@ numy	= poker + 1	; c64: $15. 128: $17
 ; .x=1 - save .a=lines
 ; .x=2 - command typed .a=char
 ; .x=3 - help command
+; .x=4 - 128: back to ++ visual (after entry4's command)
 
 done:
 	sta sareg	; c64:780
 	stx sxreg	; c64:781
 	sty syreg	; c64:782
+	lda #0		; 128: any exit ends a command from ++ visual
+	sta fromvis
 	ldx stack
 	txs
 	ldy #0
@@ -39,6 +43,27 @@ done:
 	rts
 
 passflag:
+	byte 0
+
+; 128, 11/08/2026: a dot command typed in ++ visual (asm/visual.asm), which
+; stores its text in tt$() as this editor does and leaves with .x=4, the
+; letter in viscmd: run as if ".letter" had been typed here (getcom0:
+; comlist; a letter not in it goes back to BASIC, .x=2, as always). When
+; the command is done and this editor would carry on taking lines (main),
+; it leaves instead with .x=4, back to ++ visual (sub.editor re-enters it);
+; abort, save and help leave as they always do
+entry4:
+	tsx
+	stx stack
+	lda case
+	sta case1
+	lda #0
+	sta passflag
+	lda #1
+	sta fromvis
+	lda viscmd
+	jmp getcom0
+fromvis:
 	byte 0
 
 entry2:
@@ -63,6 +88,11 @@ main0:
 	jsr prcr
 
 main:
+	lda fromvis	; 128: after a command from ++ visual: back to it
+	beq main1
+	ldx #4
+	jmp done
+main1:
 	tsx
 	stx stack
 	lda #0

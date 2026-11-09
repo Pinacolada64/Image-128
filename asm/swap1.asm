@@ -641,4 +641,4 @@ editswap:
 	rts
 
 edittbl:
-	byte 0,3,6
+	byte 0,3,6,9	; 11/08/2026: 9, entry4 (a command from ++ visual)

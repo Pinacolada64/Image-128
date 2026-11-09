@@ -1,5 +1,6 @@
 # TODO.md
 
+- [ ] sub.param1: print its menus with `&` in the module instead of reading `s.m.params` (60014, the settings menu) and `s.m.modes` (60060, the terminal modes) from disk (user, 11/09/2026: "sub.params2 ... Same with sub.params1"; sub.param2 reads no `s.` file, so both are sub.param1's). Add the editor choice there too: `uf$` position 4 (0 the line editor, 1 `++ visual`, which sub.editor 60100 reads; visual-editor branch)
 - [ ] combine `i_SM.consig1` and `i_SM.consig2` into one module, `lm=1...2` to pick conversion task
 - [ ] split directory entries into filenames (keeping surrounding quotes) with &,15,6 (see i.DE2, lines 3084-3088, i.CP, i.CP v3.1), compare with ImageBBS3 repo, i.CP rework
 - [ ] use _e.g._, `a=instr("ABCDE",an$):on a goto ...` instead of `on -(an$="A")-2*(an$="B") goto ...`

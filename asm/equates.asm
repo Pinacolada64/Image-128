@@ -639,7 +639,10 @@
 ; colors, which vdcsrow puts in row 16 beside the cursor's page
 	lbar2	= $194e	; 40 bytes: the other page's characters (0: not drawn yet)
 	lbar2c	= $1976	; 40 bytes: their colors
-; $199e-$19ff: free
+	viscmd	= $199e	; 1 byte: ++ visual's dot command letter (11/08/2026):
+			; it exits with .x=4 and the letter here; the line
+			; editor's entry4 (&,54,3) runs it
+; $199f-$19ff: free
 
 ; $1a00-$1bff: $1ff / 511 bytes. room for IRQ/& jump tables?
 
