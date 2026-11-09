@@ -207,12 +207,20 @@
 352 &,15,6,133:d2%=val(an$):d1%=a:dr=.:dv%(.)=d1%:dr%(.)=d2%
 353 gosub 3:close 15:a=-(st<>.):return
 370 a=1-a:&"{f6}{green}{pound}$b Mode{lt. green}: {white}O"+mid$("ffn",a*2+1,2)+"{f6}":return
-371 a=val(mid$(uf$,b,1)):gosub 370:uf$=left$(uf$,b-1)+chr$(a+48)+mid$(uf$,b+1):return
+' 11/09/2026: 371 toggles uf$'s flag b (b$ its name, for 370's On/Off),
+' through 377 and 378
+371 gosub 377:gosub 370:goto 378
 372 a=em:b$="Expert":gosub 370:em=a:&,52,20,em:return
 373 im=3:goto 430
 374 b=3:b$="Graphic Menu":gosub 371:&,52,44,a:return
 375 &,53,a:im=2+a:goto 443
 376 a=pm:b$="Prompt":gosub 370:pm=a:return
+' 11/09/2026: uf$'s flags, one digit each: 1 line feeds, 2 More prompt (0-2),
+' 3 graphic menus, 4 the editor (1: ++ visual), 5 not used; 6 on is the time
+' zone, not flags. b the flag's position: 377 reads it into a, 378 sets it
+' to a (0-9). sub.misc 60040 pads uf$ to 5 at logon
+377 a=val(mid$(uf$,b,1)):return
+378 uf$=left$(uf$,b-1)+chr$(a+48)+mid$(uf$,b+1):return
 390 dr=3:a$="e.text":gosub 4:gosub 1:&,2,2:close 2:&"{f6}{pound}$a{f6}":return
 400 rem**subroutine modules**
 427 a$="turbo":goto 74

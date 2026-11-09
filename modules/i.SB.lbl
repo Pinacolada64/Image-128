@@ -406,10 +406,10 @@
 	if lm$<>b$then lm$=b$:dr=5:gosub 3:loaddr$+"i/MM."+lm$,dv%
 	cm$="MM."+lm$:gosub 9:goto 4000
 {:3504}
-'MP mode? 0, 1, 2
-	onval(mid$(uf$,2,1))+1goto {:3508},{:3510},{:3510}
+'MP mode? 0, 1, 2 (uf$'s flag 2, im 377; 11/09/2026)
+	b=2:gosub 377:ona+1goto {:3508},{:3510},{:3510}
 {:3506}
-	onval(mid$(uf$,2,1))+1goto {:3508},{:3510},{:3508}
+	b=2:gosub 377:ona+1goto {:3508},{:3510},{:3508}
 {:3508}
 	&,52,34,0:return
 {:3510}

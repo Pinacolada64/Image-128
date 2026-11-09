@@ -101,7 +101,10 @@
 {assign:304	=304	}
 {assign:353	=353	} ' im.353 (i.RF); 10/21/2026
 {assign:370	=370	}
+{assign:371	=371	} ' im: toggle uf$'s flag b (b$ its name); 11/09/2026
 {assign:375	=375	} '
+{assign:377	=377	} ' im: uf$'s flag b into a; 11/09/2026
+{assign:378	=378	} ' im: uf$'s flag b set to a; 11/09/2026
 
 ' TODO: 128, move to 3x-5x range
 {assign:390	=390	} ' im.open_e_text

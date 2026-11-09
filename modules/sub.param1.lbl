@@ -15,15 +15,16 @@
 60004 b$=co$(co%):&,52,17,lf:&,52,20,em:poke{sym:modclmn},ll%:poke{sym:usrlin},mp%:poke{sym:ptrlinm},.
 60006 gosub60068:&,52,17,3:a=a%:gosub60046:y$=an$:a%=em:gosub60046:x$=an$
 60008 gosub60120:gosub60104:d$=a$
-60012 a%=val(mid$(uf$,3,1)):gosub60046:v$=an$:a%=ll%:b%=mp%:t$=mid$(uf$,6,3)
+' 11/09/2026: uf$'s flags through im 377 (read) and 378 (set)
+60012 b=3:gosub377:a%=a:gosub60046:v$=an$:a%=ll%:b%=mp%:t$=mid$(uf$,6,3)
 60014 a$="s.m.params":dr=1:gosub13:poke53252,2:&"{white}  > {pound}i1":a=val(an$)
 60016 ifathengosub60018:goto60004
 60018 onagoto60028,60060,60034,60042,60024,60026,60082,60114,60027
 60020 c$="{left:4}"
 60022 &,69,31,19,str$(ll%)+"x"+mid$(str$(mp%),2),$8c:return
-60024 &,52,17,2:&,52,17,3:lf=a%:uf$=mid$(str$(a%),2,1)+mid$(uf$,2):return
+60024 &,52,17,2:&,52,17,3:lf=a%:a=a%:b=1:goto378
 60026 &,52,20,2:&,52,20,3:em=a%:return
-60027 &,52,44,2:&,52,44,3:uf$=left$(uf$,2)+mid$(str$(a%),2,1)+mid$(uf$,4):return
+60027 &,52,44,2:&,52,44,3:a=a%:b=3:goto378
 60028 &"{f6:2}":forx=1to9:b$=co$(x):a%=x:&"{pound}%a>-{pound}$b{f6}":next
 60030 &"{f6}Computer Type?: {pound}g1{pound}v7{f6}":iftr%<1thenreturn
 60032 on-(val(an$)<1)goto60028:co%=val(an$):an$=co$(co%):co$=an$:&,9:return
@@ -36,7 +37,7 @@
 60046 an$="Off":ifa%thenan$="On"
 60048 return
 60050 lp=1:&"{f6}Must Be Between 1 and 255":goto60042
-60052 &,52,34,2:&,52,34,3:uf$=left$(uf$,1)+mid$(str$(a%),2,1)+mid$(uf$,3)
+60052 &,52,34,2:&,52,34,3:a=a%:b=2:goto378
 60054 return
 60056 on-(an$="AT")goto60060:c$=mid$(an$,3,1):a=abs(val(a$)):ifathen60062
 60058 ifc$="+"orc$="-"thena=a-(c$="+")+(c$="-"):goto60062
@@ -69,10 +70,10 @@
 60111 d4$=right$(tt$(x),6)
 60112 close2:return
 60114 &"{clear}{f6}More Prompt Options:{f6:2}{white} 1 {lt. blue}Off{f6}{white} 2 {lt. blue}On{f6}{white} 3 {lt. blue}Messages Only{f6:2}{white}  > {pound}g1"
-60116 a=val(an$):ifa>.anda<4thenuf$=left$(uf$,1)+chr$(a+47)+mid$(uf$,3)
+60116 a=val(an$):ifa>.anda<4thena=a-1:b=2:gosub378
 60118 gosub60120:&,52,35,3:ifa%=.then:&"{pound}$w{f6}"
 60119 return
-60120 a=val(mid$(uf$,2,1)):w$="Off":ifathenw$="On":ifa>1thenw$="Messages Only"
+60120 b=2:gosub377:w$="Off":ifathenw$="On":ifa>1thenw$="Messages Only"
 60121 &,52,35,3:ifa%=1then:&" Sorry, More Prompt Disabled{f6}":&,52,34,.:goto60123
 60122 ifa<>2then:&,52,34,a
 60123 return

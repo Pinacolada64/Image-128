@@ -64,7 +64,7 @@
 60094 poke{sym:mci},0:b%=kk-1:&"{f6}{pound}%b Lines Used.{f6}":ifkk=1thena=0:goto60092
 60096 b%=kk:goto60016
 60098 poke{sym:mci},0:dr=1:a$="s.menu 3":gosub13:goto60088
-60100 ifmid$(uf$,4,1)="1"then60146
+60100 x=a:b=4:gosub377:onagoto60145:a=x
 60101 &,54,a:a=peek({sym:sxreg}):an$=chr$(peek({sym:sareg})and127):on-(a=4)goto60144:goto60092
 60102 b%=kk-1:on-(an$="u")goto60112:ifan$="q"then60070
 60104 ifzzthenon-(an$="g")-(an$="p")*2-(an$="$")*3goto60030,60040,60068
@@ -89,14 +89,16 @@
 60138 gosub289:z$=an$:ifz$=""orz$="@"thengosub3:gosub5:&:return
 60140 b$=left$(z$,1):ifb$="n"orb$="s"thengosub93:ifa=.thenreturn
 60142 gosub3:print#15,z$:gosub5:&:return
-' 11/08/2026: the editor by the user's flag (uf$ position 4): 1, ++ visual
+' 11/08/2026: the editor by the user's flag (uf$ position 4, im 377; x keeps
+' a meanwhile): 1, ++ visual
 ' (a=0 new, 1 the text kept, 2 back where it left: &,16,a), loaded unless
 ' its "vis" is at protostart+3 (ml$ emptied then, as something else has
 ' loaded there); the line editor if it won't load. ++ visual leaves with
 ' x=1 (Ctrl-X: saved) or 4 (a "." and a letter at a line's start: the
 ' letter in viscmd), which the line editor runs (&,54,3, its entry4) and
 ' then comes back with x=4: ++ visual again where it left.
-60144 a=2
+60144 a=2:goto60146
+60145 a=x
 60146 ifpeek(7171)<>86orpeek(7172)<>73orpeek(7173)<>83thenml$=""
 60148 a$="visual":gosub28:ife%then60101
 60150 &,16,a:a=peek({sym:sxreg}):ifa<4then60092

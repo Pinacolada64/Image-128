@@ -31,7 +31,8 @@
 60034 print# 2,"{blue}{pound}vj{white} "+na$+"{yellow} Used Local Maint {pound}{back arrow}39 On {white}{$04}"+hr$
 60036 close 2
 60038 &,52,4,3:if a%then zz=1-zz:&,52,5,zz:return
-60040 a=3:gosub 11:if athen a=zz:b$="Local":gosub 60086:zz=a:&,52,5,zz:return
+' 11/09/2026: Local mode's On/Off through im 370 (60086 was a copy of it)
+60040 a=3:gosub 11:if athen a=zz:b$="Local":gosub 370:zz=a:&,52,5,zz:return
 60042 rs=.:return
 60044 if tt$="" then return
 60046 an$=mid$(tt$,5):&,15,6,94:b$=an$:an$=a$
@@ -54,9 +55,6 @@
 60080 rem subroutines
 60082 x=6:goto 390:rem 1995
 60084 poke 144,sand 255:a=rc:gosub 12:rc=a:return:rem:1032
-60086 a=1-a:an$=mid$("ffn",a*2+1,2):&"{f6}{pound}$b Mode: O{pound}v7{f6}":return:rem:1870
-60088 a=val(mid$(uf$,b,1)):gosub 60086:uf$=left$(uf$,b-1)+chr$(a+48)+mid$(uf$,b+1)
-60090 return:rem:1871
 60092 gosub 350:on agoto 60022:&"{f6}Pattern: ":gosub 289
 60094 close 1:open 1,dv%,.,"$"+dr$+an$:&"{f6}":&,8,1:close 1:return:rem:1089
 60096 rem:"sub.local (c)nissa 211211 lh
