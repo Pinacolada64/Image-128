@@ -42,7 +42,10 @@
 60050 gosub3
 60052 a$="w":gosub60002:ife%=.then60062
 60054 close6:&:ife%<>63then60066
-60056 &"{f6} [A]ppend [R]eplace [Q]uit: {pound}i1":ifan$="Q"ortr%<1then60066
+' 11/09/2026: [N]ew Name: another name for the file (16 characters at most),
+' then the save again with it; an empty one asks again
+60056 &"{f6}[A]ppend [N]ew Name [R]eplace [Q]uit: {pound}i1":ifan$="Q"ortr%<1then60066
+60057 ifan$="N"then:&"{f6}New Name: ":poke53252,16:gosub60126:on-(an$="")goto60056:v$=an$:goto60052
 60058 ifan$="R"thena$=v$:gosub19:goto60052
 60060 on-(an$<>"A")goto60054:a$="a":gosub60002:ife%then60066
 60062 fori=1tokk-1:iftt$(i)="{f8}"thentt$(i)="{^}"
@@ -67,20 +70,22 @@
 60100 x=a:b=4:gosub377:onagoto60145:a=x
 60101 &,54,a:a=peek({sym:sxreg}):an$=chr$(peek({sym:sareg})and127):on-(a=4)goto60144:goto60092
 60102 b%=kk-1:on-(an$="u")goto60112:ifan$="q"then60070
-60104 ifzzthenon-(an$="g")-(an$="p")*2-(an$="$")*3goto60030,60040,60068
-60106 ifzzthenon-(an$="@")-(an$="&")*2goto60072,60074
+' 11/09/2026: the commands only for zz (the sysop's editing commands: Get, Put,
+' Directory, Disk Command, Read) in one instr(); {$d4} is BASIC 7's INSTR
+' token, which C64List 4.04 doesn't know (4.06 does, but can't take the
+' preface's numbers)
+60104 ifzzthenon{$d4}("gp$@&",an$)goto60030,60040,60068,60072,60074
 60108 a=2:goto60100
 60110 b%=kk-1:gosub60020:gosub60010:poke{sym:mci},1:a=1:goto60100
 60112 b$="Signature":gosub60004:onflgoto60100:&"{lt. green}Which signature? (0-9) {pound}g1"
 60114 &"{f6:2}":v$="ps."+an$+na$:dr=3:a$="r":gosub3:gosub60002:gosub60122
-60116 a=1948:ife%thenclose6:&:goto60110
+60116 ife%thenclose6:&:goto60110
 ' 10/27/2026: im 47, as 60036
 60118 gosub47
 60120 close6:goto60110
 ' 10/27/2026: on to z% in im 48, as it fell through to 60124 before
 60122 &,40:goto48
 60126 pl=.:poke53249,pl:lp=.:&,1:return
-60128 &"{f6}Sorry, {pound}$b Limit Exceeded.{f6}":return
 60130 gosub350:onagoto60134:&"{f6}Pattern: ":gosub289:b$="*"
 60132 fori=1tolen(an$):ifmid$(an$,i,1)="*"thenb$=""
 60133 next:close1:open1,dv%,.,"$"+dr$+an$+b$:&"{f6}":&,8,1:close1:return
