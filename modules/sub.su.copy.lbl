@@ -26,6 +26,8 @@
 {alpha:alt}
 {include:..\quoters.lbl}
 {include:su_helpers.lbl}
+{assign:3400	=3400	} ' im: draw the boot frame (z1$, z2$ "")
+{assign:3405	=3405	} ' im: the frame's two lines, z1$ and z2$, in color c
 {step:2}
 
 {number:60000}
@@ -34,10 +36,15 @@
 	bv=su%(10):n=.:for k=1 to 6:if su%(10+k)<>bv or su%(20+k) then n=1
 	next:if n=. then:&"{f6}{lt. blue}Every drive is the boot disk{colon} nothing to copy.{f6}":return
 	b=bv:&"{f6}{lt. blue}Reading the boot disk ({pound}!b)...":gosub {:dir}
+' 11/08/2026: setup.log on the boot disk, the files that failed and why (a
+' name with no prefix, so it isn't copied itself); a new one each time
+	open 15,bv,15,"s0:setup.log":close 15:l$="Image BBS 128 setup: files that didn't copy":gosub {:log}
 	a$="0:++ copier":&,7,bv,2
 ' the screen: the file, where it goes, the counts, and the copier's own
-' counter line on row 15 (it counts there: ++ copier's pbuf0)
-	gosub 3414:&,70,0,7:&"{lt. blue}From device {pound}!b to the drives set up{colon}{f6}"
+' counter line on row 15 (it counts there: ++ copier's pbuf0). 11/08/2026:
+' from row 9: ++ copier shows each block on rows 2-8 as it goes (the frame
+' and the window's top), which are drawn again after (3400, 3405)
+	gosub 3414:&,70,0,9:&"{lt. blue}From device {pound}!b to the drives set up{colon}{f6}"
 	&,70,0,15:&"{cyan} Good{colon} 00000  Bad{colon} 00000  Bytes{colon} 000000"
 	q=.:w=.:x=.:y=.:for f=1 to nf:t$=left$(tt$(f),1):n$=mid$(tt$(f),2):gosub {:drive}
 	if k=. or t$="d" then {:next}
@@ -45,9 +52,11 @@
 	if t$="r" then y=y+1:goto {:next}
 	gosub {:one}
 {:next}
-	next:gosub {:counts}:&,70,0,9:&"{$1b}q":&,70,0,10:&"{$1b}q"
+	next:gosub {:counts}:&,70,0,11:&"{$1b}q":&,70,0,12:&"{$1b}q"
+	y1$=z1$:y2$=z2$:gosub 3400:z1$=y1$:z2$=y2$:c=$8f:gosub 3405
+	for i=6 to 8:&,70,0,i:&"{$1b}q":next
 	&,70,0,17:if x=. then:&"{white}Done!{f6}":return
-	&"{yellow}{pound}!x files didn't copy or don't match.{f6}Go on anyway{question} "
+	&"{yellow}{pound}!x files didn't copy or don't match (setup.log{comma} on the boot disk).{f6}Go on anyway{question} "
 	gosub 94:su%(8)=1-a:return
 
 ' the drive (k, 1-6) file n$ belongs on, by its name; 0: the boot disk's
@@ -67,21 +76,26 @@
 {:one}
 	d=su%(10+k):r=su%(20+k):g$=mid$(str$(r),2)+":":y$=",p":if t$="s" then y$=",s"
 	if t$="u" then y$=",u"
-	&,70,0,9:&"{white}"+n$+"{$1b}q":&,70,0,10:&"{lt. blue}to device {pound}!d{comma} drive {pound}!r"+"{$1b}q"
+	&,70,0,11:&"{white}"+n$+"{$1b}q":&,70,0,12:&"{lt. blue}to device {pound}!d{comma} drive {pound}!r"+"{$1b}q"
 ' the command channel (15) stays open until the files are closed: closing it
 ' closes every file open on that drive, so the first try (15 closed after
 ' reading the status) shut #2 before the copy, and nothing was written
 	close 15:close 3:close 2:open 15,d,15,"s"+g$+n$
-	open 3,bv,3,"0:"+n$+y$+",r":open 2,d,2,g$+n$+y$+",w":input#15,e
-	if e>=20 then close 2:close 3:close 15:x=x+1:goto {:counts}
+	open 3,bv,3,"0:"+n$+y$+",r":open 2,d,2,g$+n$+y$+",w":input#15,e,e$
+	if e>=20 then close 2:close 3:close 15:x=x+1:l$=n$+" to"+str$(d)+","+g$+str$(e)+" "+e$:gosub {:log}:goto {:counts}
 	&,16,0:close 2:close 3:close 15:q=q+1
 	open 3,bv,3,"0:"+n$+y$+",r":open 2,d,2,g$+n$+y$+",r":a%=9:&,16,3:close 2:close 3
-	if a% then x=x+1:goto {:counts}
+	if a% then x=x+1:l$=n$+" to"+str$(d)+","+g$+" not the same, at byte"+str$(b%):gosub {:log}:goto {:counts}
 	w=w+1
 {:counts}
-	&,70,0,12:&"{lt. blue}Copied {white}{pound}!q  {lt. blue}Same {white}{pound}!w  {lt. blue}Failed {white}{pound}!x"+"{$1b}q"
-	if y then:&,70,0,13:&"{lt. blue}REL files not copied{colon} {white}{pound}!y"+"{$1b}q"
+	&,70,0,13:&"{lt. blue}Copied {white}{pound}!q  {lt. blue}Same {white}{pound}!w  {lt. blue}Failed {white}{pound}!x"+"{$1b}q"
+	if y then:&,70,0,14:&"{lt. blue}REL files not copied{colon} {white}{pound}!y"+"{$1b}q"
 	return
+
+' a line (l$) added to setup.log on the boot disk (each failure: no file
+' of the copy is open then)
+{:log}
+	close 5:open 5,bv,5,"0:setup.log,s,a":print#5,l$:close 5:return
 
 ' the boot disk's directory (device b, drive 0) into tt$(1-nf): its lines
 ' are 32 bytes (the header 30; tests/standin/dirlines.bas), so &,2,2,n
