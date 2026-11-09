@@ -7,9 +7,10 @@ PROMPT = re.compile(rb'\(C:\$[0-9a-f]{4}\) $')
 
 
 class X128:
-    def __init__(self, args=(), cols=80, wait=4):
+    def __init__(self, args=(), cols=80, wait=4, port=MON):
+        self.port = port   # another for each x128 run at once (tools/netpair.py)
         self.p = subprocess.Popen(['x128', f'-{cols}col', '+sound', '-remotemonitor', '-remotemonitoraddress',
-                                   f'127.0.0.1:{MON}', *args], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                                   f'127.0.0.1:{port}', *args], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         time.sleep(wait)
 
     @staticmethod
@@ -32,7 +33,17 @@ class X128:
     def cmd(self, *cmds, resume=True):
         """send monitor commands, each answered once its prompt comes back; then
         resume the emulation ('x') unless resume=False. Returns the text."""
-        s = socket.create_connection(('127.0.0.1', MON), timeout=5)
+        # 11/06/2026: a busy x128 can miss a connection: try again
+        # (12 tries: with a CMD HD busy in warp mode, x128 took over 30
+        # seconds to answer)
+        for i in range(12):
+            try:
+                s = socket.create_connection(('127.0.0.1', self.port), timeout=5)
+                break
+            except (TimeoutError, ConnectionRefusedError):
+                if i == 11:
+                    raise
+                time.sleep(2)
         s.settimeout(0.05)
         out = b''                                   # whatever the stop printed first:
         end = time.time() + 0.5                     # take it until 0.1 s of quiet
@@ -54,6 +65,16 @@ class X128:
         return out.decode('latin-1')
 
     def mem(self, bank, addr, n):
+        # 11/06/2026: a busy host can end the read before the bytes come
+        # (setup_test.py's "index out of range"): try again, a few times
+        for _ in range(5):
+            b = self._mem(bank, addr, n)
+            if len(b) == n:
+                return b
+            time.sleep(0.5)
+        return b
+
+    def _mem(self, bank, addr, n):
         out = self.cmd(f'bank {bank}', f'm {addr:04x} {addr+n-1:04x}')
         lines = [(int(m.group(1), 16), m.group(2).split()) for m in
                  re.finditer(r'>C:([0-9a-f]{4})\s+(.*)', out)]

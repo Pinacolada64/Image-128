@@ -42,7 +42,7 @@ irqtbl:
 	word irq2 ;time
 	word irq3 ;blanker
 	word irq4 ;handle lightbar f-keys?
-	word irq5 ;carrier
+	word irq5_128 ;carrier (128: and the speed first: setup.asm)
 	word irq6 ;flag
 	word irq7 ;display lightbar checkmarks
 	word irq4 ;handle lightbar f-keys?
@@ -681,6 +681,9 @@ irq7c:
 	jsr irq7h
 	cpx #40
 	bcc irq7c
+; 11/07/2026: on the 80-column screen, the other page of the pair too (irq7n,
+; lbar2.asm, which looks at the mode itself: $e000-$fbff has no room)
+	jsr irq7n
 	pla
 	sta tmpbar
 irq7z:
@@ -707,12 +710,16 @@ irq7j:
 
 irq7f:
 	ora #$80
+irq7f1:
+; self-modifying code changes this (irq7n: lbar2)
 	sta ldisp,x
 irq7g:
 
 ; self-modifying code changes this
 
 	lda #15
+irq7g1:
+; self-modifying code changes this (irq7n: lbar2c)
 	sta lcolr,x
 	inx
 	rts
@@ -1346,6 +1353,17 @@ alarm3:
 	lda alarmtb+3,x
 	cmp minlo
 	bne alarm4
+; 11/02/2026: the on time acts only on the alarm's days: alarmtb+6 (the
+; checkmark's high byte, unused before) is a mask, bit 0 Sunday ... bit 6
+; Saturday; 0 is every day, as every e.alarms had it. The off time acts on
+; any day, so an alarm on late one day and off early the next still clears
+; its checkmark
+	lda alarmtb+6,x
+	beq alarm3a
+	ldy bootdate	; today, 1 (Sunday) to 7
+	and daybits-1,y
+	beq alarm6	; not one of its days
+alarm3a:
 	ldy #1
 	bne alarm5
 alarm4:
@@ -1389,6 +1407,10 @@ alarm9:
 	ora #flag_net_r_mask
 	sta flag_net_addr
 	rts
+
+; an alarm's day bits, by weekday (alarm3)
+daybits:
+	byte 1,2,4,8,16,32,64
 
 	ldx bootdate+5 ; minute
 	ldy bootdate+4 ; hours

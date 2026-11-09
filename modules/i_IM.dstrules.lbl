@@ -1,0 +1,176 @@
+' Image BBS 128: i/IM.dstrules, the daylight saving time rules editor (IM,
+' Misc. Features, H: DST Rules). 11/02/2026.
+'
+' s.dstrules (drive 1) has a line per rule (sub.clocks reads it; the format
+' is in its notes and tools/dstfiles.py):
+'   U03210200L11110100LUS and Canada (since 2007)
+'   letter, start (month, week, weekday, hhmm, L/U), end (the same), and a
+'   description. Times are in standard time, so the end's local time here is
+'   shown and asked as the clock shows it then, on daylight time (an hour
+'   later), and kept an hour earlier.
+' After saving, if the BBS's time zone (tz$, which i.IM 3138 reads) has a
+' rule, sub.clocks im=13 sets the daylight time flag and the DST alarms
+' again, by the rule as saved.
+'
+' Variables: n (rules), tt$(1-n) (them), tz (changed), dn$ (the rule being
+' edited), dp$ (a start or end, 9 characters); temporary: a b c d h i j m r
+' t v w y dd dj dl dx, a$ b$ c$ an$
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{include:"..\asm\equates.asm"}
+{include:quoters.lbl}
+{step:2}
+
+{:4000}
+	gosub {:load}
+{:show}
+	y=val(mid$(d1$,2,2)):&"{clear}{lt. blue}Daylight Saving Time Rules{f6}"
+	if n=. then:&"{f6}{white}None yet.{f6}"
+	for i=1 to n:dn$=tt$(i):gosub {:show_rule}:next
+	&"{f6}{white}#{blue}/{white}A{lt. blue}dd{blue}/{white}D{lt. blue}elete{blue}/{white}S{lt. blue}ave{blue}/{white}Q{lt. blue}uit{blue}{colon}{white} {pound}i1"
+	a=val(an$):if a>. and a<=n then r=a:dn$=tt$(r):gosub {:edit}:goto {:show}
+	if an$="A" then gosub {:add}:goto {:show}
+	if an$="D" then gosub {:delete}:goto {:show}
+	if an$="S" then gosub {:save}:goto {:show}
+	if tz then:&"{f6}Save Changes{question} ":gosub 94:if a then gosub {:save}
+	return
+
+{nice:100}
+{:load}
+' s.dstrules -> tt$(1-n), up to 20 rules
+	n=.:tz=.:dr=1:a$="s.dstrules,s,r":gosub 4:gosub 5:if e% then close 2:return
+{:load_line}
+	&,2,2:if len(a$)>18 then n=n+1:tt$(n)=a$
+	if st=. and n<20 then {:load_line}
+	close 2:return
+
+{:show_rule}
+' rule i (dn$): its letter and description, its start and end, and the
+' dates they come this year (y)
+	a%=i:b$=left$(dn$,1):c$=mid$(dn$,20)
+	&"{f6}{white}{pound}%a) {yellow}{pound}$b {cyan}{pound}$c{f6}"
+	dx=2:gosub {:point_text}:&"   {lt. blue}Starts {white}{pound}$a{f6}"
+	dx=11:gosub {:point_text}:&"   {lt. blue}Ends   {white}{pound}$a{f6}"
+	dx=2:gosub {:point_date}:b$=a$:dx=11:gosub {:point_date}:c$=a$:a%=2000+y
+	&"   {lt. blue}{pound}%a{colon} {white}{pound}$b to {pound}$c{f6}":return
+
+{:point_text}
+' dn$'s start (dx=2) or end (11) -> a$, e.g. "Mar 2nd Sun, 2:00 AM": a local
+' end time as the clock shows it, on daylight time
+	gosub {:point}:if dx=11 and mid$(dn$,19,1)="L" then t=t+60
+	a$="last":if w<5 then a$=mid$("1st2nd3rd4th",w*3-2,3)
+	a$=mid$("JanFebMarAprMayJunJulAugSepOctNovDec",m*3-2,3)+" "+a$+" "+mid$("SunMonTueWedThuFriSat",d*3-2,3)
+	gosub {:time_text}:a$=a$+"{comma} "+b$:if mid$(dn$,dx+8,1)="U" then a$=a$+" UTC"
+	return
+
+{:point}
+' dn$ at dx -> m (month), w (week, 5 = last), d (weekday), t (minute of the day)
+	m=val(mid$(dn$,dx,2)):w=val(mid$(dn$,dx+2,1)):d=val(mid$(dn$,dx+3,1))
+	t=val(mid$(dn$,dx+4,4)):t=int(t/100)*60+t-int(t/100)*100:return
+
+{:time_text}
+' t (minutes) -> b$, e.g. "2:00 AM"
+	h=int(t/60):a=t-h*60:if h>23 then h=h-24
+	c$="AM":if h>11 then c$="PM"
+	h=h-12*(h>12):if h=. then h=12
+	b$=mid$(str$(h),2)+"{colon}"+right$(str$(100+a),2)+" "+c$:return
+
+{:point_date}
+' dn$'s start or end in year y -> a$, e.g. "Mar 14"
+	gosub {:point}:dd=1:gosub {:weekday}
+	dd=d-a+7:dd=dd-int(dd/7)*7+1+7*(w-1)+7*(w=5)
+	if w=5 then gosub {:month_days}:if dd+7<=b then dd=dd+7
+	a$=mid$("JanFebMarAprMayJunJulAugSepOctNovDec",m*3-2,3)+str$(dd):return
+
+{:weekday}
+' y, m, dd -> a, the weekday (1=Sun...7=Sat), by Zeller's congruence
+	dj=m:dl=y+2000:if dj<3 then dj=dj+12:dl=dl-1
+	a=dd+int(13*(dj+1)/5)+(dl-int(dl/100)*100)+int((dl-int(dl/100)*100)/4)+int(dl/400)+5*int(dl/100)
+	a=a-int(a/7)*7:if a=. then a=7
+	return
+
+{:month_days}
+' b = the days in month m of year y
+	b=31+(m=4 or m=6 or m=9 or m=11):if m=2 then b=28-((y and 3)=.)
+	return
+
+{nice:100}
+{:edit}
+' rule r (dn$), a field at a time; Return keeps each as it was
+	&"{clear}{lt. blue}Rule {white}{pound}!r{lt. blue}{colon} Return keeps a value.{f6:2}"
+{:edit_letter}
+	b$=left$(dn$,1):p$="Letter (A-Z)"+"":c=1:gosub {:ask}:a$=an$:a=asc(a$+chr$(.))
+	if a<193 or a>218 then {:edit_letter}
+	for i=1 to n:if i<>r and left$(tt$(i),1)=a$ then:&"{lt. red}Rule {pound}$a is taken.{f6}{white}":i=99
+	next:if i>98 then {:edit_letter}
+' each answer into dn$ at once (ask_point uses a$ and c$)
+	dn$=a$+mid$(dn$,2):b$=mid$(dn$,20):p$="Description"+"":c=30:gosub {:ask}:dn$=left$(dn$,19)+an$
+	&"{f6}{lt. blue}When DST starts{colon}{f6}{white}":dx=2:gosub {:ask_point}:dn$=left$(dn$,1)+dp$+mid$(dn$,11)
+	&"{f6}{lt. blue}When DST ends{colon}{f6}{white}":dx=11:gosub {:ask_point}:dn$=left$(dn$,10)+dp$+mid$(dn$,20)
+	tt$(r)=dn$:tz=1:return
+
+{:ask_point}
+' dn$'s start or end at dx -> dp$, asked a field at a time
+	gosub {:point}:if dx=11 and mid$(dn$,19,1)="L" then t=t+60
+{:ask_month}
+	b$=mid$(str$(m),2):p$="Month (1-12)"+"":c=2:gosub {:ask}:m=val(an$):if m<1 or m>12 then {:ask_month}
+{:ask_week}
+	b$=mid$("1234L",w,1):p$="Week (1-4{comma} L = last)"+"":c=1:gosub {:ask}
+	w=val(an$):if an$="L" then w=5
+	if w<1 or w>5 then {:ask_week}
+{:ask_day}
+	b$=mid$(str$(d),2):p$="Weekday (1 = Sun...7 = Sat)"+"":c=1:gosub {:ask}:d=val(an$):if d<1 or d>7 then {:ask_day}
+{:ask_time}
+' 24-hour, with or without the colon: 2:00, 200 and 0200 are all 2:00 AM
+	h=int(t/60):a=t-h*60:b$=mid$(str$(h),2)+":"+right$(str$(100+a),2)
+	p$="Time (0:00-23:59)"+"":c=5:gosub {:ask}:a$="":for i=1 to len(an$):b$=mid$(an$,i,1)
+	if b$>="0" and b$<="9" then a$=a$+b$
+	next:v=val(a$):h=int(v/100):a=v-h*100:if a$="" or h>23 or a>59 then {:ask_time}
+	t=h*60+a
+{:ask_basis}
+	b$=mid$(dn$,dx+8,1):p$="L = local time{comma} U = UTC"+"":c=1:gosub {:ask}
+	if an$<>"L" and an$<>"U" then {:ask_basis}
+' a local end: the clock's daylight time -> standard time, as kept
+	if dx=11 and an$="L" then t=t-60:t=t-1440*(t<.)
+	h=int(t/60):a=t-h*60
+	dp$=right$(str$(100+m),2)+mid$(str$(w),2)+mid$(str$(d),2)+right$(str$(100+h),2)+right$(str$(100+a),2)+an$
+	return
+
+{:ask}
+' p$ the prompt, b$ the value now, c its longest: an$, b$ for Return. A
+' one-character answer (a letter, L, U) as a capital
+	poke 53252,c:w$=b$:pl=1:&,1,32:if an$="" then an$=b$
+	a=asc(an$+chr$(.)):if c=1 and a>64 and a<91 then an$=chr$(a+128)
+	return
+
+{nice:100}
+{:add}
+' a new rule, the US one to start from, with the first free letter
+	if n>19 then:&"{f6}{lt. red}No room for more rules.{pound}w2":return
+	for a=193 to 218:a$=chr$(a):for i=1 to n:if left$(tt$(i),1)=a$ then i=99
+	next:if i>98 then next
+	n=n+1:r=n:dn$=a$+"03210200L11110100LNew rule":tt$(n)=dn$:gosub {:edit}:return
+
+{:delete}
+' a rule, after saying how many time zones use it (they'd have no DST)
+	&"{f6}Delete which rule{question} {pound}i1":r=val(an$):if r<1 or r>n then return
+	a$=left$(tt$(r),1):c=.:dr=1:b$=a$:a$="s.timezones,s,r":gosub 4:gosub 5:if e% then close 2:goto {:delete_ask}
+{:delete_count}
+	&,2,2:if mid$(a$,8,1)=b$ then c=c+1
+	if st=. then {:delete_count}
+	close 2
+{:delete_ask}
+	a$=b$:if c then:&"{f6}{lt. red}{pound}!c time zone(s) use rule {pound}$a{colon} they'd have no DST.{f6}"
+	&"{white}Delete rule {pound}$a{question} ":gosub 96:if a=. then return
+	for i=r to n-1:tt$(i)=tt$(i+1):next:tt$(n)="":n=n-1:tz=1:return
+
+{:save}
+' s.dstrules, then the BBS's flag and alarms (sub.clocks im=13) if its zone
+' has a rule
+	dr=1:gosub 3:print# 15,"s"dr$"s.dstrules":a$="s.dstrules,s,w":gosub 4:gosub 5:if e% then close 2:&:return
+	for i=1 to n:print# 2,tt$(i):next:close 2:tz=.:&"{f6}{white}Saved.{f6}"
+	a$=mid$(tz$,8,1):if a$="" or a$="-" or a$=" " then return
+	&"Setting the BBS's daylight saving time...{f6}":im=13:a$="clocks":gosub 74:return
+
+	rem "i/IM.dstrules (c)nissa 2026-11-02 rs"

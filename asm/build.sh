@@ -60,7 +60,7 @@ cp rs232.prg "$build/ml.rs232.prg"
 
 # the "++" overlays: im loads them at protostart (&,7,dv%,2), each on the
 # disk as "++ <name>"; extra disk names for the same file after a ":"
-overlays="index:4 clock menu2 2 read post"
+overlays="index:4 clock menu2 2 read post path net netsub netlist copier visual"
 ovlwrites=()
 for o in $overlays; do
 	name=${o%%:*}
@@ -155,6 +155,11 @@ for m in Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec; do
 	todaywrites+=(-write "$repo/disk/today.$m.seq" "today.$m,s")
 done
 
+# 11/05/2026: s.timezones and s.dstrules (tools/dstfiles.py), which a new
+# system needs before any s.* files are copied: setup's Clock part lists the
+# zones from s.timezones (sub.info im=8), and sub.clocks reads s.dstrules
+python3 "$repo/tools/dstfiles.py" "$build/dst" >/dev/null
+
 cd "$build"
 rm -f image128.d64 image128.d71 image128.d81
 c1541 -format "image bbs 128,ib" d81 image128.d81 \
@@ -171,5 +176,14 @@ c1541 -format "image bbs 128,ib" d81 image128.d81 \
 	-write "$repo/disk/e.alarms.prg" e.alarms \
 	-write "$repo/disk/nm.times.prg" nm.times \
 	-write "$repo/disk/e.fkeys.seq" "e.fkeys,s" \
-	"${modwrites[@]}" "${ovlwrites[@]}" "${todaywrites[@]}" >/dev/null
+	-write "$build/dst/s.timezones" "s.timezones,s" \
+	-write "$build/dst/s.dstrules" "s.dstrules,s" \
+	"${modwrites[@]}" "${ovlwrites[@]}" >/dev/null
 c1541 image128.d81 -list
+# 11/05/2026: the optional features' files on a disk of their own, which
+# setup's Optional Features part copies from (Today in History's 12 files
+# are ~550 blocks; on image128.d81 they left 84 free, and a 1581 with that
+# little room hangs extending a REL file: setup's u.config write)
+rm -f features.d81
+c1541 -format "image bbs 128 features,if" d81 features.d81 "${todaywrites[@]}" >/dev/null
+c1541 features.d81 -list | tail -1

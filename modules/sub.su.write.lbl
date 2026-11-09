@@ -1,0 +1,64 @@
+' sub.su.write -- the new-system setup's last step (i/su.config, R): the
+' system files from the answers (su$(), su%(): i/su.config's notes): bd.data
+' (the boot drive), u.config, u.index, e.stats, e.data and e.access (on the
+' drives chosen), then the daily log (im 3300). dv%() and dr%() are the
+' chosen drives while it writes, and the boot drive again after, so the
+' steps after it load their modules from the boot disk. 11/05/2026 (the end
+' of Part IV of the old setup).
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{include:..\quoters.lbl}
+{include:su_helpers.lbl}
+{assign:3300	=3300	} ' im: start the daily log
+{step:2}
+
+{number:60000}
+' (a label: without one C64List numbers the file from 0, {number:} or not,
+' and im's load put it over im: ?undef'd statement error in 0)
+{:write}
+	gosub 3414:z3$="Creating System Files...":gosub 3404:&"{f6}"
+	bn$=su$(6):po$=su$(7):c1$=su$(8):c2$=su$(9):nc=val(su$(10)):ck$=su$(11):tz$=su$(12)
+	for i=1 to 6:dv%(i)=su%(10+i):dr%(i)=su%(20+i):next
+' bd.data, on the boot drive (drive 0: d1%, d2%): where e.data is, the prompt
+	f$="bd.data":gosub 4930:dr=.:a$=f$:gosub 19:a$=f$+",s,w":gosub 4
+	gosub 4940:print#2,dv%(3)r$dr%(3)r$po$:print#2,c$:close 2:close 15:gosub 4932
+' u.config: user 1, the sysop (Part I's answers in the release's order)
+	f$="u.config":gosub 4930:dr=6:a$="u.config,l,"+chr$(254):gosub 4
+	tt$=su$(1)+r$+su$(2)+r$+su$(3)+r$+su$(4)+r$+su$(5)+r$+d1$+r$
+	tt$=tt$+"9"+r$+"0"+r$+"0"+r$+"1"+r$+mid$(str$(40+24*256),2)+r$+"0"+r$
+	tt$=tt$+"01100"+r$:for i=1 to 8:tt$=tt$+"0"+r$:next:tt$=tt$+d1$+r$
+	tt$=tt$+"1411191111111119000090000"
+	x=1:gosub 1:print#2,tt$:x=2:gosub 1:print#2,"{^}":ur=1:close 2:gosub 4932
+	f$="u.index":gosub 4930:dr=6:gosub 3:a$=dr$+f$:print#15,"s"a$
+	a%(0)=1:a%(1)=1:&,60,3,0,a%(0),4,a$,dv%:close 15:gosub 4932
+	close 2:f$="e.stats":gosub 4930:dr=3:a$="e.stats,l,"+chr$(10):gosub 4
+	for x=1 to 40:gosub 1:print#2,"0":next:close 2:gosub 4932
+	f$="e.data":gosub 4930:dr=3:a$="e.data,l,"+chr$(31):gosub 4:x=1:gosub 1:print#2,"0"
+	for x=2 to 11:gosub 1:print#2,"{^}":next:x=12:gosub 1:print#2,"2"
+	for x=13 to 16:gosub 1:print#2,"{^}":next:x=17:gosub 1:print#2,"NOBODY"
+	x=18:gosub 1:print#2,"PASS":x=19:gosub 1:print#2,d1$
+	x=20:gosub 1:print#2," 0 , 0 , 0":for x=21 to 30:gosub 1:print#2,"{^}":next
+	x=31:gosub 1:print#2,"2"
+	for x=32 to 34:gosub 1:print#2,"{^}":next:x=35:gosub 1:print#2,d1$
+' record 37: ck$, how the clock is set at boot (sub.su.clock)
+	x=36:gosub 1:print#2,"0":x=37:gosub 1:print#2,ck$
+	x=38:gosub 1:print#2,"0":for x=39 to 42:gosub 1:print#2,"{^}":next
+' record 45: the system time zone (sub.info im=8, after sub.su.clock)
+	x=43:gosub 1:print#2,"X":x=44:gosub 1:print#2,"{^}":x=45:gosub 1:print#2,tz$:x=46:gosub 1:print#2,"{^}"
+	x=47:gosub 1:print#2,bn$:x=48:gosub 1:print#2,c1$
+' record 50: the NetSub transfer index: an e.data already there keeps its own
+	x=49:gosub 1:print#2,c2$:b$="0":x=50:gosub 1:&,2,2
+	if asc(a$+nl$)<>32 then b$=a$
+	gosub 1:print#2,b$:x=51:gosub 1:print#2,cc$
+	for i=1 to 6:x=51+i:gosub 1:print#2,dv%(i);r$;dr%(i):next
+	x=58:gosub 1:print#2,nc:close 2:gosub 4932
+	f$="e.access":gosub 4930:dr=3:a$="e.access,l,"+chr$(127):gosub 4
+	for i=. to 8:x=i+1:gosub 1
+	print#2,"Group"+str$(i)+r$+"01001100000000021151":next
+' 10/14/2026: group 9 is named Sysop, so the sysop needn't rename it
+	print#2,"Sysop"+r$+"19111911111111190000"
+	close 2:gosub 4932:z3$="Starting Daily Log...":gosub 3404:gosub 3300
+' the boot drive again for the steps after this one
+	for i=1 to 6:dv%(i)=su%(10):dr%(i)=.:next:return
+
+	rem "sub.su.write (c)nissa 2026-11-05"

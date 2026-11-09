@@ -80,7 +80,11 @@
 4205 mm=6:on-(ti>36000)gosub{$33}000:ifmn%<>t1%thent1%=mn%
 4206 &,52,41,3:z%=a%:&,52,40,3:z%=z%+2*a%:on-(z%<>kk)gosub4010
 4208 &,52,4,3:zz=a%:ifzzthenim=4:gosub{$34}46:goto4008
-4209 &,52,25,3:ona%gosub4500
+' 11/02/2026: checkmark 64 (page 5's first label, left: name it DST in IM,
+' H, D): daylight saving time is checked when it's set, by an alarm at the
+' hour the clock changes (IM, H, B: on at 2:00, off --:--, triggers 64). Set
+' during a call, it waits here until the call ends. No DST: no alarm
+4209 &,52,25,3:ona%gosub4500:&,52,64,3:ona%gosub4510
 4210 ifpeek({sym:timeset})>.andmid$(am$,2,6)<>mid$(d1$,2,6)thenmm=7:goto{$33}000
 4211 &,52,29,3:ifpeek({sym:timeset})>.anda%thenmm=3:goto{$33}000
 ' Image BBS 128 (10/21/2026): the color by MCI ({pound}q, as im 97), not poke
@@ -176,7 +180,8 @@
 4430 f3=3:poke53248,1:poke{sym:clock},.:&"{clear}{f6} {rvrs on}{cyan} Blocks Free On System Disks {f6:2}"
 4432 dr=1
 4434 b$="System":d$="Mail":gosub4438:b$="Etc.":d$="Dir.":gosub4438
-4436 b$="Program":d$="User":gosub4438:&"{f6:2}":poke53248,.:poke{sym:ndx},.:goto4040
+' 11/07/2026: drive 5 is the Module disk (was Program), as im 3504 names it
+4436 b$="Module":d$="User":gosub4438:&"{f6:2}":poke53248,.:poke{sym:ndx},.:goto4040
 4438 c$=str$(bf(dr)):f$=str$(bf(dr+1))
 4440 a$="{lt. red} {pound}$b {gray3}Disk{white}:{pound}{back arrow}15{pound}$c{f6}{lt. red} {pound}$d {gray3}Disk{white}:{pound}{back arrow}15{pound}$f{f6}":&:dr=dr+2:return
 ' SuperCPU detection / enable:
@@ -202,6 +207,7 @@
 ' method. sub.clocks takes sub.modem's place at 60000; the idle loop loads it
 ' again
 4500 &,52,25,.:b$="update time":x=11:gosub{$33}080:close2:im=11:a$="clocks":gosub{$37}4:return
+4510 &,52,64,.:im=12:a$="clocks":gosub{$37}4:return
 ' 10/29/2026: the keys' blocks (4222-4224), 10 lines each at 4600+10*x
 ' 1, 7, 8 (x 1-3): i/lo.misc's Set Time, Set Password, View Logs (lm 1-3);
 ' im line 80 runs it, then loads this module again (on to 4200)

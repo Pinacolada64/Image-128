@@ -1,257 +1,224 @@
 {uses:3_0-preface.lbl}
-' Image BBS 128: i/su.config, the new-system setup, ported from Image BBS
-' 3.0's (ImageBBS3 core/i_su.config.lbl) on 2026-10-20. im loads it at line
-' 4000 and calls it (3240-3242), with lm = the option picked: 1 configure,
-' 2 convert from 1.2, 3 convert from 2.0. Built with C64List 4.04 (BASIC 2
-' tokens, which BASIC 7 runs; 4.06 won't take the numeric {assign}s).
-' i/su.config calls lines in 'im':
-' 10/13/2026: call them by number (gosub 3404), which the {assign}s below let
-' C64List accept; {:3404} only finds labels in this file, and built as text
-' ([:3404]). 3192 (the middle of the release's insert-disks menu) is now 3200.
+' Image BBS 128: i/su.config, the new-system setup: its menu.
+' im loads it at line 4000 and calls it (3240-3242), with lm = the option
+' picked: 1 configure, 2 convert from 1.2, 3 convert from 2.0.
+'
+' 11/05/2026: a menu of parts instead of one fixed run of questions (the
+' setup redesign: ImageBBS3 TODO.md; Image-128 issue #1). Each part is a
+' sub.* module, modules/sub.su.*.lbl, which im loads at 60000 (gosub 74)
+' while this stays in memory at 4000: so the parts can gosub the shared
+' lines at 4900 on (modules/su_helpers.lbl numbers them for the parts).
+' Only this module loads sub.* modules: a part that needs sub.info or
+' sub.clocks leaves a request (su%(9)) and this calls them after it returns
+' (a sub.* loading another hits the 128's nested-reload bug, TODO).
+' im's program area is 32K: im is 15K, sub.clocks 9K, so this stays small.
+'
+' Setup's own variables (DIMmed in init, after im 3200's &,27,1, so im
+' 3087's &,28,1 drops the arrays when setup is over):
+'   su%(1-4)   1 when part 1-4 is done; su%(9) clock follow-ups wanted
+'   su%(31-36), (37-38), (43-47), (49-53): 1 when that item of part 1-4
+'              (drives, clock, sysop, BBS) has been asked; ib = the part's
+'              base (24+6*part), nx/nx$ its first item not asked yet
+'   su%(10)    the boot device; su%(11-16), su%(21-26) the chosen device and
+'              drive of drives 1-6 (dv%() and dr%() stay the boot drive
+'              until sub.su.write, so modules load from the boot disk)
+'   su$(1-5)   sysop: handle, password, first and last name, e-mail
+'   su$(6-10)  BBS: name, main prompt, chat entry, chat exit, new user credits
+'   su$(11-13) clock: method (ck$), time zone (tz$), the method's name
+' Built with C64List 4.04 (BASIC 2 tokens, which BASIC 7 runs; 4.06 won't
+' take the numeric {assign}s).
 {alpha:alt}
+{include:quoters.lbl}
+{include:"asm\equates.asm"}
 {assign:3084	=3084	} ' im: reopen the command channel, read bd.data (c64 3.0: 3080)
 {assign:3200	=3200	} ' im: insert-disks menu
 {assign:3300	=3300	} ' im: start the daily log
 {assign:3404	=3404	} ' im: boot frame: show z3$
 {assign:3414	=3414	} ' im: boot frame: clear the lines under it
+{step:2}
 
-{:4000}
-' TODO: make menu-driven
-' TODO: use &,69,0,x to clear entire screen line?
-	rem " i/su.config " {usedef:__BuildDate} {usedef:__BuildTime}
-	onlmgosub {:4002},{:4200},{:4300}:return
-{:4002}
-	z3$="Part I: Sysop Information":gosub 3404:d1$="12011111201"
-{:4004}
-	&"{f6}{white}":poke 53252,20:w$="IMAGE SYSOP":b$=w$:pl=1:p$="Sysop Handle"+"":&,1,32
-	if an$=""then an$=b$
-	&"{up:2}{lt. blue}Sysop Handle{blue}:{pound}{back arrow}17{cyan}{pound}v7{pound}{back arrow}38 {f6}{pound}{back arrow}30 {white}"
-	tt$(1)=an$:&"{f6}{pound}{back arrow}38 {f6}{up}":w$="JOHN":b$=w$:p$="Sysop First Name"+"":&,1,32
-	if an$=""then an$=b$
-	&"{up:3}{lt. blue}Sysop First Name{blue}:{pound}{back arrow}17{cyan}{pound}v7{pound}{back arrow}38 {f6}{pound}{back arrow}30 {white}"
-	tt$(3)=an$:&"{f6}{pound}{back arrow}38 {f6}{up}":w$="DOE":b$=w$:p$="Sysop Last Name"+"":&,1,32
-	if an$=""then an$=b$
-	&"{up:3}{lt. blue}Sysop Last Name{blue}:{pound}{back arrow}17{cyan}{pound}v7{pound}{back arrow}38 {f6}{pound}{back arrow}30 {white}"
-	tt$(4)=an$:&"{f6}{pound}{back arrow}38 {f6}{up}":poke 53252,40:w$="example@example.com"
-	pl=.:b$=w$:p$="Sysop Email"+"":&,1,32
-	if an$=""then an$=b$
-	&"{up:3}{lt. blue}Sysop Email{blue}:{pound}{back arrow}17{cyan}{pound}v7{pound}{back arrow}38 {f6}{pound}{back arrow}30 {white}":poke 53252,20
-	tt$(5)=an$:&"{f6}{pound}{back arrow}38 {f6}{up}":pl=1:w$="PASS":b$=w$:p$="Sysop Password"+"":&,1,32
-	if an$=""then an$=b$
-	tt$(2)=an$:&"{up:3}{lt. blue}Sysop Password{blue}:{pound}{back arrow}17{cyan}{pound}v7{pound}{back arrow}38 {f6}{pound}{back arrow}30 {yellow}{f6}Is the above information correct? ":gosub 96:if a=.then gosub3414:goto {:4004}
-	tt$=tt$(1)+r$+tt$(2)+r$+tt$(3)+r$+tt$(4)+r$+tt$(5)+r$+d1$+r$
-	tt$=tt$+"9"+r$+"0"+r$+"0"+r$+"1"+r$+mid$(str$(40+24*256),2)+r$+"0"+r$
-	tt$=tt$+"01100"+r$:fori=1to8:tt$=tt$+"0"+r$:next:tt$=tt$+d1$+r$
-	tt$=tt$+"1411191111111119000090000"
-	gosub 3414:z3$="Part II: Clock Setting":gosub 3404:gosub {:4270}
-	z3$="Part III: Device/Drive Settings":gosub 3414:gosub 3404:&"{f6}{white}"
-' the disk names: this module's DATA, not the first in the program (im's
-' computer types at 3500), which a plain "restore" went back to
-{:4032}
-	restore {:4400}
-	fori=1to6:poke 53252,3:pl=1:readb$
-	w$="8":p$=b$+" Device":&,1,32:a=val(an$):if a<7ora>16then a=8
-	dv%(i)=a:w$="0":p$=b$+" Drive":&,1,32:a=val(an$):if a<.ora>254then a=.
-	dr%(i)=a:c$=mid$(str$(dv%(i)),2)+","+mid$(str$(dr%(i)),2):&"{up}{pound}{back arrow}38 {f6}{up:2}{pound}{back arrow}38 {f6}{up:2}{pound}{back arrow}38 {f6}{up:2}{pound}{back arrow}38 {f6}{up:2}{lt. blue}  {pound}$b Disk{blue}:{cyan}{pound}{back arrow}20{pound}$c{f6:2}{white}":next
-	&"{yellow}Is the above information correct? ":gosub 96:if a=.then gosub3414:&"{f6}":goto {:4032}
-	z3$="Part IV: BBS Information":gosub 3414:gosub 3404:poke 53252,30:pl=.
-{:4044}
-	w$="IMAGE BBS V3.0":b$=w$:p$="BBS Name"+"":&"{f6}{white}":&,1,32
-	if an$=""then an$=b$
-	&"{up:2}{lt. blue}BBS Name{blue}:{pound}{back arrow}12{cyan}{pound}v7{pound}{back arrow}38 {f6}{pound}{back arrow}38 {white}"
-	bn$=an$:w$="IMAGE MAIN":b$=w$:p$="Main Prompt"+"":&"{f6}{pound}{back arrow}38 {f6}{up}":&,1,32
-	if an$=""then an$=b$
-	&"{up:3}{lt. blue}Main Prompt{blue}:{pound}{back arrow}12{cyan}{pound}v7{pound}{back arrow}38 {f6}{pound}{back arrow}38 {white}"
-	po$=an$:w$="* Entering Chat Mode *":b$=w$:p$="Chat Entry"+"":&"{f6}{pound}{back arrow}38 {f6}{up}":&,1,32
-	if an$=""then an$=b$
-	&"{up:3}{lt. blue}Chat Entry{blue}:{pound}{back arrow}12{cyan}{pound}v7{pound}{back arrow}38 {f6}{pound}{back arrow}38 {white}"
-	c1$=an$:w$="* Exiting Chat Mode *":b$=w$:p$="Chat Exit"+"":&"{f6}{pound}{back arrow}38 {f6}{up}":&,1,32
-	if an$=""then an$=b$
-	&"{up:3}{lt. blue}Chat Exit{blue}:{pound}{back arrow}12{cyan}{pound}v7{pound}{back arrow}38 {f6}{pound}{back arrow}38 {white}"
-	c2$=an$:w$="100":b$=w$:p$="New User Credits"+"":&"{f6}{back arrow}38 {f6}{up}":&,1,32:if an$=""then an$=b$
-	nc=val(an$):&"{up:3}{lt. blue}NEW Credits{blue}:{pound}{back arrow}12{cyan}{pound}v7{pound}{back arrow}38 {f6}{pound}{back arrow}38 {white}{yellow}{f6}Is the above information correct? ":gosub 96:if a=.then gosub3414:goto {:4044}
-' TODO: log setup messages to "e.log <day>"
-	gosub 3414:z3$="Creating Image 3.0 System Files...":gosub 3404:&"{f6}{lt. blue}Creating {blue}{f5}{cyan}bd.data{blue}{f5}{lt. blue}..."
-' 4064
-	open 2,dv%,2,bd$+"bd.data,s,w":print#2,dv%(3)r$dr%(3)r$po$
-' TODO: subroutine this so copyright date is changed in only one place
-	print#2,"3.0 Image V3.0 Copyright 2020 NISSA BBS Software":close 2:close 15
-	&"{white}Done!{f6}{lt. blue}Creating {blue}{f5}{cyan}u.config{blue}{f5}{lt. blue}..."
-	dr=6:a$="u.config,l,"+chr$(254):gosub 4
-	x=1:gosub 1:print#2,tt$:x=2:gosub 1:print#2,"{^}":ur=1:close2:&"{white}Done!{f6}"
-	&"{lt. blue}Creating {blue}{f5}{cyan}u.index{blue}{f5}{lt. blue}...":dr=6:gosub 3:a$=dr$+"u.index":print#15,"s"a$
-	a%(0)=1:a%(1)=1:&,60,3,0,a%(0),4,a$,dv%:close15:&"{white}Done!{f6}"
-	close2:&"{lt. blue}Creating {blue}{f5}{cyan}e.stats{blue}{f5}{lt. blue}..."
-	dr=3:a$="e.stats,l,"+chr$(10):gosub 4
-	forx=1to40:gosub 1:print#2,"0":next:close2:&"{white}Done!{f6}"
-	&"{lt. blue}Creating {blue}{f5}{cyan}e.data{blue}{f5}{lt. blue}..."
-	dr=3:a$="e.data,l,"+chr$(31):gosub 4:x=1:gosub 1:print#2,"0"
-	forx=2to11:gosub 1:print#2,"{^}":next:x=12:gosub 1:print#2,"2"
-	forx=13to16:gosub 1:print#2,"{^}":next:x=17:gosub 1:print#2,"NOBODY"
-	x=18:gosub 1:print#2,"PASS":x=19:gosub 1:print#2,d1$
-	x=20:gosub 1:print#2," 0 , 0 , 0":forx=21to30:gosub 1:print#2,"{^}":next
-	x=31:gosub 1:print#2,"2"
-	for x=32 to 34:gosub 1:print#2,"{^}":next:x=35:gosub 1:print#2,d1$
-' record #37: y%=clock set method
-	x=36:gosub 1:print#2,"0":x=37:gosub 1:print#2,ck$
-	x=38:gosub 1:print#2,"0":for x=39 to 42:gosub 1:print#2,"{^}":next
-	x=43:gosub 1:print#2,"X":for x=44 to 46:gosub 1:print#2,"{^}":next
-	x=47:gosub 1:print#2,bn$:x=48:gosub 1:print#2,c1$
-' x=50: NetSub transfer index: don't overwrite existing value
-	x=49:gosub 1:print#2,c2$:b$="0":x=50:gosub 1:&,2,2
-	if asc(a$+nl$)<>32then b$=a$
-	gosub 1:print#2,b$:x=51:gosub 1:print#2,cc$
-	fori=1to6:x=51+i:gosub 1:print#2,dv%(i);r$;dr%(i):next
-	x=58:gosub 1:print#2,nc:close2:&"{white}Done!{f6}"
-' TODO: subroutine 'Creating "<xxx>" file...' and "Done!"
-	&"{lt. blue}Creating {blue}{f5}{cyan}e.access{blue}{f5}{lt. blue}...":dr=3:a$="e.access,l,"+chr$(127):gosub 4
-	for i=. to 8:x=i+1:gosub 1
-	print#2,"Group"+str$(i)+r$+"01001100000000021151":next
-' FIXME: group 10? changed to group 9
-' 10/14/2026: group 9 is named Sysop, so the sysop needn't rename it
-	print#2,"Sysop"+r$+"19111911111111190000"
-' gosub 3300 was 3210
-	close 2:&"{white}Done!{f6}":z3$="Starting Daily Log...":gosub 3404:gosub 3300
+{number:4000}
+	rem "i/su.config" {usedef:__BuildDate} {usedef:__BuildTime}
+' 11/05/2026: the window's top at row 6 for all of setup, so nothing printed
+' under im's boot frame (rows 2-5) can scroll it away: Image's console scrolls
+' from sctop, and im 3404 redraws only the frame's two lines, not its border
+' 11/06/2026: dv% (the current device: the last gosub 2's) set back to the
+' boot device (su%(10)): im 3084 opens bd.data on dv%, and setup's last
+' steps (the daily log, drive 3) left it at a CMD HD's 9: no bd.data
+' there, so im showed the start-up menu again
+	poke {sym:sctop},6:on lm gosub {:new},{:conv12},{:conv20}:poke {sym:sctop},.:poke {sym:timeset},su%(7):dv%=su%(10):return
 
-' 40 columns:
-' ----+----+----+----+----+----+----+----+
-' You may now log in to your new BBS. To
-' complete its configuration, type "IM"
-' and Return at its main prompt, which is:
-'
-' po$:
-'
-' Message bases, U/D and U/X libraries,
-' and most other BBS features can be
-' configured here by using the "Base
-' Editors" option.
-'
-' For more information, refer to either:
-'
-' * The printed manual, titled <hard break>
-' <MCI left margin 3>
-'   "Image BBS 128 Sysop Guide."
-'
-' * The online documentation, located at:
-' <MCI left margin 3>
-'   https://www.imagebbs.net
+{nice:100}
+' 1: a new system
+{:new}
+	gosub {:init}
+' the menu: the parts, each with a checkmark in front of its number once done; Return takes the
+' first not done, then the review (tools/setup_test.py presses Return at
+' every prompt)
+{:menu}
+	gosub 3414:z3$="Image BBS 128 Setup":gosub 3404:&"{f6}{white}"
+	n=.:restore {:names}:for i=1 to np:read a$:a%=i:b$=mid$(" {$ba}",su%(i)+1,1)+" "
+	if n=. and su%(i)=. then n=i
+	&"{white}{pound}$b{yellow}{pound}%a{lt. blue}) {pound}$a{f6}":next
+	&"{yellow}  R{lt. blue}) Review{comma} then write system files{f6:2}":a$="Review"
+	if n then restore {:names}:for i=1 to n:read a$:next
+' 11/06/2026: {pound}i1's length is 53252's: set here, not left from the last input
+	poke 53252,1:&"{lt. green}Return{colon} {pound}$a{f6}{yellow}Your choice{colon} {white}{pound}i1{f6}"
+	a=val(an$):if an$=r$ or an$="" then a=n:if n=. then an$="R"
+	if an$="R" or an$="r" then gosub {:review}:on a goto {:menu}:return
+	if a<1 or a>np then {:menu}
+	on a gosub {:drives},{:clock},{:sysop},{:bbs}:goto {:menu}
+' the parts, in the menu's order; "" ends them, and init counts them (np),
+' so a new part is a name here and its label in the two "on a gosub" lists
+' (the menu's and the review's). Room: su%(part) is its done flag (su%(7)
+' on are taken: parts 1-6), su%(24+6*part)+ its items' checks (su%() is
+' DIMmed 60: a sixth part needs more). 11/07/2026
+{:names}
+	data "Devices and Drives","Clock and Time Zone","Sysop Information","BBS Information",""
 
-' 80 columns:
-' ----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
-' Be sure to enter "IM" once online to complete the configuration of your BBS.
-' Message bases, U/D and U/X libraries can be configured by using the "Base
-' Editors" option.
+{nice:100}
+' the parts: each a sub.su.* module (goto 74: its return is this gosub's)
+' the bus scan first (sub.sysdos im=2: each device's model in tt$(8-30)),
+' which the Drives part lists and checks the picks against
+{:drives}
+	im=2:a$="sysdos":gosub 74:im=1:a$="su.drives":goto 74
+{:sysop}
+	im=1:a$="su.sysop":goto 74
+{:bbs}
+	im=1:a$="su.bbs":goto 74
+' the clock's method, then, if it asks (su%(9)), the system time zone (sub.info
+' im=8: into tz$, e.data record 45) and the alarms that make the idle screen
+' check daylight saving time when its rule changes the clock (sub.clocks
+' im=15: none if the zone has no DST)
+' the zone list (37 zones, more than the 18 rows under the frame) scrolls
+' under it only (sctop, 4000), and sub.info pauses it every 14 lines (the
+' More prompt is off on the console: moreprmt returns when local)
+{:clock}
+	su%(9)=.:im=1:a$="su.clock":gosub 74:if su%(9)=. then return
+	y%=val(su$(11)):gosub 3414:im=8:gosub 447:su$(12)=tz$
+' 11/06/2026: then back to the Clock part's menu (it returns when done);
+' the zone is asked only once one was chosen (Return at Which One? leaves it)
+	im=15:a$="clocks":gosub 74:su%(37)=1:su%(38)=-(su$(12)<>""):goto {:clock}
 
-' (C) 2024 NISSA BBS Software
-'
-' Hit any key to continue: _
+{nice:100}
+' R: a part not done yet is done first (a = 1: back to the menu); then
+' the answers, to change or continue, and the files written (sub.su.write;
+' a = 0: setup is over)
+{:review}
+	if n then a=n:on a gosub {:drives},{:clock},{:sysop},{:bbs}:a=1:return
+' 11/05/2026: the drives as the Drives part's table (sub.su.drives im=2:
+' labels, devices, models, disk names), after a scan (the zone list's tt$()
+' wrote over the last one's).
+' 11/06/2026: numbered as the menu's parts: a number runs that part and
+' comes back here; C (or Return) writes the files. 18 rows in 40 columns:
+' the table's 13 (its heading "1) Drive"), the Clock's 2 (the method, then
+' the zone: one line in 80 columns), Sysop, BBS, the question
+{:review1}
+	gosub 3414:z3$="Review":gosub 3404
+	im=2:a$="sysdos":gosub 74:im=2:a$="su.drives":gosub 74
+	b$="(none chosen)":if su$(12)<>"" then gosub {:su.zone}
+	a$="{f6}   ":if sw>79 then a$="{comma} "
+	&"{yellow}2{lt. blue}) Clock{colon} {white}"+su$(13)+a$+b$+"{f6}"
+	&"{yellow}3{lt. blue}) Sysop{colon} {white}"+su$(1)+"{f6}{yellow}4{lt. blue}) BBS{colon} {white}"+su$(6)+"{f6}"
+	poke 53252,1:&"{yellow}Number to change{comma} or [C]ontinue{colon} {white}{pound}i1{f6}":a=val(an$)
+	if a>. and a<=np then on a gosub {:drives},{:clock},{:sysop},{:bbs}:goto {:review1}
+	if an$<>"C" and an$<>"c" and an$<>"" then {:review1}
+' 11/07/2026: the files copied to the drives first (sub.su.copy, on its
+' own: a sub.* doesn't load another); su%(8): one failed and the sysop
+' chose not to go on, so back to the review
+	im=1:a$="su.copy":gosub 74:if su%(8) then {:review1}
+	im=1:a$="su.write":gosub 74
+	gosub 3414:gosub {:su.copr}:lp=1:&"{f6:2}Be sure to enter {quotation}IM{quotation} once online to complete the configuration of "
+	lp=1:&"your BBS. Message bases{comma} U/D and U/X libraries can be configured by using "
+	lp=1:&"the {quotation}Base Editors{quotation} option.{f6:2}"+c$+"{f6:2}"
+' esc-p: clear to start of line
+' (then the lines under the frame cleared: if im shows its start-up menu
+' again, the closing screen isn't left under it)
+	lp=1:&"Hit any key to continue{colon} {pound}g1"+es$+"p":gosub 3414:a=.:return
 
-	gosub 3414:lp=1:&"{f6:2}Be sure to enter {f5}IM{f5} once online to complete the configuration of "
-	lp=1:&"your BBS. Message bases, U/D and U/X libraries can be configured by using "
-	lp=1:&"the {f5}Base Editors{f5} option.{f6:2}(c)2020 NISSA BBS Software.{f6:2}"
-	lp=1:&"Hit any key to continue: {pound}g1":return
-' (c64 3.0 had CMD and Lt. Kernal clock reads here that nothing called,
-' with C64 addresses -- sys 49152/49155 and poke 1010; sub.clocks reads
-' clocks now)
-{:4200}
-'	rem:close15:open15,dv%,15,"r"+bd$+"d.data=bd.data"
-	fl=.:z3$="Reading old configuration...":gosub 3404:close2:open2,dv%,2,bd$+"d.data,s,r":gosub 5
-' TODO: Hit [Esc] to retry
-	if e%then close2:&"{f6:2}{blue}{f5}{cyan}d.data{blue}{f5}{lt. blue} not found!!{f6:2}Hit Any Key to Configure New System:{pound}g1":return
-	fori=1to6:input#2,dv%(i),dr%(i):next
-	&,2,2:cc$=a$:&,2,2:nc=val(a$):&,2,2:&,2,2:&,2,2:bn$=a$:&,2,2:po$=a$:close2
-	&"{f6}":gosub {:4270}:gosub 3414:z3$="Converting old information...":gosub 3404:forqq=1to4:gosub {:4212}:next:return
-{:4212}
-	onqqgoto {:4214},{:4238},{:4250},{:4258}
-{:4214}
-	z3$="Converting Access Data...":gosub 3404:gosub 33
-	forx=2to11:gosub 1:&,2,2:tt$(x)=a$:next
-	forx=21to30:gosub 1:&,2,2:tt$(x)=a$:next
-	fori=.to9:a$=tt$(i+2):tt$(i+2)=mid$(a$,5)
-	a=asc(a$):b=asc(mid$(a$,2,1)):c=asc(mid$(a$,3,1)):d=asc(mid$(a$,4,1))
-	if a>100then a=.
-	if b>100then b=.
-	if c>100then c=.
-	if d>100then d=.
-	tt$(i+21)=tt$(i+21)+chr$(48+c)+chr$(48+b)+right$(str$(100+a),2)+chr$(48+d)
-	next:close2
-	fori=.to9:fl$(i)=tt$(i+21):next:&"{f6}{white}Converting of access info {yellow}SUCCESSFUL{white}!":return
-{:4238}
-	z3$="Updating 'e.data' file...":gosub 3404:d1$="72006131201":gosub 33
-	x=35:gosub 1:print#2,d1$:x=36:gosub 1:print#2,.:x=37:gosub 1:print#2,ck$
-	print#2,.:print#2,.:print#2,"3"
-	print#2,"7"
-	fori=1to6:x=51+i:gosub 1:print#2,dv%(i);r$;dr%(i):next:close2
-	&"{f6:2}{white}Updating of 'e.data' {yellow}SUCCESSFUL{white}!":return
-{:4250}
-	z3$="Creating 'e.access' file...":gosub 3404
-	close 2:dr=3:a$="e.access,l,"+chr$(127):gosub 4:for i=. to 9:x=i+1:gosub 1
-	print#2,tt$(x+1)+r$+tt$(x+20):next:close2
-	&"{f6:3}{white}Creating of 'e.access' {yellow}SUCCESSFUL{white}!":return
-{:4258}
-	z3$="Writing new 'bd.data' file...":gosub 3404
-	open2,dv%,2,bd$+"bd.data,s,w":gosub 5:if e%then close2:gosub 3200:goto 3084
-	if po$=""then po$="Main: "
-	print#2,dv%(3);r$;dr%(3);r$;po$;r$;
-' TODO: subroutine this so date only needs to be updated once
-	print#2,"3.0 Image V3.0 Copyright 2020 NISSA BBS Software":close2:close15
-{:4268}
-	&"{f6:4}{white}...{lt. red}{rvrs on} Conversion Complete! {rvrs off}{white}...":return
-' choose how the clock is set at boot; ck$ is saved to e.data record 37.
-' The methods themselves are in sub.clocks (see its notes for the format).
-{:4270}
-	&"{f6}{lt. blue}Set the Image 3.0 System Clock:{f6:2}{blue}({lt. blue}1{blue}) {cyan}Manually{f6}{blue}({lt. blue}2{blue}) {cyan}CMD Device w/RTC Option{f6}"
-	&"{blue}({lt. blue}3{blue}){cyan} Lt. Kernal Port 1{f6}{blue}({lt. blue}4{blue}){cyan} Lt. Kernal Port 2{f6}{blue}({lt. blue}5{blue}){cyan} DS12C887 RTC Chip{f6}"
-	&"{blue}({lt. blue}6{blue}){cyan} 1541 Ultimate/Ultimate 64{f6}{blue}({lt. blue}7{blue}){cyan} TeensyROM (Time Only){f6}{blue}({lt. blue}8{blue}){cyan} Last AutoMaint Date{f6:2}"
-	&"{lt. blue}]> {white}{pound}g1{f6:2}":a=val(an$):if a<1 or a>8 then a=1
-	ck$="0":if a=3 then ck$="2"
-	if a=4 then ck$="3"
-	if a>5 then ck$="4,"+mid$("uta",a-5,1)
-	dv%(8)=.:if a=2 then gosub {:sub.clock_cmd}
-	if a=5 then gosub {:sub.clock_ds12c887}
-	y%=val(ck$):return
-{:sub.clock_cmd}
-	lp=1:&"{lt. blue}Which Device has the CMD RTC Option Installed?{f6:2}":gosub {:sub.clock_device}
-	ck$=mid$(str$(b),2):return
-{:sub.clock_ds12c887}
-	&"{lt. blue}DS12C887 Base Address: {blue}({lt. blue}1{blue}) {cyan}$D500 {blue}({lt. blue}2{blue}) {cyan}$D600{f6}"
-	&"{blue}({lt. blue}3{blue}) {cyan}$D700 {blue}({lt. blue}4{blue}) {cyan}$DF00{f6:2}{lt. blue}]> {white}{pound}g1{f6:2}":a=val(an$):if a<1 or a>4 then a=1
-	ck$="4,d,"+mid$(str$(54272+256*a-(a=4)*1792),2):return
-{:sub.clock_device}
-	poke 53252,2:pl=1:w$="8":p$="{yellow}CMD Device{white}"+"":&,1,32:b=val(an$)
-	if an$=""then b=val(w$)
-	&"{cyan}Is {pound}!b Correct? ":gosub 96:if a=.then {:sub.clock_device}
+{nice:100}
+' 2, 3: convert an Image BBS 64 system (sub.su.convert). Its d.data not
+' found, the sysop can set up a new system instead (a = 1)
+{:conv12}
+	gosub {:init}:im=1:a$="su.convert":gosub 74:if a then {:menu}
+	gosub {:clock}:im=2:a$="su.convert":goto 74
+{:conv20}
+	gosub {:init}:im=3:a$="su.convert":gosub 74:if a then {:menu}
 	return
-{:4300}
-'	fl=.:z3$="Reading 2.0 configuration...":gosub 3404:&"{f6:9}"
-	fl=.:z3$="Reading 2.0 configuration...":gosub 3404:&,70,0,10
-	close 2:open 2,dv%,2,bd$+"d.data,s,r":gosub 5
-	if e% then close 2:&"{f6:2}{blue}{f5}{cyan}d.data{blue}{f5}{lt. blue} not found!!{f6:2}Hit Any Key:{pound}g1":return
-	input#2,dv%(3),dr%(3):&,2,2:po$=a$:close2
-	z3$="Writing new 'bd.data' file...":gosub 3404
-	open2,dv%,2,bd$+"bd.data,s,w":gosub 5:if e%then close2:gosub 3200:goto 3084
-	if po$=""then po$="Main: "
-	print#2,dv%(3);r$;dr%(3);r$;:print#2,po$;r$;
-' TODO: subroutine this
-	print#2,"3.0 Image v3.0 Copyright 2020 NISSA BBS Software":close2:close15
-	z3$="Getting Image drive assignments...":gosub 3404
-	gosub 33:fori=1to6:x=i+51:gosub 1:&,2,2:dv%(i)=val(a$)
-	&,2,2:dr%(i)=val(a$):next:close2
-	z3$="Moving 'e.data' records...":gosub 3404
-	gosub 33:x=37:gosub 1:&,2,2:x=21:gosub 1:print#2,a$
-	x=34:gosub 1:&,2,2:x=37:gosub 1:print#2,a$:close2
-	z3$="Removing 2.0-specific files...":gosub 3404
-	' FIXME: I don't know that I like outright scratching the files
-	'  without some confirmation/abort options first
-	dr=3:a$="e.loginmods":&:gosub 19:gosub 5:& ':close2:close15
-	dr=3:a$="e.maintmods":&:gosub 19:gosub 5:& ':close2:close15
-	dr=3:a$="e.menu*":&:gosub 19:gosub 5:& ':close2:close15
-	dr=4:a$="d.GF*":&:gosub 19:gosub 5:& ':close2:close15
-	close 2:close 15:goto {:4268}
-'	data"Commodore 64","Commodore 128","Amiga","Apple/Comp."
-'	data"IBM/Comp.","Macintosh","Atari/ST","Tandy Series","Other Type"
-'	data"*","System","E-Mail","Etcetera","Directory","Plus-File","User"
-{:4400}
-	data"System","E-Mail","Etcetera","Directory","Plus-File","User"
+
+{nice:100}
+' setup's variables, and every drive the boot drive for now (on a new system
+' dv%(1-6) are 0: im 3087 found no bd.data); drive 0 (d1%, d2%) is the boot
+' drive throughout (im line 2). The boot device is dv%, which im 3242 has
+' just loaded this from: bootdev ($1800) is 0 by now (a ?load error,
+' 11/05/2026)
+{:init}
+' define esc for screen editor tricks:
+' esc-@: clear from cursor position to bottom of screen
+' esc-p: clear from cursor position to beginning of line
+' esc-q: clear from cursor position to end of line
+	es$=chr$(27)
+	dim su%(60),su$(20):bv=dv%:if bv<8 then bv=8
+' stop the status line flashing "set time" during setup (timeset: 0 flashes,
+' irqhn.asm irq1); its old value kept in su%(7) (after the dim) and put back at 4000's exit,
+' as i/lo.idle reads it as "the clock is set" (AutoMaint, 4210-4211)
+	su%(7)=peek({sym:timeset}):poke {sym:timeset},1
+	su%(10)=bv:d1%=bv:d2%=.
+	for i=1 to 6:dv%(i)=bv:dr%(i)=.:su%(10+i)=bv:su%(20+i)=.:next
+' 11/07/2026: the number of parts (np), from the names, not written in
+	np=.:restore {:names}
+{:count}
+	read a$:if a$<>"" then np=np+1:goto {:count}
+	d1$="12011111201":return
+
+' shared lines for the parts (modules/su_helpers.lbl numbers them for them)
+' su.ask: ask p$, w$ the default (Return takes it), ln long, pl the case.
+' &,1,32 (edit mode): the default shown after the prompt, then the prompt
+' again on the next line, for the answer: typing replaces the default.
+' (11/06/2026: &,1,16, the default in the input itself, was tried: typing
+' added to it, "8" then 9 gave "89")
+{number:4900}
+{:su.ask}
+	poke 53252,ln:b$=w$:&,1,32:if an$="" then an$=b$
+	return
+' su.item: a part's menu line: a% its number, a$ its label, b$ its value;
+' a check if asked (su%(ib+a%)); the first not asked is nx, nx$ its label
+' (set nx=. first)
+{number:4910}
+{:su.item}
+	ic=su%(ib+a%):if ic=. and nx=. then nx=a%:nx$=a$
+	&"{white}"+mid$(" {$ba}",ic+1,1)+" {yellow}{pound}%a{lt. blue}) "+left$(a$+"..................",18)+"{colon} {white}{pound}$b{f6}":return
+' su.pick: a = the item to ask: the number typed (1-h), or Return's: the
+' first not asked (nx); 0 = done (D, or Return when all were asked: the
+' rest keep their defaults). 11/06/2026: Return walks the items in order
+{number:4920}
+{:su.pick}
+	poke 53252,1:a$="Done":if nx then a$=nx$
+	&"{f6}{yellow}1-{pound}!h{comma} D(one){comma} Return{equal}{lt. green}{pound}$a{yellow}{colon} {white}{pound}i1{f6}":a=val(an$)
+	if an$="" then a=nx:return
+	if an$="D" or an$="d" then a=.:return
+	on -(a<1 or a>h) goto {:su.pick}:return
+' su.create, su.done: 'Creating "f$"...', then "Done!"
+{number:4930}
+{:su.create}
+	&"{lt. blue}Creating {quotation}{cyan}{pound}$f{lt. blue}{quotation}...":return
+{number:4932}
+{:su.done}
+	&"{white}Done!{f6}":return
+' su.copr: the copyright line, in one place (bd.data, the closing screen)
+{number:4940}
+{:su.copr}
+	c$="Image 128 Copyright 2026 New Image Software":return
+' su.zone: b$ = the time zone (su$(12)) readably: "MST -7:00/MDT", its UTC
+' offset and daylight name, not its code (s.timezones: name, hhmm from
+' UTC-12, DST rule letter, DST name): 13 characters, for a 40-column line.
+' 11/06/2026 (from sub.su.clock, for the review too)
+{number:4950}
+{:su.zone}
+	z$=su$(12):b=val(mid$(z$,4,2))*60+val(mid$(z$,6,2))-720:b$=mid$("-+",-(b>=.)+1,1):b=abs(b)
+	b$=left$(z$,3)+" "+b$+mid$(str$(int(b/60)),2)+":"+right$("0"+mid$(str$(b-int(b/60)*60),2),2)
+	if mid$(z$,8,1)<>"-" then b$=b$+"/"+mid$(z$,9,3)
+	return
+
 	rem copr. 1996 new image 5/5/96-rwp
-	rem i/su.config (c)nissa 2020-06-14 lh+ad, 2022-10-11 rs
+	rem "i/su.config (c)nissa 2020-06-14 lh+ad. 2022-10-11, 2026-11-05 rs"

@@ -373,14 +373,20 @@ dloop:
 	rts
 
 
-; 128: an$ without its first .a characters, as a string of its own. The
-; c64 (strio.asm's newdate, strscan) moved an$'s pointer past them, which BASIC 7
-; can't have: its garbage collection walks the string area string by
-; string, each followed by its back-link, so it read the last two skipped
-; characters as a back-link and wrote a string's new address through it,
-; wherever they pointed (tests/standin/orphan.bas). makeroom runs while
-; an$ is still whole (a collection moves it and its descriptor with it),
-; then the rest is copied from wherever an$'s string is now.
+; 128: an$ without its first .a characters. The c64 (strio.asm's newdate,
+; strscan) moved an$'s pointer past them, which BASIC 7 can't have: its
+; garbage collection walks the string area string by string, each followed
+; by its back-link, so it read the last two skipped characters as a
+; back-link and wrote a string's new address through it, wherever they
+; pointed (tests/standin/orphan.bas).
+; 11/08/2026: the rest copied into anrest ($0f00, outside the string area)
+; and an$ pointed there (putvar marks its old string garbage); strfixes
+; makes it a string of its own as the & call ends (as dskina's a$). It made
+; its string here with makeroom, which can start a garbage collection in the
+; middle of the & call: zero page BASIC's collection uses, held by the call
+; (miscl.asm's dskina notes), came back changed: setup's copy saw a name in
+; tt$() change by a byte and a ?syntax error in an &,15,6 line, once string
+; space was full enough to collect (sub.su.copy, 210 names).
 ; Here, not in strio.asm: $c000-$cfff is full.
 strrest:
 	sta strr_skip
@@ -397,28 +403,25 @@ strr1:
 	jsr zero	; nothing left: ""
 	jmp strr4
 strr2:
-	jsr makeroom	; .a bytes: varbuf
-	ldx #var_an_string
-	jsr gvarptr	; x/y: an$'s descriptor
-	stx free_fb
-	sty free_fc
-	ldy #1
-	lda (free_fb),y
-	clc
+	clc		; the rest: an$'s text past the skipped characters
+	lda varbuf+1
 	adc strr_skip
-	tax
-	iny
-	lda (free_fb),y
+	sta free_fb
+	lda varbuf+2
 	adc #0
 	sta free_fc
-	stx free_fb
-	ldy strr_keep
+	ldy #0
 strr3:
-	dey
 	lda (free_fb),y
-	sta (varbuf+1),y
-	tya
+	sta anrest,y
+	iny
+	cpy strr_keep
 	bne strr3
+	sty varbuf
+	lda #<anrest
+	sta varbuf+1
+	lda #>anrest
+	sta varbuf+2
 strr4:
 	ldx #var_an_string
 	jmp putvar

@@ -267,6 +267,8 @@
 	rmargin	= $e7	; [128 OS] the editor window's right edge, where its
 			; print wraps (39 or 79 for the whole screen)
 	scbot	= $e4	; [128 OS] the editor window's bottom row: its
+	sctop	= $e5	; [128 OS] the editor window's top row (0); Image's console scroll
+			; starts there too (shdlr.asm, 11/05/2026)
 			; scrolls and line inserts stop there
 	graphm	= $d8	; [128 OS] graphic mode: $ff keeps the editor's IRQ off
 			; the VIC's $d018/$d011/$d016/$d012 (irq_far splits
@@ -628,16 +630,26 @@
 			; (52935), which sub.clocks pokes
 	buf2	= bufpage + $27	; 80 bytes. c64: $ce27
 	buffer	= bufpage + $77	; 80 bytes. c64: $ce77
+	anrest	= bufpage + $100 ; 256 bytes ($0f00): strrest's an$ (11/08/2026)
 ;	longdate= buffer+ ?	; starts at $cec7? im 3170 $ce77 + $50 = $cf17
 
-; $194e-$19ff: free (buf2 and buffer are in the buffer page at $0e00)
+; $194e-$19ff: free (buf2 and buffer are in the buffer page at $0e00), but:
+; 11/07/2026: in 80 columns irq7n (lbar2.asm) draws the other page of the
+; lightbar's pair (1-2, 3-4, 5-6, 7-8) here, 40 characters and their 40 VIC
+; colors, which vdcsrow puts in row 16 beside the cursor's page
+	lbar2	= $194e	; 40 bytes: the other page's characters (0: not drawn yet)
+	lbar2c	= $1976	; 40 bytes: their colors
+	viscmd	= $199e	; 1 byte: ++ visual's dot command letter (11/08/2026):
+			; it exits with .x=4 and the letter here; the line
+			; editor's entry4 (&,54,3) runs it
+; $199f-$19ff: free
 
 ; $1a00-$1bff: $1ff / 511 bytes. room for IRQ/& jump tables?
 
 ; Image '&' jump table:
-	jmptbl	= $1a00	; 72 * 2 = 144 bytes => 6800 / $1A90
+	jmptbl	= $1a00	; 73 * 2 = 146 bytes => 6802 / $1A92 (&,72: 11/05/2026)
 
-; 369 bytes free
+; 367 bytes free
 
 ; $1bff: end of Application Program Area
 
@@ -1062,6 +1074,7 @@ var_d1_string	= 4
 var_lp_float	= 15
 var_pl_float	= 16
 var_rc_float	= 17
+var_qe_float	= 22
 var_sh_float	= 18
 var_ac_integer	= 24
 var_w_string	= 27
@@ -1188,6 +1201,11 @@ flag_dcd_r_mask	= %00001000	; 59 ($3b) Carrier present
 flag_dsr_addr	= chktbl + 7 	; DSR
 flag_dsr_l_mask	= %00010000	; 60 ($3c) DCD/DSR select: on = DSR, off = DCD
 flag_dsr_r_mask = %00100000	; 61 ($3d) enable RX/TX windows
+
+flag_mhz_addr	= chktbl + 7 	; mHz (128; the lightbar's label, 11/05/2026)
+flag_mhz_l_mask	= %01000000	; 62 ($3e) 128: on = the CPU at 2 MHz ($d030 bit 0;
+			; setup.asm's speed_update sets it from the speed)
+flag_mhz_r_mask	= %10000000	; 63 ($3f) Undefined
 
 ; editor input flags: &,1,x,y
 ; x:

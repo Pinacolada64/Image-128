@@ -27,6 +27,7 @@
 ' escapes go out a piece at a time with & instead of building strings up.
 ' BASIC 7.0 keyword (bank): C64List 4.06 and Basic70.bas, which can't take
 ' the preface's numeric assigns: goto {$33}00 is im's line 300.
+
 {alpha:alt}
 {include:..\quoters.lbl}
 {include:"..\asm\equates.asm"}
@@ -35,68 +36,73 @@
 
 3000 rem "display Image 128 Variables List"
 3002 &,18,0:bank 1:gosub 3004:bank 15:poke 53248,0:&,18,1:goto {$33}00
-3004 &"{clear}{f6} Image 128 Variable List 1.0{f6:2}Press any key to abort.{f6}":x=peek({sym:vartab})+peek({sym:vartab}+1)*256:kk=.
+3004 &"{clear}{f6} Image 128 Variable List 1.0{f6:2}Press Space or / to abort.{f6}":x=peek({sym:vartab})+peek({sym:vartab}+1)*256:kk=.:ab=.
 3006 &" Simple Variables:{f6}":sh=.
 ' the name and its type, then MCI's tab to column 4 for the "="
-3008 &chr$(peek(x) and 127):if (peek(x+1) and 127) then:&chr$(peek(x+1) and 127)
-3010 t=.:if peek(x)>127 and peek(x+1)>127 then:&"%":t=1
-3012 if peek(x)<128 and peek(x+1)>127 then:&"$":t=2
+3008 &chr$(peek(x) and 127):ab=ab or rc:if (peek(x+1) and 127) then:&chr$(peek(x+1) and 127):ab=ab or rc
+3010 t=.:if peek(x)>127 and peek(x+1)>127 then:&"%":t=1:ab=ab or rc
+3012 if peek(x)<128 and peek(x+1)>127 then:&"$":t=2:ab=ab or rc
 ' fn definitions: shown as " ?" (3022), not decoded as floats
 3013 if peek(x)>127 and peek(x+1)<128 then t=3
-3014 &"{pound}{back arrow}04{equal}"
+3014 &"{pound}{back arrow}04{equal}":ab=ab or rc
 3016 if t=.then gosub 3046
-3018 if t=1 then a=peek(x+3)+peek(x+2)*256:a=a+65536*(a>32767):&str$(a)
+3018 if t=1 then a=peek(x+3)+peek(x+2)*256:a=a+65536*(a>32767):&str$(a):ab=ab or rc
 3020 if t=2 then gosub 3058
-3022 if t=3 then:&" ?"
-3024 if rc then 3028
-3026 &"{f6}":x=x+7:if x<(peek({sym:arytab})+peek({sym:arytab}+1)*256) then 3008
+3022 if t=3 then:&" (DEFined FuNction)":ab=ab or rc
+3024 if ab then:&"Aborted!{f6}":goto 3027
+' 11/06/2026: the abort key (Space, /) is seen by one & call: each starts
+' with rc=0, so a later one cleared it (even 3070's " Aborted!") and the
+' listing went on. ab keeps it: ab=ab or rc after each &, tested instead.
+' An abort skips to View Arrays? (ab cleared there, for the arrays' own)
+3025 &"{f6}":ab=ab or rc:x=x+7:if ab then 3027
+3026 if x<(peek({sym:arytab})+peek({sym:arytab}+1)*256) then 3008
 ' im's yes/no prompt (94: [No] default, a=1 for Yes) reads a key: bank 15
-3027 bank 15:&"{f6}View Arrays{question} ":gosub {$39}4:bank 1:if a then gosub 3074
+3027 bank 15:&"{f6}View Arrays{question} ":gosub {$39}4:bank 1:ab=.:if a then gosub 3074
 3028 &"{f6}Hit Any Key{colon} {pound}g1{clear}{f6}":return
 3046 if peek(x)=65 and peek(x+1)=.then 3056
 3048 if peek(x+2)=. then a=.:goto 3056
 3050 a=(128+(peek(x+3) and 127))*256^3+peek(x+4)*65536+peek(x+5)*256+peek(x+6)
 3052 a=a/256^4*2:if peek(x+3)>127 then a=-a
 3054 a=a*val(str$(2^((peek(x+2) and 127)-1)))
-3056 &str$(a):return
-3058 y=peek(x+2):a=peek(x+3)+peek(x+4)*256:if y=. then:&"{f5}{f5}":return
-3059 if a<peek({sym:fretop})+peek({sym:fretop}+1)*256 or a>=peek({sym:memsiz})+peek({sym:memsiz}+1)*256 then:&"(static string in program text)":return
+3056 &str$(a):ab=ab or rc:return
+3058 y=peek(x+2):a=peek(x+3)+peek(x+4)*256:if y=. then:&"{f5}{f5}":ab=ab or rc:return
+3059 if a<peek({sym:fretop})+peek({sym:fretop}+1)*256 or a>=peek({sym:memsiz})+peek({sym:memsiz}+1)*256 then:&"(static string in program text)":ab=ab or rc:return
 ' the descriptor is read for each character: chr$() can start a garbage
 ' collection, which moves the string
-3060 &"{f5}":a=.:do while a<y:b=peek(peek(x+3)+peek(x+4)*256+a):a=a+1
+3060 &"{f5}":ab=ab or rc:a=.:do while a<y and ab=.:b=peek(peek(x+3)+peek(x+4)*256+a):a=a+1
 ' printable (letters in both cases, graphics); not the pound sign:
-3062 if b>31 and b<128 and b<>92 or b>159 then:&chr$(b):goto 3068
+3062 if b>31 and b<128 and b<>92 or b>159 then:&chr$(b):ab=ab or rc:goto 3068
 ' control characters ($00-$1f, $80-$9f), in reverse:
-3064 if b<>92 then:&"{pound}r1":&chr$(b+64):&"{pound}r0":goto 3068
+3064 if b<>92 then:&"{pound}r1":ab=ab or rc:&chr$(b+64):ab=ab or rc:&"{pound}r0":ab=ab or rc:goto 3068
 ' escape pound sign:
-3066 &"{pound:2}"
-3068 if rc then exit
-3070 loop:if rc then:&"{f5} Aborted!":return
-3072 &"{f5}":return
+3066 &"{pound:2}":ab=ab or rc
+3068 if ab then exit
+3070 loop:if ab then:&"{f5} Aborted!":return
+3072 &"{f5}":ab=ab or rc:return
 ' arrays, arytab up to strend: [name, 2] [offset to the next, 2] [dimensions,
 ' 1] [each one's size, 2, high byte first, the last dimension's first] then
 ' the elements, the first subscript changing fastest: float 5 bytes, integer
 ' 2 (high first), string 3 (its descriptor). w walks the table, p the
 ' elements. Every variable used here is made before w is read: making one
 ' moves the arrays up 7 bytes.
-3074 &"{f6} Arrays{colon}{f6}":w=.:e=.:n=.:s=.:k=.:j=.:q=.:i=.:p=.:t=.:y=.:b=.:x=.:w=peek({sym:arytab})+peek({sym:arytab}+1)*256
-3076 if rc or w>=peek({sym:strend})+peek({sym:strend}+1)*256 then return
+3074 &"{f6} Arrays{colon}{f6}":ab=ab or rc:w=.:e=.:n=.:s=.:k=.:j=.:q=.:i=.:p=.:t=.:y=.:b=.:x=.:w=peek({sym:arytab})+peek({sym:arytab}+1)*256
+3076 if ab or w>=peek({sym:strend})+peek({sym:strend}+1)*256 then return
 3078 e=w+peek(w+2)+peek(w+3)*256:n=peek(w+4):t=.:s=5:if peek(w)>127 then t=1:s=2
 3080 if peek(w)<128 and peek(w+1)>127 then t=2:s=3
 ' the name, and its dimensions as DIMmed (each size is one more)
-3082 &chr$(peek(w) and 127):if peek(w+1) and 127 then:&chr$(peek(w+1) and 127)
-3084 if t then:&mid$("%$",t,1)
-3086 &"(":for i=1 to n:&mid$(str$(peek(w+5+2*(n-i))*256+peek(w+6+2*(n-i))-1),2):if i<n then:&"{comma}"
-3088 next:&"){f6}":p=w+5+2*n:k=.
+3082 &chr$(peek(w) and 127):ab=ab or rc:if peek(w+1) and 127 then:&chr$(peek(w+1) and 127):ab=ab or rc
+3084 if t then:&mid$("%$",t,1):ab=ab or rc
+3086 &"(":ab=ab or rc:for i=1 to n:&mid$(str$(peek(w+5+2*(n-i))*256+peek(w+6+2*(n-i))-1),2):ab=ab or rc:if i<n then:&"{comma}":ab=ab or rc
+3088 next:&"){f6}":ab=ab or rc:p=w+5+2*n:k=.
 ' the elements that aren't 0 or "", with their subscripts; x=p-2 lets the
 ' simple variables' float (3048) and string (3058) code read them
-3090 if rc then return
+3090 if ab then return
 3091 if p>=e then w=e:goto 3076
 3092 if peek(p)=. and (t<>1 or peek(p+1)=.) then 3098
-3093 &" (":q=k:for i=1 to n:j=peek(w+5+2*(n-i))*256+peek(w+6+2*(n-i)):&mid$(str$(q-int(q/j)*j),2):q=int(q/j):if i<n then:&"{comma}"
-3094 next:&"){equal}":x=p-2:if t=. then gosub 3048
-3095 if t=1 then a=peek(p)*256+peek(p+1):a=a+65536*(a>32767):&str$(a)
+3093 &" (":ab=ab or rc:q=k:for i=1 to n:j=peek(w+5+2*(n-i))*256+peek(w+6+2*(n-i)):&mid$(str$(q-int(q/j)*j),2):ab=ab or rc:q=int(q/j):if i<n then:&"{comma}":ab=ab or rc
+3094 next:&"){equal}":ab=ab or rc:x=p-2:if t=. then gosub 3048
+3095 if t=1 then a=peek(p)*256+peek(p+1):a=a+65536*(a>32767):&str$(a):ab=ab or rc
 3096 if t=2 then gosub 3058
-3097 &"{f6}"
+3097 &"{f6}":ab=ab or rc
 3098 p=p+s:k=k+1:goto 3090
 3099 rem "i.VL 128 (c) nissa 2020-10-16 lh, 2026-10-24 rs"

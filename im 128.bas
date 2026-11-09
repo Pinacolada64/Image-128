@@ -114,17 +114,10 @@
 91 return
 92 &"{f6}{lt. blue}>{cyan}>{white}Canceled!{f6}":return
 
-' TODO: rather than gosub 93 for "default no" and gosub 95 for "default yes"
-' I'd rather go back to "a=0:gosub 94" for default yes, but this is a lot of change
-{undef:yesno_change}
-{ifdef:yesno_change}
-' updated working code:
-94 &"{f6}Are You Sure?: ":if a then 96
-95 &"{cyan}[{white}No{cyan}]":gosub 7:&"{pound}h4":a=-(a$="Y"):goto 97
-96 &"{cyan}[{white}Yes{cyan}]":gosub 7:&"{pound}h5":a=(a$="N")+1
-97 &"{pound}q"+chr$(df%+48)+mid$("YesNo",4-a*3,3)+"{f6}":return
-{else:}
-' current code:
+' Yes/No: 93 "Are You Sure" then [No] (94), 95 "Are You Sure" then [Yes]
+' (96); 94 and 96 alone print just the default. a = 1 for Yes. 11/07/2026:
+' the unused alternative (an {ifdef:yesno_change} set of 94-97 with "a=0:
+' gosub 94" for default Yes) removed
 93 gosub 98
 94 &"{cyan}[{white}No{cyan}]":gosub 7:&"{pound}h4":a=-(a$="Y"):goto 97
 95 gosub 98
@@ -133,7 +126,6 @@
 97 &"{pound}q"+chr$(df%+48)+mid$("YesNo",4-a*3,3)+"{f6}":return
 ' appends " [Y/N]" if expert mode off (0):
 98 a$="{f6}Are You Sure [Y/N]":&left$(a$,len(a$)-6*em)+"?: ":return
-{endif}
 
 100 p2$="sub."+a$:gosub 110:is=is+1:im$(is)=im$
 ' FIXME: "new 60000": replace with delete 60000- ?
@@ -480,7 +472,10 @@
 ' 10/20/2026: ptrlinm and usrlin (c64 970, 971): on the 128, 970 ($03ca)
 ' is in the routines BASIC 7 keeps in RAM, and poking it stopped the
 ' boot with ?SYNTAX ERROR
-3158 poke {sym:ptrlinm},.:poke {sym:usrlin},23:mp$=" ...More? (Y/n) "+"":im=5:gosub 447:gosub 3250
+' 11/02/2026: then daylight saving time (sub.clocks im=12): the clock moved
+' an hour if the BBS was off when DST started or ended, and the BBS's zone
+' (tzoneh) with daylight time's hour in it
+3158 poke {sym:ptrlinm},.:poke {sym:usrlin},23:mp$=" ...More? (Y/n) "+"":im=5:gosub 447:im=12:a$="clocks":gosub 74:gosub 3250
 
 3160 gosub 30:for x=1 to 40:gosub 1:&,2,2:st(x)=val(a$):next:close 2
 3162 an$=am$:lt$=am$:tk$=left$(am$,1):gosub 3300
@@ -542,8 +537,9 @@
 3224 z3$="Convert from Image BBS 64 v2.0":goto 3228
 ' [c64] sys 64738 (reset) = [128] sys 16384
 3226 z3$="Reset C128":gosub 3404:gosub 93:if a=. then return:else sys 16384
-' FIXME: ew. use &,69,0,x,"{space:39}",1 instead?
-3228 gosub 3404:&"{f6}{pound}{back arrow}39 {f6}{pound}{back arrow}39 {f6}{pound}{back arrow}39 {f6}{pound}{back arrow}39 {f6}"
+' 11/05/2026: the start-up menu's lines cleared with 3414's Esc @, not four
+' lines of spaces
+3228 gosub 3404:gosub 3414
 ' 3240 f$="i/setup 128":close 15:open 1,dv%,1,f$:s=ds:close15:ifsthen:&"{f6}Cannot find {quotation}{pound}$f{quotation}. Halting.{pound}w5":goto 4048
 ' ds=63: file exists
 ' the setup module (Image BBS 3.0's, ported): i/su.config
@@ -591,11 +587,8 @@
 ' after a message starts under the frame
 3405 &,69,2,3,z1$,c:&,69,2,4,z2$,c:&,70,0,6:return
 
-' FIX: remove z=z+1 stuff. this does not delay 1/2 second on a SuperCPU system. use timer instead:
-' 'i=not i' does not work
-
-' FIXME: i=color index (0=gray, 1=yellow)
-3406 gosub 3414:i=1:&"1) Option 1{f6}2) Option 2{f6}3) Option 3{f6}{back arrow}) Abort{f6:2}Option: "
+' 11/06/2026: 3406, a test menu ("1) Option 1"... with no return) nothing
+' called, removed
 
 ' NOTE: Immutable line number
 ' flash z1$ and z2$ until a key, then return it in an$ (the caller acts on it),
@@ -630,14 +623,19 @@
 ' 10/20/2026: on an 80-column screen, also clear columns 39-78 (the MCI
 ' tab stops short of column 40)
 ' TODO: it would be nice to expand MCI tab to 80 columns
-3414 for i=6 to 23:&,70,0,i:&"{pound}{back arrow}38"+left$("{space:40}",-40*(sw=80)):next:&,70,0,6:return
+' 11/05/2026: one Esc @ (the 128 editor clears to the end of its window,
+' botline: & output passes Esc sequences to it now, shdlr.asm), not 18 lines
+' of spaces printed one at a time
+3414 &,70,0,6:&"{$1b}@":&,70,0,6:return
 
 
 ' computer types:
 3500 data"Commodore 64","Commodore 128","Amiga","Apple/Comp."
 3502 data"IBM/Comp.","Macintosh","Atari/ST","Tandy Series","Other Type"
 ' system disk names:
-3504 data"System","E-Mail","Etcetera","Directory","Plus-File","User"
+' 11/06/2026: drive 5 is the Module disk (was "Plus-File": modules and plus
+' files, i/ and sub.*, are what it holds)
+3504 data"System","E-Mail","Etcetera","Directory","Module","User"
 ' TODO: move these lines into i/setup 128:
 ' 3510 rem &"{f6}RS232 Interface Type:{f6}Enter 0 for User Port{f6}Enter 1 for SwiftLink/Turbo232{f6}> {pound}i1"
 ' 3512 rem a=val(an$):ifa<0ora>1then3510

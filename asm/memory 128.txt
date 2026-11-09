@@ -20,7 +20,7 @@ $1300-$18ff	Image tables, cassbuff ($1800) variables
 $1900-$1911	wedge jump table (-> glue.asm)
 $1912-$1926	RS-232 jump table (rts until &,16 loads a driver)
 $1927-$194d	interface jump table (c64: $cd00)
-$1a00-$1a8f	& jump table (jmptb.asm)
+$1a00-$1a91	& jump table (jmptb.asm)
 $1c00-$2bff	protostart: intro at boot, then swapped-in modules
 $2c00-$2eff	RS-232 driver
 $2f00-$32ff	wedge

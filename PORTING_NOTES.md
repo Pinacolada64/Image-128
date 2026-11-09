@@ -308,8 +308,21 @@ still reaches its label (a `$ff` offset is the giveaway).
   (IESCEX), and USR's is `$1219` (`usrpok`). The wedge set `$0311`: `usr()`
   gave `?illegal quantity` and IESCEX pointed at junk.
 - **The `++` overlays** are assembled on their own: they reach the ML
-  only through names in `equates.asm` (`++ clock` carries its own VDC
-  register writes and colour table).
+  only through names in `equates.asm` and `usetbl1` (`++ clock` carries
+  its own VDC register writes and colour table, from before `&,72`).
+- **`usetbl1` from ML is a plain jump** (11/05/2026): a caller already in
+  `cfg_ml` (the overlays' `usevar`, `putvar`, `getmdm`...) goes straight to
+  `usetbl0`, as on the C64; only BASIC's side (`cfg_rom`, or `sys` code)
+  goes through `farcall`. Through `farcall`, `++ net` took about 450
+  cycles to read a byte from the modem, nearly a byte's time at 19200
+  baud: the driver's receive buffer overflowed in 255-byte blocks, and
+  `tools/netpair.py` counted 16-24 blocks sent again (none at 9600, none
+  since).
+- **ML that draws on the VIC screen** (`++ net`'s and `++ copier`'s
+  counters, `++ 2`'s `BLKS:`) isn't seen in 80 columns: each cell it
+  changes goes to the VDC through `&,72` (`vdccell`, `vdc.asm`), which
+  `usetbl1` reaches by farcall from `&` code and `sys` code alike
+  (PROGRAMMING.md, "VIC screen cells to the VDC").
 
 ## Keys and the status line at the idle screen
 
@@ -391,6 +404,30 @@ still reaches its label (a `$ff` offset is the giveaway).
   `dec $d0` at `$c252` and the return addresses above it.
 
 ## Open problems
+
+### A REL file can't grow on a nearly full 1581 (found 11/05/2026)
+
+Positioning past the end of a REL file and writing there (`record#2,2,1`
+then `print#2` on a new file, as `im` line 1 does for a record that isn't
+there yet: setup's `u.config`, a new user's record) hangs when the 1581's
+disk is nearly full: the KERNAL sits in its serial-bus wait (`$e569`,
+reading `$dd00`), the drive having released clock and data. Plain BASIC 7
+with no Image loaded does the same, so it isn't Image's ML. Tried in x128
+(VICE 3.8, `-drive8type 1581`) with `tests/standin/relwrite.bas`:
+
+| Disk | Blocks free | Result |
+|---|---|---|
+| empty | 3160 | works (status 50 "record not present", then carries on) |
+| `image128.d81` as built then | 82 | hangs |
+| the same, 7 files deleted | 353 | works |
+
+Writing the records in order without `record#` works even on the full
+disk. Not known yet: how much room is enough, and whether a real 1581
+does this or it's VICE's emulation. Meanwhile `asm/build.sh` puts the
+`today.*` files on `build/features.d81`, which left `image128.d81` 641
+blocks free. A BBS's drives near full could hit it when a new user signs
+on (`u.config` grows), so check on real hardware before relying on it.
+
 
 ### `&,2,2`'s `a$`, and `&,11` leaving strings linked (fixed 10/26/2026)
 

@@ -69,8 +69,11 @@
 4168 on-(b%<p1%)goto4172:b%=p1%:&"{f6}{green}{pound}vj{yellow}   Please Note: It is now PRIME TIME."
 4170 &"      All callers limited to {white}{pound}%b {yellow}minutes!{f6}{green}{pound}vj":goto4174
 4172 ifb%<101then:&"{f6}{green}{pound}vj   {yellow}Time allowed for this call{white}: {pound}%b {yellow}Min.{f6}{green}{pound}vj"
-4174 tr%=b%:cn=cn+1:im=1:gosub443:im=6:iflen(uf$)<11thenim=4
-4176 gosub447:on-(mp%<1ormp%=40ormp%=80)gosub4030
+' 11/02/2026: a caller's zone (mid$(uf$,6)) is 11 characters now, with its
+' DST rule: an older one (7) is asked for again, once. Then their daylight
+' time (sub.clocks im=14)
+4174 tr%=b%:cn=cn+1:im=1:gosub443:im=6:iflen(uf$)<16thenim=4
+4176 gosub447:im=14:a$="clocks":gosub{$37}4:on-(mp%<1ormp%=40ormp%=80)gosub4030
 4178 dr=2:a$=left$("f."+na$,16)+",s,r":gosub4:ife%=.thena$="fmail":gosub4004
 4180 close2:on-((f4=1)or(tr%<1)or(i%+k%+x%>.))goto999
 4182 b$=str$(ca):g%=uh:f%=cn:an$=d3$:&,15,1:ifna$=d3$thenan$="You!"

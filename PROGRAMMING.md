@@ -251,6 +251,21 @@ the statement after the `&`); `&,66,0` is a GOTO. The line must be under
 - With `lp=1` before it, a string is printed with word wrap, and the ML
   ends the line itself unless the string ends with a space; `lp` is back
   to 0 after each string, so set it before each one.
+- The 128 screen editor's Esc sequences work in `&` output (11/05/2026),
+  in 40 and 80 columns: Esc goes to the editor's own print (`$c72d`), and
+  so does the character after it, so the editor runs the sequence on the
+  cursor Image uses. Write the Esc as `{$1b}` in the string (or
+  `chr$(27)` in `a$`). Clearing:
+  - `&"{$1b}q"` clears from the cursor to the end of its line;
+  - `&"{$1b}@"` clears from the cursor to the end of the window: the
+    editor's window, whose bottom Image keeps at `botline` (row 23, or 15
+    with the screen mask on: `setwin`), so the mask's rows stay.
+
+  Put the cursor first with `&,70,column,row`. `im` 3414 clears under the
+  boot frame this way (`&,70,0,6:&"{$1b}@"`). Only on the console: a
+  caller's terminal doesn't know the 128's Esc codes, so leave them out
+  of text that callers see. `tests/standin/escq.bas` and `escq80.bas`
+  try both.
 
 ## Today in History files: `today.<Mon>` and `s.today/hist`
 
@@ -261,7 +276,9 @@ them to `s.today/hist` on drive 1. `i/lo-today` (`modules/i_lo-today.lbl`)
 shows `s.today/hist` to callers. Both are run from the logon and
 maintenance lists. The twelve `today.*` files come on the release's
 `MASTER D2` disk; `disk/today.<Mon>.seq` are those, fixed (see
-`disk/README.md`), and `asm/build.sh` writes them to `image128.d81`.
+`disk/README.md`), and `asm/build.sh` writes them to `build/features.d81`
+(11/05/2026; they were on `image128.d81`, which they left too full: setup's
+Optional Features part copies them from that disk when it's chosen).
 
 `tools/today.py` lists, checks and edits a `today.<Mon>` file, on a
 `.d81` or as a SEQ file (`tools/today.py --help`).
@@ -334,6 +351,84 @@ onto the fact before them, and prints each fact word-wrapped with
 A fact stays in pieces in the file, since `&,2,2` reads at most 80
 characters and a joined fact can run to about 215.
 
+## Time zones and daylight saving time
+
+The BBS's clock shows local time, and moves an hour for daylight saving
+time by itself (SYSOP_COMMANDS.md, "Daylight saving time"). Three things
+describe it: the time zones (`s.timezones`), the rules (`s.dstrules`), both
+on the System drive and written by `tools/dstfiles.py`, and the BBS's state
+(`e.data` records 45 and 46).
+
+### A time zone: `s.timezones`
+
+A line per zone; `sub.info` lists them. A zone is kept as its first 11
+characters: in `e.data` record 45 (`tz$`) for the BBS, and in
+`mid$(uf$,6)` for a caller.
+
+```
+PST0400UPDT(US/CA) Pacific Time
+```
+
+| Columns | Holds |
+|---|---|
+| 1-3 | standard time's name: 3 characters, all the date display has room for |
+| 4-7 | the offset, `hhmm`, from UTC-12: GMT is `1200`, UTC-8 `0400`, UTC+9:30 `2130` |
+| 8 | the rule's letter in `s.dstrules`; `-` for no DST |
+| 9-11 | daylight time's name (spaces for none) |
+| 12- | the description (28 characters show) |
+
+The ML converts times between zones with the hour and minute of the offset
+(`tzoneh`/`tzonem` for the BBS, `uzoneh`/`uzonem` for the caller, swap3's
+`timezone`). On daylight time, the hour poked there is one more.
+
+Image 3.0's zones were 7 characters (no rule). A BBS zone like that has no
+DST until the sysop chooses the zone again; a caller with one is asked to
+choose again at their next login (`i/lo.on` 4174).
+
+### A rule: `s.dstrules`
+
+A line per rule:
+
+```
+U03210200L11110100LUS and Canada (since 2007)
+```
+
+| Columns | Holds |
+|---|---|
+| 1 | the letter |
+| 2-3 | when DST starts: the month |
+| 4 | the week: 1-4, or 5 for the last |
+| 5 | the weekday, 1 (Sunday) to 7 |
+| 6-9 | the time, `hhmm`, in standard time |
+| 10 | `L` local time, or `U` UTC |
+| 11-19 | when it ends, the same way (its time in standard time too: the US's 2:00 AM daylight time is `0100`) |
+| 20- | a description |
+
+A start month after the end month (Australia, New Zealand) means DST over
+New Year. The four shipped: `U` US and Canada, `E` the EU and the UK (1:00
+AM UTC), `A` south-eastern Australia, `N` New Zealand.
+
+### The BBS's state: `e.data` records 45 and 46
+
+Record 45 is the BBS's zone (above). Record 46 is `1,` when the clock is on
+daylight time (`0,` when not), then a copy of the zone's rule line, so the
+check needn't read `s.dstrules` each time. A different letter, or no copy,
+makes the next check read the rule and take the clock as right.
+
+### `sub.clocks`: entries 12-15
+
+| `im` | Does | Called by |
+|---|---|---|
+| 12 | the check: the clock in standard time (by the flag), whether DST should be on, and if that differs, the clock moved an hour (a CMD or DS12C887 clock written too), the flag saved and `tzoneh` set | `im` at boot (3158); `i/lo.idle` when checkmark 64 is set |
+| 13 | the flag from the rule, taking the clock as right, and the alarms (15) | `i/IM.misc` (Time Zone), `i/IM.dstrules` after saving |
+| 14 | the caller's zone by their rule: `uzoneh` and the name shown (`PST` or `PDT`) | `i/lo.on` at login |
+| 15 | the alarms that set checkmark 64 at the minutes the rule changes the clock, on its change weekdays; old ones (checkmark 64) taken out first; `e.alarms` saved | `i/su.config`, 13 |
+
+The check uses the rule's start and end in standard time, so the autumn's
+hour that happens twice is never set back twice. Clocks `sub.clocks` can't
+write (Lt. Kernal, Ultimate, TeensyROM) are taken to keep standard time:
+reading one adds the hour while record 46 says `1`.
+
 ## The sysop information file: `e.sysop`
 
 `e.sysop`, on drive 3, holds what callers who run an Image BBS of their own
@@ -366,6 +461,200 @@ each user. A record is one of:
 `i/lo-sysop info` compares field 0's month (characters 4-5) with
 today's, to ask once a month. `SF` drops one leading space from each
 field it reads.
+
+## NetMail's overlays: `++ net`, `++ path`, `++ netsub`, `++ netlist`
+
+NetMail (the `i.NM_*` and `i/NM.*` modules, `i/IM.netmail`, `i/SM.netfile`
+and others) does its heavy work in four "++" overlays. A module loads one
+with `a$="<name>":gosub 28` (`im` loads the file `++ <name>` at protostart,
+`$1c00`, with `&,7`; `e%` is nonzero if it couldn't), then calls it with
+`&,16`, `&,16,x` or `&,16,x,y`: `x` picks the routine, `y` is a number some
+of them take (a device, a length, a record). Only one overlay is in memory
+at a time, and each keeps its data just past itself, so loading another
+loses that data (`++ path`'s node list, `++ netsub`'s tables): load the one
+you need again before using it.
+
+They read and set the ML's own variables (`a$`, `an$`, `b$`, `a%`, `b%`,
+`dv%`, `qe`, `rc`: BASIC_VARIABLES.md). The source is `asm/net.asm`,
+`asm/path.asm`, `asm/netsub.asm` and `asm/netlist.asm`; each one's header
+says what changed from the C64's. `tests/standin/netovl.bas` tries `++ path`,
+`++ netsub` and `++ netlist`; `tools/netpair.py` runs a NetMail exchange with
+`++ net` between two x128s (`tests/standin/README.md`).
+
+### `++ net`: the transfer protocol
+
+`i.NM_auto` (calling another BBS, and answering one) and `i/NM.netsub4`.
+Everything goes through the modem file, `131`; files go to and from the
+disk file `2`, which the module opens first.
+
+| Call | Does | Takes | Gives |
+|---|---|---|---|
+| `&,16` | sends file 2 to the other BBS | file 2 open for reading | `peek(512)`, `b%` |
+| `&,16,1` | receives a file into file 2 | file 2 open for writing | `peek(512)`, `b%` |
+| `&,16,2` | sends a name block | `b$`: up to 31 characters (the rest is cut) | `peek(512)` |
+| `&,16,3` | receives a name block | | `b$` (to its Return, at most 79 characters), `peek(512)` |
+| `&,16,4` | the sending side of the relaxed handshake | | `peek(512)`: 0 agreed, 1 no answer |
+| `&,16,5` | its receiving side: relaxed timing stays on if the other side asks for it | | `peek(512)`: 0 agreed, 1 no answer |
+| `&,16,6,n` | the modem chat: sends `a$` (if not empty), then keeps the last `n` characters that arrive | `a$`, `n` | `b$`; `rc` 1 and `b$` `""` if the carrier went or C= was held |
+
+- **`peek(512)`** (BASIC's input buffer, `$0200` on both machines) is 0
+  when the transfer finished and 1 when it was aborted: the sysop held C=
+  (`shflag` 2), the carrier went (`carrst` bit 7 clear), the other side
+  sent three Ctrl-X, or `++ net` gave up waiting (it sends three Ctrl-X
+  then).
+- **`b%`** after `&,16` and `&,16,1` is a block count, but not the file's
+  size: it counts one for each good block and one for each 254 bytes (a
+  1500-byte file gave 15).
+- **The name block** is what `i.NM_auto` sends before each file:
+  `"<to>/<from>/<A or R>/<file name>"` (node IDs of 3 characters, so the
+  file name starts at character 11, `mid$(b$,11)`); `A` appends to a file
+  already there, `R` replaces it.
+- **The modem chat** (`&,16,6,n`) is how `i.NM_auto` logs in through
+  another BBS's modem or a packet switch (3400-3418): it sends `a$`, then
+  collects what arrives in `b$` until nothing has come for a while
+  (25600 empty polls), keeping only the last `n` characters; control
+  characters other than Return are dropped, and 32 is taken off characters
+  from `$60` up. The module compares `b$` with the prompt it expects:
+  `&,16,6,len(c$)`, then `b$<>c$`. `rc` is 1, not -1: Image's "minus one"
+  (`&,32`) is `$81,0,0,0,0`, which is +1, on the C64 too.
+- **2 MHz:** in 80 columns each `++ net` call runs at 2 MHz (`$d030`),
+  the VIC not being seen there, and reads the modem straight from the
+  driver: at 1 MHz, and through `&,4`, a 128 lost the odd byte from a
+  sender at the full 19200 line rate. Afterwards the speed is the screen
+  blanker's (2 MHz while it has the screen off). The lightbar's mHz
+  checkmark (flag 62) shows the speed whatever set it.
+- **Relaxed timing** waits longer for the other side: 100 rather than 35
+  for a code, 30 rather than 16 for a block (in units of 256 passes of its
+  wait loop). `&,16,4`/`&,16,5` agree on it, or a module sets it itself:
+  `poke {sym:protostart}+3,1` (`i.NM_auto` 3196, for a node whose dial
+  string starts with `*`).
+
+Before a transfer the module prints a counter line on row 15
+(`" Good: 00000  Bad: 00000  Bytes: 000000"`, `i.NM_auto` 3660), and
+`++ net` counts in it, in the 40-column screen's row 15 as on the C64; in
+80 columns it first copies the line the module printed from the VDC into
+that row, and each cell that changes goes to the VDC too (`&,72`, below).
+
+The protocol is Punter's. Its codes are three characters (`GOO`, `BAD`,
+`ACK`, `S/B`, `SYN`, and three Ctrl-X to abort). A block is at most 255
+bytes: a 4-byte checksum, the next block's size, the block's number (low,
+high; a high byte of `$ff` marks the last block), then up to 248 bytes of
+data. A name block is 39 bytes. Its waits count passes of a loop and, after
+each code it sends, a tenth of a second on the TOD clock (`tenwait`,
+`$dc08`); with the clock stopped that wait never ends. `im` starts the
+clock at boot; a test program must `poke 56328,0`.
+
+Before the protocol starts, `i.NM_auto` uses the modem itself: the caller
+sends `chr$(1)` until the answering side sends back `chr$(2)` (ten of them),
+reading each character with `&,4` and `peek({sym:sareg})` (3204-3210,
+3292-3296).
+
+### `++ path`: routes through the network
+
+`i.NM_*`, `i/NM.*`, `i/IM.netmail`, `i.EM`, `i/MM.sb-mail` and
+`i/SM.netfile`. It keeps the node list (`nm.nodelist`, drive
+2) in memory and finds the way from one node to another through the nodes
+each one links to.
+
+| Call | Does | Takes | Gives |
+|---|---|---|---|
+| `&,16` | loads the node list | `a$` the file (with `dr$`), `dv%` | `a%` the number of nodes |
+| `&,16,1` | the path from one node to another | from: `a%` (a node's number), or `a$` (its ID) when `a%` is 0; to: `b%`, or `b$` when `b%` is 0 | `an$` the path; `""` if there's none or a node isn't known |
+| `&,16,2` | a node's number | `a$` its ID | `a%`; 0 if it isn't known |
+| `&,16,3` | shortens a path | `an$` a path, `a$` a node's ID | `an$` from that node on |
+
+A path is each node's ID after a `/`, with one more `/` at the end:
+`/AAA/BBB/CCC/`. A node's ID is the first 3 characters of `a$` or `b$`.
+
+`nm.nodelist` is a PRG file, loaded just past the overlay: a byte with the
+number of nodes (up to 255), then 8 bytes for each node, numbered from 1:
+its 3-character ID, a byte not used, and the numbers of up to 4 nodes it
+links to (0 for none).
+
+### `++ netsub`: the NetSubs' repeat check
+
+`i/NM.netsub2` keeps, for each board ID (3 characters) that NetSub messages
+come from, the number of the last message taken from it, and rejects a
+message whose number isn't higher ("Repeat Rejected!"). The numbers are in
+two tables of 128 records each, saved together in the files
+`nm.P.track<NetSub><n>` on drive 2 (when one is full, the next `n`). The
+first table is updated as messages come in; the second is the copy that
+`i/NM.netsub1` makes when a run starts (`&,16,7`).
+
+| Call | Does | Takes | Gives |
+|---|---|---|---|
+| `&,16` | a board's numbers | `a$` the board ID | `rc` from the second table, `qe` from the first |
+| `&,16,1` | sets a board's number in the first table | `a$`, `qe` | `qe` -1 if the table is full |
+| `&,16,2,dv%` | loads both tables (cleared first) | `a$` the file | |
+| `&,16,3,dv%` | saves both tables | `a$` the file | |
+| `&,16,4` | takes a board out of the first table (later ones move up) | `a$` | `qe` its number; -1 if it wasn't there |
+| `&,16,5,n` | the first table's record `n` (from 0) | `n` | `an$` the board ID and `qe` its number; `an$` `""` and `qe` -1 past the last |
+| `&,16,6` | clears both tables | | |
+| `&,16,7` | copies the first table over the second | | |
+| `&,16,255` | the version | | `a%` = 10 |
+
+A board not in a table yet is added to it with the number 0, so `&,16`
+gives 0 for a new board, and -1 only when a table is full.
+
+### `++ netlist`: a NetSub's definition
+
+A NetSub (a sub-board shared through the network) is defined in the file
+`nm.netsub<n>`, _n_ 1 to 60, on drive 2. `i/SM.reledit` edits them;
+`i/NM.netsub1`, `3` and `4` and `i/lo/ns` read them.
+
+| Call | Does | Takes | Gives |
+|---|---|---|---|
+| `&,16` | the definition | `a%()` DIMmed | `a$` its name, `an$` its nodes, `a%(0)` how many sub-boards and `a%(1)`... their numbers |
+| `&,16,1` | sets the definition | `a$`, `an$`, `a%()` | |
+| `&,16,2,dv%` | loads a definition (cleared first) | `a$` the file | |
+| `&,16,3,dv%` | saves it | `a$` the file | |
+| `&,16,255` | the version | | `a%` = 9 |
+
+- The name is up to 30 characters. The nodes are their 3-character IDs one
+  after another, up to 16 (48 characters), padded with `-` (`an$` comes back
+  padded too).
+- `a%()` must be DIMmed (`dim a%(60)`), or `&,16` and `&,16,1` print
+  "Error-Sec?" and do nothing more.
+- `a%(0)` keeps only its low byte (enough for a count); `a%(1)`-`a%(60)`
+  are kept whole. The release kept 120 bytes from `a%(0)`'s low byte on,
+  so `a%(60)` lost its low byte, and a 60th sub-board's number was lost;
+  the 128's keeps a 121st byte for it (11/05/2026). A file saved by the
+  release (or the C64) hasn't that byte, so it loads as it always did,
+  with `a%(60)`'s low byte 0.
+
+## VIC screen cells to the VDC: `&,72`
+
+ML that draws on the VIC screen as it works (`++ net`'s and `++ copier`'s
+counters on row 15, `++ 2`'s `BLKS:` on row 21) isn't seen in 80 columns.
+`&,72` (`vdccell`, `asm/vdc.asm`) copies a cell across; in 40 columns it
+does nothing.
+
+| Call | Does |
+|---|---|
+| `&,72,r,c` | the character at VIC row `r` (0-24), column `c` (0-39) to the same row and column of the VDC |
+| `&,72,r+128,c` | that, and the cell's color (VIC color RAM) as a VDC attribute, in the lowercase set |
+| `&,72,r+64,c` | the other way: the VDC's characters from column `c` to 39 into that VIC row, so a module's line printed in 80 columns can be counted in by ML |
+| `&,72,r+32,c` | the whole VIC row `r` (columns 0-39, characters; `c` not used) to the VDC's: `++ copier` shows each block it reads on rows 2-8 this way |
+
+From ML: `ldx #row`, `ldy #column`, `lda #72`, `jsr usetbl1` (`$192a`).
+That goes through `farcall`, so an overlay started with `sys` (`++ 2`)
+can call it too. Each call is a farcall, so a counter that changes every
+byte goes across now and then (`++ copier`'s `Bytes:`: every 64 bytes,
+and when the call ends).
+
+## The bus scan: `sub.sysdos` im=2
+
+`im=2:a$="sysdos":gosub 74` lists the drives on the serial bus (devices
+8-30): `tt$(d)` is each device's model, `a%` how many answered. A device
+answers `open 15,d,15:close 15` (as `im` line 353 checks); its model comes
+from its own ROM with `m-r` (no reset, no disk access): CMD's ID at
+`$fea4` (`HD`, `FD`, `RL`, `RD`, as CMD's fcopy/mcopy/bcopy check), else
+the power-on message's model number (`$e5bb`: 1541, 1570, 1571; `$a6df`:
+1581). `tt$(d)` is `CMD HD`, `CMD FD`, `RAMLink`, `RAMDrive`, `1541`...,
+`?` for one that answers but isn't recognized (SD2IEC), `""` for none.
+About 0.1 s an absent device, 2-3 s a drive. The setup's Drives part uses
+it; tried in x128 with a 1541, 1571 and 1581, and a CMD FD-4000
+(`-drive9type 4000 -dos4000 ROMs/dos4000`, the ROM not in the repo).
 
 ## Test programs
 

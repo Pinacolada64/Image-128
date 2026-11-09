@@ -1,0 +1,146 @@
+' sub.su.drives -- the new-system setup's Drives part (i/su.config, 1): the
+' device and drive (or partition) of Image's six drives. A menu (the
+' table) from the start, each the boot drive at first: a number asks that
+' drive, Return the next not asked yet, D (or Return when all were) is
+' done (11/06/2026).
+' The answers go in su%(11-16) and su%(21-26); dv%() and dr%() stay the
+' boot drive until sub.su.write (i/su.config's notes). 11/05/2026.
+' Phase 2 (11/05/2026): i/su.config has just scanned the bus (sub.sysdos
+' im=2): tt$(8-30) each device's model, "?" for one that answers but isn't
+' recognized, "" for none. The drives found are listed above the questions;
+' a device that didn't answer, or a drive the device won't initialize
+' ("i" and the drive number), is used only if the sysop says so.
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{include:..\quoters.lbl}
+{include:su_helpers.lbl}
+{step:2}
+
+{number:60000}
+	on im goto {:drives},{:review}:return
+' im=1: the Drives part; im=2: just the table, for i/su.config's review (after
+' a scan: tt$(8-30), as here)
+{:drives}
+	z3$="Devices and Drives":gosub 3404:ib=30
+' 11/05/2026: a table: number, drive, device, drive number, model, and the
+' disk's name from its directory header (under it in 40 columns, at the end
+' of the line in 80: sw). 18 rows: Found, a blank line, the heading, 12
+' lines, the prompt
+{:summary}
+	gosub 3414:gosub {:found}:nx=.:gosub {:table}
+	h=6:gosub 4920:if a then j=a:gosub {:ask}:su%(ib+j)=1:goto {:summary}
+	su%(1)=1:return
+' the review's table: no checks (ib=.)
+{:review}
+	ib=.
+' a row's check (ib: the Drives part): asked (su%(ib+j)); nx, nx$ the first
+' not asked, as su.item. 11/06/2026: the review's (ib=.) has no number
+' column (its own numbers are the parts'): "1) Drive" heads it instead
+{:table}
+	a$="{lt. blue}   #  ":if ib=. then a$="{yellow}1{lt. blue}) "
+	&a$+"Drive      Dev Dr  Type{f6}":pd=-1
+	restore {:names}:for j=1 to 6:read l$:d=su%(10+j):r=su%(20+j)
+	ic=.:if ib then ic=su%(ib+j):if ic=. and nx=. then nx=j:nx$=l$
+	a$="   ":if ib then a$="{white}"+mid$(" {$ba}",ic+1,1)+" {yellow}"+right$(" "+mid$(str$(j),2),2)+"  "
+	a$=a$+"{lt. blue}"+left$(l$+"          ",10)+"{white}"
+	a$=a$+right$("   "+mid$(str$(d),2),3)+right$("   "+mid$(str$(r),2),3)+"   {cyan}"+tt$(d):&
+	gosub {:dname}:if n$="" then {:sum1}
+	a$="{lt. green}{quotation}"+n$+"{quotation}":if sw<80 then a$="{f6}"+left$("       ",7+3*(ib=.))+a$:goto {:sum0}
+	a$=left$("          ",10-len(tt$(d)))+a$
+{:sum0}
+	&
+{:sum1}
+	&"{f6}":next:return
+
+' n$ = the name of the disk in device d drive r, from the first line of its
+' directory ("$0": the name between its first two quotes); "" if the device
+' didn't answer the scan. pd, pr, pn$: the last one read, for the next line
+' on the same drive
+{:dname}
+	n$="":if tt$(d)="" then return
+	if d=pd and r=pr then n$=pn$:return
+' 11/06/2026: read with &,2,2,n (n bytes in one call), not a get# a byte:
+' the load address, then the header line as far as the name: its link and
+' drive number (4 bytes), reverse on, a quote, the 16-character name
+	close 2:open 2,d,0,"$"+mid$(str$(r),2):&,2,2,2:&,2,2,22
+	if mid$(a$,6,1)=chr$(34) then n$=mid$(a$,7,16)
+	close 2:pd=d:pr=r:pn$=n$:return
+
+' the drives found: "Found: 8 (1581) 9 (1571)", or that none answered
+{:found}
+	&"{lt. blue}Found{colon}{white}":n=.:for d=8 to 30:if tt$(d)="" then {:found1}
+	n=n+1:&" {pound}!d ("+tt$(d)+")"
+{:found1}
+	next:if n=. then:&" no drives{question}"
+	&"{f6:2}":return
+
+' drive j: its device (8-30) and its drive or partition (0-254), each
+' checked
+{:ask}
+' (l$ the label, v the device: gosub 94 sets a$, an$ and a)
+	gosub 3414:gosub {:found}:restore {:names}:for i=1 to j:read l$:next:pl=1
+{:askdev}
+	p$=l$+" Device":w$=mid$(str$(su%(10+j)),2):ln=2:gosub 4900
+' 11/06/2026: a number outside 8-30 keeps the device shown (Return's), not
+' the boot device; one that doesn't answer may not be on yet: asked below
+	v=val(an$):if v<8 or v>30 then v=su%(10+j)
+	if tt$(v)="" then:&"{f6}{yellow}Device {pound}!v didn't answer. Use it anyway{question} ":gosub 94:if a=. then {:askdev}
+	su%(10+j)=v:&"{f6}"
+' 11/06/2026: on a CMD device (the scan's "CMD HD", "CMD FD", "RAMLink",
+' "RAMDrive": hc) the drive number is a partition: its partitions are
+' listed ({:parts}), the one named like the drive (sg) offered the first
+' time, and the answer checked against them, not with "i"
+{:askdrv}
+	a$=left$(tt$(su%(10+j)),3):hc=-(a$="CMD" or a$="RAM"):sg=.:if hc then gosub {:parts}
+	p$=l$+" Drive":if hc then p$=l$+" Partition"
+	w$=mid$(str$(su%(20+j)),2):if sg and su%(ib+j)=. then w$=mid$(str$(sg),2)
+	ln=3:gosub 4900:b=val(an$):if b<. or b>254 then b=.
+	su%(20+j)=b:&"{f6}":if tt$(su%(10+j))="" then return
+	d=su%(10+j):if hc then {:askpart}
+' the drive initializes it ("i0", "i1"...: 00 or an error), as a check
+	close 15:open 15,d,15,"i"+mid$(str$(b),2):input#15,e,e$:close 15
+	if e<20 then return
+	&"{yellow}Device {pound}!d drive {pound}!b{colon} {pound}!e "+e$+". Use it anyway{question} ":gosub 94:if a=. then {:askdrv}
+	return
+{:askpart}
+	for i=1 to len(pt$):if asc(mid$(pt$,i,1)+nl$)=b then i=255
+	next:if i>255 then return
+	&"{yellow}Device {pound}!d has no partition {pound}!b for files. Use it anyway{question} ":gosub 94:if a=. then {:askdrv}
+	return
+
+' the partitions of CMD device su%(10+j), from its partition directory
+' ("$=p": a BASIC-style listing, each line's number the partition's, its
+' text the name in quotes and the type): listed but for the header (255)
+' and the system partition (0, "sys"); pt$ their numbers (a character
+' each), sg the first whose name starts with the drive's label l$ (case
+' ignored: "system files" for System)
+{:parts}
+	pt$="":lw$="":for i=1 to len(l$):lw$=lw$+chr$(asc(mid$(l$,i,1)) and 127):next
+' 11/06/2026: read with &,2,2,n (n bytes in one call), not a get# a byte:
+' a CMD HD's partition directory has a 30-byte header line, then 32-byte
+' lines (tests/standin/dirlines.bas): each read as its link (2: two 0s
+' end the listing), then the rest (30: the partition number, the text and
+' the 0 that ends it; a line that doesn't end there is passed over)
+	d=su%(10+j):close 2:open 2,d,0,"$=p":&,2,2,2:&,2,2,30
+{:parts1}
+	&,2,2,2:if a$=nl$+nl$ or st then {:parts9}
+	&,2,2,30:n=asc(a$)+256*asc(mid$(a$,2)):t$=mid$(a$,3,27)
+	if n<1 or n>254 or right$(a$,1)<>nl$ then {:parts1}
+' the name between the quotes, the type after them: &,15,6 splits an$ at
+' a character (a$ what was before it, an$ the rest; not there: a$ all of
+' it, an$ ""), so past the first quote, up to the second (the name), then
+' a space at a time until a$ is a word (the type)
+	an$=t$:&,15,6,34:if an$="" then {:parts1}
+	&,15,6,34:n$=a$
+{:parts3}
+	&,15,6,32:if a$="" and an$<>"" then {:parts3}
+	if a$="sys" then {:parts1}
+	pt$=pt$+chr$(n):if sg=. and left$(n$,len(lw$))=lw$ then sg=n
+	&"{yellow}"+right$("  "+mid$(str$(n),2),3)+"  {lt. blue}"+left$(n$+"                ",17)+"{cyan}"+a$+"{f6}":goto {:parts1}
+{:parts9}
+	close 2:if pt$="" then:&"{yellow}No partitions for files on device {pound}!d.{f6}"
+	&"{f6}":return
+{:names}
+	data "System","E-Mail","Etcetera","Directory","Module","User"
+
+	rem "sub.su.drives (c)nissa 2026-11-05"

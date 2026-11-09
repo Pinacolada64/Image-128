@@ -8,6 +8,7 @@
 ' as {sym:...} names from asm/equates.asm (included below).
 {uses:..\3_0-preface.lbl}
 {alpha:alt}
+{include:..\quoters.lbl}
 {include:"..\asm\equates.asm"}
 {crunch:on}
 
@@ -34,7 +35,10 @@
 4212 gosub 33:l2$=an$:b$=str$(l2)+l2$:x=21:gosub 1:print# 2,b$:close 2
 4214 gosub 33:x=21:gosub 1:&,2,2:l2=val(a$):l2$=(mid$(a$,3)):close 2
 4216 &,69,5,20,l2$+"        ",$8 c:return
-4300 poke 53252,1:&"{clear}[A]ctivity [I]dle or [N]et Log?: {pound}g1"
+' 11/07/2026: the prompt says how to leave (any other key: Done, as before),
+' and No at Scan Another? (4360) leaves too, not back here: its N (No) was
+' this prompt's N (Net Log), so answering No to the scan started another
+4300 poke 53252,1:&"{clear}[A]ctivity [I]dle [N]et Log or Return{colon} {pound}g1"
 4301 a$="r":on-(an$="A")-2*(an$="I")-3*(an$="N") goto 4304,4306,4360
 4302 &"Done{f6}":return
 4304 &"Activity{f6}":gosub 4320:b$="log"+an$:gosub 36:goto 4314
@@ -46,7 +50,7 @@
 4316 if e%then:&
 4318 close 2:&"{f6:2}{pound}q0Press Any Key: {pound}g1":goto 4300
 4320 a$="s.menu 10":dr=1:gosub 14:return
-4360 poke 53252,4:gosub 4376:gosub 4362:&"{f6}{rvrs on} Scan Another? {rvrs off}":gosub 96:on agoto 4360:goto 4300
+4360 poke 53252,4:gosub 4376:gosub 4362:&"{f6}{rvrs on} Scan Another? {rvrs off}":gosub 96:on agoto 4360:goto 4302
 4362 dr=2:a$="nm.log "+an$+",s,r":gosub 4:a%=.:sh=.:if e%then 4374
 4364 a%=a%+1:input# 2,a$,b$:&"{f6}{white}#{pound}%a:{rvrs on}{yellow} {pound}$a {rvrs off}{f6}    {green}{$04}"+right$(b$,11)
 4366 if len(b$)>11 then:&"{f6} To {green}{$04}"+left$(b$,11)

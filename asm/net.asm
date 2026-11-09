@@ -1,8 +1,46 @@
-{alpha:alt}	; .encoding "petscii_mixed"
+; net.asm -- "++ net": NetMail's transfer protocol, for i.NM_auto and
+; i/NM.netsub4 (a$="net":gosub 28, then &,16,x): 0 send the open disk file
+; (2) to the other BBS, 1 receive one into it, 2 send b$ as a name block,
+; 3 receive a name block into b$, 4 and 5 the "relaxed" handshake (send,
+; receive), 6,n the modem chat: send a$, then keep the last n characters
+; that arrive in b$ until the line is quiet (rc 1 and b$ "" if the
+; carrier goes or C= is held). Returns: peek(512) 0 done, 1 aborted; 0
+; and 1 leave a block count in b%. PROGRAMMING.md has the details.
+;
+; Ported on 2026-11-05 from source/net.s, which builds the 3.0 release's
+; "++ net" byte for byte (C64 values in the comments):
+; - runs at protostart ($1c00; c64 $c000), where &,7,dv%,2 loads it
+; - no 6510 port to set (c64: lda #r6510_normal / sta $01): it runs in
+;   cfg_ml and reaches the KERNAL through the ML's ROM stubs
+; - the shift flags are shflag ($d3; c64 653/$028d): 2 = C= on both
+; - the RS-232 receive buffer's indices are ridbe/ridbs ($0a18/$0a19;
+;   c64 667/668), which both 128 drivers keep
+; - Image's variable buffer is varbuf ($63-$65; c64 $61-$63), and the
+;   block pointer just past it, bufptr ($66/$67; c64 $64/$65, FAC1 too);
+;   its buffer $0e77 (c64 $ce77), its & dispatcher usetbl1 ($192a; c64
+;   $cd03)
+; - the block buffers are still in the 40-column screen, as on the C64:
+;   pbuf1 and pbuf2 ($0400, $0500, rows 0-12) and the counters at pbuf0
+;   ($0658, row 15), which &,52,16 (screen) sets up. In 80 columns
+;   (11/05/2026) screen copies the module's counter line from the VDC
+;   into that row first, and each counter cell that changes goes to the
+;   VDC too (&,72, vdccell in vdc.asm; showcell)
+; - unchanged: $96 (the result code, as mcicm.asm uses it), 512 (BASIC's
+;   input buffer, $0200 on both), $fe (xchrout's character)
+; - the timeouts count loop passes (tmer1, dod2's delay), so they depend
+;   on the CPU's speed and on how long the ML's calls take; the 128's go
+;   through farcall and the ROM stubs, so a pass takes longer than on the
+;   C64 (and half as long at 2 MHz)
+; - 11/05/2026: 2 MHz in 80 columns (entry), and the modem read straight
+;   from the driver (getmdm): a 1 MHz receiver lost bytes from a sender at
+;   the full 19200 line rate
 
+{alpha:alt}	; c64: KickAss's petscii_mixed: capitals $c1-$da, lowercase $41-$5a
 {include:"equates.asm"}
 
-* = protostart "net.prg"
+bufptr	= varbuf+3	; c64: $64/$65
+
+	orig protostart	; c64: $c000
 
 t3 = 70
 
@@ -17,11 +55,20 @@ ack = 3
 snb = 4
 syn = 5
 
+; each code's bit in accept's pattern (c64 source: 1<<code; C64List has
+; no shift operator)
+b_goo = 2	; 1<<goo
+b_bad = 4	; 1<<bad
+b_ack = 8	; 1<<ack
+b_snb = 16	; 1<<snb
+b_syn = 32	; 1<<syn
+
 gcount = 11
 bcount = 23
 ncount = 38
 
 pbuf0= $658
+pbufrow = 15	; 128: pbuf0's row on the screen (for &,72)
 pbuf1= $400
 pbuf2= $500
 
@@ -33,7 +80,7 @@ relaxflg:
 	byte 0
 
 ;serialp:
-;	asciiA"
+;	ascii "A"
 ;serialn:
 ;	word 3
 
@@ -44,15 +91,42 @@ t1:
 t2:
 	byte 16,30
 
+; 128, 11/05/2026: in 80 columns each call runs at 2 MHz (the VIC isn't
+; seen there): at 1 MHz this side read a byte from the modem in about the
+; time one takes at 19200 baud, and a sender at the full line rate (a
+; 2 MHz 128, a C64, a PC) had blocks sent again (tools/netpair.py --fast
+; caller). The abort (ext1) puts the stack back to entry1's frame, so it
+; comes back here too. Afterwards the speed is the screen blanker's
+; (blnkflag: blanked is 2 MHz, irqhn.asm), not the one saved, as the sysop
+; may blank or unblank it meanwhile
 entry:
+	bit mode
+	bpl entry1	; 40 columns: 1 MHz, as on the C64
+	lda $d030
+	ora #1
+	sta $d030
+	jsr entry1
+	pha
+	lda blnkflag
+	and #1
+	sta speed
+	lda $d030
+	and #$fe
+	ora speed
+	sta $d030
+	pla
+	rts
+speed:
+	byte 0
+
+entry1:
 	txa
 	tsx
 	stx stack
 	tax
 	lda #0
 	sta tcount
-	lda #r6510_normal
-	sta r6510
+			; c64: lda #r6510_normal / sta r6510
 	tya
 	inx
 	dex
@@ -90,7 +164,7 @@ jmodemx:
 exit:
 ;	txa
 ;	pha
-	lda $28d
+	lda shflag	; c64: $28d
 	cmp #2
 	beq ext1
 ;	ldx #4
@@ -247,8 +321,8 @@ getnum1:
 	sta $96
 	lda #0
 	sta $0200
-	lda 667
-	cmp 668
+	lda ridbe	; c64: 667
+	cmp ridbs	; c64: 668
 	beq getnum2
 	tya
 	pha
@@ -273,7 +347,7 @@ tranrelx:
 trx1:
 	ldx #syn
 	jsr sendcode
-	lda #(1<<syn) | (1<<goo)
+	lda #b_syn  | b_goo
 	jsr accept
 	beq trx3
 	dec repeat
@@ -295,7 +369,7 @@ recvrelx:
 	lda #128
 	sta repeat
 rrx1:
-	lda #(1<<syn) | (1<<goo)
+	lda #b_syn  | b_goo
 	jsr accept
 	beq rrx2
 	dec repeat
@@ -327,7 +401,7 @@ rch1:
 	ldx gbsave
 	jsr sendcode
 rch2:
-	lda #1<<ack
+	lda #b_ack
 	jsr accept
 	beq rch3
 	dec repeat
@@ -345,6 +419,7 @@ rch4:
 	jsr recmodem
 	ldx $96
 	stx pbuf0+1
+	jsr showstat	; 128: and on the VDC, in 80 columns
 	cpx #2
 	beq rch3
 	cpx #4
@@ -353,7 +428,7 @@ rch5:
 	lda $96
 	rts
 rch6:
-	lda #1<<syn
+	lda #b_syn
 	jsr accept
 	bne rch1
 	lda #3
@@ -361,7 +436,7 @@ rch6:
 rch7:
 	ldx #syn
 	jsr sendcode
-	lda #1<<snb
+	lda #b_snb
 	jsr accept
 	beq rch8
 	dec repeat
@@ -384,7 +459,7 @@ trh1:
 	ldx #goo
 	jsr sendcode
 trh2:
-	lda #(1<<goo) | (1<<bad) | (1<<snb)
+	lda #b_goo  | b_bad  | b_snb
 	jsr accept
 	bne trh1
 	lda #0
@@ -399,7 +474,7 @@ trh2:
 trh3:
 	jsr thisbuf
 	ldy #5+1
-	lda ($64),y
+	lda (bufptr),y
 	cmp #$ff
 	bne trh4
 	lda #$01
@@ -429,19 +504,19 @@ trh6a:
 trh6b:
 	ldx #ack
 	jsr sendcode
-	lda #1<<snb
+	lda #b_snb
 	jsr accept
 	bne trh6a
 	jsr thisbuf
 	ldy #4
-	lda ($64),y
+	lda (bufptr),y
 	sta bufcount
 	jsr altbuf
 	ldx #mfile
 	jsr chkout
 	ldy #0
 trh7:
-	lda ($64),y
+	lda (bufptr),y
 	jsr chrout
 	iny
 	cpy bufcount
@@ -454,7 +529,7 @@ trh8:
 	jsr prtdash
 	ldx #ack
 	jsr sendcode
-	lda #1<<snb
+	lda #b_snb
 	jsr accept
 	bne trh8
 ; lda #10
@@ -462,7 +537,7 @@ trh8:
 trh9:
 	ldx #syn
 	jsr sendcode
-	lda #1<<syn
+	lda #b_syn
 	jsr accept
 ; bne trha
 ; dec bufcount
@@ -558,17 +633,17 @@ dummyblk:
 	lda blocknum
 	clc
 	adc #$01
-	sta ($64),y
+	sta (bufptr),y
 	iny
 	lda blocknum+1
 	adc #$00
-	sta ($64),y
+	sta (bufptr),y
 	ldx #dfile
 	jsr chkin
 	ldy #7
 dum1:
 	jsr chrin
-	sta ($64),y
+	sta (bufptr),y
 	iny
 	jsr readst
 	bne dum2
@@ -582,7 +657,7 @@ dum2:
 	pha
 	ldy #5+1
 	lda #$ff
-	sta ($64),y
+	sta (bufptr),y
 	jmp dum3
 dummybl1:
 	pha
@@ -592,32 +667,32 @@ dum3:
 	jsr dod2
 	jsr reset
 	ldy #$04
-	lda ($64),y
+	lda (bufptr),y
 	sta bufcount
 	jsr altbuf
 	pla
 	ldy #$04
-	sta ($64),y
+	sta (bufptr),y
 	jsr checksum
 	rts
 
 thisbuf:
 	lda #<pbuf1
-	sta $64
+	sta bufptr	; c64: $64
 	lda bufpnt
 	clc
 	adc #>pbuf1
-	sta $65
+	sta bufptr+1	; c64: $65
 	rts
 
 altbuf:
 	lda #<pbuf1
-	sta $64
+	sta bufptr	; c64: $64
 	lda bufpnt
 	eor #1
 	clc
 	adc #>pbuf1
-	sta $65
+	sta bufptr+1	; c64: $65
 	rts
 
 checksum:
@@ -630,13 +705,13 @@ checksum:
 chk1:
 	lda check1
 	clc
-	adc ($64),y
+	adc (bufptr),y
 	sta check1
 	bcc chk2
 	inc check1+1
 chk2:
 	lda check1+2
-	eor ($64),y
+	eor (bufptr),y
 	sta check1+2
 	lda check1+3
 	rol
@@ -648,7 +723,7 @@ chk2:
 	ldy #3
 l1:
 	lda check1,y
-	sta ($64),y
+	sta (bufptr),y
 	dey
 	bpl l1
 	rts
@@ -667,13 +742,13 @@ transmit:
 	jsr altbuf
 	ldy #4
 	lda #7
-	sta ($64),y
+	sta (bufptr),y
 	jsr thisbuf
 	ldy #5
 	lda #0
-	sta ($64),y
+	sta (bufptr),y
 	iny
-	sta ($64),y
+	sta (bufptr),y
 tra1:
 	jsr tranhand
 	beq tra1
@@ -801,13 +876,13 @@ trantype:
 	jsr altbuf
 	ldy #4
 	lda #7+32
-	sta ($64),y
+	sta (bufptr),y
 	jsr thisbuf
 	ldy #5
 	lda #$ff
-	sta ($64),y
+	sta (bufptr),y
 	iny
-	sta ($64),y
+	sta (bufptr),y
 	jsr var2buf
 	lda #1
 	sta specmode
@@ -819,9 +894,9 @@ trt1:
 	rts
 
 var2buf:
-	lda $64
+	lda bufptr	; c64: $64
 	sta var2buf3+1
-	lda $65
+	lda bufptr+1	; c64: $65
 	sta var2buf3+2
 	ldx #var_b_string
 	jsr usevar
@@ -840,11 +915,11 @@ var2buf4:
 	txa
 	tay
 	lda var2buf3+1
-	sta $64
+	sta bufptr	; c64: $64
 	lda var2buf3+2
-	sta $65
+	sta bufptr+1	; c64: $65
 	lda #13
-	sta ($64),y
+	sta (bufptr),y
 	iny
 	rts
 
@@ -935,6 +1010,10 @@ screen:
 	lda #52
 	ldx #16
 	ldy #0
+	jsr usetbl1	; c64: jmp
+	ldx #pbufrow+64	; 128: in 80 columns the module printed the counter
+	ldy #0		; line on the VDC: copy it into pbuf0's row, where the
+	lda #72		; counters count (&,72, vdccell)
 	jmp usetbl1
 
 nobytes:
@@ -1053,9 +1132,27 @@ getln:
 putln:
 	lda #36
 	jmp usetbl1
+; 128, 11/05/2026: the driver directly, as the ML's getmdm (chrio.asm,
+; &,4) does it, rather than &,4 through usetbl1: a byte read costs less
+; (c64: lda #4 / jmp usetbl1)
 getmdm:
-	lda #4
-	jmp usetbl1
+	jsr rsinabl
+	sec
+	jsr rsget
+	bcs getmdm6
+	pha
+	lda flag_asc_addr	; ASCII translation: 7 bits
+	and #flag_asc_l_mask
+	beq getmdm1
+	pla
+	and #$7f
+	pha
+getmdm1:
+	pla
+	rts
+getmdm6:
+	lda #0
+	rts
 usevar:
 	lda #29
 	jmp usetbl1
@@ -1200,8 +1297,39 @@ counter:
 	bne counter1
 	lda #'0'
 	sta pbuf0,x
+	jsr showcell	; 128: each digit changed, on the VDC too
 	dex
 	dey
 	bne counter
+	rts
 counter1:
+	jmp showcell	; c64: rts
+
+; 128, 11/05/2026: in 80 columns the VIC screen isn't seen, so each cell
+; of the counter line that changes goes to the VDC too (&,72, vdccell;
+; nothing in 40 columns): showcell column .x, showstat the status cell
+; (column 1). Both keep .a .x .y
+showstat:
+	pha
+	txa
+	pha
+	ldx #1
+	bne showc1
+showcell:
+	pha
+	txa
+	pha
+showc1:
+	tya
+	pha
+	txa
+	tay
+	ldx #pbufrow
+	lda #72
+	jsr usetbl1
+	pla
+	tay
+	pla
+	tax
+	pla
 	rts

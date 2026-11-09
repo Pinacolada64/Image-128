@@ -117,12 +117,22 @@ gate_fc:  byte 0
 ; 10/30/2026: amp_basic says whether this & call came from BASIC (the
 ; wedge, in cfg_rom) or from ML (usetbl1, in cfg_ml): dskina copies a$ for
 ; BASIC only (miscl.asm). .a .x .y and the flags go on as they came
+; 11/05/2026: an ML caller is in cfg_ml already, so it goes straight to
+; usetbl0, not through farcall (about 200 cycles a call). ++ net reads
+; each byte from the modem through usetbl1 (&,4), and at 19200 baud the
+; farcall made it fall behind: the driver's receive buffer overflowed in
+; 255-byte blocks, and about 1 block in 2 was sent again (tools/netpair.py)
 usetbl_far:
 	php
 	pha
 	lda mmucr
 	eor #cfg_ml	; 0: an ML caller
 	sta amp_basic
+	bne usetblf1
+	pla
+	plp
+	jmp usetbl0
+usetblf1:
 	pla
 	plp
 	jsr farcall

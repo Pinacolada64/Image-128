@@ -17,6 +17,11 @@ name=$(basename "$src" .bas)
 build="$repo/build"
 [ -f "$build/image128.d81" ] || { echo "$0: no build/image128.d81: run asm/build.sh" >&2; exit 1; }
 
+# petcat keeps the lines in the file's order, and BASIC's line search
+# goes wrong if they aren't ascending (?undef'd statement): refuse them
+awk '/^[0-9]/ { if ($1+0 <= last) { print FILENAME ": line " $1 " after " last; bad=1 } last=$1+0 }
+	END { exit bad }' "$src" >&2 || { echo "$0: line numbers out of order" >&2; exit 1; }
+
 prg="$build/standin-$name.prg"
 disk="$build/standin-$name.d81"
 petcat -w70 -l 1c01 -o "$prg" -- "$src"

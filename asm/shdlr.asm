@@ -175,8 +175,8 @@ scroll:
 	pha
 	lda eal+1	; same: \$af
 	pha
-	ldx #0
-	jsr he9f0
+	ldx sctop	; 128: the window's top (c64: #0), 11/05/2026: a module
+	jsr he9f0	; can keep rows above it (setup's frame) from scrolling
 	jsr hea24
 scroll0:
 	inx
@@ -228,6 +228,8 @@ scroll3:
 scrollv:
 	lda scnmode
 	beq scrollm
+	lda sctop	; 128: a window top below row 0: a row at a time too
+	bne scrollm
 	lda vdcscrn
 	jsr scrollv1
 	lda vdcattr
@@ -250,7 +252,7 @@ scrollv1:
 	jmp vdc_copy
 
 scrollm:
-	ldx #0
+	ldx sctop	; 128: from the window's top (c64 had no window)
 scrollm1:
 	stx vdcm_row
 	jsr vdcrow	; destination: row .x
@@ -322,6 +324,7 @@ chrtbl:
 	word scdn,scup
 	word scret,scdel
 	word scbell
+	word prtscn	; 128: Esc (11/05/2026: see chrs)
 chrs:
 	byte swlc, swuc
 	byte reverse_on, reverse_off
@@ -330,6 +333,13 @@ chrs:
 	byte cursor_down, cursor_up
 	byte carriage_return, cbm_backspace
 	byte ascii_bel
+; 128, 11/05/2026: Esc goes to the 128 editor's print ($c72d, prtscn), and
+; so does the character after it (a letter, through sc4/sc5's prtscn): the
+; editor runs the sequence when the character before was Esc ($f0), on its
+; own cursor (Image's sline/scnpos): "{esc}q" clears to the end of the line,
+; "{esc}@" to the end of the window (botline: the mask's rows stay). Esc
+; used to be dropped (not in chrs or colors) and its letter printed
+	byte ascii_escape
 chrs_end:
 
 cleanup:
@@ -367,8 +377,8 @@ fixlinks:
 	rts
 fixlinks_byte:
 	byte 0
-fixlinks_bits:
-	byte $80,$40,$20,$10,$08,$04,$02,$01
+; (fixlinks_bits, the line link bits, is in setup.asm: the resident ML
+; from $e000 was full, 11/05/2026)
 
 botline:
 	byte 22
@@ -1183,6 +1193,8 @@ vdcs_d1:
 	iny
 	cpy #40
 	bcc vdcs3
+; 11/07/2026: row 16, the lightbar: the other page of the pair (lbar2.asm)
+	jsr lbar2_put
 	lda vdcr_atr+1	; and the 40 colors, as attributes
 	ldy vdcr_atr
 	jsr vdc_set_update
@@ -1206,17 +1218,11 @@ vdcs_d2:
 	iny
 	cpy #40
 	bcc vdcs5
+	jsr lbar2_putc	; (row 16: the other page's colors)
 vdcs9:
 	ldx vdcs_row
 	rts
-vdcsum:
-	clc
-	adc vdcs_a
-	sta vdcs_a
-	clc
-	adc vdcs_b
-	sta vdcs_b
-	rts
+; vdcsum: in lbar2.asm (11/07/2026: $e000-$fbff has no room)
 
 vdcr_scr:	word 0
 vdcr_atr:	word 0

@@ -1,0 +1,118 @@
+' sub.su.copy -- the new-system setup's file copy (i/su.config: after the
+' review's C, before sub.su.write, which then writes the configuration
+' files onto the drives chosen). The boot disk's files go to the drives
+' they belong on, where a drive isn't the boot disk (device su%(10), drive
+' 0): each copied with ++ copier (&,16,0), then compared with the original
+' (&,16,3). The boot disk keeps its own; an old copy on a drive is
+' scratched first. 11/07/2026 (the plan's phase 4).
+'
+' Which drive a file belongs on, by its name (DATA_FILES.md):
+'   s.  1 System           nm.  2 E-Mail     e.  3 Etcetera
+'   d.  4 Directory        u.   6 User
+'   i. i/ sub. ++ ml. "im 128"  5 Module
+' Anything else (bd.data, boot 128) stays on the boot disk. A REL file
+' can't be copied as a stream: counted as not copied (the build's disk has
+' none; setup makes its own, sub.su.write). A file not closed (*) is
+' passed over.
+'
+' Esc Q (clear to the end of the line) written in the strings ({$1b}), not
+' es$: in the first try es$ came out empty here, and each "q" showed.
+'
+' The directory read into tt$() (free here: the drive scan fills it again
+' when the Drives table is shown), each the type's letter then the name.
+' su%(8) = 1 when a file failed and the sysop chose not to go on: the
+' review comes back instead of writing the files.
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{include:..\quoters.lbl}
+{include:su_helpers.lbl}
+{assign:3400	=3400	} ' im: draw the boot frame (z1$, z2$ "")
+{assign:3405	=3405	} ' im: the frame's two lines, z1$ and z2$, in color c
+{step:2}
+
+{number:60000}
+{:copy}
+	gosub 3414:z3$="Copying System Files...":gosub 3404:su%(8)=.
+	bv=su%(10):n=.:for k=1 to 6:if su%(10+k)<>bv or su%(20+k) then n=1
+	next:if n=. then:&"{f6}{lt. blue}Every drive is the boot disk{colon} nothing to copy.{f6}":return
+	b=bv:&"{f6}{lt. blue}Reading the boot disk ({pound}!b)...":gosub {:dir}
+' 11/08/2026: setup.log on the boot disk, the files that failed and why (a
+' name with no prefix, so it isn't copied itself); a new one each time
+	open 15,bv,15,"s0:setup.log":close 15:l$="Image BBS 128 setup: files that didn't copy":gosub {:log}
+	a$="0:++ copier":&,7,bv,2
+' the screen: the file, where it goes, the counts, and the copier's own
+' counter line on row 15 (it counts there: ++ copier's pbuf0). 11/08/2026:
+' from row 9: ++ copier shows each block on rows 2-8 as it goes (the frame
+' and the window's top), which are drawn again after (3400, 3405)
+	gosub 3414:&,70,0,9:&"{lt. blue}From device {pound}!b to the drives set up{colon}{f6}"
+	&,70,0,15:&"{cyan} Good{colon} 00000  Bad{colon} 00000  Bytes{colon} 000000"
+	q=.:w=.:x=.:y=.:for f=1 to nf:t$=left$(tt$(f),1):n$=mid$(tt$(f),2):gosub {:drive}
+	if k=. or t$="d" then {:next}
+	if su%(10+k)=bv and su%(20+k)=. then {:next}
+	if t$="r" then y=y+1:goto {:next}
+	gosub {:one}
+{:next}
+	next:gosub {:counts}:&,70,0,11:&"{$1b}q":&,70,0,12:&"{$1b}q"
+	y1$=z1$:y2$=z2$:gosub 3400:z1$=y1$:z2$=y2$:c=$8f:gosub 3405
+	for i=6 to 8:&,70,0,i:&"{$1b}q":next
+	&,70,0,17:if x=. then:&"{white}Done!{f6}":return
+	&"{yellow}{pound}!x files didn't copy or don't match (setup.log{comma} on the boot disk).{f6}Go on anyway{question} "
+	gosub 94:su%(8)=1-a:return
+
+' the drive (k, 1-6) file n$ belongs on, by its name; 0: the boot disk's
+{:drive}
+	k=.:a$=left$(n$,2):b$=left$(n$,3):if a$="s." then k=1
+	if b$="nm." then k=2
+	if a$="e." then k=3
+	if a$="d." then k=4
+	if a$="u." then k=6
+	if a$="i." or a$="i/" or b$="++ " or b$="ml." or left$(n$,4)="sub." or n$="im 128" then k=5
+	return
+
+' one file: shown, the old copy scratched, copied, then compared; q
+' copied, w the same as the boot disk's, x not copied or not the same, y
+' REL files (MCI's {pound}! prints a one-letter variable).
+' (g$ the drive's prefix: r$ is im's Return)
+{:one}
+	d=su%(10+k):r=su%(20+k):g$=mid$(str$(r),2)+":":y$=",p":if t$="s" then y$=",s"
+	if t$="u" then y$=",u"
+	&,70,0,11:&"{white}"+n$+"{$1b}q":&,70,0,12:&"{lt. blue}to device {pound}!d{comma} drive {pound}!r"+"{$1b}q"
+' the command channel (15) stays open until the files are closed: closing it
+' closes every file open on that drive, so the first try (15 closed after
+' reading the status) shut #2 before the copy, and nothing was written
+	close 15:close 3:close 2:open 15,d,15,"s"+g$+n$
+	open 3,bv,3,"0:"+n$+y$+",r":open 2,d,2,g$+n$+y$+",w":input#15,e,e$
+	if e>=20 then close 2:close 3:close 15:x=x+1:l$=n$+" to"+str$(d)+","+g$+str$(e)+" "+e$:gosub {:log}:goto {:counts}
+	&,16,0:close 2:close 3:close 15:q=q+1
+	open 3,bv,3,"0:"+n$+y$+",r":open 2,d,2,g$+n$+y$+",r":a%=9:&,16,3:close 2:close 3
+	if a% then x=x+1:l$=n$+" to"+str$(d)+","+g$+" not the same, at byte"+str$(b%):gosub {:log}:goto {:counts}
+	w=w+1
+{:counts}
+	&,70,0,13:&"{lt. blue}Copied {white}{pound}!q  {lt. blue}Same {white}{pound}!w  {lt. blue}Failed {white}{pound}!x"+"{$1b}q"
+	if y then:&,70,0,14:&"{lt. blue}REL files not copied{colon} {white}{pound}!y"+"{$1b}q"
+	return
+
+' a line (l$) added to setup.log on the boot disk (each failure: no file
+' of the copy is open then)
+{:log}
+	close 5:open 5,bv,5,"0:setup.log,s,a":print#5,l$:close 5:return
+
+' the boot disk's directory (device b, drive 0) into tt$(1-nf): its lines
+' are 32 bytes (the header 30; tests/standin/dirlines.bas), so &,2,2,n
+' reads a line at a time: the link (two 0s: the end), then the rest (the
+' blocks, the text, its 0); &,15,6 takes the name from between the quotes,
+' then the type (prg, seq, usr, rel; * before it: not closed)
+{:dir}
+	nf=.:close 2:open 2,b,0,"$0":&,2,2,2:&,2,2,30
+{:dir1}
+	&,2,2,2:if a$=nl$+nl$ or st then {:dir9}
+	&,2,2,30:an$=mid$(a$,3,27):&,15,6,34:if an$="" then {:dir1}
+	&,15,6,34:n$=a$
+{:dir2}
+	&,15,6,32:if a$="" and an$<>"" then {:dir2}
+	if a$="" or left$(a$,1)="*" or nf>253 then {:dir1}
+	nf=nf+1:tt$(nf)=left$(a$,1)+n$:goto {:dir1}
+{:dir9}
+	close 2:return
+
+	rem "sub.su.copy (c)nissa 2026-11-07"

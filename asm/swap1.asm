@@ -270,6 +270,16 @@ ctrli3:
 ctrlm:
 	lda #13
 	jsr xchrout0
+; 11/06/2026: memory (the status line's free memory: usetbl1 #44, trace0)
+; first, then anfix. In the other order trace0 saw anfix and copied an$
+; out of the buffer then and there (strfix, makeroom), in the middle of
+; the & output that MCI's input (\i, comi) runs in: on the 128 that
+; output reads its literal from a temporary copy BASIC 7 has already
+; released (getstr, frestr), and the new an$ landed on it, so the rest of
+; the string printed wrong (setup's "Your choice: \i1{f6}" printed the
+; answer again where the {f6} was). Now trace0 copies it at the next
+; statement, after the & is done
+	jsr memory
 	lda index
 	sta varbuf
 	lda #<buffer
@@ -278,8 +288,7 @@ ctrlm:
 	sta varbuf+2
 	sta anfix	; 128: trace0 copies an$ out of the buffer (not 0: .a)
 	ldx #var_an_string
-	jsr putvar
-	jmp memory
+	jmp putvar
 
 ctrlt:
 	cpy #0
@@ -632,4 +641,4 @@ editswap:
 	rts
 
 edittbl:
-	byte 0,3,6
+	byte 0,3,6,9	; 11/08/2026: 9, entry4 (a command from ++ visual)

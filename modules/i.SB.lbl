@@ -1,6 +1,7 @@
 ' Image BBS 128 (10/21/2026): C64 addresses in peek/poke/sys are the 128's,
 ' as {sym:...} names from asm/equates.asm (included below).
 {uses:..\3_0-preface.lbl}
+{crunch:on}
 {alpha:alt}
 {include:"..\asm\equates.asm"}
 {step:2}
@@ -81,6 +82,9 @@
 {:3068}
 	f2=f2and7:f2=f2-8*(right$(bb$(x),1)="{^}")-16*(right$(bb$(x),1)="?")
 	return
+' 11/05/2026: 3072-3074 (open file 2 to write, or to append if it's there,
+' and its header) aren't used in this file, but i/MM.sb-mail (4026) and
+' i/MM.sb-misc (4056) gosub 3072 while i.SB is in memory: keep them
 	z=1:a$="w":gosub 32:if e%then z=.:a$="a":gosub 32
 	print#2,na$r$id;r$d1$r$c$
 '	forx=1tokk-1:print#2,tt$(x):next:print#2,"{^}":close2:gosub 62 ' 35 bytes
