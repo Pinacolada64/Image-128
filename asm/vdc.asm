@@ -43,6 +43,9 @@ vdccolor:
 ;   row+64    the other way: the VDC's characters from column .y to 39
 ;             into that VIC row, so what a module printed in 80 columns
 ;             can be counted in
+;   row+32    the whole row, columns 0-39 (characters; .y not used), done
+;             by &,72's own entry, vdccellx in lbar2.asm (11/08/2026: for
+;             ++ copier's blocks, shown on rows 2-8)
 ; From an overlay: ldx/ldy, lda #72, jsr usetbl1 (from & code and from
 ; sys alike); from BASIC: &,72,row,column. Keeps nothing.
 vdccell:

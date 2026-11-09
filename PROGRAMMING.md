@@ -634,6 +634,7 @@ does nothing.
 | `&,72,r,c` | the character at VIC row `r` (0-24), column `c` (0-39) to the same row and column of the VDC |
 | `&,72,r+128,c` | that, and the cell's color (VIC color RAM) as a VDC attribute, in the lowercase set |
 | `&,72,r+64,c` | the other way: the VDC's characters from column `c` to 39 into that VIC row, so a module's line printed in 80 columns can be counted in by ML |
+| `&,72,r+32,c` | the whole VIC row `r` (columns 0-39, characters; `c` not used) to the VDC's: `++ copier` shows each block it reads on rows 2-8 this way |
 
 From ML: `ldx #row`, `ldy #column`, `lda #72`, `jsr usetbl1` (`$192a`).
 That goes through `farcall`, so an overlay started with `sys` (`++ 2`)

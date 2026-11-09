@@ -51,6 +51,12 @@ pbufrow	= 15	; 128: its row (for &,72)
 ; transfer area), not screen memory ($400, as the c64's): the 40-column
 ; screen's top rows showed each block, over setup's own lines and frame
 pbuf1	= protobuf	; copy buffer (one block, up to 254 bytes)
+; 11/08/2026: and each block shown as it goes, as the c64's screen buffer
+; did (user's request: fun to watch): written to screen memory from row 2
+; (pscr; rows 2-8: the 128's rows 0-1 are the boot's header lines), and in
+; 80 columns put on the VDC's same rows after each block (showblk: &,72
+; with row+32, each whole row)
+pscr	= $0400+80
 
 	orig protostart	; c64: $c000
 
@@ -131,6 +137,7 @@ cp1:
 cp2:
 	jsr chrin
 	sta pbuf1,y
+	sta pscr,y
 	iny
 	lda flen
 	bne cp4
@@ -168,8 +175,27 @@ cp7:
 	bne cp7
 	jsr clrchn
 	jsr goodblok
+	jsr showblk
 	lda done
 	beq cp1
+	rts
+
+; 80 columns: the block just read, on the VIC's rows 2-8, to the VDC's
+; (&,72 with row+32: a whole row; nothing in 40 columns)
+showblk:
+	ldx #2
+showblk1:
+	txa
+	pha
+	ora #$20
+	tax
+	lda #72
+	jsr usetbl1
+	pla
+	tax
+	inx
+	cpx #9
+	bcc showblk1
 	rts
 
 ; &,16,1: count the bytes of #3, adding 1 to "Bytes:" for each
@@ -223,6 +249,7 @@ cm1:
 cm2:
 	jsr chrin
 	sta pbuf1,y
+	sta pscr,y
 	iny
 	lda status
 	bne cm3
@@ -232,6 +259,7 @@ cm3:
 	sty buflen
 	sta done	; #3's status after this block: nonzero = it ended
 	jsr clrchn
+	jsr showblk
 	ldx #2
 	jsr chkin
 	lda #0		; 11/07/2026: #3's status (its end, or a bit another

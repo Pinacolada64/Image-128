@@ -170,3 +170,41 @@ vdcsum:
 	adc vdcs_b
 	sta vdcs_b
 	rts
+
+; &,72's entry (jmptb.asm; 11/08/2026): row+32 copies the whole VIC row
+; (columns 0-39, characters) to the same row of the VDC, in 80 columns;
+; nothing in 40. Any other &,72 goes on to vdccell (vdc.asm). Here, not in
+; vdccell: $e000-$fbff has no room. ++ copier writes each block it reads
+; to VIC rows 2-8 (from $0450) and calls this for each of those rows, so
+; the bytes stream by on either screen
+vdccellx:
+	txa
+	and #$20
+	bne vdcrw0
+	jmp vdccell
+vdcrw0:
+	bit mode
+	bpl vdcrw9
+	txa
+	and #$1f
+	sta vdcrw_r
+	tax
+	jsr vdcrowd	; vdcr_scr: the VDC row's address
+	lda vdcr_scr+1
+	ldy vdcr_scr
+	jsr vdc_set_update
+	ldx vdcrw_r
+	jsr calcscn2	; the VIC row's: .y low, .a high
+	sty vdcrw2+1
+	sta vdcrw2+2
+	ldy #0
+vdcrw2:
+; self-modifying code changes this
+	lda $ffff,y
+	jsr vdc_put
+	iny
+	cpy #40
+	bcc vdcrw2
+vdcrw9:
+	rts
+vdcrw_r:	byte 0
