@@ -122,7 +122,7 @@ come from (`nm.M.CIB/DEB`); `<dest>` can be several IDs.
 | `nm.netsub1`-`nm.netsub60` | `++ netlist` | one NetSub each: its name, its nodes' IDs (16 at most), its local sub-boards | `i/SM.reledit` |
 | `nm.P.track` _n m_ | `++ netsub` | NetSub _n_'s tracking numbers: each node's ID and the highest number taken from it; a post with a lower one is a repeat and is dropped. _m_ counts on when a table fills | `i/NM.netsub1` (start), `i/NM.netsub2` |
 | `nm.times` | PRG | the network alarm table (drive 3), loaded at boot | `i/IM.lightbar` |
-| `nm.origin` | SEQ | the origin line added to NetSub posts | not yet traced |
+| `nm.origin` | SEQ | one line: the *origin line* added at the end of every NetSub post sent from here, telling other BBSes where it came from (FidoNet's "* Origin:" line; Larry Hedman's read ` Origin: Wrong Number ][ V1.2b, Node 11`). `i/MM.sb-post` 4182 reads it into `z1$` whenever NetMail Enable is on, and 4150 writes it after the post into `nm.P.sub`_n_. Optional: without it no origin line is added (since 11/10/2026: see below) | the sysop: nothing in Image writes it (the text editor's `.P` Put can, to drive 2) |
 | `nm.wall header` | SEQ | the NetWall's header | not yet traced |
 | `nm.grf2` | REL | the Net Graffiti wall: record 1 three pointers (oldest, next, size), then one entry a record | `i/NM.mail`, `i/lo-net.grf.rel` |
 
@@ -232,6 +232,15 @@ What the first runs found (11/09/2026; tcpser's `-t sS` byte trace in
   `peek(49707)`-`peek(49755)`, where `++ netlist` keeps them on the C64
   (`$c22b`); on the 128 the overlay is at `$1c00`, so it reads the wrong
   memory. It should use `&,16`'s `an$` instead.
+- **No `nm.origin` (fixed 11/10/2026, in Image-128 and ImageBBS3):** every
+  entry into `i/MM.sb-post`, reading too, reads `nm.origin` when NetMail
+  Enable is on (4178-4182), without reading the drive's status. With no
+  file, 62 (file not found) stayed on the E-Mail drive's channel 15; the
+  next `gosub 5` put it in `e%`, and i.SB 3470 / sb-post 4014 returned
+  before printing each post's text: posts were listed with no body until
+  the BBS was restarted. NetSub posts also got 3 junk bytes as their origin
+  line. Now 4182 reads the status at once and uses the file only if it
+  opened. The 3.0 release has the bug.
 - To check in a real exchange: `nm.keep` and `nm.zone` (what reads them),
-  `nm.origin` and `nm.wall header` (who writes them), the `mt:`, `st:` and
-  `ms:` header lines, and `nm.connect`'s fields 8-9.
+  `nm.wall header` (who writes it), the `mt:`, `st:` and `ms:` header lines,
+  and `nm.connect`'s fields 8-9.
