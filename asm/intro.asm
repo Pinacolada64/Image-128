@@ -604,7 +604,9 @@ startmsg:
 	jmp prtvar0
 
 bootvers:
-	ascii "{clear} Image BBS 128 v"
+; 11/09/2026: from column 0. With &,5's a$ (the ML's build date and time,
+; 20 characters) the line is 40, so the leading space it had made it wrap
+	ascii "{clear}Image BBS 128 v"
 	ascii {usedef:version_number}
 	ascii " {pound}$a{f6}"
 bootvers_end:

@@ -399,8 +399,10 @@
 3074 dv%=peek({sym:bootdev}):z%=dv%:dr$="0"+":":bd$=dr$:sr=2:pr=-1:f3=1:sys {sym:protostart}+3:&,53
 ' NOTE: __BuildDate and __BuildTime are themselves quoted strings, hence the weirdness here:
 ' 10/27/2026: &,69 is column, then row, and row 0 draws nothing (dispstr6 skips
-' it): row 1, under intro's " Image BBS 128 v..." on row 0 (the frame is 2-5)
-3075 &,69,1,1,"im 128 revision: "+{usedef:__BuildDate}+" "+{usedef:__BuildTime},3
+' it): row 1, under intro's "Image BBS 128 v..." on row 0 (the frame is 2-5)
+' 11/09/2026: column 0, not 1 (with a longer date or time it wrapped in 40
+' columns, and column 0 kept a stray character)
+3075 &,69,0,1,"im 128 revision: "+{usedef:__BuildDate}+" "+{usedef:__BuildTime},3
 ' a$="NTSC":if peek(678) then a$="PAL"
 3076 a$="NTSC":if peek({sym:ntscpal})=255 then a$="PAL"
 3078 gosub 3400:z3$=a$+" System Detected.":gosub 3404
