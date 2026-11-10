@@ -199,6 +199,24 @@ the other node's phone to its telnet port. At the idle screen it sets the
 lightbar's NetMail Enable (28) on both and NetMail Trigger (29) on ONE,
 and prints both screens through the call.
 
+What the first runs found (11/09/2026; tcpser's `-t sS` byte trace in
+`build/tcpser-one.log` and `-two.log` shows each side's bytes):
+
+- **The answering BBS is slow to start:** about 18 seconds from the
+  connect to "HIT YOUR BACKSPACE/DELETE KEY" (i.lo), so the caller's
+  first Ctrl-As are lost; it sends one every 13 seconds until it gets
+  Ctrl-B, which is enough.
+- **The caller was slow after the Ctrl-B:** the answering side sends
+  `GOO` ten times, 2 seconds apart, for the name block, then CANs and
+  hangs up; i.NM_auto cleared its counters in `e.stats` and wrote
+  `nm.password` in between (30 seconds on a 1581). Both now happen
+  before the dial (i.NM_auto 3197, 3213).
+- **What the nodes need besides the network files:** a modem profile
+  (`e.i.modem`; with "No Modem" the BBS never sends the modem anything, so
+  it can't answer), the SwiftLink chosen (`e.data` 32), a set clock
+  (i/lo.idle 4211 starts NetMaint only then), `i.NM/auto` on the Module
+  drive, and a sysop whose handle is the one the mail is for.
+
 
 ## Open questions and problems found
 

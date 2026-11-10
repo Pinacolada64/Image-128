@@ -21,8 +21,10 @@ statements, but the test's values:
   calling hours (4562-4572)
 - nm.connect: the other node as the first standard connection, with its
   password, all day every day, no limit on calls (4586-4590)
-- e.data: the SwiftLink for the modem (record 32), the DS12C887 at $d700
-  for the clock (record 37); e.i.modem: tcpser's profile, auto-answer
+- the modem as IM's Modem Config sets it up: nimodem.dat from i/IM.modem's
+  profiles, then "tcpser (VICE)" from it into e.i.modem and e.data record
+  32 (the SwiftLink), with auto-answer; e.data record 37, the DS12C887 at
+  $d700 for the clock
 - i.NM/auto on the Module drive, copied from the boot disk if it's not
   there (the base HD's setup left it out)
 - on ONE only: a NetMail message to TWO's sysop (nm.M.TWO/ONE, written as
@@ -79,23 +81,30 @@ def basic(node):
     # command channel answers with 73 (the DOS version) or 0
     add('12 sleep 5:open 15,dv,15:input#15,e,e$:print "device";dv;e;e$:if e<>73 and e<>0 then close 15:goto 12')
     add('14 open 2,dv,2,mid$(str$(d),2)+":e.data":input#15,e,e$:print "e.data";e;e$')
-    add('15 x=53:gosub 900:input#2,a$,b$:x=56:gosub 900:input#2,m$,n$')
+    add('15 x=53:gosub 900:input#2,a$,b$:e1=val(a$):e2=val(b$):x=56:gosub 900:input#2,m$,n$')
     # e.data: record 32 the RS-232 interface, 1 the SwiftLink (im 3095; the
     # base BBS has 0, the user port, which x128 has off here); record 37 the
     # clock, the DS12C887 at $d700 (sub.clocks' "4,d,55040"), as netrun.py
     # starts x128 with one
-    add('16 x=32:gosub 900:print#2,"1":x=37:gosub 900:print#2,"4,d,55040":close 2')
-    # e.i.modem record 1 (port 0), as i/IM.modem 4510 writes an imported
-    # profile: its flags, init string, name and author. i/IM.modem's
-    # "tcpser (VICE)" profile (4902), but flag 3 A (auto-answer, s0=1: tcpser
-    # answers, and the BBS sees the carrier) for M (the BBS sends ATA on a
-    # RING, which needs the profile's result codes, a struct file)
-    add('18 open 2,dv,2,mid$(str$(d),2)+":e.i.modem,l,"+chr$(100):x=1:gosub 900')
-    add('19 print#2,"6DANH0H4N11000"r$"^"r$"tcpser (VICE)"r$"Jim Brain":close 2:close 15')
-    add('20 dv=val(a$):p$=mid$(str$(val(b$)),2)+":":open 15,dv,15:print "e-mail drive";dv;p$')
+    # e.data record 37: the clock, the DS12C887 at $d700 (sub.clocks'
+    # "4,d,55040"), as netrun.py starts x128 with one
+    add('16 x=37:gosub 900:print#2,"4,d,55040":close 2')
+    # the modem, as IM's Modem Config does it: nimodem.dat written from
+    # i/IM.modem's own profiles (its option 4: lines 4860-4866, DATA
+    # 4900-4990), "tcpser (VICE)" read back from it (the import, 4620-4622),
+    # then e.data record 32 (the interface: its flag 11, 1 the SwiftLink;
+    # i/IM.modem 4028) and e.i.modem record 1 (port 0: flags, init string,
+    # name, author; 4510). Flag 3 is A (auto-answer, s0=1: tcpser answers and
+    # the BBS sees the carrier), not the profile's M (the BBS sends ATA on a
+    # RING): that needs the profile's result codes in e.modem, a struct the
+    # import saves with &,60,3, which this can't (the ML isn't loaded here)
+    add('17 p3$=mid$(str$(d),2)+":":print#15,"s"+p3$+"nimodem.dat":open 3,dv,3,p3$+"nimodem.dat,s,w":gosub 860:close 3')
+    add('18 open 3,dv,3,p3$+"nimodem.dat,s,r":gosub 880:close 3:mt$=left$(u$,2)+"A"+mid$(u$,4):print "modem: ";g$;" ";mt$')
+    add('19 open 2,dv,2,p3$+"e.data":x=32:gosub 900:print#2,mid$(mt$,11,1):close 2:open 2,dv,2,p3$+"e.i.modem,l,"+chr$(100):x=1:gosub 900:print#2,mt$r$v$r$g$r$h$:close 2:close 15')
+    add('20 dv=e1:p$=mid$(str$(e2),2)+":":open 15,dv,15:print "e-mail drive";dv;p$')
     names = ['nm.create', 'nm.nodes', 'nm.nodelist', 'nm.config', 'nm.connect', 'nm.list',
              'nm.M.%s/%s' % (other[1], nid)]
-    add('20 for i=1 to %d:read f$:print#15,"s"+p$+f$:next' % len(names))
+    add('21 restore:for i=1 to %d:read f$:print#15,"s"+p$+f$:next' % len(names))
     add('30 data ' + ','.join(names))
     # nm.create: the network (10 values a node, as i/IM.netmail reads it)
     add('100 open 2,dv,2,p$+"nm.create,s,w"')
@@ -150,8 +159,26 @@ def basic(node):
     add('750 close 4:close 3:input#14,e,e$:print "copied:";e;e$')
     add('770 close 14')
     add('800 close 15:print "netinit done":end')
+    # nimodem.dat's writer and reader: i/IM.modem 4860-4866 and 4620-4624
+    add('860 restore 910')
+    add('862 read g$:if g$="^" then print#3,"^":return')
+    add('864 read h$,u$,v$,n:print#3,g$r$h$r$u$r$v$r$mid$(str$(n),2)')
+    add('866 for u=1 to n:read k,f,a$:print#3,mid$(str$(k),2)r$mid$(str$(f),2)r$a$:next:goto 862')
+    add('880 input#3,g$,h$,u$,v$,n:if g$="tcpser (VICE)" or st then return')
+    add('882 for u=1 to 3*n:input#3,a$:next:goto 880')
     # position a REL record (channel 2, record x): im line 1's "p" command
     add('900 print#15,"p"chr$(98)chr$(x and 255)chr$(x/256)chr$(1):return')
+    # i/IM.modem's profiles (4902-4990), its "nimodem.dat" marker left out
+    add('910 data "tcpser (VICE)","Jim Brain","6DMNH0H4N11000","^",5')
+    add('912 data 1,7,"CONNECT",2,1,"RING",3,0,"NO CARRIER",4,0,"ERROR",14,7,"CONNECT 19200"')
+    add('914 data "Generic Hayes 2400","Image BBS docs","3DMNH0H4N10000","m0&c1&d2",9')
+    add('916 data 1,2,"CONNECT",2,1,"RING",3,0,"NO CARRIER",4,0,"ERROR",5,3,"CONNECT 1200"')
+    add('918 data 6,0,"NO DIALTONE",7,0,"BUSY",8,0,"NO ANSWER",10,4,"CONNECT 2400"')
+    add('920 data "Generic Hayes 19.2k","Image BBS docs","6DMNH0H4N11000","m0&c1&d2",12')
+    add('922 data 1,2,"CONNECT",2,1,"RING",3,0,"NO CARRIER",4,0,"ERROR",5,3,"CONNECT 1200"')
+    add('924 data 6,0,"NO DIALTONE",7,0,"BUSY",8,0,"NO ANSWER",10,4,"CONNECT 2400"')
+    add('926 data 11,5,"CONNECT 4800",12,6,"CONNECT 9600",16,7,"CONNECT 19200"')
+    add('928 data "^"')
     return '\n'.join(L) + '\n'
 
 
@@ -205,7 +232,12 @@ def main():
             print('\n'.join(l for l in scr.split('\n') if l.strip()))
         finally:
             v.cmd('quit', resume=False)
-            time.sleep(1)
+            # the next node's x128 takes the same monitor port: wait for it
+            for _ in range(30):
+                if f':{args.port} ' not in subprocess.run(['ss', '-ltn'], capture_output=True,
+                                                          text=True).stdout:
+                    break
+                time.sleep(1)
         if not done:
             sys.exit('netnodes.py: netinit on %s didn\'t finish' % disk)
         c1541(disk, '-delete', 'netinit')
