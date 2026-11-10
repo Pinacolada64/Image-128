@@ -1,6 +1,7 @@
 # TODO.md
 
 - [ ] sub.param1: print its menus with `&` in the module instead of reading `s.m.params` (60014, the settings menu) and `s.m.modes` (60060, the terminal modes) from disk (user, 11/09/2026: "sub.params2 ... Same with sub.params1"; sub.param2 reads no `s.` file, so both are sub.param1's). Add the editor choice there too: `uf$` position 4 (0 the line editor, 1 `++ visual`, which sub.editor 60100 reads; visual-editor branch)
+- [ ] Join/unjoin message bases, as Image 1.2 had (user, 11/10/2026): at a sub-board, J toggles whether it's *joined*; Read All/New and Scan All/New go through the joined ones only, so a caller picks which bases to follow. A new VJ command, View Joined, lists them. 1.2 kept the flags in `jn$`, "Joined/unjoined flags" (its Programmer's Reference, chapter 4, item 24: `Image BBS/v1.2/web-page/imageprg-chap4.html`), apparently in the user record: find where 3.0 has room (a field of `u.config`, or a file of its own per user), how many bases it must cover (sub-boards, SIGs), and what a new user starts with (all joined)
 - [ ] combine `i_SM.consig1` and `i_SM.consig2` into one module, `lm=1...2` to pick conversion task
 - [ ] split directory entries into filenames (keeping surrounding quotes) with &,15,6 (see i.DE2, lines 3084-3088, i.CP, i.CP v3.1), compare with ImageBBS3 repo, i.CP rework
 - [ ] use _e.g._, `a=instr("ABCDE",an$):on a goto ...` instead of `on -(an$="A")-2*(an$="B") goto ...`
