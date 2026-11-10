@@ -184,6 +184,22 @@ come from (`nm.M.CIB/DEB`); `<dest>` can be several IDs.
 | `++ netlist` | a NetSub definition (`asm/netlist.asm`) |
 | `++ netsub` | the tracking tables (`asm/netsub.asm`) |
 
+## Testing with two nodes
+
+`tools/netnodes.py` makes two nodes, ONE (node 1, `1111001`) and TWO
+(node 2, `2222002`), from copies of the run disk (`build/node-one.d81`,
+`build/node-two.d81`, each with a copy of the `s.` files disk): it writes
+`nm.create` and runs a BASIC program in x128 that makes `nm.nodes`,
+`nm.nodelist`, `nm.config` and `nm.connect` with i/IM.netmail's own
+statements, and on ONE a NetMail message for TWO's sysop.
+
+`tools/netrun.py` boots both, each with its own tcpser (ONE: modem 25261,
+telnet 6131, monitor 6541; TWO: 25262, 6132, 6542), whose phonebooks map
+the other node's phone to its telnet port. At the idle screen it sets the
+lightbar's NetMail Enable (28) on both and NetMail Trigger (29) on ONE,
+and prints both screens through the call.
+
+
 ## Open questions and problems found
 
 - **`i/NM.bbs list`** is run after each call when `e.bbs` exists, but
