@@ -109,7 +109,8 @@
 82 for i=1 to 4:&,11,i:next
 83 &,11,.:return
 84 a=int(mn%/60):pt%=-(a>=p2% and a<p3%)*sgn(p1%):return
-85 &"{f6}Would You Like To Leave Feedback? ":gosub 93:if a=. then return:else dr=3:gosub 61
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+85 &"{f6}Would You Like To Leave Feedback{question} ":gosub 93:if a=. then return:else dr=3:gosub 61
 86 x=2:if bf<35 then 390:else im=1:goto 444
 ' FIXME: building the string like this is terribly inefficient
 90 q$="":if ll%>42 then q$=left$("{space:42}",(ll%-42)/2)
@@ -129,7 +130,7 @@
 96 &"{cyan}[{white}Yes{cyan}]":gosub 7:&"{pound}h5":a=(a$="N")+1
 97 &"{pound}q"+chr$(df%+48)+mid$("YesNo",4-a*3,3)+"{f6}":return
 ' appends " [Y/N]" if expert mode off (0):
-98 a$="{f6}Are You Sure [Y/N]":&left$(a$,len(a$)-6*em)+"?: ":return
+98 a$="{f6}Are You Sure [Y/N]":&left$(a$,len(a$)-6*em)+"{question}: ":return
 
 100 p2$="sub."+a$:gosub 110:is=is+1:im$(is)=im$
 ' FIXME: "new 60000": replace with delete 60000- ?
@@ -144,7 +145,8 @@
 204 s=.:sh=.:gosub 12
 206 poke {sym:ptrlinm},0:&,52,30,3:an$=d1$:&,15:b$=right$(an$,7)
 208 mm=2:gosub 3000:gosub 9:&"{f6} {blue}- {white}{pound}$bM{pound}q0":if tr%<100 then a%=tr%:&" {blue}- {white}{pound}%a {cyan}Min Left{pound}q0"
-209 if zz then a%=usr(0):&"{f6} {blue}- {cyan}Stack Free: {white}{pound}%a{pound}q0"
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+209 if zz then a%=usr(0):&"{f6} {blue}- {cyan}Stack Free{colon} {white}{pound}%a{pound}q0"
 210 &"{f6:2}":poke {sym:llen},38:gosub 6
 212 cm$=left$(p$,11)+":"+left$(an$,4):gosub 9:cm$=p$
 214 on tr%+1 goto 240:if an$="" then gosub 250:goto 200
@@ -155,17 +157,21 @@
 224 x=1:rq=.:rs=1
 226 f4=.:a%=zz:b%=2^ac%:&,42:if a% then ef$=b$:ep$=a$:ec=a%:ec%=b%:goto 260
 228 on -(a$="O" or (lc=1 and a$="Q"))-2*(a$="{question}") goto 230,250:rs=.:return
-230 f4=.:if right$(an$,1)<>"!"then:&"{f6:2}Logoff?: ":gosub 93:if a=. then return
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+230 f4=.:if right$(an$,1)<>"!"then:&"{f6:2}Logoff{question}{colon} ":gosub 93:if a=. then return
 232 f4=1.3:return
 234 f1=1-(right$(an$,1)="!"):cd%=.:if mid$(z$,2,1)="%" then 302
-236 &"{f6}Update Message/File Scan Date?: ":gosub 96:if a then ld$=lt$
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+236 &"{f6}Update Message/File Scan Date{question}{colon} ":gosub 96:if a then ld$=lt$
 238 goto 302
-240 &"{f6}Sorry, Time Limit Exceeded.{f6}":mm=3:gosub 3000:f1=1:goto 302
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+240 &"{f6}Sorry{comma} Time Limit Exceeded.{f6}":mm=3:gosub 3000:f1=1:goto 302
 242 f1=.:&"{f6} Aborted!{f6}":goto 200
 250 im=1:goto 436
 260 if ec%>. and cr-ec%<. then:&"{red}Not Enough Credits!{f6}":return
 262 cr=cr-ec%:if ep$="" or id=1 then 264
-263 &"{f6}{white}Password{blue}:{white}":&,6:if an$<>ep$ then:&"{f6}{red}Incorrect Password.{f6}":return
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+263 &"{f6}{white}Password{blue}{colon}{white}":&,6:if an$<>ep$ then:&"{f6}{red}Incorrect Password.{f6}":return
 264 f4=.:on ec goto 265,266,267,268:return
 265 z$=ef$:f4=1.1:&,28,1:return
 266 f4=1.2:&,28,1:return
@@ -189,8 +195,10 @@
 311 if left$(an$,1)="{uparrow}" then an$=hs$(10-val(mid$(an$,2,1))):goto 314
 312 &,15,6,140:uu$=an$:an$=a$
 313 for ct=1 to 9:hs$(ct)=hs$(ct+1):next:hs$(10)=an$:return
-314 &p$+": {pound}v7{f6}":return
-315 for ct=1 to 10:a%=10-ct:a$=hs$(ct):&"{uparrow}{pound}%a: {pound}$a{f6}":next:an$="":uu$="":return
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+314 &p$+"{colon} {pound}v7{f6}":return
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+315 for ct=1 to 10:a%=10-ct:a$=hs$(ct):&"{uparrow}{pound}%a{colon} {pound}$a{f6}":next:an$="":uu$="":return
 320 gosub 31:x=ac%+1:gosub 1:&,2,2:ag$=a$:&,2,2:close 2
 321 if len(fl$)<len(a$) then fl$=fl$+mid$(a$,len(fl$)+1)
 322 if len(fl$)>len(a$) then fl$=a$
@@ -205,12 +213,14 @@
 330 dr=3:a$="e.macros":gosub 4
 332 if e%=. then:&,2,2:a=val(a$):&"{f6:2}":x=int(rnd(1)*a)+2:gosub 1:&,3,2
 334 close 2:return
-349 &"{f6}Device, Drive: {pound}i1":an$="  "+an$:return
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+349 &"{f6}Device{comma} Drive{colon} {pound}i1":an$="  "+an$:return
 350 a=int(val(mid$(an$,3,2))):if a>. then if a<7 then dr=a:goto 353
 351 if a<7 or a>29 then a=8
 352 &,15,6,133:d2%=val(an$):d1%=a:dr=.:dv%(.)=d1%:dr%(.)=d2%
 353 gosub 3:close 15:a=-(st<>.):return
-370 a=1-a:&"{f6}{green}{pound}$b Mode{lt. green}: {white}O"+mid$("ffn",a*2+1,2)+"{f6}":return
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+370 a=1-a:&"{f6}{green}{pound}$b Mode{lt. green}{colon} {white}O"+mid$("ffn",a*2+1,2)+"{f6}":return
 ' 11/09/2026: 371 toggles uf$'s flag b (b$ its name, for 370's On/Off),
 ' through 377 and 378
 371 gosub 377:gosub 370:goto 378
@@ -251,7 +261,8 @@
 450 a$="stack":goto 74
 500 rem**jump table**
 ' rem 12 bytes vs. 24: a=-(an$="I")-2*(an$="P"):
-501 &"{f6}Edit (I)nfo or (P)arameters? {pound}g1{pound}v7{f6}":a=instr("IP",an$)
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+501 &"{f6}Edit (I)nfo or (P)arameters{question} {pound}g1{pound}v7{f6}":a=instr("IP",an$)
 502 if a then im=1:on a goto 447,430:else return
 503 im=2:goto 447
 504 im=1:goto 443
@@ -314,7 +325,8 @@
 ' e1 (error line) was el: EL is BASIC 7.0's own error-line variable,
 ' and dim el or el=y is a ?syntax error
 ' error number and line from the wedge's trap (c64: 780-782)
-2002 x=peek({sym:sareg}):y=peek({sym:sxreg})+peek({sym:syreg})*256:&"{f6}[Error#{pound}!x, Line#{pound}!y]{f6}":e1=y
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+2002 x=peek({sym:sareg}):y=peek({sym:sxreg})+peek({sym:syreg})*256:&"{f6}[Error#{pound}!x{comma} Line#{pound}!y]{f6}":e1=y
 ' 10/21/2026: a file that won't load (?load error 29: a module, line 79, or an
 ' ML overlay, 29) twice within a minute stops here, saying which. The error
 ' handler (4000) carries on from the idle screen (4046: goto 302), which loads
@@ -408,7 +420,8 @@
 ' it): row 1, under intro's "Image BBS 128 v..." on row 0 (the frame is 2-5)
 ' 11/09/2026: column 0, not 1 (with a longer date or time it wrapped in 40
 ' columns, and column 0 kept a stray character)
-3075 &,69,0,1,"im 128 revision: "+{usedef:__BuildDate}+" "+{usedef:__BuildTime},3
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+3075 &,69,0,1,"im 128 revision{colon} "+{usedef:__BuildDate}+" "+{usedef:__BuildTime},3
 ' a$="NTSC":if peek(678) then a$="PAL"
 3076 a$="NTSC":if peek({sym:ntscpal})=255 then a$="PAL"
 3078 gosub 3400:z3$=a$+" System Detected.":gosub 3404
@@ -433,14 +446,17 @@
 3102 im=.:gosub 441:uh=a%
 ' 11/10/2026: "User" only for 1: (a%<>.) made it "User" for any count but 0
 3103 z2$=left$(z2$,22)+"  ("+mid$(str$(a%),2)+left$(" Users",6+(a%=1))+")":gosub 3404
-3104 dr=3:gosub 3:z3$="Loading System Defaults...":gosub 3414:gosub 3404:d$=" Definitions: "
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+3104 dr=3:gosub 3:z3$="Loading System Defaults...":gosub 3414:gosub 3404:d$=" Definitions{colon} "
 3106 &"{f6}{lt. blue}Extended Command Set{pound}$d":a$=dr$+"e.ecs.main":&,42,4:gosub 3192
 3108 &"Print Mode{pound}$d":a$=dr$+"e.printmodes":&,7,dv%,7:gosub 3192
 3110 &"Lightbar Checkmarks":a$=dr$+"e.lightbar":&,7,dv%,8:gosub 3192
 3111 z3$="Setting Alarm Tables...":gosub 3404
-3112 &"{f6:4}{lt. blue}Alarm Table: ":a$=dr$+"e.alarms":&,7,dv%,9:gosub 3192
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+3112 &"{f6:4}{lt. blue}Alarm Table{colon} ":a$=dr$+"e.alarms":&,7,dv%,9:gosub 3192
 3114 :
-3116 &"{lt. blue}Network Alarm Table: ":dr=2:gosub 3:a$=dr$+"nm.times":&,7,dv%,12:gosub 3192
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+3116 &"{lt. blue}Network Alarm Table{colon} ":dr=2:gosub 3:a$=dr$+"nm.times":&,7,dv%,12:gosub 3192
 3118 dr=3:a$="e.fkeys,s,r":gosub 4:if e% then close 2:goto 3128
 3120 z3$="Enabling Function Keys...":gosub 3404
 3122 for i=1 to 8:&,2,2:if right$(a$,1)="{back arrow}" then a$=left$(a$,len(a$)-1)+r$
@@ -516,13 +532,15 @@
 ' get system disk names, read blocks free
 3186 restore 3504:for q=. to 6:bf(q)=-1:next
 3188 z3$="Reading Blocks Free...":gosub 3404:for q=1 to 6:dr=q:gosub 61
-3190 read b$:&"{f6}{rvs off}{lt. blue} {pound}$b Disk{pound}{back arrow}30:{cyan}"+str$(a):next:q=.:return
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+3190 read b$:&"{f6}{rvs off}{lt. blue} {pound}$b Disk{pound}{back arrow}30{colon}{cyan}"+str$(a):next:q=.:return
 
 ' new: from 3100- report ok/error
 3192 gosub 5:c$="{lt. green}":if e% then c$="{lt. red}"
 3194 &"{pound}{back arrow}20"+c$+"{pound}$e{f6}{lt. blue}":return
 
-3200 &,27,1:z1$=" Insert All System Disks In Correct ":z2$="       Drives, And Press RETURN     "
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+3200 &,27,1:z1$=" Insert All System Disks In Correct ":z2$="       Drives{comma} And Press RETURN     "
 ' ----+----+----+----+----+----+----+----+
 '                Or Press:                 (16)
 '
@@ -567,7 +585,8 @@
 3250 dr=3:a$="e.lightdefs,s,r":gosub 4:if e% then close 2:goto 3300
 3252 z3$="Setting Default Checkmarks...":gosub 3404
 ' 10/27/2026: the page number, 1-8 as i/IM.lightbar numbers them (it printed "!x")
-3254 for x=. to 7:&,2,2:if len(a$)<>16 then:&"Lightbar defaults length error, page"+str$(x+1)+"{f6}":goto 3258
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+3254 for x=. to 7:&,2,2:if len(a$)<>16 then:&"Lightbar defaults length error{comma} page"+str$(x+1)+"{f6}":goto 3258
 3256 for i=1 to 16:&,52,x*16+i-1,val(mid$(a$,i,1)):next
 3258 next:close 2
 
@@ -674,8 +693,10 @@
 4010 &,40:d$="GURU":if x>. and x<42 then d$=err$(x)
 4012 a%=x:&"{f6}{lt. red} SYSTEM ERROR #{pound}%a {white}({pound}$d error){f6}":r$=chr$(13)
 4014 a$="im":if e1=>3000 then a$=pr$:if e1=>4000 then a$=p1$:if e1=>60000 then a$=p2$
-4016 a=e1:&"{lt. blue} In Line:{gray3}{pound}!a {lt. blue}Of {gray3}{pound}$a{f6}"
-4018 &"{f6}{lt. red}Recording Error, Please Wait...":d$=str$(x)+" ("+d$+" error)"
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+4016 a=e1:&"{lt. blue} In Line{colon}{gray3}{pound}!a {lt. blue}Of {gray3}{pound}$a{f6}"
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+4018 &"{f6}{lt. red}Recording Error{comma} Please Wait...":d$=str$(x)+" ("+d$+" error)"
 4020 dr=3:a$="e.errlog,s,a":gosub 4:if e%=. then 4024
 4022 a$="e.errlog,s,w":gosub 4
 4024 print#2,na$r$id;r$d1$r$ac%;r$ph$r$rn$r$co$(co%)r$
@@ -716,7 +737,8 @@
 4060 gosub 39:close 15
 4062 gosub 30:i=1:x=14:gosub 16:x=25:gosub 16:x=32:gosub 16:close 2
 ' backspaces over "Recording Error, Please Wait..." up to the point of "Record":
-4064 &"{pound}ho{pound}h9ed!{f6:2}{white}{$07}You Have New E-Mail Waiting:{f6:2}{green}Read Now? ":gosub 96
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+4064 &"{pound}ho{pound}h9ed!{f6:2}{white}{$07}You Have New E-Mail Waiting{colon}{f6:2}{green}Read Now{question} ":gosub 96
 4066 if a then a$="E"+"M":goto 70
 4068 pr$="":goto 300
 ' 10/24/2026: just read strings from reserved array err$()
