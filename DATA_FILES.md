@@ -193,10 +193,14 @@ application form) aren't opened by name by any module.
 16-character file name, the most a file name can have). Image 3.0's release
 kept 13 in most modules but `i/lo.on` looked for 14, so a handle of 14 or more
 characters could lose its mail; every module keeps 14 since 11/10/2026.
-Moving a 3.0 system's files over: for each such user, rename the files named
-with 13 characters of the handle before the BBS first runs, e.g. for `THE
-GREAT GATSBY`, the DOS command `r0:m.THE GREAT GATS=m.THE GREAT GAT` (and the
-same for an `f.` file) on the E-Mail drive. Shorter handles aren't affected.
+Moving a 3.0 system's files over: before the BBS takes calls, run
+`i.rename mail` once as the sysop (R at the main prompt, class 3). For each
+handle of 14 characters or more it renames the `m.` and `f.` files named with
+13 characters of it to 14, and lists what it did. It leaves alone, and lists,
+a file whose 13 characters start another handle too (it held both users'
+mail) and one whose new name is taken. By hand, it's a DOS command on the
+E-Mail drive, e.g. for `THE GREAT GATSBY`: `r0:m.THE GREAT GATS=m.THE GREAT GAT`
+(and the same for an `f.` file). Shorter handles aren't affected.
 
 ## Today in History: `today.` _Mon_ and `s.today/hist`
 
