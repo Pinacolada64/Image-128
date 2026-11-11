@@ -112,5 +112,5 @@
 60162 &"{pound}{back arrow}39   {gray3} In Memory  : {yellow}{pound}%b{f6} {pound}{back arrow}15{gray3}Remaining  : {yellow}{pound}%c{pound}{back arrow}39   "
 60164 ifzzthen:&"{gray3} Free Memory: {yellow}{pound}%z"
 60166 &"{f6}{blue}{pound}vj{lt. green}":return
-60198 copr. 1994 new image 9/9/94
-60199 rem "sub.editor (c)nissa 200927 lh-ad"
+60198 rem "copr. 1994 new image 9/9/94"
+60199 rem "sub.editor (c)nissa 2020-09-27 lh-ad"

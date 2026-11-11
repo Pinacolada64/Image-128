@@ -30,8 +30,8 @@
 4103 f1=.:ao%=ac%:gosub320
 4104 gosub90:an$=ff$:&,15,1:a=1:b=7:ifmn%>719thena=8:b=9:ifmn%>1079thena=17:b=7
 4106 b$="Good "+mid$("MorningAfternoonEvening",a,b)+", "+an$
-4107 c$=right$("00"+mid$(str$(int((39-len(b$))/2)),2,2),2)
-4108 &"{clear}{f6}{blue}{pound}vj {cyan}{rvrs on}{pound}{back arrow}"+c$+q$+b$+"!{pound}{back arrow}39{f6}{blue}{pound}vj"
+4107 c$=right$("00"+mid$(str$(int((ll%-len(b$))/2)),2,2),2)
+4108 &"{clear}{f6}{blue}{pound}vj {cyan}{rvrs on}{pound}{back arrow}"+c$+b$+"!{f6}{pound}{back arrow}39{f6}{blue}{pound}vj"
 4110 gosub33:x=1:gosub1:&,2,2:ca=val(a$):close2:&,52,20,em:poke{sym:ptrlinm},.
 ' 10/26/2026: the modem type is mt$'s first character; val(mt$) of a line of
 ' digits (mt$ left pointing at &,2,2's buffer) overflowed 2^a: ?overflow here

@@ -23,18 +23,18 @@
 4524 dr=1:a$="s.anagram":gosub 14
 4526 &"{f6:2}{pound}$qSolve? ":gosub 96:if a=.then 4576
 4528 t=.:n%=n%+1
-4530 &"{f6}{pound}$q{yellow}{rvrs on}":for i=1 to j:&tt$(d%(i)):&" ":next
+4530 &"{f6}{pound}$q{yellow}{rvrs on} ":for i=1 to j:&tt$(d%(i)):&" ":next
 4532 &"{f6:2}{pound}$q{lt. green}Solution? {pound}i1":on tr%+1 goto 4544:if an$=z$then 4546
 4534 if tthen:&"{f6:2}{pound}$qSorry, better luck next time":goto 4544
 4536 if an$="{f2}" then 4542
 4538 if an$="" or an$="Q" then 4544
-4540 &"{f6:2}{pound}$qSorry, try again? ":gosub 94:on a+1 goto 4544:t=1:goto 4530
+4540 &"{f6:2}{pound}$qSorry! Try again? ":gosub 94:on a+1 goto 4544:t=1:goto 4530
 4542 &"{f6:2}{pound}$q":&z$:cr=cr-d%:goto 4562
 4544 cr=cr-c%:goto 4562
-4546 p%=100:if tthen:p%=25:w%=w%+1
+4546 p%=100:if tthen p%=25:w%=w%+1
 4548 if t<1 then r%=r%+1
 4550 &"{f6:2}{pound}$qCongratulations, you win {pound}%p credits!":cr=cr+p%
-4552 a$=" {yellow}Anagram winner {pound}%p credits{lt. green}":gosub 50:goto 4562
+4552 a$=" {yellow}Anagram winner: {pound}%p credits{lt. green}":gosub 50:goto 4562
 4554 a$="e.anagram":dr=3:gosub 4:if e%then 4566
 4556 x=1:gosub 1:&,2,2:a=val(a$):x=int(rnd(1)*a)+2:fd=x
 4558 gosub 1:input# 2,z$,n%,r%,w%:if len(z$)<2 then 4556
@@ -44,8 +44,8 @@
 4566 a=10
 4568 tt$(1)="CHALLENGER":tt$(2)="HERCULES":tt$(3)="CROATIA"
 4570 tt$(4)="TELEPHONE":tt$(5)="DISCOVERY":tt$(6)="ELEPHANT":tt$(7)="DICTIONARY"
-4572 tt$(8)="CROISANT":tt$(9)="ENTERPRISE":tt$(10)="BATTLESHIP"
+4572 tt$(8)="CROISSANT":tt$(9)="ENTERPRISE":tt$(10)="BATTLESHIP"
 4574 i=int(rnd(1)*a)+1:z$=tt$(i):return
 4576 &,28,2:return
 4578 rem on.anagram by port commodore
-4580 rem "i/lo-anagram (c)nissa 210327 lh"
+4580 rem "i/lo-anagram (c)nissa 2021-03-27 lh, 2026-10-31 rs"

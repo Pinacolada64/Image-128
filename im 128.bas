@@ -355,7 +355,7 @@
 3008 dimc$,c%,c1$,c2$,c3$,ca,cc,cc$,cd%,ch$,cm$,cn,co$,co%,cr,ct,ct%
 3010 dimd$,d%,d1$,d1%,d2$,d2%,d3%,d3$,d4$,d5$,d6$,da%,db%,dc,dc%,dd$,df%,dr,dr$,dv%
 ' 3012 dimdf%
-3014 dime$,e%,e1,em,ef$,ep$,ec,ec%
+3014 dime$,e%,e1,em,ef$,ep$,es$,ec,ec%
 3016 dimf$,f%,f1,f2,f3,f4,ff$,fl,fl$,f1$,f2$,f3$,f4$,f5$,f6$,f7$,f8$
 3018 dimg$,g%
 3020 dimh$,h%,hx$
@@ -388,7 +388,9 @@
 3060 c3$="{f6}Returning To The Editor"+"{f6:2}"
 ' sw: sysop screen width, 40 or 80
 3062 sw=rwindow(2):ak$=left$(" {192:78}",sw-1)+"{f6}"
-3064 r$=chr$(13):nl$=chr$(.):qt$=chr$(34)
+' 11/10/2026: es$ is Escape (chr$(27)), DIMmed in 3014, for Esc sequences
+' such as i/su.config's Esc P
+3064 r$=chr$(13):es$=chr$(27):nl$=chr$(.):qt$=chr$(34)
 ' 650 [c64], 2594/$0a22 [c128]: key repeat
 ' FIXME: 836 is in datebuf, may be no longer needed (y2k fix?)
 ' 3066 open 4,4,7:poke 836,1:poke 650,128

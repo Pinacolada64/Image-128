@@ -145,7 +145,7 @@ application form) aren't opened by name by any module.
 | `e.ecs.main` | PRG | the Extended Command Set | `im 128`, at boot; `i/IM.ecs` |
 | `e.fkeys` | SEQ | the sysop's function key macros | `im 128`, at boot; `i/IM.macros` |
 | `e.modem` | PRG | the modem types to choose from | `i/IM.modem` |
-| `e.termkeys` | SEQ | Image Term's keys | `i.t` |
+| `e.termkeys` | SEQ | Image Term's function keys | `i.t` |
 | `e.say` | REL | sayings, picked at random (`e.say (small)`: a shorter set) | `im 128`; edited by `i/SM.sayedit` |
 | `e.text` | REL | text, by record number | `im 128`; edited by `i/SM.textedit` |
 | `e.errmsg` | REL | (not opened by name by any module) | |
