@@ -39,7 +39,10 @@
 4056 gosub 30:x=28:st(x)=u:gosub 17:close 2:return
 4058 nt=.:for i=1 to ur:gosub 35:x=i:gosub 1:&,2,2:tt$=a$:an$=a$:&,15,1:&an$"'s Mail:"
 4060 dr=2:a$=left$("m."+tt$,15)+",s,r":gosub 4078:nt=nt+n:next
-4066 close 2:st(25)=nt:gosub 30:x=25:gosub 17:close 2:return
+' 11/10/2026: nt reset once the mail count is stored: im line 9 takes nt<>0 to
+' mean a NetMail session is running (i.lo 3420/3422 set it, i.NM_auto 3171
+' clears it) and stops showing the module's name in the Area field
+4066 close 2:st(25)=nt:nt=.:gosub 30:x=25:gosub 17:close 2:return
 4068 gosub 35:&,2,2:close 2:tt$=a$:an$=a$:&,15,1:&an$"'s Mail: "
 4070 dr=2:a$=left$("m."+tt$,15)+",s,r":gosub 4078:st(24)=n
 4072 &"{f6}Feedback: ":dr=3:a$="e.fback,s,r":gosub 4078:st(23)=n

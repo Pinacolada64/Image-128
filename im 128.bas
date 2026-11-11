@@ -30,7 +30,9 @@
 7 &"{pound}g1":a$=an$:return
 ' i take it peek(17138) <c64 screen mask mode> is checked within &,69
 ' therefore eliminating it here:
-9 if nt=. then:&,69,4,21,left$(" "+cm$+"               ",22),$8c:return:else return
+' 11/10/2026: begin/bend: the block runs when nt=0, and the line goes on after
+' bend either way, so one return does for both (was: ...:return:else return)
+9 if nt=. then begin:&,69,4,21,left$(" "+cm$+"               ",22),$8c:bend:return
 ' rem print#15,"p{02}"chr$(xand255)chr$(x/256)"{01}":return
 ' record# lfn, record_num [, byte_num]
 10 record#2,x,1:return

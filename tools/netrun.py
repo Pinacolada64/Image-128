@@ -18,7 +18,7 @@ phonebook has the other node: ONE dials 2222002, which its tcpser makes
 
 Once both are at the idle screen (BASIC running i/lo.idle's loop), it sets
 the lightbar's NetMail Enable (28) on both, and NetMail Trigger (29) on
-ONE, which then starts NetMaint (i/lo.idle 4211); TWO answers when ONE's
+ONE (Invert DCD, 58, off on both), which then starts NetMaint (i/lo.idle 4211); TWO answers when ONE's
 Ctrl-A arrives (i.lo 3556). It prints both screens as they change, until
 both are back at the idle screen after the call, or --timeout seconds.
 
@@ -37,6 +37,7 @@ TCPSER = os.environ.get('TCPSER', os.path.expanduser('~/bin/tcpser/tcpser'))
 JIFFY = os.environ.get('JIFFYDOS', os.path.expanduser('~/Documents/c64/JiffyDOS'))
 HDROM = 'ROMs/cmd_hd_bootrom_v2.80.bin'   # not in git: CMD's
 CHKTBL_NET = 0x1303
+CHKTBL_DCD = 0x1307          # bit 2: Invert DCD (flag 58)
 TIMESET = 0x18b6               # "time has been set" (i/lo.idle 4211 needs it)          # chktbl+3: bit 4 NetMail enable (28), bit 5 trigger (29)
 NODES = {
     'one': dict(modem=25261, telnet=6131, mon=6541, dial={'2222002': 6132}),
@@ -110,7 +111,12 @@ def main():
             b = v.mem('ram00', CHKTBL_NET, 1)[0] | mask
             # timeset 1 too: the copies' clocks haven't been set, and i/lo.idle
             # 4211 starts NetMaint only once one has
-            v.cmd('bank ram', f'> {CHKTBL_NET:04x} {b:02x}', f'> {TIMESET:04x} 01')
+            # Invert DCD (flag 58, chktbl+7 bit 2; the idle screen's T) off: with
+            # it on, a node reads a live call as no carrier and hangs up (ONE did,
+            # 11/10/2026, right after its first Ctrl-A)
+            d = v.mem('ram00', CHKTBL_DCD, 1)[0] & ~0x04
+            v.cmd('bank ram', f'> {CHKTBL_NET:04x} {b:02x}', f'> {TIMESET:04x} 01',
+                  f'> {CHKTBL_DCD:04x} {d:02x}')
             print(f'{n}: chktbl+3 = ${b:02x}', flush=True)
         # watch both screens until they've been through a call and are idle
         last, busy, t0 = {}, set(), time.time()
