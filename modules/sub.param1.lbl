@@ -8,6 +8,7 @@
 ' as {sym:...} names from asm/equates.asm (included below).
 {uses:..\3_0-preface.lbl}
 {alpha:alt}
+{include:..\quoters.lbl}
 {include:"..\asm\equates.asm"}
 
 60000 onimgoto60004,60056,60114,60094,60096:rem sub.param1
@@ -17,15 +18,21 @@
 60008 gosub60120:gosub60104:d$=a$
 ' 11/09/2026: uf$'s flags through im 377 (read) and 378 (set)
 60012 b=3:gosub377:a%=a:gosub60046:v$=an$:a%=ll%:b%=mp%:t$=mid$(uf$,6,3)
-60014 a$="s.m.params":dr=1:gosub13:poke53252,2:&"{white}  > {pound}i1":a=val(an$)
+' 11/10/2026: u$, option 10's editor (uf$ position 4: 1 ++ visual, sub.editor 60144)
+60013 b=4:gosub377:u$="Line":if a then u$="Visual"
+' 11/10/2026: the menu printed here (60130), not read from s.m.params
+60014 gosub60130:poke53252,2:&"{white}  > {pound}i1":a=val(an$)
 60016 ifathengosub60018:goto60004
-60018 onagoto60028,60060,60034,60042,60024,60026,60082,60114,60027
+' 11/10/2026: 10, the editor: the line editor or ++ visual
+60018 onagoto60028,60060,60034,60042,60024,60026,60082,60114,60027,60029
 60020 c$="{left:4}"
 60022 &,69,31,19,str$(ll%)+"x"+mid$(str$(mp%),2),$8c:return
 60024 &,52,17,2:&,52,17,3:lf=a%:a=a%:b=1:goto378
 60026 &,52,20,2:&,52,20,3:em=a%:return
 60027 &,52,44,2:&,52,44,3:a=a%:b=3:goto378
 60028 &"{f6:2}":forx=1to9:b$=co$(x):a%=x:&"{pound}%a>-{pound}$b{f6}":next
+' 11/10/2026: option 10 flips uf$ position 4 (0 the line editor, 1 ++ visual)
+60029 b=4:gosub377:a=1-a:goto378
 60030 &"{f6}Computer Type?: {pound}g1{pound}v7{f6}":iftr%<1thenreturn
 60032 on-(val(an$)<1)goto60028:co%=val(an$):an$=co$(co%):co$=an$:&,9:return
 60034 lp=1:&"{f6}How Many Characters/Line?{f6:2}: {pound}i1"
@@ -39,9 +46,17 @@
 60050 lp=1:&"{f6}Must Be Between 1 and 255":goto60042
 60052 &,52,34,2:&,52,34,3:a=a%:b=2:goto378
 60054 return
-60056 on-(an$="AT")goto60060:c$=mid$(an$,3,1):a=abs(val(a$)):ifathen60062
-60058 ifc$="+"orc$="-"thena=a-(c$="+")+(c$="-"):goto60062
-60060 a$="s.m.modes":dr=1:gosub13:&"{white} > {pound}g1":a=val(an$)
+' 11/10/2026: ATn picks mode n (1-5); AT+ and AT- step from the current mode,
+' wrapping. a=abs(val(a$)) read a$, not the command, so AT+ always gave mode 1
+' (Commodore C/G), AT- mode 7's bits (ANSI C/G), and ATn showed the menu
+60056 on-(an$="AT")goto60060:c$=mid$(an$,3,1):a=abs(val(mid$(an$,3))):ifa>.anda<6then60062
+60058 ifc$<>"+"andc$<>"-"then60060
+' the current mode's menu number (1: bits 0-3, 2-5: bits 4-7), then one on or back
+60059 gosub60068:a=-(a<4)-(a>3)*(a-2)-(c$="+")+(c$="-"):a=a+5*(a>5)-5*(a<1):goto60062
+' 11/10/2026: the modes menu printed here (60137), not read from s.m.modes
+' 11/10/2026: z$, the current mode, for the menu (60068)
+' 11/10/2026: anything but 1-5 keeps the mode (Return set Commodore C/G)
+60060 gosub60068:gosub60137:&"{white} > {pound}g1":a=val(an$):ifa<1ora>5then60066
 60062 a=(a-2*(a>1))and7
 60064 &,52,16,sgn(aand4):&,52,18,sgn(aand2):&,52,19,aand1:nl=-(a=7ora<4)
 60066 gosub60068:&"{pound}$z{f6}":return:rem was just &
@@ -79,3 +94,16 @@
 60123 return
 60124 copr. 1996 new image 5/5/96
 60126 rem:"sub.param1 (c)nissa 210307 lh"
+' 11/10/2026: the Terminal Parameters menu, as s.m.params had it (that file
+' is gone), with 10: the editor. b$ z$ a% b% y$ x$ d$ w$ v$ u$ from 60004-60013
+60130 &"{clear}{f6}{white}Terminal Parameters{colon}{f6:2}"
+60131 &"{white} 1) {lt. blue}Computer Type      {white}{pound}$b{f6}{white} 2) {lt. blue}Translation        {white}{pound}$z{f6}"
+60132 &"{white} 3) {lt. blue}Line Length        {white}{pound}%a{f6}{white} 4) {lt. blue}Lines/Screen       {white}{pound}%b{f6}"
+60133 &"{white} 5) {lt. blue}Line Feeds         {white}{pound}$y{f6}{white} 6) {lt. blue}Expert Mode        {white}{pound}$x{f6}"
+60134 &"{white} 7) {lt. blue}U/D Protocol       {white}{pound}$d{f6}{white} 8) {lt. blue}{quotation}More{question}{quotation} Prompt     {white}{pound}$w{f6}"
+60135 &"{white} 9) {lt. blue}Cursor Menu Mode   {white}{pound}$v{f6}{white}10) {lt. blue}Editor             {white}{pound}$u{f6}"
+60136 &"{f6:2}Enter # to change or RETURN if OK{f6}":return
+' 11/10/2026: the Available Modes menu, as s.m.modes had it (that file is gone)
+60137 &"{clear}Available Modes{f6:2}{white}1){lt. blue} Commodore C/G{f6}{white}2){lt. blue} ASCII{f6}{white}3){lt. blue} ASCII & IBM Graphics{f6}"
+' 11/10/2026: the current mode (z$) under the list
+60138 &"{white}4){lt. blue} ASCII & ANSI Color{f6}{white}5){lt. blue} ANSI C/G{f6:2}{lt. blue}Current Mode{colon} {white}{pound}$z{f6:2}":return

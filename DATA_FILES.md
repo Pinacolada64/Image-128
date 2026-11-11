@@ -121,7 +121,6 @@ load's own status.
 | `s.m.info` | Personal Information | `sub.info` |
 | `s.timezones` | the time zones to choose from, each with its daylight saving time rule (format in PROGRAMMING.md) | `sub.info`, `sub.clocks` |
 | `s.dstrules` | the daylight saving time rules (format in PROGRAMMING.md) | `sub.clocks`; edited by `IM` DST Rules (`i/IM.dstrules`) |
-| `s.m.params`, `s.m.modes` | terminal parameters and modes | `sub.param1` |
 | `s.m.protos`, `s.protos` | transfer protocols | `sub.protos` |
 | `s.m.reledit` | SM's REL file editor | `i/SM.reledit` |
 | `s.logon info` | the Login Editor's help | `i/IM.logon` |
