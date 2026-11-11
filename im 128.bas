@@ -431,7 +431,8 @@
 3098 gosub 35:if e% then close 2:gosub 3240:goto 3097
 3100 x=1:gosub 1:&,2,2:bs$=a$:close 2
 3102 im=.:gosub 441:uh=a%
-3103 z2$=left$(z2$,22)+"  ("+mid$(str$(a%),2)+left$(" Users",6+(a%<>.))+")":gosub 3404
+' 11/10/2026: "User" only for 1: (a%<>.) made it "User" for any count but 0
+3103 z2$=left$(z2$,22)+"  ("+mid$(str$(a%),2)+left$(" Users",6+(a%=1))+")":gosub 3404
 3104 dr=3:gosub 3:z3$="Loading System Defaults...":gosub 3414:gosub 3404:d$=" Definitions: "
 3106 &"{f6}{lt. blue}Extended Command Set{pound}$d":a$=dr$+"e.ecs.main":&,42,4:gosub 3192
 3108 &"Print Mode{pound}$d":a$=dr$+"e.printmodes":&,7,dv%,7:gosub 3192
