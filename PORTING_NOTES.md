@@ -403,6 +403,58 @@ still reaches its label (a `$ff` offset is the giveaway).
   monitor, put a key in, and read the stack when it stops: the editor's
   `dec $d0` at `$c252` and the return addresses above it.
 
+## Xmodem-1K: a possibility for the 128 (11/10/2026)
+
+`++ xmodem` (`asm/xmodem.asm`, from the C64 release) already has 1K blocks,
+but no `s.m.protos` line asks for them (DATA_FILES.md, "Transfer
+protocols"), and on the C64 they don't fit. On the 128 they would.
+
+**What the overlay does.** Its flag byte, set with `&,16,4,f` from column 7
+of `s.m.protos`, has two bits: 1 relaxed timing, 2 1K blocks. With 2 set,
+`setup` makes `kflag` 1 and `blocksiz` 1024, `sendblk` starts each block
+with STX (`$02`) instead of SOH (`$01`), and `fillbuf` reads eight 128-byte
+pieces into `xbuf`. Receiving takes either: `recvblk0` sets `kflag` from
+each block's first byte, and `recvbuf`/`savebuf` handle eight pieces, so a
+1K sender already works with the ordinary Xmodem lines.
+
+**Why not on the C64.** `xbuf` is the overlay's last label: the 1024 bytes
+after its code. The release `++ xmodem` loads at `$c000` and ends at
+`$c686`, so `xbuf` would run to `$ca85`, past the protocol area's end
+(`$ca80`, `protoend`). Nothing offers 1K there, so it has likely never run.
+
+**Room on the 128.** The protocol area is `protostart` `$1c00` to
+`protoend` `$2bff`, with `protobuf` (`$2b00`-`$2bff`) the ML's block area:
+`$f00`, 3840 bytes, below it. The code is about 1670 bytes on the C64;
+with `xbuf`'s 1024 that's about 2700, leaving some 1100 to spare.
+
+**To do it:**
+
+1. Port `asm/xmodem.asm` (and `asm/punter.asm`: neither is built now, and
+   `i.UD` etc. stop where they load one; modules/TODO.md). It doesn't
+   assemble yet: `* = protostart` should be `orig protostart`, as
+   `copier.asm` and `visual.asm` have it, and `ascii {usedef:version}` has
+   no `{def}` (`punter.asm` writes `ascii version`). Then the C64 parts:
+   its transfer display writes the VIC screen and colours directly
+   (`pbuf0`-`pbuf3` at `$400`-`$658`, `pbuf1+$d400`), so in 80 columns it
+   needs the VDC (`&,72`, as `++ copier` shows its counter line); `$dd08`
+   (CIA 2's clock) is the same on the 128; the modem goes through file 131
+   (`mfile`), as everywhere.
+2. Add `xmodem` (and `punter`) to `asm/build.sh`'s `overlays`, and check
+   the built size: code and 1024 must end below `$2b00`.
+3. 1K wants CRC: the sender uses CRC or a checksum by what the receiver
+   first sends (`C` or NAK, `xsendcrc`), but 1K by the flag alone, so a
+   receiver asking for checksums would get 1K blocks with an 8-bit
+   checksum, which strict receivers reject. Fall back to 128-byte blocks
+   then (clear `kflag` in `xsendcrc` when NAK comes).
+4. Offer it: an `s.m.protos` line `xmodem21 Xmodem-1K` (and perhaps
+   `xmodem31 Relaxed Xmodem-1K`). The 128's `s.m.protos` comes from the
+   release's Disk 2 now (`build/s_files.d81`); a changed one would go in
+   `disk/` and `asm/build.sh`, as `e.lightbar` does, for setup to copy to
+   the System drive.
+5. Test both ways through tcpser: `sx -k` (lrzsz) sending 1K to the BBS,
+   and the BBS sending to `rx` or SyncTERM; 40 and 80 columns; a receiver
+   asking for checksums.
+
 ## Open problems
 
 ### A REL file can't grow on a nearly full 1581 (found 11/05/2026)
