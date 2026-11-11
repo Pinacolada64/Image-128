@@ -455,6 +455,105 @@ with `xbuf`'s 1024 that's about 2700, leaving some 1100 to spare.
    and the BBS sending to `rx` or SyncTERM; 40 and 80 columns; a receiver
    asking for checksums.
 
+## ZMODEM: a possibility for the 128 (11/10/2026)
+
+Not started: notes on whether `++ zmodem` would fit, and where. Port
+`++ xmodem` and `++ punter` first (above): ZMODEM needs the same overlay
+framework, modem handling and 80-column transfer display.
+
+### What ZMODEM asks, and what a BBS can leave out
+
+| ZMODEM has | Costs | A BBS can |
+|---|---|---|
+| Streaming: no ACK after each subpacket | keeping up with the modem while writing to disk | limit it: receiving, its `ZRINIT` gives a small buffer size, so the sender stops and waits for `ZACK` every so many bytes, and a slow drive sets the pace |
+| ZDLE escaping of control characters (XON/XOFF, DLE, CR after `@`...) | a test on every byte, both ways | no choice: needed |
+| CRC-32 | a 1K table, or slow bit-by-bit sums | leave it out: CRC-32 is optional. Receiving, don't offer `CANFC32`, and the sender uses CRC-16; sending, use CRC-16 headers. CRC-16 is a 512-byte table, or `++ xmodem`'s bit-by-bit sum |
+| Hex and binary headers; a file header with the name, size, date | parsing | needed (the name goes to `an$`, as Punter's multi-file transfers have it) |
+| Crash recovery: `ZRPOS` to an offset | seeking in the file (SEQ files can't) | leave it out: always `ZRPOS 0` |
+| Batches | | fits the overlays' multi-file entries (`++ punter`'s multiup/multidn) |
+
+The receiver must hold a whole subpacket (up to 1024 bytes; the sender
+picks the size) until its CRC checks: data written to a SEQ file can't be
+taken back. So a 1K buffer is needed whatever the CRC.
+
+A rough size for receive and send, CRC-16 only, no recovery: 2.5-3.5K of
+code. Novaterm had ZMODEM on the C64, as far as we know, so it has been
+done on 8-bit Commodores (not looked at).
+
+### Where the buffer and table can go
+
+The protocol area is `protostart` `$1c00` to `$2aff` (3840 bytes; `protobuf`
+`$2b00`-`$2bff` is the ML's), so code, a 1K buffer and a 1K CRC-32 table
+(about 5K) don't fit there together. Options, best first:
+
+1. **Bank 0 above the BASIC program.** BASIC 7 keeps variables and strings
+   in bank 1, so bank 0 holds only the program text, from `$4000` to
+   `txtend` (`$1210`, TEXT_TOP); `txtend` to `$bfff` is unused. During a
+   transfer the program is `im 128`, the module that started it and
+   `sub.param1` (im=4/5, `im` 514/515, loaded after it), and BASIC isn't
+   running, so the text doesn't change:
+
+   | Transfer from | `im 128` + module + `sub.param1` (11/10/2026 builds) | Free below `$c000` |
+   |---|---|---|
+   | `i.UD` | 15135 + 10497 + 3559 = 29191 | about 3.5K |
+   | `i.UX` | 15135 + 10202 + 3559 = 28896 | about 3.8K |
+   | `i.t` | 15135 + 7839 + 3559 = 26533 | about 6.2K |
+
+   Enough for the buffer and a contiguous 1K CRC-32 table even in the worst
+   case. Image's ML runs in `cfg_ml` (`$7e`), where `$4000`-`$bfff` is bank
+   1, so each access saves `mmucr`, sets `cfg_bank0` (`$3f`, bank 0 all
+   RAM, no I/O), does its `lda`/`sta (ptr),y` and puts `mmucr` back, as
+   the wedge's `scan0` reads the program text: some 10 cycles a byte. The
+   overlay at `$1c00` and zero page stay visible (the shared bottom 16K,
+   `rcr_shared`). The modem must be read with I/O in, `cfg_ml`; an
+   interrupt that comes in `cfg_bank0` goes through the KERNAL's RAM entry
+   in the shared top 16K, which sets its own configuration (check this
+   against `scan0`, which runs with interrupts on). The overlay reads
+   `txtend` when it starts, uses from there to `$bfff`, and falls back
+   (CRC-16 only, or the VDC) if less than 2K is free; the numbers above
+   change as modules grow.
+2. **VDC memory.** Image's IRQ doesn't touch the VDC (`vdcstat` copies the
+   status rows from the main line, in `getchr` and `trace`; see also the
+   handshake note in `vdc.asm`), so an overlay can use it without masking
+   interrupts, as long as it doesn't call `vdcstat` in the middle of one of
+   its own accesses. On the usual 16K VDC Image uses `$0000`-`$0fcf`
+   (screen, attributes), `$1000`-`$127f` and `$1800`-`$1a7f` (`vdcsave`,
+   the mask's rows), `$1400`-`$16cf` and `$1c00`-`$1ecf` (`vdcright`, the
+   status area's right half) and `$2000`-`$3fff` (the character set). That
+   leaves four 256-byte pages, `$13xx`, `$17xx`, `$1bxx`, `$1fxx` (worked
+   out from those sizes: check the code before relying on it), which hold a
+   CRC-32 table split into four byte planes, one per byte of the entries: a
+   lookup is R18 = the plane's page, R19 = the index, read R31, four times
+   a byte, some 150-200 cycles. At 19200 baud a byte comes every 1040
+   cycles at 2 MHz (80 columns) or 520 at 1 MHz (40 columns). No 1K buffer
+   fits on a 16K VDC (the biggest gap is about 384 bytes). A 64K VDC (the
+   128DCR, or upgraded) has `$4000`-`$ffff` free, room for both, the table
+   in one piece; `vdc.asm` has TADA's `vdc_detect_ram`, not called yet.
+3. **Not bank 1:** `$4000`-`vartop` (`$9000`) is BASIC's variables and
+   strings, `$9000`-`$bfff` the swapped-out modules; a buffer there would
+   mean lowering `vartop` for the transfer.
+4. Small gaps elsewhere, too small: `$199f`-`$19ff` (97 bytes), the rest of
+   the `&` jump table's page (about 360), `$3581`-`$35ff` (128).
+
+The CRC-32 table needn't be in the overlay at all: build it at the start
+(256 entries, 8 shift-and-xor steps of 32 bits each, some 40-80 ms) straight
+into wherever it goes, so `++ zmodem` carries a few dozen bytes of code
+instead of 1K of table, and the space after its code can be the subpacket
+buffer if nothing better is free.
+
+### A plan
+
+1. Port `++ xmodem` and `++ punter` (above), and their display in 80
+   columns.
+2. `++ zmodem` receive (callers' uploads), CRC-16, a small `ZRINIT` buffer
+   size, no recovery, the buffer above the program text.
+3. Send (downloads), CRC-16 headers.
+4. CRC-32, the table built into bank 0 or the VDC, if it's worth it.
+5. An `s.m.protos` line (`zmodem00 ZMODEM`; column 7 for its flags, e.g. a
+   window size), in `disk/` as for Xmodem-1K.
+6. Test through tcpser with lrzsz (`sz`/`rz`) and SyncTERM, at 2400 to
+   19200 baud, on a 1581, a CMD HD and a 1541, in 40 and 80 columns.
+
 ## Open problems
 
 ### A REL file can't grow on a nearly full 1581 (found 11/05/2026)
