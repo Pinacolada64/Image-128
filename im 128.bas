@@ -55,7 +55,7 @@
 29 ml$="++ "+a$:cm$=ml$:gosub 9:a$=dr$+ml$:&,7,dv%,2:goto 5
 30 dr=3:a$="e.stats":goto 4
 31 dr=3:a$="e.access":goto 4
-32 dr=2:a$="m."+left$(tt$,13)+",s,"+a$:goto 4
+32 dr=2:a$="m."+left$(tt$,14)+",s,"+a$:goto 4
 33 dr=3:a$="e.data":goto 4
 34 e%=a%:&,52,46,3:am=a%:a%=e%:dr=3:a$="e.log"+left$(lt$,am)+",s,"+a$:goto 4
 35 dr=6:a$="u.config":goto 4

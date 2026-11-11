@@ -184,9 +184,19 @@ application form) aren't opened by name by any module.
 | `u.weedinfo` | User | Autoweed's information |
 | `u.payroll` | User | the credits paid out (`IM` Payroll Editor) |
 | `d.` _library_ | Directory | a General Files library (`d.GF` ...) |
+| `m.` _handle_ | E-Mail | a user's mail (`im 128` line 32) |
 | `f.` _handle_ | E-Mail | mail for a user, shown at login (`i/lo-fmail`) |
 | `nm.log` _n_ | E-Mail | the network log, one for each day of the week |
 | `nm.P.count` | E-Mail | the dates, times and tracking numbers of network sub-board messages sent from this BBS |
+
+`m.` and `f.` files are named with the first 14 characters of the handle (a
+16-character file name, the most a file name can have). Image 3.0's release
+kept 13 in most modules but `i/lo.on` looked for 14, so a handle of 14 or more
+characters could lose its mail; every module keeps 14 since 11/10/2026.
+Moving a 3.0 system's files over: for each such user, rename the files named
+with 13 characters of the handle before the BBS first runs, e.g. for `THE
+GREAT GATSBY`, the DOS command `r0:m.THE GREAT GATS=m.THE GREAT GAT` (and the
+same for an `f.` file) on the E-Mail drive. Shorter handles aren't affected.
 
 ## Today in History: `today.` _Mon_ and `s.today/hist`
 

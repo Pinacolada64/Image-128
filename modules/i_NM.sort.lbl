@@ -72,7 +72,10 @@
 4848 on-(st=0)goto4846:close2
 4850 a$=o$+",s,w":gosub4:ife%thena$=o$+",s,a":gosub4:ife%thenclose2:return
 4852 print#2,c$:close2:return
-4854 f$="m."+left$(sy$,13):m$="Net File Package from "+right$(o$,3)
+' 11/10/2026: mail (m.) and waiting-mail (f.) file names keep 14 characters of the
+' handle (a 16-character file name), as im line 32 and i/lo.on 4178 do; some
+' modules kept 13, so a 14+ character handle's mail went to another file
+4854 f$="m."+left$(sy$,14):m$="Net File Package from "+right$(o$,3)
 4856 dr=2:a$=f$+",s,w":gosub4:f%=e%:ife%thena$=f$+",s,a":gosub4
 4858 print#2,"NetMail"r$" 0"r$d1$r$"["m$"]"r$"{^}":close2
 4860 gosub30:i=1

@@ -9,7 +9,10 @@
 
 4500 rem "+.on.fm"  08-03-90  4:45pm
 4502 cm$="Force Mail":gosub9
-4504 a$="f."+left$(na$,13)+",s,r":dr=2:gosub4:one%goto4560
+' 11/10/2026: mail (m.) and waiting-mail (f.) file names keep 14 characters of the
+' handle (a 16-character file name), as im line 32 and i/lo.on 4178 do; some
+' modules kept 13, so a 14+ character handle's mail went to another file
+4504 a$="f."+left$(na$,14)+",s,r":dr=2:gosub4:one%goto4560
 4506 f4=.:&"{f6}":&,2,2:c$=b$:b$=a$:ifa$="{^}"orst<>.then4514
 4508 fl=-(a$="ERASE"ora$="KILL"ora$="OFF"):onflgoto4506
 4510 fl=-(left$(a$,1)="!"orleft$(a$,1)="{back arrow}"orleft$(a$,1)="@"):onflgoto4506
@@ -25,7 +28,7 @@
 4530 a$="@":ifleft$(c$,1)=a$thennn$=mid$(c$,2):gosub4562
 4532 goto4560
 4534 ifmid$(d1$,2,6)<mid$(b$,2,6)then4538
-4536 dr=2:gosub3:print#15,"s"dr$"f."left$(na$,13):gosub62:goto4560
+4536 dr=2:gosub3:print#15,"s"dr$"f."left$(na$,14):gosub62:goto4560
 4538 an$=b$:&,15:b$=mid$(an$,1,12):&"{f6:2}{lt. blue}Sorry, Your Account Is Suspended"
 4540 &" Until{f6}{pound}$b...{f6}":a$=" Account Suspended!":gosub50:goto4554
 4542 &,52,4,3:on-(a%=1orid=1)goto4560:an$=na$:tt$=an$
@@ -33,14 +36,14 @@
 4544 gosub35:a$="":fori=1to23:a$=a$+tt$(i)+r$:next:x=id:gosub1:print#2,a$:close2
 4546 ifx<l1thenl1=x:x=31:gosub33:gosub1:print#2,l1:close2
 4548 a$="r":gosub32:close2:ife%=.thengosub4560:close2:i=-1:x=25:gosub16:close2
-4550 dr=2:d$=left$(tt$,13):a$="f."+d$:gosub19:a$="m."+d$:gosub19:gosub62
+4550 dr=2:d$=left$(tt$,14):a$="f."+d$:gosub19:a$="m."+d$:gosub19:gosub62
 4552 a$=" User Terminated!":gosub50
 4554 c$=right$(d1$,4):a=val(c$):ifa>8e3thena=a-8e3
 4556 c$=str$(a):c$=left$(c$,len(c$)-2)+":"+right$(c$,2)+r$
 4558 a$=" {yellow}Off------------:"+c$+left$(ak$,25):gosub50:ac%=16:f4=1:tr%=.
 4560 close2:return
-4562 an$=na$:gosub4580:dr=2:gosub3:print#15,"r"dr$"f."left$(nn$,13)"="dr$"f."left$(na$,13)
-4564 print#15,"r"dr$"m."left$(nn$,13)"="dr$"m."left$(na$,13):an$=nn$
+4562 an$=na$:gosub4580:dr=2:gosub3:print#15,"r"dr$"f."left$(nn$,14)"="dr$"f."left$(na$,14)
+4564 print#15,"r"dr$"m."left$(nn$,14)"="dr$"m."left$(na$,14):an$=nn$
 4565 im=8:gosub445:na$=nn$
 4566 dr=5:a=1:gosub375:gosub4576:print"{white}{home}{down}"spc(6)" "na$" "
 4568 b$="{left:4}":ch$=co$:an$=d5$:&,15:printspc(6)an$:printspc(6)rn$
