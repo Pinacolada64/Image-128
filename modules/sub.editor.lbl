@@ -67,7 +67,10 @@
 60094 poke{sym:mci},0:b%=kk-1:&"{f6}{pound}%b Lines Used.{f6}":ifkk=1thena=0:goto60092
 60096 b%=kk:goto60016
 60098 poke{sym:mci},0:dr=1:a$="s.menu 3":gosub13:goto60088
-60100 x=a:b=4:gosub377:onagoto60145:a=x
+' 11/10/2026: ++ visual for Commodore and ANSI callers; ASCII ones (flag 16,
+' ASCII, without 18, ANSI: sub.param1's modes 2 and 3) get the line editor.
+' c: the ASCII flag; y keeps a%
+60100 x=a:b=4:gosub377:y=a%:&,52,16,3:c=a%:&,52,18,3:a=a*(1-c*(1-a%)):a%=y:onagoto60145:a=x
 60101 &,54,a:a=peek({sym:sxreg}):an$=chr$(peek({sym:sareg})and127):on-(a=4)goto60144:goto60092
 60102 b%=kk-1:on-(an$="u")goto60112:ifan$="q"then60070
 ' 11/09/2026: the commands only for zz (the sysop's editing commands: Get, Put,

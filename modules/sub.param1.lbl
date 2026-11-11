@@ -11,99 +11,114 @@
 {include:..\quoters.lbl}
 {include:"..\asm\equates.asm"}
 
-60000 onimgoto60004,60056,60114,60094,60096:rem sub.param1
+' 11/10/2026: each sub-function starts on a hundred:
+'   60000 im dispatch: im=1 60100, 2 60400, 3 61300, 4 and 5 61100
+'   60100 the Terminal Parameters menu loop (options 1-10)  60200 its text
+'   60300 1 computer type  60400 2 translation (AT, AT+, AT-, ATn)
+'   60500 the mode's name (z$)  60600 3 line length  60700 4 lines/screen
+'   60800 5 line feeds  60900 6 expert mode  61000 7 choose a protocol
+'   61100 run a protocol  61200 read s.m.protos  61300 8 More prompt
+'   61400 the More prompt's state (w$)  61500 9 cursor menus
+'   61600 10 the editor  61700 On/Off (an$)
+
+60000 onimgoto60100,60400,61300,61100,61102:rem sub.param1
 60002 return
-60004 b$=co$(co%):&,52,17,lf:&,52,20,em:poke{sym:modclmn},ll%:poke{sym:usrlin},mp%:poke{sym:ptrlinm},.
-60006 gosub60068:&,52,17,3:a=a%:gosub60046:y$=an$:a%=em:gosub60046:x$=an$
-60008 gosub60120:gosub60104:d$=a$
+60100 b$=co$(co%):&,52,17,lf:&,52,20,em:poke{sym:modclmn},ll%:poke{sym:usrlin},mp%:poke{sym:ptrlinm},.
+60102 gosub60500:&,52,17,3:a=a%:gosub61700:y$=an$:a%=em:gosub61700:x$=an$
+60104 gosub61400:gosub61200:d$=a$
 ' 11/09/2026: uf$'s flags through im 377 (read) and 378 (set)
-60012 b=3:gosub377:a%=a:gosub60046:v$=an$:a%=ll%:b%=mp%:t$=mid$(uf$,6,3)
+60106 b=3:gosub377:a%=a:gosub61700:v$=an$:a%=ll%:b%=mp%:t$=mid$(uf$,6,3)
 ' 11/10/2026: u$, option 10's editor (uf$ position 4: 1 ++ visual, sub.editor 60144)
-60013 b=4:gosub377:u$="Line":if a then u$="Visual"
-' 11/10/2026: the menu printed here (60130), not read from s.m.params
-60014 gosub60130:poke53252,2:&"{white}  > {pound}i1":a=val(an$)
-60016 ifathengosub60018:goto60004
+' 11/10/2026: an ASCII caller (c 1, 61602) is shown Line: sub.editor 60100 gives them the line editor
+60108 b=4:gosub377:y=a%:gosub61602:a%=y:u$="Line":if a*(1-c) then u$="Visual"
+' 11/10/2026: the menu printed here (60200), not read from s.m.params
+60110 gosub60200:poke53252,2:&"{white}  > {pound}i1":a=val(an$)
+60112 ifathengosub60114:goto60100
 ' 11/10/2026: 10, the editor: the line editor or ++ visual
-60018 onagoto60028,60060,60034,60042,60024,60026,60082,60114,60027,60029
-60020 c$="{left:4}"
-60022 &,69,31,19,str$(ll%)+"x"+mid$(str$(mp%),2),$8c:return
-60024 &,52,17,2:&,52,17,3:lf=a%:a=a%:b=1:goto378
-60026 &,52,20,2:&,52,20,3:em=a%:return
-60027 &,52,44,2:&,52,44,3:a=a%:b=3:goto378
-60028 &"{f6:2}":forx=1to9:b$=co$(x):a%=x:&"{pound}%a>-{pound}$b{f6}":next
-' 11/10/2026: option 10 flips uf$ position 4 (0 the line editor, 1 ++ visual)
-60029 b=4:gosub377:a=1-a:goto378
-60030 &"{f6}Computer Type?: {pound}g1{pound}v7{f6}":iftr%<1thenreturn
-60032 on-(val(an$)<1)goto60028:co%=val(an$):an$=co$(co%):co$=an$:&,9:return
-60034 lp=1:&"{f6}How Many Characters/Line?{f6:2}: {pound}i1"
-60036 x=int(val(an$)):iftr%<1thenreturn
-60038 ifx<22orx>80then:&"{f6}Must Be Between 22 And 80.{f6}":goto60034
-60040 ll%=x:a$="":fora=1toll%-2:a$=a$+"{$c0}":next:ak$=" "+a$+"{f6}":return
-60042 poke53252,3:lp=1:&"{f6}How Many Lines/Screen?{f6:2}: {pound}i1"
-60044 mp%=abs(val(an$)):on-(mp%<1ormp%>255)goto60050:poke{sym:usrlin},mp%:return
-60046 an$="Off":ifa%thenan$="On"
-60048 return
-60050 lp=1:&"{f6}Must Be Between 1 and 255":goto60042
-60052 &,52,34,2:&,52,34,3:a=a%:b=2:goto378
-60054 return
+60114 onagoto60300,60406,60600,60700,60800,60900,61000,61300,61500,61600
+60116 c$="{left:4}"
+60118 &,69,31,19,str$(ll%)+"x"+mid$(str$(mp%),2),$8c:return
+' 11/10/2026: the Terminal Parameters menu, as s.m.params had it (that file
+' is gone), with 10: the editor. b$ z$ a% b% y$ x$ d$ w$ v$ u$ from 60100-60108
+60200 &"{clear}{f6}{white}Terminal Parameters{colon}{f6:2}"
+60202 &"{white} 1) {lt. blue}Computer Type      {white}{pound}$b{f6}{white} 2) {lt. blue}Translation        {white}{pound}$z{f6}"
+60204 &"{white} 3) {lt. blue}Line Length        {white}{pound}%a{f6}{white} 4) {lt. blue}Lines/Screen       {white}{pound}%b{f6}"
+60206 &"{white} 5) {lt. blue}Line Feeds         {white}{pound}$y{f6}{white} 6) {lt. blue}Expert Mode        {white}{pound}$x{f6}"
+60208 &"{white} 7) {lt. blue}U/D Protocol       {white}{pound}$d{f6}{white} 8) {lt. blue}{quotation}More{question}{quotation} Prompt     {white}{pound}$w{f6}"
+60210 &"{white} 9) {lt. blue}Cursor Menu Mode   {white}{pound}$v{f6}{white}10) {lt. blue}Editor             {white}{pound}$u{f6}"
+60212 &"{f6:2}Enter # to change or RETURN if OK{f6}":return
+60300 &"{f6:2}":forx=1to9:b$=co$(x):a%=x:&"{pound}%a>-{pound}$b{f6}":next
+60302 &"{f6}Computer Type?: {pound}g1{pound}v7{f6}":iftr%<1thenreturn
+60304 on-(val(an$)<1)goto60300:co%=val(an$):an$=co$(co%):co$=an$:&,9:return
 ' 11/10/2026: ATn picks mode n (1-5); AT+ and AT- step from the current mode,
 ' wrapping. a=abs(val(a$)) read a$, not the command, so AT+ always gave mode 1
 ' (Commodore C/G), AT- mode 7's bits (ANSI C/G), and ATn showed the menu
-60056 on-(an$="AT")goto60060:c$=mid$(an$,3,1):a=abs(val(mid$(an$,3))):ifa>.anda<6then60062
-60058 ifc$<>"+"andc$<>"-"then60060
+60400 on-(an$="AT")goto60406:c$=mid$(an$,3,1):a=abs(val(mid$(an$,3))):ifa>.anda<6then60408
+60402 ifc$<>"+"andc$<>"-"then60406
 ' the current mode's menu number (1: bits 0-3, 2-5: bits 4-7), then one on or back
-60059 gosub60068:a=-(a<4)-(a>3)*(a-2)-(c$="+")+(c$="-"):a=a+5*(a>5)-5*(a<1):goto60062
-' 11/10/2026: the modes menu printed here (60137), not read from s.m.modes
-' 11/10/2026: z$, the current mode, for the menu (60068)
+60404 gosub60500:a=-(a<4)-(a>3)*(a-2)-(c$="+")+(c$="-"):a=a+5*(a>5)-5*(a<1):goto60408
+' 11/10/2026: the modes menu printed here (60414), not read from s.m.modes
+' 11/10/2026: z$, the current mode, for the menu (60500)
 ' 11/10/2026: anything but 1-5 keeps the mode (Return set Commodore C/G)
-60060 gosub60068:gosub60137:&"{white} > {pound}g1":a=val(an$):ifa<1ora>5then60066
-60062 a=(a-2*(a>1))and7
-60064 &,52,16,sgn(aand4):&,52,18,sgn(aand2):&,52,19,aand1:nl=-(a=7ora<4)
-60066 gosub60068:&"{pound}$z{f6}":return:rem was just &
-60068 &,52,16,3:a=a%*4:&,52,18,3:a=a+a%*2:&,52,19,3:a=a+a%
-60070 lp=1:ifa>3thenona-3goto60074,60076,60078,60080
-60072 z$="CBM C/G":return
-60074 z$="ASCII":return
-60076 z$="ASCII & IBM Graphics":return
-60078 z$="ASCII & ANSI Color":return
-60080 z$="ANSI C/G":return
-60082 gosub60106:onx+1goto999:a=val(mid$(an$,3,3)):ifa>.then60088
-60084 &"{f6}Available Protocols:{f6:2}":fori=1tox:a%=i:a$=mid$(tt$(i),10)
-60086 lp=1:&"{pound}%a) {pound}$a{pound}{back arrow}39 ":next:&"{f6:2}--> {pound}g1":a=val(an$)
-60088 ifa>.anda<=xthenlp=1:&mid$(tt$(a),10):ifa<xorb%=.thenul=a-1
-60090 ifan$="{f2}"thena$="s.protos":dr=1:gosub13:goto60084
-60092 a=-a*(a>.):return
-60094 &,52,4,3:ona%goto999:gosub60082:goto60098
-60096 gosub60106:a=ul+1:ifa%thena=x
-60098 ml$="":ona+1goto999:ifb%=1anda=xthena$="copier":goto28
-60100 a$=tt$(a):f=val(mid$(a$,7,1)):nb=val(mid$(a$,8,1)):d4$=mid$(a$,10):pr=-1
-60102 dr=5:gosub3:a$=left$(a$,6):gosub28:&,16,4,f:return
-60104 gosub60106:a$=mid$(tt$(ul+1),10):&,11:return
-60106 &,11:b%=.:dr=1:a$="s.m.protos,s,r":gosub4:x=.:ife%then:&:return
-60108 &,2,2:ifa$<>"{^}"andx<253thenx=x+1:tt$(x)=a$:ifst=.then60108
-60110 &,52,4,3:ifzz=1ora%=1thenx=x+1:tt$(x)="copier00 Copier":b%=1:pr=2
-60111 d4$=right$(tt$(x),6)
-60112 close2:return
-60114 &"{clear}{f6}More Prompt Options:{f6:2}{white} 1 {lt. blue}Off{f6}{white} 2 {lt. blue}On{f6}{white} 3 {lt. blue}Messages Only{f6:2}{white}  > {pound}g1"
-60116 a=val(an$):ifa>.anda<4thena=a-1:b=2:gosub378
-60118 gosub60120:&,52,35,3:ifa%=.then:&"{pound}$w{f6}"
-60119 return
-60120 b=2:gosub377:w$="Off":ifathenw$="On":ifa>1thenw$="Messages Only"
-60121 &,52,35,3:ifa%=1then:&" Sorry, More Prompt Disabled{f6}":&,52,34,.:goto60123
-60122 ifa<>2then:&,52,34,a
-60123 return
-60124 copr. 1996 new image 5/5/96
-60126 rem:"sub.param1 (c)nissa 210307 lh"
-' 11/10/2026: the Terminal Parameters menu, as s.m.params had it (that file
-' is gone), with 10: the editor. b$ z$ a% b% y$ x$ d$ w$ v$ u$ from 60004-60013
-60130 &"{clear}{f6}{white}Terminal Parameters{colon}{f6:2}"
-60131 &"{white} 1) {lt. blue}Computer Type      {white}{pound}$b{f6}{white} 2) {lt. blue}Translation        {white}{pound}$z{f6}"
-60132 &"{white} 3) {lt. blue}Line Length        {white}{pound}%a{f6}{white} 4) {lt. blue}Lines/Screen       {white}{pound}%b{f6}"
-60133 &"{white} 5) {lt. blue}Line Feeds         {white}{pound}$y{f6}{white} 6) {lt. blue}Expert Mode        {white}{pound}$x{f6}"
-60134 &"{white} 7) {lt. blue}U/D Protocol       {white}{pound}$d{f6}{white} 8) {lt. blue}{quotation}More{question}{quotation} Prompt     {white}{pound}$w{f6}"
-60135 &"{white} 9) {lt. blue}Cursor Menu Mode   {white}{pound}$v{f6}{white}10) {lt. blue}Editor             {white}{pound}$u{f6}"
-60136 &"{f6:2}Enter # to change or RETURN if OK{f6}":return
+60406 gosub60500:gosub60414:&"{white} > {pound}g1":a=val(an$):ifa<1ora>5then60412
+60408 a=(a-2*(a>1))and7
+60410 &,52,16,sgn(aand4):&,52,18,sgn(aand2):&,52,19,aand1:nl=-(a=7ora<4)
+60412 gosub60500:&"{pound}$z{f6}":return:rem was just &
 ' 11/10/2026: the Available Modes menu, as s.m.modes had it (that file is gone)
-60137 &"{clear}Available Modes{f6:2}{white}1){lt. blue} Commodore C/G{f6}{white}2){lt. blue} ASCII{f6}{white}3){lt. blue} ASCII & IBM Graphics{f6}"
+60414 &"{clear}Available Modes{f6:2}{white}1){lt. blue} Commodore C/G{f6}{white}2){lt. blue} ASCII{f6}{white}3){lt. blue} ASCII & IBM Graphics{f6}"
 ' 11/10/2026: the current mode (z$) under the list
-60138 &"{white}4){lt. blue} ASCII & ANSI Color{f6}{white}5){lt. blue} ANSI C/G{f6:2}{lt. blue}Current Mode{colon} {white}{pound}$z{f6:2}":return
+60416 &"{white}4){lt. blue} ASCII & ANSI Color{f6}{white}5){lt. blue} ANSI C/G{f6:2}{lt. blue}Current Mode{colon} {white}{pound}$z{f6:2}":return
+60500 &,52,16,3:a=a%*4:&,52,18,3:a=a+a%*2:&,52,19,3:a=a+a%
+60502 lp=1:ifa>3thenona-3goto60506,60508,60510,60512
+60504 z$="CBM C/G":return
+60506 z$="ASCII":return
+60508 z$="ASCII & IBM Graphics":return
+60510 z$="ASCII & ANSI Color":return
+60512 z$="ANSI C/G":return
+60600 lp=1:&"{f6}How Many Characters/Line?{f6:2}: {pound}i1"
+60602 x=int(val(an$)):iftr%<1thenreturn
+60604 ifx<22orx>80then:&"{f6}Must Be Between 22 And 80.{f6}":goto60600
+60606 ll%=x:a$="":fora=1toll%-2:a$=a$+"{$c0}":next:ak$=" "+a$+"{f6}":return
+60700 poke53252,3:lp=1:&"{f6}How Many Lines/Screen?{f6:2}: {pound}i1"
+60702 mp%=abs(val(an$)):on-(mp%<1ormp%>255)goto60704:poke{sym:usrlin},mp%:return
+60704 lp=1:&"{f6}Must Be Between 1 and 255":goto60700
+60800 &,52,17,2:&,52,17,3:lf=a%:a=a%:b=1:goto378
+60900 &,52,20,2:&,52,20,3:em=a%:return
+61000 gosub61202:onx+1goto999:a=val(mid$(an$,3,3)):ifa>.then61006
+61002 &"{f6}Available Protocols:{f6:2}":fori=1tox:a%=i:a$=mid$(tt$(i),10)
+61004 lp=1:&"{pound}%a) {pound}$a{pound}{back arrow}39 ":next:&"{f6:2}--> {pound}g1":a=val(an$)
+61006 ifa>.anda<=xthenlp=1:&mid$(tt$(a),10):ifa<xorb%=.thenul=a-1
+61008 ifan$="{f2}"thena$="s.protos":dr=1:gosub13:goto61002
+61010 a=-a*(a>.):return
+61100 &,52,4,3:ona%goto999:gosub61000:goto61104
+61102 gosub61202:a=ul+1:ifa%thena=x
+61104 ml$="":ona+1goto999:ifb%=1anda=xthena$="copier":goto28
+61106 a$=tt$(a):f=val(mid$(a$,7,1)):nb=val(mid$(a$,8,1)):d4$=mid$(a$,10):pr=-1
+61108 dr=5:gosub3:a$=left$(a$,6):gosub28:&,16,4,f:return
+61200 gosub61202:a$=mid$(tt$(ul+1),10):&,11:return
+61202 &,11:b%=.:dr=1:a$="s.m.protos,s,r":gosub4:x=.:ife%then:&:return
+61204 &,2,2:ifa$<>"{^}"andx<253thenx=x+1:tt$(x)=a$:ifst=.then61204
+61206 &,52,4,3:ifzz=1ora%=1thenx=x+1:tt$(x)="copier00 Copier":b%=1:pr=2
+61208 d4$=right$(tt$(x),6)
+61210 close2:return
+61300 &"{clear}{f6}More Prompt Options:{f6:2}{white} 1 {lt. blue}Off{f6}{white} 2 {lt. blue}On{f6}{white} 3 {lt. blue}Messages Only{f6:2}{white}  > {pound}g1"
+61302 a=val(an$):ifa>.anda<4thena=a-1:b=2:gosub378
+61304 gosub61400:&,52,35,3:ifa%=.then:&"{pound}$w{f6}"
+61306 return
+61308 &,52,34,2:&,52,34,3:a=a%:b=2:goto378
+61310 return
+61400 b=2:gosub377:w$="Off":ifathenw$="On":ifa>1thenw$="Messages Only"
+61402 &,52,35,3:ifa%=1then:&" Sorry, More Prompt Disabled{f6}":&,52,34,.:goto61406
+61404 ifa<>2then:&,52,34,a
+61406 return
+61500 &,52,44,2:&,52,44,3:a=a%:b=3:goto378
+' 11/10/2026: option 10 flips uf$ position 4 (0 the line editor, 1 ++ visual); not for an ASCII caller (61602, 61604)
+61600 gosub61602:onc goto61604:b=4:gosub377:a=1-a:goto378
+' 11/10/2026: c 1 for an ASCII caller (flag 16 on, 18, ANSI, off): only the line
+' editor (sub.editor 60100), so option 10 doesn't change it (61604)
+61602 &,52,16,3:c=a%:&,52,18,3:c=c*(1-a%):return
+61604 &"{f6}You may only use the line-based editor.{f6}{pound}w2":return
+61700 an$="Off":ifa%thenan$="On"
+61702 return
+61998 copr. 1996 new image 5/5/96
+61999 rem:"sub.param1 (c)nissa 210307 lh"
