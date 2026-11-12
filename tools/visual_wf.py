@@ -22,6 +22,14 @@ copy as "++ visual" first, and afterwards the overlay's memory is compared
 with the file (what differs: its own variables, or something written over
 it), and the registers and the stack are shown.
 
+With --catch-brk, WF goes in through a monitor connection that stays open
+with a breakpoint on where the BRK vector ($0316) points (the 128's monitor,
+whose "break" and registers come out garbled through Image's output). If a
+BRK comes within --wait seconds (60), it shows where: the 128's interrupt
+entry pushes the MMU setting, Y, X and A on the BRK's status and return
+address (the BRK + 2), so the stack names the BRK, and the code before it
+is disassembled.
+
 The x128's monitor is on --port (6538; not a running test's: see
 tools/vmon.py). --keep leaves it running at the end, to look further
 with the monitor; otherwise it quits.
@@ -48,6 +56,52 @@ def sym(name):
     sys.exit('visual_wf.py: no %s in asm/ml.sym: run asm/build.sh' % name)
 
 
+def catch_brk(v, wait):
+    """type WF with a breakpoint on the BRK vector's target, staying
+    connected (a break with no client opens VICE's own monitor window)"""
+    import socket
+    vec = v.mem('ram00', 0x0316, 2)
+    target = vec[0] | vec[1] << 8
+    print('BRK vector ($0316): $%04x' % target, flush=True)
+    s = socket.create_connection(('127.0.0.1', v.port), timeout=5)
+    s.settimeout(0.05)
+    X128._until_prompt(s, b'', 3)
+    keys = 'WF\r'
+    cmds = ['bank ram', 'f 034a 0353 00'] + ['> %04x %02x' % (0x34a + i, ord(c)) for i, c in enumerate(keys)] + \
+           ['> 00d0 %02x' % len(keys), 'break exec %04x' % target]
+    for c in cmds:
+        s.sendall(c.encode() + b'\n')
+        X128._until_prompt(s, b'', 3)
+    s.sendall(b'x\n')
+    out = X128._until_prompt(s, b'', wait).decode('latin-1')
+    if ('%04x' % target) not in out.lower():
+        print('no BRK in %d seconds' % wait, flush=True)
+        s.sendall(b'del\n'); X128._until_prompt(s, b'', 3)
+        s.sendall(b'x\n'); s.close()
+        return
+    print('*** BRK caught ***', flush=True)
+    def ask(c, limit=5):
+        s.sendall(c.encode() + b'\n')
+        return X128._until_prompt(s, b'', limit).decode('latin-1')
+    regs = ask('r')
+    print(regs[-300:])
+    m = re.search(r'\.;[0-9a-f]{4} [0-9a-f]{2} [0-9a-f]{2} [0-9a-f]{2} ([0-9a-f]{2})', regs)
+    sp = int(m.group(1), 16) if m else 0xff
+    st = ask('bank ram', 3) and ask('m %04x %04x' % (0x100 + sp + 1, 0x100 + sp + 16))
+    print(st)
+    b = re.findall(r'>C:[0-9a-f]{4}\s+((?:[0-9a-f]{2}\s+)+)', st)
+    by = [int(x, 16) for line in b for x in line.split()][:16]
+    if len(by) >= 7:
+        mmu, ry, rx, ra, rp, pcl, pch = by[:7]
+        brk = (pcl | pch << 8) - 2
+        print('MMU $%02x  A $%02x X $%02x Y $%02x  P $%02x  BRK at $%04x' % (mmu, ra, rx, ry, rp, brk))
+        print('return addresses further up the stack (lo, hi pairs):',
+              ' '.join('%02x%02x' % (by[i + 1], by[i]) for i in range(7, len(by) - 1, 2)))
+        print(ask('bank ram', 3) and ask('d %04x %04x' % (max(brk - 24, 0), brk + 6)))
+    ask('del')
+    s.close()
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
     ap.add_argument('disk', nargs='?', default=os.path.join(repo, 'build', 'visual-test.d81'))
@@ -56,6 +110,8 @@ def main():
     ap.add_argument('--zone', default='4')
     ap.add_argument('--port', type=int, default=6538)
     ap.add_argument('--keep', action='store_true')
+    ap.add_argument('--catch-brk', action='store_true')
+    ap.add_argument('--wait', type=int, default=60)
     args = ap.parse_args()
     disk = os.path.join(repo, 'build', 'visual-wf.d81')
     shutil.copy(args.disk, disk)
@@ -93,13 +149,29 @@ def main():
         return v.screen(25).upper()
 
     try:
-        if not until(lambda: 4200 <= line() < 4300, 400, 'the idle screen'):
+        # x128's autostart sometimes stops at READY. with a stray line
+        # typed: start the boot by hand then
+        def booted():
+            if 4200 <= line() < 4300:
+                return True
+            scr = v.screen(25).lower()
+            if 'ready.' in scr and 'image bbs' not in scr and not booted.retried:
+                booted.retried = True
+                print('autostart stopped at READY.: RUN"BOOT 128" by hand', flush=True)
+                v.type('\rRUN"BOOT 128",8\r')
+            return False
+        booted.retried = False
+        if not until(booted, 400, 'the idle screen'):
             return 1
         b = v.mem('ram00', CHKTBL, 1)[0]
         v.cmd('bank ram', '> %04x %02x' % (CHKTBL, b | 0x10), '> %04x 01' % (irq7 + 1))
-        time.sleep(1)
-        v.type('I')
-        until(lambda: 'MAIN' in screen() or 'PASSWORD' in screen(), 200, 'the password or main prompt')
+        # I once the prompt is up (typed before it, it's lost), again if need be
+        until(lambda: 'INSTANT LOGIN:' in screen(), 120, 'the Instant Login prompt')
+        for _ in range(3):
+            time.sleep(2)
+            v.type('I')
+            if until(lambda: 'MAIN' in screen() or 'PASSWORD' in screen(), 40, 'the password or main prompt'):
+                break
         show('Instant Login', 12)
         # the logon's questions, until the main prompt
         t0, seen = time.time(), None
@@ -108,17 +180,19 @@ def main():
             scr = v.screen(25)
             rows = [r for r in scr.split('\n')[:16] if r.strip()]
             last = rows[-1].strip().upper() if rows else ''
+            # the question can be on the row above its input (": ")
+            last2 = ' '.join(r.strip().upper() for r in rows[-2:])
             if 'MAIN:' in last:
                 break
-            if last == seen:
+            if last2 == seen:
                 continue
-            seen = last
-            print('logon:', last, flush=True)
-            if 'PASSWORD' in last:
+            seen = last2
+            print('logon:', last2, flush=True)
+            if 'PASSWORD' in last2:
                 v.type(args.password + '\r')
             elif 'HIT ANY KEY' in last or 'MORE' in last:
                 v.type(' ')
-            elif 'LINES' in last:
+            elif 'LINES' in last2:
                 v.type('23\r')
             elif 'ZONE' in scr.upper() or 'PACIFIC' in scr.upper():
                 v.type(args.zone + '\r')
@@ -147,8 +221,11 @@ def main():
         v.type('\r'); time.sleep(8)
         until(lambda: 'MAIN:' in screen(), 60, 'the main prompt again')
         show('Editor: Visual', 16)
-        v.type('WF\r')
-        time.sleep(25)
+        if args.catch_brk:
+            catch_brk(v, args.wait)
+        else:
+            v.type('WF\r')
+            time.sleep(25)
         show('after WF')
         if args.overlay:
             prg = open(args.overlay, 'rb').read()
