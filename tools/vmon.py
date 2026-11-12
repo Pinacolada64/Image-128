@@ -101,8 +101,15 @@ class X128:
         return '\n'.join(out)
 
     def type(self, text):
-        """poke text (PETSCII bytes) into the keyboard buffer, 10 at a time"""
+        """poke text (PETSCII bytes) into the keyboard buffer, 10 at a time.
+        11/11/2026: each chunk only once the buffer is empty (ndx, $d0, 0),
+        up to 20 seconds: written over keys not yet read, it lost them (a
+        page redraw in ++ visual outlasted the old 1-second pause)"""
         for i in range(0, len(text), 10):
+            for _ in range(100):
+                if self.mem('ram00', 0xd0, 1)[0] == 0:
+                    break
+                time.sleep(0.2)
             chunk = text[i:i+10]
             self.cmd('bank ram', 'f 034a 0353 00', *(f'> {0x34a+j:04x} {ord(ch):02x}' for j, ch in enumerate(chunk)), f'> 00d0 {len(chunk):02x}')
             time.sleep(1)
