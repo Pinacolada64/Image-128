@@ -331,18 +331,39 @@ keyjmp:
 		word kpgup, visual2	; Ctrl-Y: the page before; Ctrl-L: redraw
 
 ; cursor keys: move, and send the key itself
+; 11/11/2026: kupedge and kdnedge are past a branch's reach now (the
+; marker's and word wrap's code came between): "beq" built $ff, into the
+; middle of the next instruction, so Up on row 1 and Down on row 23 ran
+; garbage (random characters). bne over a jmp instead
 kup:
 		ldx crsry
 		cpx #1
-		beq kupedge	; 128: on the top row, the page before
+		bne kup1
+		jmp kupedge	; 128: on the top row, the page before
+kup1:
 		dec crsry
 		jmp visual23
+; 11/11/2026: Down stops at the End of Text marker's line (vend+1), as
+; Ctrl-V stops at its page (user's request); Return still goes further
 kdown:
+		lda crsry
+		clc
+		adc top
+		sec
+		sbc #1		; this line
+		cmp vend
+		beq kdown0
+		bcs kdown9	; past the last line of text: on the marker's
+kdown0:
 		ldx crsry
 		cpx #23
-		beq kdnedge	; 128: on the bottom row, the next page
+		bne kdown1
+		jmp kdnedge	; 128: on the bottom row, the next page
+kdown1:
 		inc crsry
 		jmp visual23
+kdown9:
+		jmp visual5
 kright:
 		ldx crsrx
 		cpx #39
