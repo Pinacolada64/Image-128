@@ -13,7 +13,8 @@
 ; - Ctrl-X's line count is fixed (2.0 stored the key code, 24, not 23), and
 ;   Ctrl-X puts the number of lines used (the last one that isn't blank) in
 ;   "lines" ($03fe; 128: mline, the line after it, as the line editor);
-; - Ctrl-H shows a help screen of the keys;
+; - Ctrl-H shows a help screen of the keys (11/11/2026: through sub.editor,
+;   from s.visual or s.visual 80, as .x=5);
 ; - lines are packed (pack) for saving and for the screen: a reverse or
 ;   colour code only where it changes, no colour code for plain spaces,
 ;   and no blanks after the last visible column;
@@ -147,9 +148,16 @@ visual2:
 		jsr xchrout
 		lda #$ff	; the colour isn't known yet; it carries on from
 		sta lastc	; line to line
+		jsr findend	; 11/10/2026: the last line typed, for the marker
 		ldx #1
 		stx numx
 visual3:
+		ldx numx
+		jsr markrow	; 11/10/2026: "*** End of Text ***" on the row
+		bne visual3a	; after the last line typed
+		jsr printmark
+		jmp visual3b
+visual3a:
 		ldx numx
 		jsr rowdes	; 128: the page's line numx
 		jsr lastcol
@@ -159,6 +167,7 @@ visual3:
 		lda #1
 		jsr pack
 		jsr outbuf
+visual3b:
 		lda #13
 		jsr xchrout
 		inc numx
@@ -179,6 +188,7 @@ visual4:
 
 ; main loop: get a key
 visual5:
+		jsr chkend	; 11/10/2026: the end-of-text marker follows the text
 		jsr xgetin
 		pha
 ; xgetin returns Return (13) on every call once the carrier is lost, time
@@ -443,64 +453,13 @@ kctrlw2:
 kctrlw3:
 		jmp kredraw
 
-; Ctrl-H: show the keys, wait for a key, then show the lines again
+; Ctrl-H: out to sub.editor, which shows the help (s.visual)
 khelp:
-		lda #<helptext
-		sta vhelp+1
-		lda #>helptext
-		sta vhelp+2
-vhelp:
-		lda $ffff	; self-modified
-		beq khelp2
-		jsr xchrout
-		inc vhelp+1
-		bne vhelp
-		inc vhelp+2
-		jmp vhelp
-khelp2:
-		jsr xgetin
-		jmp visual2
-
-helptext:
-		byte $93, $05	; (clear)(white)
-		ascii "Visual editor keys:"
-		byte 13, 13
-		ascii "Cursor keys  move"
-		byte 13
-		ascii "Return       next line"
-		byte 13
-		ascii "Delete       delete to the left"
-		byte 13
-		ascii "Shift-Del    insert a space"
-		byte 13
-		ascii "Ctrl-I       insert a space"
-		byte 13
-		ascii "Ctrl-D       delete at the cursor"
-		byte 13
-		ascii "Ctrl-B       delete to line start"
-		byte 13
-		ascii "Ctrl-W       delete previous word"
-		byte 13
-		ascii "Ctrl-N       go to end of line"
-		byte 13
-		ascii "Rvs On/Off   reverse on/off"
-		byte 13
-		ascii "Colour keys  change colour"
-		byte 13
-		ascii "Ctrl-V       next page"
-		byte 13
-		ascii "Ctrl-Y       page before"
-		byte 13
-		ascii "Ctrl-L       show the page again"
-		byte 13
-		ascii "Clear        start over"
-		byte 13
-		ascii "Ctrl-X       done: save the lines"
-		byte 13
-		ascii "Ctrl-H       this help"
-		byte 13, 13
-		ascii "Press a key to go back."
-		byte 0
+; 11/11/2026: Ctrl-H leaves with .x=5: sub.editor shows s.visual (s.visual 80
+; in 80 columns), waits for a key, and starts ++ visual again where it left
+; (&,16,2). The help text was here (527 bytes); the file can say more
+		ldx #5
+		jmp vexit
 
 ; redraw the line from the cursor (kredraw) or from column 1 (kredraw1)
 kredraw:
@@ -541,7 +500,8 @@ visual25:
 		ldx #1
 		jmp vexit
 
-; 128: leave with .x (1 saved, 4 a dot command): the page stored packed;
+; 128: leave with .x (1 saved, 4 a dot command, 5 Ctrl-H: the help, which
+; sub.editor shows from s.visual): the page stored packed;
 ; mline the line after the last that isn't blank (of all 254), as the line
 ; editor keeps it; the case flag back; .x in sxreg, as the line editor's
 ; done leaves it (sub.editor reads it), viscmd in .a
@@ -1016,6 +976,208 @@ curx:
 		byte $ff	; where the cursor is (1 = left; $ff: not known)
 cury:
 		byte $ff	; (1 = top)
+
+; --- 11/10/2026: "*** End of Text ***" (user's request) on the row after
+; the last line that isn't blank (vend; none typed: line 1), moving as the
+; text grows or shrinks. Only the cursor's line changes in an edit (no key
+; moves lines), so after each key chkend looks at that line alone: text on
+; it past vend makes it the end; vend's line made blank, the end is the
+; first line with text above it. findend scans from line 254 down when a
+; page is drawn. The rows below the marker are blank and can be typed on.
+
+; Z set if the page's row X (1-23) is the marker's: top-1+X = vend+1
+markrow:
+		txa
+		clc
+		adc top
+		sec
+		sbc #2
+		cmp vend
+		rts
+
+; the marker, from the start of a row: reverse off, grey, the text
+printmark:
+		lda #$92
+		jsr xchrout
+		lda #$98	; (grey)
+		jsr xchrout
+		ldx #0
+printm1:
+		stx vscan
+		lda marktext,x
+		beq printm2
+		jsr xchrout
+		ldx vscan
+		inx
+		jmp printm1
+printm2:
+		lda #$98	; what's in effect now
+		sta lastc
+		lda #$92
+		sta lastr
+		rts
+marktext:
+		ascii "*** End of Text ***"
+		byte 0
+
+; vend: the last line with text, from line 254 down (findend) or from line
+; X down (findfrom); 0 if none. A line on the page is expanded (lastcol), one
+; off it packed (its length). Leaves varbuf on another line: the caller
+; gets its own back (rowdes)
+findend:
+		ldx #254
+findfrom:
+		stx vscan
+		cpx #0
+		beq findf9
+		txa
+		cmp top
+		bcc findf1	; above the page
+		sec
+		sbc top
+		cmp #23
+		bcs findf1	; below it
+		tax
+		inx		; its row
+		jsr rowdes
+		jsr lastcol
+		jmp findf2
+findf1:
+		ldx vscan
+		jsr getdes
+		lda varbuf	; its length
+findf2:
+		bne findf8
+		ldx vscan
+		dex
+		jmp findfrom
+findf8:
+		lda vscan
+findf9:
+		sta vend
+		rts
+
+; after a key: the cursor's line (varbuf, line top-1+crsry) against vend
+chkend:
+		jsr lastcol
+		pha
+		lda crsry
+		clc
+		adc top
+		sec
+		sbc #1
+		sta vline
+		pla
+		beq chkend2
+		lda vend	; text on it: past vend, it's the end now
+		cmp vline
+		bcs chkend9
+		sta vold
+		lda vline
+		sta vend
+		jmp movemark
+chkend2:
+		lda vline	; blank: if it was the end, look above it
+		cmp vend
+		bne chkend9
+		sta vold
+		tax
+		dex
+		jsr findfrom
+		jmp movemark
+chkend9:
+		rts
+
+; vend moved from vold: redraw the old marker's row and draw the new one,
+; then the cursor, reverse and colour back, and varbuf on its line again
+movemark:
+		lda crsrx
+		sta msx
+		lda crsry
+		sta msy
+		ldx vold
+		inx
+		jsr drawline
+		ldx vend
+		inx
+		jsr drawline
+		lda msx
+		sta crsrx
+		lda msy
+		sta crsry
+		jsr crsrpos
+		ldx crsrr
+		lda revers,x
+		jsr xchrout
+		ldx crsrc
+		lda colors,x
+		jsr xchrout
+		ldx crsry
+		jmp rowdes
+
+; line X (1-254) again, if it's on the page: the marker, or its text and
+; then spaces over what the marker left (to column 19)
+drawline:
+		cpx #0
+		beq drawl9	; 255+1: no line
+		txa
+		cmp top
+		bcc drawl9
+		sec
+		sbc top
+		cmp #23
+		bcs drawl9
+		tax
+		inx
+		stx crsry
+		lda #1
+		sta crsrx
+		jsr crsrpos
+		lda #$ff
+		sta lastc
+		ldx crsry
+		jsr markrow
+		bne drawl1
+		jmp printmark
+drawl1:
+		lda #$92
+		jsr xchrout
+		lda #$92
+		sta lastr
+		ldx crsry
+		jsr rowdes
+		jsr lastcol
+		sta pend
+		lda #1
+		jsr pack
+		jsr outbuf
+		lda #$92	; reverse off, so the spaces blank it
+		jsr xchrout
+		lda pend
+		sta vscan
+drawl2:
+		lda vscan
+		cmp #19
+		bcs drawl9
+		lda #' '
+		jsr xchrout
+		inc vscan
+		jmp drawl2
+drawl9:
+		rts
+
+vend:
+		byte 0	; the last line with text (0: none)
+vold:
+		byte 0
+vline:
+		byte 0
+vscan:
+		byte 0
+msx:
+		byte 0
+msy:
+		byte 0
 
 ; --- 128: pages (11/08/2026)
 

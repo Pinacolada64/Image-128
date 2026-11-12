@@ -176,6 +176,8 @@ c1541 -format "image bbs 128,ib" d81 image128.d81 \
 	-write "$repo/disk/e.alarms.prg" e.alarms \
 	-write "$repo/disk/nm.times.prg" nm.times \
 	-write "$repo/disk/e.fkeys.seq" "e.fkeys,s" \
+	-write "$repo/disk/s.visual.seq" "s.visual,s" \
+	-write "$repo/disk/s.visual 80.seq" "s.visual 80,s" \
 	-write "$build/dst/s.timezones" "s.timezones,s" \
 	-write "$build/dst/s.dstrules" "s.dstrules,s" \
 	"${modwrites[@]}" "${ovlwrites[@]}" >/dev/null

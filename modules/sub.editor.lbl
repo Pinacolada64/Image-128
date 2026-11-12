@@ -58,21 +58,27 @@
 60076 gosub349:gosub350:ifathengosub60134:goto60110
 60078 gosub3:a$="r":gosub60002:ife%thenclose6:&:goto60110
 60080 &,3,6:close6:goto60110
-60082 gosub60018:kk=1:ifle<1thenp$=pu$:kk=.:return
+' 11/11/2026: visfrom (++ visual's dot command flag) cleared on the way in
+60082 poke{sym:visfrom},0:gosub60018:kk=1:ifle<1thenp$=pu$:kk=.:return
 60084 gosub60020:dr=1:a$="s.editor"+str$(int(rnd(.)*3)+1):gosub14
 60086 b%=.:gosub60010:a=0:goto60100
-60088 gosub60018:ifle<1thenp$=pu$:kk=.:return
+60088 poke{sym:visfrom},0:gosub60018:ifle<1thenp$=pu$:kk=.:return
 60090 goto60110
 60092 kk=peek({sym:mline}):onagoto60094,60102,60098:&"{f6:2}":b%=kk-1:kk=.:goto60016
-60094 poke{sym:mci},0:b%=kk-1:&"{f6}{pound}%b Lines Used.{f6}":ifkk=1thena=0:goto60092
+60094 poke{sym:visfrom},0:poke{sym:mci},0:b%=kk-1:&"{f6}{pound}%b Lines Used.{f6}":ifkk=1thena=0:goto60092
 60096 b%=kk:goto60016
-60098 poke{sym:mci},0:dr=1:a$="s.menu 3":gosub13:goto60088
+' 11/11/2026: .H from ++ visual (visfrom): wait for a key, then back to it where it
+' left (60144) instead of a page 1 that cleared the screen at once
+60098 poke{sym:mci},0:dr=1:a$="s.menu 3":gosub13:ifpeek({sym:visfrom})=.then60088
+60099 &"{f6}{white}Press a key to go back.{pound}g1":poke{sym:visfrom},0:goto60144
 ' 11/10/2026: ++ visual for Commodore and ANSI callers; ASCII ones (flag 16,
 ' ASCII, without 18, ANSI: sub.param1's modes 2 and 3) get the line editor.
 ' c: the ASCII flag; y keeps a%
-60100 x=a:b=4:gosub377:y=a%:&,52,16,3:c=a%:&,52,18,3:a=a*(1-c*(1-a%)):a%=y:onagoto60145:a=x
+' 11/11/2026: ASCII without ANSI read from the check table (flag 16, ASCII:
+' bit 0 of chktbl+2; 18, ANSI: bit 2), no variables
+60100 x=a:b=4:gosub377:a=a*-((peek({sym:chktbl}+2)and5)<>1):onagoto60145:a=x
 60101 &,54,a:a=peek({sym:sxreg}):an$=chr$(peek({sym:sareg})and127):on-(a=4)goto60144:goto60092
-60102 b%=kk-1:on-(an$="u")goto60112:ifan$="q"then60070
+60102 poke{sym:visfrom},0:b%=kk-1:on-(an$="u")goto60112:ifan$="q"then60070
 ' 11/09/2026: the commands only for zz (the sysop's editing commands: Get, Put,
 ' Directory, Disk Command, Read) in one instr(); {$d4} is BASIC 7's INSTR
 ' token, which C64List 4.04 doesn't know (4.06 does, but can't take the
@@ -109,8 +115,20 @@
 60145 a=x
 60146 ifpeek(7171)<>86orpeek(7172)<>73orpeek(7173)<>83thenml$=""
 60148 a$="visual":gosub28:ife%then60101
-60150 &,16,a:a=peek({sym:sxreg}):ifa<4then60092
-60152 a=3:goto60101
+' 11/11/2026: the screen mask off while ++ visual runs (&,18,0), as i.IM, i.UU
+' and i.t do: with it on, the console is rows 0-15, so the 23-line page scrolled
+' its top off and the cursor moves went past the window. Back on (&,18,1) after,
+' once its exit code is read: every & call puts its registers in sareg/sxreg
+' 11/11/2026: visfrom ($199f) 1 marks a dot command from ++ visual (60152), so
+' the line editor's .H help (60098) goes back to ++ visual after a key
+60150 &,18,0:&,16,a:a=peek({sym:sxreg}):&,18,1:poke{sym:visfrom},0:ifa<4then60092
+' 11/11/2026: .x=5, Ctrl-H: its help, s.visual (60154)
+60151 ifa=5then60154
+60152 poke{sym:visfrom},1:a=3:goto60101
+' 11/11/2026: ++ visual's help: s.visual (s.visual 80 in 80 columns, as i.UX
+' 3504 picks its files), then back where it left (60144: &,16,2)
+60154 dr=1:a$="s.visual":ifll%=80thena$=a$+" 80"
+60155 gosub13:&"{f6}{white}Press a key to go back.{pound}g1":goto60144
 60160 a%=peek({sym:lines})-1:c%=a%-b%:&"{pound}q0{f6}{pound}{back arrow}15{white}{rvrs on}Total Lines:{f6} {pound}{back arrow}15{gray3}Available  : {yellow}{pound}%a"
 60162 &"{pound}{back arrow}39   {gray3} In Memory  : {yellow}{pound}%b{f6} {pound}{back arrow}15{gray3}Remaining  : {yellow}{pound}%c{pound}{back arrow}39   "
 60164 ifzzthen:&"{gray3} Free Memory: {yellow}{pound}%z"

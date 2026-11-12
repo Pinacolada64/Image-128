@@ -642,7 +642,9 @@
 	viscmd	= $199e	; 1 byte: ++ visual's dot command letter (11/08/2026):
 			; it exits with .x=4 and the letter here; the line
 			; editor's entry4 (&,54,3) runs it
-; $199f-$19ff: free
+	visfrom	= $199f	; 1 byte (11/11/2026): 1 while sub.editor runs a dot command
+			; from ++ visual (its .H help then goes back to it)
+; $19a0-$19ff: free
 
 ; $1a00-$1bff: $1ff / 511 bytes. room for IRQ/& jump tables?
 
