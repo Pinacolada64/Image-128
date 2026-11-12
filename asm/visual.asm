@@ -240,6 +240,7 @@ visual6:
 		lda crsrx
 		cmp #40
 		bne visual5
+		jmp vwrap	; 11/11/2026: word wrap (vwrap: or the next line as before)
 ; end of a line (or Return): go to the start of the next line
 visual7:
 ; 128: a line starting with "." and a letter is a dot command, for the line
@@ -256,9 +257,7 @@ visual7:
 		cmp #$5b
 		bcs visual7a
 		sta viscmd
-		jsr blankline
-		ldx #4
-		jmp vexit
+		jmp vdotcmd	; 11/11/2026: the line wiped on the screen too
 visual7a:
 		lda crsry
 		cmp #23
@@ -977,6 +976,179 @@ curx:
 cury:
 		byte $ff	; (1 = top)
 
+; 11/11/2026: word wrap (user's request). Column 39 just typed: if it isn't a
+; space, and a space is before it (columns 38 to 1, the last one: vws), the
+; word after it (columns vws+1-39, vwt of them) goes to the start of the
+; next line: copied to wraptmp (past the overlay's end, free), blanked here
+; (and redrawn, so it leaves the screen), then put in columns 1-vwt of the
+; next line, the cursor after it. Only if that line is blank, and is there:
+; on the bottom row, the next page's first line (pgnext's test). Otherwise,
+; or with no space, the next line as before (visual7)
+vwrap:
+		ldy #3*39-1	; column 39's character
+		lda (varbuf+1),y
+		cmp #' '
+		beq vwrapno
+		ldx #38
+		ldy #3*38-1
+vwrap1:
+		lda (varbuf+1),y
+		cmp #' '
+		beq vwrap2
+		dey
+		dey
+		dey
+		dex
+		bne vwrap1
+vwrapno:
+		jmp visual7
+vwrap2:
+		stx vws		; the space's column
+		lda #39
+		sec
+		sbc vws
+		sta vwt		; the word's length
+		asl
+		clc
+		adc vwt
+		sta vwn		; its bytes (3 a column)
+		lda crsry
+		cmp #23
+		bcs vwrap3
+		tax		; the next row: blank?
+		inx
+		jsr rowdes
+		jsr lastcol
+		pha
+		ldx crsry
+		jsr rowdes	; this line again
+		pla
+		bne vwrapno
+		jmp vwrap4
+vwrap3:
+		lda top		; the bottom row: a next page (as pgnext), and
+		clc		; its first line blank (packed: no length)
+		adc #23
+		cmp #233
+		bcs vwrapno
+		cmp vmax
+		beq vwrap3a
+		bcs vwrapno
+vwrap3a:
+		tax
+		jsr getdes
+		lda varbuf
+		pha
+		ldx crsry
+		jsr rowdes
+		pla
+		bne vwrapno
+vwrap4:
+		lda vws		; the word's first byte: 3 * vws
+		asl
+		clc
+		adc vws
+		sta vtemp
+		tay
+		ldx #0
+vwrap5:
+		lda (varbuf+1),y	; the word to wraptmp
+		sta wraptmp,x
+		iny
+		inx
+		cpx vwn
+		bcc vwrap5
+		ldy vtemp	; and blanked here
+		ldx vwt
+vwrap6:
+		lda #$92
+		sta (varbuf+1),y
+		iny
+		lda #$05
+		sta (varbuf+1),y
+		iny
+		lda #' '
+		sta (varbuf+1),y
+		iny
+		dex
+		bne vwrap6
+		lda #39		; redrawn from the word's column to 39
+		sta oldend
+		ldx vws
+		inx
+		stx crsrx
+		txa
+		jsr redraw
+		lda crsry
+		cmp #23
+		bcs vwrap8
+		inc crsry	; the next row: the word in columns 1 on
+		ldx crsry
+		jsr rowdes
+		jsr vwput
+		lda #0
+		sta oldend
+		lda #1
+		jsr redraw
+		jmp visual4
+vwrap8:
+		jsr pgnext	; the next page (tested above), its first line
+		lda #1
+		sta crsry
+		ldx #1
+		jsr rowdes
+		jsr vwput
+		jmp visual2
+; wraptmp's word into columns 1-vwt of the line in varbuf, the cursor after it
+vwput:
+		ldy #0
+vwput1:
+		lda wraptmp,y
+		sta (varbuf+1),y
+		iny
+		cpy vwn
+		bcc vwput1
+		ldx vwt
+		inx
+		stx crsrx
+		rts
+vws:
+		byte 0
+vwt:
+		byte 0
+vwn:
+		byte 0
+
+; 11/11/2026: a dot command: the line emptied, and wiped on the screen too
+; (reverse off, spaces over what was typed, back to column 1), so the line
+; editor's echo of the command ("Help!") doesn't follow the ".h", and ++
+; visual comes back with the cursor at the line's start; then out with .x=4
+vdotcmd:
+		jsr lastcol	; how much of the line has something on it
+		sta pend
+		jsr blankline
+		lda #1
+		sta crsrx
+		jsr crsrpos
+		lda #$92	; (rvrs off)
+		jsr xchrout
+		lda #0
+		sta vscan
+vdotc1:
+		lda vscan
+		cmp pend
+		bcs vdotc2
+		lda #' '
+		jsr xchrout
+		inc vscan
+		jmp vdotc1
+vdotc2:
+		lda #1
+		sta crsrx
+		jsr crsrpos
+		ldx #4
+		jmp vexit
+
 ; --- 11/10/2026: "*** End of Text ***" (user's request) on the row after
 ; the last line that isn't blank (vend; none typed: line 1), moving as the
 ; text grows or shrinks. Only the cursor's line changes in an edit (no key
@@ -1417,3 +1589,6 @@ vlast:
 		byte 0		; the last line of text kept on entry
 vcode:
 		byte 0		; the exit code (.x: 1 saved, 4 a dot command)
+; 11/11/2026: word wrap's word, up to 38 columns (114 bytes): past the
+; overlay's end, in the protocol area's free room (to $2aff)
+wraptmp:
