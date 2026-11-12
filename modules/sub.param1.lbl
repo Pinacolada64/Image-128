@@ -14,12 +14,21 @@
 ' 11/10/2026: each sub-function starts on a hundred:
 '   60000 im dispatch: im=1 60100, 2 60400, 3 61300, 4 and 5 61100
 '   60100 the Terminal Parameters menu loop (options 1-10)  60200 its text
-'   60300 1 computer type  60400 2 translation (AT, AT+, AT-, ATn)
-'   60500 the mode's name (z$)  60600 3 line length  60700 4 lines/screen
-'   60800 5 line feeds  60900 6 expert mode  61000 7 choose a protocol
-'   61100 run a protocol  61200 read s.m.protos  61300 8 More prompt
-'   61400 the More prompt's state (w$)  61500 9 cursor menus
-'   61600 10 the editor  61700 On/Off (an$)
+'   60300 1 computer type
+'   60400 2 translation (AT, AT+, AT-, ATn)
+'   60500 the mode's name (z$)
+'   60600 3 line length
+'   60700 4 lines/screen
+'   60800 5 line feeds
+'   60900 6 expert mode
+'   61000 7 choose a protocol
+'   61100 run a protocol
+'   61200 read s.m.protos
+'   61300 8 More prompt
+'   61400 the More prompt's state (w$)
+'   61500 9 cursor menus
+'   61600 10 the editor
+'   61700 On/Off (an$)
 
 60000 onimgoto60100,60400,61300,61100,61102:rem sub.param1
 60002 return
@@ -40,19 +49,33 @@
 60118 &,69,31,19,str$(ll%)+"x"+mid$(str$(mp%),2),$8c:return
 ' 11/10/2026: the Terminal Parameters menu, as s.m.params had it (that file
 ' is gone), with 10: the editor. b$ z$ a% b% y$ x$ d$ w$ v$ u$ from 60100-60108
-60200 &"{clear}{f6}{white}Terminal Parameters{colon}{f6:2}"
-60202 &"{white} 1) {lt. blue}Computer Type      {white}{pound}$b{f6}{white} 2) {lt. blue}Translation        {white}{pound}$z{f6}"
-60204 &"{white} 3) {lt. blue}Line Length        {white}{pound}%a{f6}{white} 4) {lt. blue}Lines/Screen       {white}{pound}%b{f6}"
-60206 &"{white} 5) {lt. blue}Line Feeds         {white}{pound}$y{f6}{white} 6) {lt. blue}Expert Mode        {white}{pound}$x{f6}"
-60208 &"{white} 7) {lt. blue}U/D Protocol       {white}{pound}$d{f6}{white} 8) {lt. blue}{quotation}More{question}{quotation} Prompt     {white}{pound}$w{f6}"
-60210 &"{white} 9) {lt. blue}Cursor Menu Mode   {white}{pound}$v{f6}{white}10) {lt. blue}Editor             {white}{pound}$u{f6}"
-60212 &"{f6:2}Enter # to change or RETURN if OK{f6}":return
+' 11/11/2026: narrower than 80 columns, items 1-10 one after another (60204);
+' 80: 1-5 on the left, 6-10 beside them at column 40 (60202). Item n is the
+' subroutine at 60208+2*n (60210-60228)
+60200 &"{clear}{f6}{white}Terminal Parameters{colon}{f6:2}":ifll%<80then60204
+60202 forx=1to5:onxgosub60210,60212,60214,60216,60218:&"{pound}{back arrow}40":onxgosub60220,60222,60224,60226,60228:&"{f6}":next:goto60206
+60204 forx=1to10:onxgosub60210,60212,60214,60216,60218,60220,60222,60224,60226,60228:&"{f6}":next
+60206 &"{f6:2}Enter # to change or RETURN if OK{f6}":return
+60210 &"{white} 1) {lt. blue}Computer Type  {white}{pound}$b":return
+60212 &"{white} 2) {lt. blue}Translation    {white}{pound}$z":return
+60214 &"{white} 3) {lt. blue}Screen Columns {white}{pound}%a":return
+60216 &"{white} 4) {lt. blue}Screen Height  {white}{pound}%b":return
+60218 &"{white} 5) {lt. blue}Line Feeds     {white}{pound}$y":return
+
+60220 &"{white} 6) {lt. blue}Expert Mode    {white}{pound}$x":return
+60222 &"{white} 7) {lt. blue}U/D Protocol   {white}{pound}$d":return
+' " 8) "More?:" Prompt....."
+60224 &"{white} 8) {lt. blue}{quotation}More{question}{quotation} Prompt {white}{pound}$w":return
+60226 &"{white} 9) {lt. blue}Cursor Menus   {white}{pound}$v":return
+60228 &"{white}10) {lt. blue}Text Editor    {white}{pound}$u":return
+
 60300 &"{f6:2}":forx=1to9:b$=co$(x):a%=x:&"{pound}%a>-{pound}$b{f6}":next
-60302 &"{f6}Computer Type?: {pound}g1{pound}v7{f6}":iftr%<1thenreturn
+60302 &"{f6}Computer Type{question}{colon} {pound}i1":if tr%<1 then return
 60304 on-(val(an$)<1)goto60300:co%=val(an$):an$=co$(co%):co$=an$:&,9:return
 ' 11/10/2026: ATn picks mode n (1-5); AT+ and AT- step from the current mode,
 ' wrapping. a=abs(val(a$)) read a$, not the command, so AT+ always gave mode 1
 ' (Commodore C/G), AT- mode 7's bits (ANSI C/G), and ATn showed the menu
+' The "AT" Extended Command Set definition needs to have "Ignore Extra" unset for this to work
 60400 on-(an$="AT")goto60406:c$=mid$(an$,3,1):a=abs(val(mid$(an$,3))):ifa>.anda<6then60408
 60402 ifc$<>"+"andc$<>"-"then60406
 ' the current mode's menu number (1: bits 0-3, 2-5: bits 4-7), then one on or back
@@ -75,40 +98,67 @@
 60508 z$="ASCII & IBM Graphics":return
 60510 z$="ASCII & ANSI Color":return
 60512 z$="ANSI C/G":return
-60600 lp=1:&"{f6}How Many Characters/Line?{f6:2}: {pound}i1"
+60600 lp=1:&"{f6}How Many Characters/Line{question}{f6}({question} Shows A Ruler){f6:2}{colon} {pound}i1"
+' 11/11/2026: ? shows a ruler (60610), then asks again
+60601 ifan$="{question}"thengosub60610:goto60600
 60602 x=int(val(an$)):iftr%<1thenreturn
 60604 ifx<22orx>80then:&"{f6}Must Be Between 22 And 80.{f6}":goto60600
 60606 ll%=x:a$="":fora=1toll%-2:a$=a$+"{$c0}":next:ak$=" "+a$+"{f6}":return
-60700 poke53252,3:lp=1:&"{f6}How Many Lines/Screen?{f6:2}: {pound}i1"
+' the ruler: 80 columns, every 10th its tens digit reversed, with no word
+' wrap (lp=0), so the caller's screen wraps it where the screen ends
+60610 lp=0:&"{f6}":forx=1to8:&"123456789{rvrs on}"+mid$(str$(x),2)+"{rvrs off}":next
+60612 &"{f6:2}Reversed digits count tens. The last{f6}column of the first row is your width.{f6}":return
+60700 poke53252,3:lp=1:&"{f6}How Many Lines/Screen{question}{f6}({question} Shows A Ruler){f6:2}{colon} {pound}i1"
+' 11/11/2026: ? shows a ruler (60710), which asks for the number itself
+60701 ifan$="{question}"thengosub60710:return
 60702 mp%=abs(val(an$)):on-(mp%<1ormp%>255)goto60704:poke{sym:usrlin},mp%:return
 60704 lp=1:&"{f6}Must Be Between 1 and 255":goto60700
+' the ruler: 50 down to 2, then 1 on the bottom row with the question, so the
+' number at the top of the screen is its height. The More prompt (flag 34)
+' off meanwhile, put back after (b%: the menu works it out again)
+60710 &,52,34,3:b%=a%:&,52,34,0:&"{f6}{lt. blue}Type the number at the top of your{f6}screen at the bottom.{white}{f6}":forx=50to2step-1:a%=x:&"{pound}%a{f6}":next
+60712 &"1 {lt. blue}Top number{question} {white}{pound}i1":&,52,34,b%:x=val(an$):ifx>.andx<256thenmp%=x:poke{sym:usrlin},mp%
+60714 return
 60800 &,52,17,2:&,52,17,3:lf=a%:a=a%:b=1:goto378
 60900 &,52,20,2:&,52,20,3:em=a%:return
 61000 gosub61202:onx+1goto999:a=val(mid$(an$,3,3)):ifa>.then61006
-61002 &"{f6}Available Protocols:{f6:2}":fori=1tox:a%=i:a$=mid$(tt$(i),10)
-61004 lp=1:&"{pound}%a) {pound}$a{pound}{back arrow}39 ":next:&"{f6:2}--> {pound}g1":a=val(an$)
+' 11/11/2026: the list as the Parameters menu: narrower than 80 columns, one
+' after another (61004); 80: the first half down the left, the rest beside
+' them at column 40 (61003). 61012 prints item a%, 61011 tabs to 40 first
+61002 &"{f6}Available Protocols{colon}{f6:2}":ifll%<80then61004
+61003 fori=1toint((x+1)/2):a%=i:gosub61012:a%=i+int((x+1)/2):on-(a%<=x)gosub61011:&"{f6}":next:goto61005
+61004 fori=1tox:a%=i:gosub61012:&"{f6}":next
+61005 &"{f6}--> {pound}g1":a=val(an$)
 61006 ifa>.anda<=xthenlp=1:&mid$(tt$(a),10):ifa<xorb%=.thenul=a-1
-61008 ifan$="{f2}"thena$="s.protos":dr=1:gosub13:goto61002
+61008 ifan$="{question}"thena$="s.protos":dr=1:gosub13:goto61002
 61010 a=-a*(a>.):return
+61011 &"{pound}{back arrow}40"
+61012 lp=1:a$=mid$(tt$(a%),10):&"{pound}%a) {pound}$a":return
 61100 &,52,4,3:ona%goto999:gosub61000:goto61104
 61102 gosub61202:a=ul+1:ifa%thena=x
 61104 ml$="":ona+1goto999:ifb%=1anda=xthena$="copier":goto28
 61106 a$=tt$(a):f=val(mid$(a$,7,1)):nb=val(mid$(a$,8,1)):d4$=mid$(a$,10):pr=-1
 61108 dr=5:gosub3:a$=left$(a$,6):gosub28:&,16,4,f:return
-61200 gosub61202:a$=mid$(tt$(ul+1),10):&,11:return
+' 11/11/2026: the user's protocol (ul: its place in s.m.protos, from 0; saved
+' in u.config) by name: "(Unset)" if ul is past the file's entries (not the
+' console's Copier line), "(No List)" without s.m.protos. tt$() is emptied
+' after (&,11), so the name is copied first (61212)
+61200 gosub61202:a$="(Unset)":ifx=.thena$="(No List)"
+61201 on-(x-b%>ul)gosub61212:&,11:return
 61202 &,11:b%=.:dr=1:a$="s.m.protos,s,r":gosub4:x=.:ife%then:&:return
 61204 &,2,2:ifa$<>"{^}"andx<253thenx=x+1:tt$(x)=a$:ifst=.then61204
 61206 &,52,4,3:ifzz=1ora%=1thenx=x+1:tt$(x)="copier00 Copier":b%=1:pr=2
 61208 d4$=right$(tt$(x),6)
 61210 close2:return
-61300 &"{clear}{f6}More Prompt Options:{f6:2}{white} 1 {lt. blue}Off{f6}{white} 2 {lt. blue}On{f6}{white} 3 {lt. blue}Messages Only{f6:2}{white}  > {pound}g1"
+61212 a$=mid$(tt$(ul+1),10):return
+61300 &"{clear}{f6}More Prompt Options{colon}{f6:2}{white} 1 {lt. blue}Off{f6}{white} 2 {lt. blue}On{f6}{white} 3 {lt. blue}Messages Only{f6:2}{white}  > {pound}g1"
 61302 a=val(an$):ifa>.anda<4thena=a-1:b=2:gosub378
 61304 gosub61400:&,52,35,3:ifa%=.then:&"{pound}$w{f6}"
 61306 return
 61308 &,52,34,2:&,52,34,3:a=a%:b=2:goto378
 61310 return
 61400 b=2:gosub377:w$="Off":ifathenw$="On":ifa>1thenw$="Messages Only"
-61402 &,52,35,3:ifa%=1then:&" Sorry, More Prompt Disabled{f6}":&,52,34,.:goto61406
+61402 &,52,35,3:ifa%=1then:&" Sorry{comma} More Prompt Disabled{f6}":&,52,34,.:goto61406
 61404 ifa<>2then:&,52,34,a
 61406 return
 61500 &,52,44,2:&,52,44,3:a=a%:b=3:goto378
@@ -117,8 +167,8 @@
 ' 11/10/2026: c 1 for an ASCII caller (flag 16 on, 18, ANSI, off): only the line
 ' editor (sub.editor 60100), so option 10 doesn't change it (61604)
 61602 &,52,16,3:c=a%:&,52,18,3:c=c*(1-a%):return
-61604 &"{f6}You may only use the line-based editor.{f6}{pound}w2":return
+61604 &"{f6}You may only use the line-based editor.{pound}w2{f6}":return
 61700 an$="Off":ifa%thenan$="On"
 61702 return
 61998 copr. 1996 new image 5/5/96
-61999 rem:"sub.param1 (c)nissa 210307 lh"
+61999 rem "sub.param1 (c)nissa 210307 lh, 2026-11-11 rs"
