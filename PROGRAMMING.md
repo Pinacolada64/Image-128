@@ -622,6 +622,55 @@ A NetSub (a sub-board shared through the network) is defined in the file
   release (or the C64) hasn't that byte, so it loads as it always did,
   with `a%(60)`'s low byte 0.
 
+## `++ remote`: running a plain BASIC program for the caller
+
+`++ remote` (`asm/remote.asm`) runs an ordinary BASIC 7.0 (or BASIC 2)
+program, a game or utility not written for Image, as a door: what it
+PRINTs goes to the screen and the caller, and INPUT, GET and GETKEY read
+the keyboard and the caller. A module loads it and runs the program file
+`a$` from drive `dv%`:
+
+```
+a$="remote":gosub 28:if e% then ...
+a$=dr$+"<program>":&,16
+```
+
+When the program ends, `im` carries on with the statement after the
+`&,16`, its program, variables, arrays, GOSUBs, FORs, DATA pointer and
+open files as they were. The result is in `peek({sym:protostart}+3)`:
+
+| Value | Means | `+4` | `+5`/`+6` |
+|---|---|---|---|
+| 0 | it ended: END, or its last line | | |
+| 1 | stopped: the caller's carrier went, or their time ran out | | |
+| 2 | stopped by an error (its message went to the caller too) or Run/Stop | BASIC's error number; 0 for Run/Stop | the line |
+| 3 | it didn't start | 1 not found (or a disk error), 2 too big, 3 no room for its variables, 4 load error, 5 not called from a program | |
+
+- **Where it runs:** its text in bank 0 just past `im`'s and the modules'
+  (`$1210`), up to `$c000`. The directory's block count is checked
+  against that room before loading, since a LOAD past `$c000` would write
+  over the ML. Its variables and strings go in `im`'s free memory in bank
+  1 (between the end of `im`'s arrays and the bottom of its strings),
+  after a garbage collection.
+- **Plain BASIC:** while it runs, BASIC's error, statement, function and
+  USR vectors are the ROM's, so `&`, Image's error trap and the wedge's
+  functions aren't there. The program starts as RUN starts one, but
+  without CLALL, and a RUN or CLR in it can't harm `im`'s open files: the
+  file table is put back, and files the program left open are closed.
+- **Output** goes through `&,24` (screen, modem, printer). The C64's
+  `&,55` also reads a key after each character, so keys the caller typed
+  while the program printed were lost.
+- **Input:** an INPUT line is typed into the overlay's own buffer (80
+  characters, Delete works) and echoed; GET returns 0 when no key has
+  come. The modem is read only while Image would use it (not in local
+  mode). The chat key isn't answered until the program ends.
+- **Not handled:** POKE or SYS into Image's memory, or changes to the
+  screen setup (GRAPHIC, WINDOW, 40/80 columns).
+
+`tests/standin/remote.bas` tries it (`tests/standin/README.md`). From
+Image 2.0's unfinished `remote.s`; `asm/remote.asm`'s header lists what
+was fixed and what changed for the 128.
+
 ## VIC screen cells to the VDC: `&,72`
 
 ML that draws on the VIC screen as it works (`++ net`'s and `++ copier`'s

@@ -6,7 +6,8 @@
 # Tokenizes the program (petcat, BASIC 7.0, at $1c01, where intro loads
 # im) and writes it as "im 128" on a copy of build/image128.d81, so the
 # ML loads and RUNs it: build/standin-<name>.d81. Data files it reads:
-# tests/standin/<name>.<file>.seq. Run asm/build.sh first.
+# tests/standin/<name>.<file>.seq, programs it loads <name>.<file>.bas.
+# Run asm/build.sh first.
 # See tests/standin/README.md.
 
 set -e
@@ -36,6 +37,17 @@ for f in "$(dirname "$src")/$name".*.seq; do
 	file=${f##*/$name.}
 	file=${file%.seq}
 	c1541 "$disk" -delete "$file" -write "$f" "$file,s" >/dev/null
+done
+# programs it loads: tests/standin/<name>.<file>.bas goes on the disk as
+# the PRG file <file> (tokenized as the stand-in is), e.g. the programs
+# remote.bas runs with ++ remote
+for f in "$(dirname "$src")/$name".*.bas; do
+	[ -e "$f" ] || continue
+	file=${f##*/$name.}
+	file=${file%.bas}
+	petcat -w70 -l 1c01 -o "$build/standin-$name-$file.prg" -- "$f"
+	c1541 "$disk" -delete "$file" -write "$build/standin-$name-$file.prg" "$file" >/dev/null
+	rm -f "$build/standin-$name-$file.prg"
 done
 echo "$disk"
 echo "x128 -80col -drive8type 1581 -autostart-warp -autostart \"$disk:boot 128\""
