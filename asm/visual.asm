@@ -1092,6 +1092,13 @@ vwrap6:
 		jsr redraw
 		jmp visual4
 vwrap8:
+		lda top		; this line (top+22) has text now, but vend may
+		clc		; not know yet (chkend runs before the next key):
+		adc #22		; pgnext checks the next page against vend
+		cmp vend
+		bcc vwrap8a
+		sta vend
+vwrap8a:
 		jsr pgnext	; the next page (tested above), its first line
 		lda #1
 		sta crsry
@@ -1364,7 +1371,8 @@ rowdes:
 
 ; the next page (pgnext) or the one before (pgprev), if there is one: the
 ; page's lines stored packed, top moved, the new page's lines expanded;
-; carry set: none (top is already the first, or the last page that fits)
+; carry set: none (top is already the first, the last page that fits, or
+; (11/11/2026) the next would start past the End of Text marker's line)
 pgnext:
 		lda top
 		clc
@@ -1372,6 +1380,14 @@ pgnext:
 		cmp #233	; its last (+22) past 254, or
 		bcs pgnone
 		cmp vmax	; past the most lines the user may write: none
+		beq pgnext0
+		bcs pgnone
+; 11/11/2026: nor past the end of the text: its first line (top+23) at most
+; the End of Text marker's (vend+1), so top+22 <= vend (user's request)
+pgnext0:
+		sec
+		sbc #1
+		cmp vend
 		beq pgnext1
 		bcs pgnone
 pgnext1:
