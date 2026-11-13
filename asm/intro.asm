@@ -648,7 +648,10 @@ screentb:
 ; - Is there one: its KERNAL has a jsr at $ffd2 (CHROUT's entry; the 128's
 ;   own has jmp ($0326)), read with the ROMs in
 ; - this station's port (GETPRT, the host adapter's DIP switches) + $80:
-;   ltkport, a lock's owner byte
+;   ltkport, a lock's owner byte; ltkon 1 and the LU logged in (Image
+;   booted from it, if it booted from the Lt. Kernal): ltklu (11/13/2026).
+;   Its device number isn't kept: hdrnum ($802c, ltk_dos_addresses.asm)
+;   held $92 here; im 3077 asks the boot device instead
 ; - "lockfile" on LU 10, user 0 (every port's), found, or made: lk_locks
 ;   blocks and its header, contiguous (type 5), catalogued, then found
 ;   again (as LK Mini-Mon does; PSV1N5A.TXT, ~/Documents/c64/ltkernal); its
@@ -662,6 +665,8 @@ lockinit:
 	lda #0
 	sta ltkflag
 	sta lknew
+	sta ltkon
+	sta ltklu
 	lda $ffd2
 	cmp #$20
 	bne lockin9
@@ -670,6 +675,9 @@ lockinit:
 	and #$0f
 	ora #$80
 	sta ltkport
+	inc ltkon	; there's one; and the LU logged in now, at boot:
+	lda ltk_activl	; Image's boot disk if it booted from the Lt. Kernal
+	sta ltklu	; (im 3077: bd$, dr$)
 	lda ltk_activu	; the logged LU and user, put back after
 	pha
 	lda ltk_activl

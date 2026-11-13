@@ -424,6 +424,11 @@
 3075 &,69,0,1,"im 128 revision{colon} "+{usedef:__BuildDate}+" "+{usedef:__BuildTime},3
 ' a$="NTSC":if peek(678) then a$="PAL"
 3076 a$="NTSC":if peek({sym:ntscpal})=255 then a$="PAL"
+' 11/13/2026: booted from a Lt. Kernal, the boot disk is the LU logged in
+' then (setup's lockinit, in the sys 3074 made: ltkon, ltklu), not "0:",
+' which is LU 0 there. The boot device is the Lt. Kernal if it answers m-r
+' with its status line (as sub.sysdos finds it: it has no m-r)
+3077 if peek({sym:ltkon}) then open 15,dv%,15,"m-r"+chr$(187)+chr$(229)+chr$(16):get#15,a$,a$,a$:close 15:if a$="," then d1%=dv%:d2%=peek({sym:ltklu}):dr$=mid$(str$(d2%),2)+":":bd$=dr$
 3078 gosub 3400:z3$=a$+" System Detected.":gosub 3404
 ' 3080 &,18,.:poke 53248,1:am$="1"+"0001018600":dv%=z%
 3080 &,18,.:poke {sym:local},1:am$="1"+"0001018600":dv%=z%
@@ -578,7 +583,10 @@
 ' 3240 f$="i/setup 128":close 15:open 1,dv%,1,f$:s=ds:close15:ifsthen:&"{f6}Cannot find {quotation}{pound}$f{quotation}. Halting.{pound}w5":goto 4048
 ' ds=63: file exists
 ' the setup module (Image BBS 3.0's, ported): i/su.config
-3240 f$="i/su.config":close 15:rename (f$) to (f$):if ds<>63 then:&"{f6}Cannot find {quotation}{pound}$f{quotation}. Halting.{pound}w5":goto 4048
+' 11/13/2026: found by opening it on the boot disk (bd$), not BASIC 7's
+' "rename (f$) to (f$)" (63: it's there), which says drive 0: on a Lt. Kernal
+' that's LU 0, not the LU Image booted from (im 3077)
+3240 f$="i/su.config":close 15:open 15,dv%,15:close 1:open 1,dv%,2,bd$+f$+",p,r":input#15,e1:close 1:close 15:if e1 then:&"{f6}Cannot find {quotation}{pound}$f{quotation}. Halting.{pound}w5":goto 4048
 3242 new 4000:load f$,dv%:gosub 4000:return
 
 ' gosub from 3158

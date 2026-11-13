@@ -42,7 +42,7 @@
 	for x=32 to 34:gosub 1:print#2,"{^}":next:x=35:gosub 1:print#2,d1$
 ' record 37: ck$, how the clock is set at boot (sub.su.clock)
 	x=36:gosub 1:print#2,"0":x=37:gosub 1:print#2,ck$
-	x=38:gosub 1:print#2,"0":for x=39 to 42:gosub 1:print#2,"{^}":next
+	x=38:gosub 1:print#2,mid$(str$(lk%),2):for x=39 to 42:gosub 1:print#2,"{^}":next
 ' record 45: the system time zone (sub.info im=8, after sub.su.clock)
 	x=43:gosub 1:print#2,"X":x=44:gosub 1:print#2,"{^}":x=45:gosub 1:print#2,tz$:x=46:gosub 1:print#2,"{^}"
 	x=47:gosub 1:print#2,bn$:x=48:gosub 1:print#2,c1$
@@ -58,7 +58,8 @@
 ' 10/14/2026: group 9 is named Sysop, so the sysop needn't rename it
 	print#2,"Sysop"+r$+"19111911111111190000"
 	close 2:gosub 4932:z3$="Starting Daily Log...":gosub 3404:gosub 3300
-' the boot drive again for the steps after this one
-	for i=1 to 6:dv%(i)=su%(10):dr%(i)=.:next:return
+' the boot drive again for the steps after this one (su%(20): 0, or a Lt.
+' Kernal's LU)
+	for i=1 to 6:dv%(i)=su%(10):dr%(i)=su%(20):next:return
 
 	rem "sub.su.write (c)nissa 2026-11-05"

@@ -922,6 +922,8 @@
 	; (assembled apart): copies 8 bytes of the character ROM to charbuf8
 	charrom8		= $3780
 	charbuf8		= charrom8 + 40
+	ltkon			= charbuf8 + 8	; 11/13/2026: 1 if there's a Lt. Kernal (lockinit), glue.asm
+	ltklu			= ltkon + 1	; the LU logged in at boot (lockinit; im 3077)
 	romtab			= $c000	; romtab.asm, then the resident ML:
 	resident_lo_end		= $d000	;   $c000-$cfff
 	resident_hi		= $e000	;   and $e000-$feff ($ff00-: MMU, and the

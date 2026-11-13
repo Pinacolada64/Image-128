@@ -19,7 +19,8 @@
 '   su%(31-36), (37-38), (43-47), (49-53): 1 when that item of part 1-4
 '              (drives, clock, sysop, BBS) has been asked; ib = the part's
 '              base (24+6*part), nx/nx$ its first item not asked yet
-'   su%(10)    the boot device; su%(11-16), su%(21-26) the chosen device and
+'   su%(10)    the boot device, su%(20) its drive (0, or the LU on a Lt.
+'              Kernal); su%(11-16), su%(21-26) the chosen device and
 '              drive of drives 1-6 (dv%() and dr%() stay the boot drive
 '              until sub.su.write, so modules load from the boot disk)
 '   su$(1-5)   sysop: handle, password, first and last name, e-mail
@@ -81,7 +82,13 @@
 ' the bus scan first (sub.sysdos im=2: each device's model in tt$(8-30)),
 ' which the Drives part lists and checks the picks against
 {:drives}
-	im=2:a$="sysdos":gosub 74:im=1:a$="su.drives":goto 74
+	im=2:a$="sysdos":gosub 74:gosub {:ltkdev}:im=1:a$="su.drives":goto 74
+' 11/13/2026: lk%, the Lt. Kernal's device (the scan's "Lt. Kernal"; 0 if
+' there's none): the Drives part asks its LUs, sub.su.write keeps it in
+' record 38
+{:ltkdev}
+	lk%=.:for d=8 to 30:if tt$(d)="Lt. Kernal" then lk%=d
+	next:return
 {:sysop}
 	im=1:a$="su.sysop":goto 74
 {:bbs}
@@ -115,7 +122,7 @@
 ' the zone: one line in 80 columns), Sysop, BBS, the question
 {:review1}
 	gosub 3414:z3$="Review":gosub 3404
-	im=2:a$="sysdos":gosub 74:im=2:a$="su.drives":gosub 74
+	im=2:a$="sysdos":gosub 74:gosub {:ltkdev}:im=2:a$="su.drives":gosub 74
 	b$="(none chosen)":if su$(12)<>"" then gosub {:su.zone}
 	a$="{f6}   ":if sw>79 then a$="{comma} "
 	&"{yellow}2{lt. blue}) Clock{colon} {white}"+su$(13)+a$+b$+"{f6}"
@@ -163,8 +170,11 @@
 ' irqhn.asm irq1); its old value kept in su%(7) (after the dim) and put back at 4000's exit,
 ' as i/lo.idle reads it as "the clock is set" (AutoMaint, 4210-4211)
 	su%(7)=peek({sym:timeset}):poke {sym:timeset},1
-	su%(10)=bv:d1%=bv:d2%=.
-	for i=1 to 6:dv%(i)=bv:dr%(i)=.:su%(10+i)=bv:su%(20+i)=.:next
+' 11/13/2026: the boot drive su%(20): 0, or on a Lt. Kernal the LU it booted
+' from (im 3077 made d2% that: "0:" is LU 0 there)
+	su%(20)=d2%:if d1%<>bv then su%(20)=.
+	su%(10)=bv:d1%=bv:d2%=su%(20)
+	for i=1 to 6:dv%(i)=bv:dr%(i)=su%(20):su%(10+i)=bv:su%(20+i)=su%(20):next
 ' 11/07/2026: the number of parts (np), from the names, not written in
 	np=.:restore {:names}
 {:count}
