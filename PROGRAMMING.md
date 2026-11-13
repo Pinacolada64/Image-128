@@ -622,6 +622,50 @@ A NetSub (a sub-board shared through the network) is defined in the file
   release (or the C64) hasn't that byte, so it loads as it always did,
   with `a%(60)`'s low byte 0.
 
+## `++ chatmode`: chat between Lt. Kernal stations
+
+A proof of concept (11/12/2026): on a multiplexed Lt. Kernal hard drive,
+where up to 16 computers (stations, the host adapter's ports 0-15) share
+one drive, callers at different stations chat in one room, and the sysop
+comes in at any station by turning `Cht` on (and leaves by turning it
+off). `modules/i.ltk chat.lbl` runs it from the main prompt (through an
+ECS entry); the source is `asm/chatmode.asm`, whose header has the
+details. It isn't on the boot disk: Image-128's own Lt. Kernal code is
+still off (`use_ltk`, intro.asm).
+
+| Call | Does |
+|---|---|
+| `&,16` | shows the transcript, oldest first, until a key |
+| `&,16,2` | lists the other stations online: `Port nn: handle`, `(chat room)`, `with SysOp` |
+| `&,16,3` | the chat room, as `a$`, until `/x`, or the caller's carrier or time runs out |
+| `&,16,4,s` | this station's state: 0 offline, 1 online; `a$` the handle |
+
+The results are at `peek({sym:protostart}+3)` on: `+3` 0 fine, 1 carrier
+or time, 2 no room for the file on LU 10, 3 no LU 10 (or the new file not
+found), 4 no Lt. Kernal, 5 the room is full (15 stations), 6 an old
+`chatfile`; `+4` the transcript's blocks shown; `+5` this station's port;
+`+6` the other stations online; `+7` of those, in the room.
+
+- **The file:** `chatfile` on LU 10, user 0 (where every port sees it),
+  34 contiguous blocks: the header; a block for each port; the
+  transcript's position; the transcript, a ring of 16 blocks (8K).
+- **One writer per block.** The Lt. Kernal's notes call two ports writing
+  at once "usually fatal", so a station writes only its own block (its
+  state, handle, a tick, and its last 5 lines, numbered), and the others
+  read it; the transcript is written by the lowest-numbered station in the
+  room only. When that one leaves, the next takes over; a line can be lost
+  or written twice then. (`&,13`, Image's lock between stations, isn't
+  used: nothing calls it yet, and it's off on the 128.)
+- **The chat:** a line is sent on Return. About twice a second the overlay
+  reads the blocks of the stations in the room, and one other in turn (a
+  station coming in is seen within 8 seconds), and prints what's new. A
+  station whose tick stops for about 100 seconds is shown as timed out.
+- **Online** means in `i.ltk chat` for now: logon and logoff don't mark it.
+
+`tests/standin/chatmode.bas` (one station) and `tests/standin/chat2.bas`
+(two x128s on one emulated Lt. Kernal, ports 0 and 1) try it:
+`tools/ltk_chatmode.py`, `tools/ltk_chat2.py`.
+
 ## VIC screen cells to the VDC: `&,72`
 
 ML that draws on the VIC screen as it works (`++ net`'s and `++ copier`'s

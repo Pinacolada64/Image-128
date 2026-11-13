@@ -1,0 +1,29 @@
+' i.ltk chat: chat between the stations of a multiplexed Lt. Kernal hard
+' drive (and the sysop, who comes in at any station by turning Cht on),
+' through ++ chatmode (asm/chatmode.asm, PROGRAMMING.md). A proof of
+' concept, 11/12/2026. Run it from the main prompt through an Extended
+' Command Set entry (IM, then the ECS editor: the command, who may use it,
+' and the module, "i.ltk chat").
+'
+' "Online" here means in this module: it marks the station online with the
+' caller's handle when it starts and offline when they quit (logon and
+' logoff don't, yet). ++ chatmode needs the Lt. Kernal at device 8 and
+' "++ chatmode" on the system disk (it isn't in build.sh's overlays).
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{include:"..\asm\equates.asm"}
+
+3000 rem "i.ltk chat": chat between lt. kernal stations
+3002 p={sym:protostart}+3:a$="chatmode":gosub 28:if e% then:&"{f6}Sorry, the chat module isn't on the system disk.{f6}":goto 300
+3004 a$=na$:&,16,4,1:a%=peek(p):if a%=4 then:&"{f6}This BBS has no Lt. Kernal hard drive.{f6}":goto 300
+3006 if a% then:&"{f6}The chat file isn't ready (error {pound}%a): tell the SysOp.{f6}":goto 300
+3008 a%=peek(p+2):&"{f6:2}Lt. Kernal Chat: you're at station {pound}%a.{f6}"
+3010 &"{f6}Online:{f6}":&,16,2:if peek(p+3)=. then:&"Nobody else.{f6}"
+3012 if tr%<1 then 3030
+3014 &"{f6}C)hat, T)ranscript, W)ho, Q)uit: {pound}g1{f6}"
+3016 on -(an$="C")-2*(an$="T")-3*(an$="W")-4*(an$="Q") goto 3020,3026,3010,3030:goto 3012
+3020 a$=na$:&,16,3:a%=peek(p):if a%=1 then 3030
+3022 if a%=5 then:&"{f6}The chat room is full.{f6}"
+3024 goto 3012
+3026 &"{f6}The transcript (a key stops it):{f6}":&,16:goto 3012
+3030 a$=na$:&,16,4,0:goto 300
