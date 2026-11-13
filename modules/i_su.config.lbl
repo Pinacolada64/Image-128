@@ -1,4 +1,4 @@
-{uses:3_0-preface.lbl}
+{uses:..\3_0-preface.lbl}
 ' Image BBS 128: i/su.config, the new-system setup: its menu.
 ' im loads it at line 4000 and calls it (3240-3242), with lm = the option
 ' picked: 1 configure, 2 convert from 1.2, 3 convert from 2.0.
@@ -28,8 +28,8 @@
 ' Built with C64List 4.04 (BASIC 2 tokens, which BASIC 7 runs; 4.06 won't
 ' take the numeric {assign}s).
 {alpha:alt}
-{include:quoters.lbl}
-{include:"asm\equates.asm"}
+{include:..\quoters.lbl}
+{include:"..\asm\equates.asm"}
 {assign:3084	=3084	} ' im: reopen the command channel, read bd.data (c64 3.0: 3080)
 {assign:3200	=3200	} ' im: insert-disks menu
 {assign:3300	=3300	} ' im: start the daily log

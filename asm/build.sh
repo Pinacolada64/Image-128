@@ -115,16 +115,6 @@ if ! grep -q "^0 Errors" <<<"$log"; then
 	exit 1
 fi
 
-# modules: BASIC 2 tokens (BASIC 7 runs them), C64List 4.04 as the C64's
-# (ISU_CONFIG: another copy to build instead, in the repo's top directory,
-# e.g. the last committed one while i_su.config.lbl is being edited)
-isu=${ISU_CONFIG:-i_su.config.lbl}
-log=$(WINEDEBUG=-all wine "$C64LIST" "$isu" "-prg:build\\i_su.config.prg" -ovr 2>&1) || true
-if ! grep -q "^0 Errors" <<<"$log"; then
-	grep -E "^Error|Errors;" <<<"$log" | sed 's/.*\\//' >&2
-	echo "build.sh: $isu failed" >&2
-	exit 1
-fi
 
 # the modules (modules/): sub.* (im loads them at line 60000), i.* (3000)
 # and i/* (4000; the listing names have "_" for "/"), the same way; a jump
@@ -139,7 +129,11 @@ for f in sub.*.lbl i.*.lbl i_*.lbl; do
 	# needs C64List 4.06, which tokenizes them; 4.06 won't take the
 	# preface's numeric {assign}s, so such a module can't {uses:} it
 	list=$C64LIST; grep -qi 'Basic70\.bas' "$f" && list=$C64LIST_406
-	log=$(WINEDEBUG=-all wine "$list" "$f" "-prg:..\\build\\$m.prg" $crunch -ovr 2>&1) || true
+	# ISU_CONFIG: another copy of i_su.config.lbl (the setup) to build in its
+	# place, in modules/ too, e.g. the last committed one while it's being
+	# edited (11/13/2026: the setup moved here from the top directory)
+	src=$f; [ "$f" = i_su.config.lbl ] && [ -n "$ISU_CONFIG" ] && src=$ISU_CONFIG
+	log=$(WINEDEBUG=-all wine "$list" "$src" "-prg:..\\build\\$m.prg" $crunch -ovr 2>&1) || true
 	if ! grep -q "^0 Errors" <<<"$log" || grep -q "Can't locate target line" <<<"$log"; then
 		grep -E "^Error|Errors;|Can't locate" <<<"$log" | sed 's/.*\\//' >&2
 		echo "build.sh: modules/$f failed" >&2
@@ -168,7 +162,6 @@ c1541 -format "image bbs 128,ib" d81 image128.d81 \
 	-write ml.res1 ml.res1 -write ml.res2 ml.res2 \
 	-write ml.rs232.prg ml.rs232 \
 	-write "im 128.prg" "im 128" \
-	-write i_su.config.prg "i/su.config" \
 	-write "$repo/disk/e.lightbar.prg" e.lightbar \
 	-write "$repo/disk/e.lightdefs.seq" "e.lightdefs,s" \
 	-write "$repo/disk/e.ecs.main.prg" e.ecs.main \
