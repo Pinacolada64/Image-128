@@ -622,6 +622,33 @@ A NetSub (a sub-board shared through the network) is defined in the file
   release (or the C64) hasn't that byte, so it loads as it always did,
   with `a%(60)`'s low byte 0.
 
+## `++ ltk clock`: the Lt. Kernal's clock
+
+What Image calls the "Lt. Kernal" clock (setup's clock part: "Lt. Kernal
+Port 1" or "Port 2"; `sub.clocks` im=3, `cp` the port) is a Dallas DS1216
+SmartWatch on a control port, read by bit-banging CIA 1: its 64-bit
+recognition pattern clocked out, then the clock's 64 bits clocked in. The
+C64 had it as `swr.ml` (at `$c000`: `sys 49152` for port 2, `sys 49155` to
+read, the date at 49159-49169); on the 128 it's the overlay `++ ltk clock`
+(`asm/ltk_clock.asm`, 11/12/2026):
+
+| Call | Does |
+|---|---|
+| `&,16,1` | reads the clock on control port 1 (CIA 1's port B) |
+| `&,16,2` | on control port 2 (port A) |
+| `&,16,0` | only turns the clock values at `+20` into the date (a test) |
+
+The date is at `peek({sym:protostart}+7)` on, 11 digits as `z$` has them
+(the weekday 1-7, year, month, day, the hour 1-12 with 80 more after noon,
+the minute), then the second; the clock's own values (BCD) at `+20` on:
+year, month, date, weekday, hour (24-hour), minute, second, hundredths.
+With no clock on the port the date is whatever the lines read (not
+digits), and `sub.clocks` says "No Lt. Kernal clock on port n." instead
+of setting the BBS clock. VICE has no such clock on a control port:
+`tests/standin/ltkclock.bas` checks the conversion (`&,16,0`) for each
+awkward hour, and that `&,16,1` and `&,16,2` with nothing there come back
+with CIA 1's data directions as they were. Untried on a real clock.
+
 ## VIC screen cells to the VDC: `&,72`
 
 ML that draws on the VIC screen as it works (`++ net`'s and `++ copier`'s

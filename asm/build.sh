@@ -59,17 +59,20 @@ c64list rs232.asm -prg:rs232.prg -ovr
 cp rs232.prg "$build/ml.rs232.prg"
 
 # the "++" overlays: im loads them at protostart (&,7,dv%,2), each on the
-# disk as "++ <name>"; extra disk names for the same file after a ":"
-overlays="index:4 clock menu2 2 read post path net netsub netlist copier visual"
+# disk as "++ <name>" (a "_" in the source's name is a space on the disk:
+# ltk_clock.asm is "++ ltk clock"); extra disk names for the same file
+# after a ":"
+overlays="index:4 clock menu2 2 read post path net netsub netlist copier visual ltk_clock"
 ovlwrites=()
 for o in $overlays; do
 	name=${o%%:*}
+	disk=${name//_/ }
 	c64list "$name.asm" "-prg:$name.prg" -ovr
-	cp "$name.prg" "$build/++ $name.prg"
-	ovlwrites+=(-write "$build/++ $name.prg" "++ $name")
+	cp "$name.prg" "$build/++ $disk.prg"
+	ovlwrites+=(-write "$build/++ $disk.prg" "++ $disk")
 	extra=${o#"$name"}
 	for alias in ${extra//:/ }; do
-		ovlwrites+=(-write "$build/++ $name.prg" "++ $alias")
+		ovlwrites+=(-write "$build/++ $disk.prg" "++ $alias")
 	done
 done
 c64list boot.asm -prg:boot.prg -ovr
