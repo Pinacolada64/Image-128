@@ -56,6 +56,13 @@ try:
     if not t:
         sys.exit('the Lt. Kernal didn\'t come up in 128 mode:\n' + s)
     v.type('RUN"BOOT 128",U9\r')
+    # the chat room: a line, then /x (PETSCII: capitals in ASCII are the
+    # lowercase letters)
+    t, s = waitfor(v, ['chat room. /x', 'failed'], 300, every=3)
+    if t == 'chat room. /x':
+        v.type('HELLO\r')
+        time.sleep(4)
+        v.type('/X\r')
     t, s = waitfor(v, ['all passed', 'failed'], 400, every=5)
     print(s)
     sys.exit(0 if t == 'all passed' else 1)
