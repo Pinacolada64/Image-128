@@ -1,9 +1,14 @@
 ; chatmode.asm -- "++ chatmode": the chat file on a (multiplexed) Lt. Kernal
-; hard drive. UNTESTED: Image BBS 128 has no Lt. Kernal support yet (intro's
-; use_ltk is off: VICE has no Lt. Kernal for the 128), so this is assembled
-; but not on the boot disk (not in build.sh's overlays). Assemble it with
+; hard drive. Not on the boot disk (not in build.sh's overlays): Image BBS
+; 128's own Lt. Kernal code is still off (intro's use_ltk). Assemble it with
 ;
 ;	wine c64list4_04.exe chatmode.asm -prg:chatmode.prg -ovr
+;
+; 11/12/2026: tried on VICE 3.8's Lt. Kernal emulation in 128 mode
+; (tests/standin/chatmode.bas, tools/ltk_chatmode.py): the first &,16 made
+; chatfile (the Lt. Kernal's DIR: LU 10, user 00, 16 blocks, type 5) and
+; showed its empty first block; the second found it. Not tried yet: a
+; replay of saved text (nothing writes any: modules/TODO.md).
 ;
 ; A module loads it (a$="chatmode":gosub 28) and calls &,16: it finds
 ; "chatfile" on LU 10, user 0, or makes it (16 blocks, contiguous), then
