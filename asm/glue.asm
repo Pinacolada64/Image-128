@@ -357,3 +357,99 @@ charrom8_ld:
 	rts
 	orig charbuf8
 	byte 0,0,0,0,0,0,0,0
+
+; 11/12/2026: the Lt. Kernal hard drive, for &,13's locks between the
+; stations of a multiplexed one (miscl.asm's arbit; intro.asm's lockinit
+; finds or makes the lockfile and sets these). Here, in the shared 16K,
+; because BNKOUT and BNKIN ($fc4e, $fc71) are in the Lt. Kernal's KERNAL ROM
+; and DRIVER in its RAM at $8000: Image's ML (cfg_ml, its own code at
+; $c000-$ffff) can't call them from where it is. As W. J. Brier's LK
+; Mini-Mon (a C-128 program) calls DRIVER: $ff00 = %00001110 (RAM to
+; $bfff, the KERNAL ROM, I/O), BNKOUT, DRIVER, $ff00 = $00, BNKIN.
+;
+; ltkblock: one block (ltkblk, on LU 10) through the host adapter's RAM at
+; $91e0 (hdrblk), as the C64's block did: carry set writes .a/.x as its
+; first two bytes (the rest is what the buffer held), clear reads it; .a/.x
+; come back as its first two bytes (N from .a), $ff00 as it was, interrupts
+; on (BNKOUT leaves them off)
+ltkblock:
+	php
+	sta ltkb_a
+	stx ltkb_x
+	lda mmucr
+	sta ltkb_cfg
+	lda #%00001110
+	sta mmucr
+	jsr ltk_bnkout
+	lda ltkb_a
+	sta hdrblk
+	lda ltkb_x
+	sta hdrblk+1
+	ldx ltkblk
+	ldy ltkblk+1
+	lda #10
+	plp		; read or write
+	jsr ltk_driver
+	word hdrblk
+	byte 1
+	lda hdrblk
+	sta ltkb_a
+	lda hdrblk+1
+	sta ltkb_x
+	lda #cfg_rom
+	sta mmucr
+	jsr ltk_bankin
+	lda ltkb_cfg
+	sta mmucr
+	cli
+	ldx ltkb_x
+	lda ltkb_a
+	rts
+
+; ltklkblk: lock ltklock's block (the lockfile's header + 1 + the lock),
+; as ltkblock (carry, .a/.x), with RS-232 off around it (its NMIs: the Lt.
+; Kernal's notes warn of a write interrupted). miscl.asm's lock and unlock
+; (c64: block, there)
+ltklkblk:
+	php
+	sta ltkb_a2
+	stx ltkb_x2
+	sec
+	lda ltklock
+	adc ltkbase
+	sta ltkblk
+	lda #0
+	adc ltkbase+1
+	sta ltkblk+1
+	jsr rsdisab
+	lda ltkb_a2
+	ldx ltkb_x2
+	plp
+	jsr ltkblock
+	sta ltkb_a2
+	stx ltkb_x2
+	jsr rsinabl
+	ldx ltkb_x2
+	lda ltkb_a2
+	rts
+
+ltkb_a2:
+	byte 0
+ltkb_x2:
+	byte 0
+ltkb_a:
+	byte 0
+ltkb_x:
+	byte 0
+ltkb_cfg:
+	byte 0
+ltkblk:
+	word 0		; the block for ltkblock
+ltkflag:
+	byte 0		; 1: lockinit found (or made) the lockfile
+ltkport:
+	byte 0		; this station's port, + $80 (a lock's owner byte)
+ltkbase:
+	word 0		; the lockfile's header block (a lock's block: + 1 + n)
+ltklock:
+	byte 0		; the lock &,13 works on
