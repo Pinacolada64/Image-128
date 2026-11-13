@@ -35,7 +35,8 @@
 ; nothing here is written by more than one port: a station writes its own
 ; block, and only the lowest-numbered station in the room writes the
 ; transcript (when it leaves, the next one does: a line can be lost or
-; written twice then).
+; written twice then), under &,13's lock 0 (miscl.asm's arbit), so two
+; that think they're the writer at a handover write one after the other.
 ;
 ; A station's block: b_magic, its port, its state (0 offline, 1 online, 2
 ; in the chat room), whether the sysop is in the room at it (Cht on), a
@@ -88,6 +89,7 @@ cm_slotlen = 84		; number (2), who, length, 80 characters
 cm_lnmax = 78		; a typed line's longest
 cm_poll	= 30		; jiffies between polls (~0.5 s)
 cm_stale = 200		; polls without a new tick: gone (~100 s)
+cm_tlock = 0		; &,13's lock for the transcript
 
 ; a station's block
 b_magic	= 0
@@ -1062,6 +1064,10 @@ cmtf0:
 	bcc cmtf0a
 	jmp cmtf8	; (out of a branch's reach)
 cmtf0a:
+	ldx #1		; &,13,1,0: the transcript's lock (the Lt. Kernal's
+	ldy #cm_tlock	; locks between stations: two writers at a handover
+	lda #13		; write one after the other)
+	jsr usetbl1
 	jsr cmtpos	; where it ends
 	lda tpoff	; its block, unless at its start (new)
 	ora tpoff+1
@@ -1132,6 +1138,10 @@ cmtf6:
 	lda #cm_ctl
 	sec
 	jsr cmblock
+	ldx #2		; &,13,2,0: give it back
+	ldy #cm_tlock
+	lda #13
+	jsr usetbl1
 cmtf8:
 	lda #0
 	sta tqlen

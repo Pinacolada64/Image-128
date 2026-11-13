@@ -654,8 +654,9 @@ found), 4 no Lt. Kernal, 5 the room is full (15 stations), 6 an old
   state, handle, a tick, and its last 5 lines, numbered), and the others
   read it; the transcript is written by the lowest-numbered station in the
   room only. When that one leaves, the next takes over; a line can be lost
-  or written twice then. (`&,13`, Image's lock between stations, isn't
-  used: nothing calls it yet, and it's off on the 128.)
+  or written twice then. Its writes are under `&,13`'s lock 0 (below), so
+  two stations that both think they're the writer at a handover write one
+  after the other.
 - **The chat:** a line is sent on Return. About twice a second the overlay
   reads the blocks of the stations in the room, and one other in turn (a
   station coming in is seen within 8 seconds), and prints what's new. A
@@ -665,6 +666,42 @@ found), 4 no Lt. Kernal, 5 the room is full (15 stations), 6 an old
 `tests/standin/chatmode.bas` (one station) and `tests/standin/chat2.bas`
 (two x128s on one emulated Lt. Kernal, ports 0 and 1) try it:
 `tools/ltk_chatmode.py`, `tools/ltk_chat2.py`.
+
+## `&,13`: locks between Lt. Kernal stations
+
+On a multiplexed Lt. Kernal hard drive, the stations (up to 16 computers,
+the host adapter's ports 0-15) share one drive, and two writing the same
+file at once can wreck it. `&,13` is Image's lock between them (`arbit`,
+miscl.asm, from Image 2.0; the 128's since 11/12/2026):
+
+| Call | Does |
+|---|---|
+| `&,13,1,n` | takes lock `n` (0-15), waiting while another station has it (a reverse `L` on the status line meanwhile); taken twice, it must be given back twice |
+| `&,13,2,n` | gives it back |
+
+Take the lock, do the writes, give it back. Without a Lt. Kernal (or its
+`lockfile`) both do nothing, so a module can call them on any system.
+Lock 0 is `++ chatmode`'s (its transcript); nothing else uses one yet.
+
+- **The lockfile:** `lockfile` on LU 10, user 0, 17 contiguous blocks:
+  its header, then a block for each lock: the owner (its port + `$80`; 0
+  for none) and how many times it has taken it. `lockinit` (intro.asm, at
+  `im`'s `sys 7171`) finds it, or makes it (2.0 only found it), and frees
+  every lock in a new one, and in any case the locks this station held
+  before a crash or a reset.
+- **Taking one:** read its block; free (or already this station's): write
+  this station's and the count, wait (up to ~65 ms, CIA 1's timer B), read
+  it again, and start over if another station wrote in between.
+- **On the 128:** the Lt. Kernal's routines (BNKOUT, BNKIN, DRIVER) are
+  in its own ROM and RAM, where Image's ML can't call them from its
+  configuration, so the block reads and writes are in glue.asm
+  (`ltkblock`, `ltklkblk`, the shared 16K), with `$ff00` set as W. J.
+  Brier's LK Mini-Mon (a C-128 program) sets it. The Lt. Kernal is found
+  as the C64 found it, by the `jsr` its KERNAL has at `$ffd2` (read with
+  the ROMs in), once, at boot.
+
+`tests/standin/lock.bas` (`tools/ltk_lock.py`) tries it on two x128s
+sharing VICE's emulated Lt. Kernal.
 
 ## VIC screen cells to the VDC: `&,72`
 

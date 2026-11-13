@@ -279,13 +279,33 @@ ecsdone:
 	ldx #var_a_integer
 	jmp putvar
 
+; &,13,x,n: a lock between the stations of a multiplexed Lt. Kernal hard
+; drive (x 1 take lock n, waiting while another station has it; x 2 give it
+; back). Lock n is block n+1 of the lockfile (LU 10, user 0), which
+; intro.asm's lockinit finds or makes at boot: its first byte is the owner
+; (its port + $80; 0 for nobody), its second how many times the owner has
+; taken it. To take it: read it; another's: show a reverse L on the status
+; line and try again; free (or this station's already): write this
+; station's and the count, wait (tdelay, timer B: up to ~65 ms), read it
+; again, and start over if another station's write came in between.
+;
+; 11/12/2026, 128: the Lt. Kernal's calls are in glue.asm (ltkblock), as
+; they need its ROM in, not Image's ML; lockinit's ltkflag says there's a
+; lockfile (c64: "lda $ffd2 / cmp #$20" here, the Lt. Kernal's jsr in the
+; KERNAL's CHROUT entry; here $ffd2 is Image's RAM); the owner byte is
+; ltkport (c64: port_load, self-modified); locks past the file's
+; (lk_locks) do nothing (c64: they were other files' blocks); a lock's
+; block is read and written by glue.asm's ltklkblk (c64: block, here), with
+; RS-232 off (its NMIs: the Lt. Kernal's notes warn of a write
+; interrupted). Nothing calls &,13 yet.
+lk_locks = 16		; the lockfile's locks (intro.asm makes it so)
+
 arbit:
-	sty lu_load+1
-; c64: "lda $ffd2 / cmp #$20" found a Lt. Kernal (it patches CHROUT's
-; jump table entry to a jsr). No Lt. Kernal support on the 128 yet.
-	lda #0
-	cmp #$20
-	bne arbit1
+	sty ltklock
+	lda ltkflag
+	beq arbit1
+	cpy #lk_locks
+	bcs arbit1
 	dex
 	beq lock
 	dex
@@ -295,9 +315,9 @@ arbit1:
 
 lock:
 	clc
-	jsr block
+	jsr ltklkblk
 	bpl idle
-	cmp port_load+1
+	cmp ltkport
 	beq lock1
 	ldy #$cc ; reverse uppercase L
 	sty tdisp+31
@@ -305,16 +325,15 @@ lock:
 	bne lock
 idle:
 	ldx #0
-	lda port_load+1
+	lda ltkport
 lock1:
 	inx
 	sec
-	jsr block
+	jsr ltklkblk
 	jsr tdelay
 	clc
-	jsr block
-port_load:
-	cmp #0
+	jsr ltklkblk
+	cmp ltkport
 	bne lock
 	ldy #$a0
 	sty tdisp+31
@@ -322,46 +341,17 @@ port_load:
 
 unlock:
 	clc
-	jsr block
+	jsr ltklkblk
 	bpl unlock0
-	cmp port_load+1
+	cmp ltkport
 	bne unlock0
 	dex
 	bne unlock1
 	lda #0
 unlock1:
 	sec
-	jmp block
+	jmp ltklkblk
 unlock0:
-	rts
-
-block:
-	jsr ltk_bnkout
-	php
-	sta ltk_redbuf
-	stx ltk_redbuf+1
-lu_load:
-; changed by self-modifying code
-	lda #0
-	sec
-blkl_load:
-; changed by self-modifying code
-	adc #0
-	tax
-	lda #0
-blkh_load:
-; changed by self-modifying code
-	adc #0
-	tay
-	lda #10
-	plp
-	jsr ltk_driver
-	word ltk_redbuf
-	byte 1
-	ldx ltk_redbuf+1
-	lda ltk_redbuf
-	jsr ltk_bankin
-	cli
 	rts
 
 tdelay:
