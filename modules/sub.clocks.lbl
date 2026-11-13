@@ -218,8 +218,11 @@
 	a$="ltk clock":gosub 28:if e% then on -(im>9) goto {:sub.return}:&"{f6}{lt. red}++ ltk clock not loaded.{f6}":return
 	&,16,cp:z$="":for i={sym:protostart}+7 to {sym:protostart}+17:z$=z$+chr$(peek(i)):next
 	a=.:for i=1 to 11:b$=mid$(z$,i,1):if b$<"0" or b$>"9" then a=1
-	next:b=val(mid$(z$,4,2)):c=val(mid$(z$,6,2)):d=val(mid$(z$,8,2)):h=val(left$(z$,1))
-	if a or h<1 or h>7 or b<1 or b>12 or c<1 or c>31 or d<1 or (d>12 and d<81) or d>92 or val(mid$(z$,10,2))>59 then e%=1:on -(im>9) goto {:sub.return}:&"{f6}{lt. red}No Lt. Kernal clock on port "+mid$(str$(cp),2)+".{f6}":return
+	next:b=val(mid$(z$,4,2)):c=val(mid$(z$,6,2)):d=val(mid$(z$,8,2))
+	if a or b<1 or b>12 or c<1 or c>31 or d<1 or (d>12 and d<81) or d>92 or val(mid$(z$,10,2))>59 then e%=1:on -(im>9) goto {:sub.return}:&"{f6}{lt. red}No Lt. Kernal clock on port "+mid$(str$(cp),2)+".{f6}":return
+' the weekday from the date: the clock's is whatever the program that set
+' it counted from (VICE's DS1216: 1 = Monday, 0 = Sunday; Image: 1 = Sunday)
+	y=val(mid$(z$,2,2)):n=b:d=c:gosub {:sub.weekday}:z$=mid$(str$(w),2)+mid$(z$,2)
 	goto {:sub.set_clock_std}
 
 ' --- 4: DS12C887 RTC chip (cp = base address) ---

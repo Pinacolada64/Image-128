@@ -21,8 +21,11 @@
 ; bit-banging the port: the 64-bit recognition pattern (ckpatt) is clocked
 ; out, then the clock's 64 bits are clocked in, a bit at a time, lowest
 ; first; with ckwrite nonzero it first clocks ckregs out to set the clock
-; (sub.clocks doesn't). Port 1's data direction ($dc03) is turned to output
-; around it, port 2's ($dc02) bit 0 to input; both are put back.
+; (sub.clocks doesn't). The port's data direction: lines 2-4 out, line 1
+; (the clock's data) in, then put back as it was. swr.ml decremented it
+; instead: port 2's $ff became $fe, right, but port 1's $00 became $ff, so
+; line 1 was an output, latched low, and the clock could never pull it high:
+; port 1 always read zeros (seen with VICE's DS1216 SmartWatch, 11/12/2026).
 ;
 ; Image BBS 128 (11/12/2026): runs at protostart ($1c00; c64 $c000), started
 ; with &,16 (in cfg_ml, which has the I/O); the port is set from &,16's
@@ -67,11 +70,17 @@ ckentry1:
 	ora #2
 	sta ckd1+1
 	sta ckd2+1
+	sta ckd3+1
 ; read the clock (c64: $c025)
 ckread:
 	sei
 ckd1:
-	dec $dc03	; the port's direction: see the top
+	lda $dc03	; the port's direction: lines 2-4 (D, /CE, /WE) out,
+	sta ckddr	; line 1 (Q) in; put back after
+	ora #%00001110
+	and #%11111110
+ckd2:
+	sta $dc03
 	lda #$08
 ckp1:
 	sta $dc01
@@ -103,8 +112,9 @@ ckp5:
 	bne ckread3
 	dex
 	bpl ckread2
-ckd2:
-	inc $dc03
+	lda ckddr
+ckd3:
+	sta $dc03
 	jsr ckconv
 	cli
 	rts
@@ -184,6 +194,9 @@ ckconv3:
 	pla
 	sta ckdate
 	rts
+
+ckddr:
+	byte 0		; the port's direction, as it was
 
 ; BCD .a to two digits at ckdate,y
 ckbcd:

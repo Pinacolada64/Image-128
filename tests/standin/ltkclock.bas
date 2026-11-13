@@ -17,6 +17,7 @@
 210 t$="no clock: ddr"+str$(a)+str$(b)+str$(c)+str$(d)+str$(peek(56322))+str$(peek(56323))
 220 ok=a=c and b=d and a=peek(56322) and b=peek(56323):gosub 900
 230 print "port 2 read: ";:for i=7 to 17:print chr$(peek(p+i));:next:print
+240 &,16,1:print "port 1 read: ";:for i=7 to 17:print chr$(peek(p+i));:next:print
 800 print:if f=0 then print "all passed":end
 810 print f;"failed":end
 900 if ok then print "pass ";t$:return

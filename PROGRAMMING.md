@@ -644,10 +644,21 @@ the minute), then the second; the clock's own values (BCD) at `+20` on:
 year, month, date, weekday, hour (24-hour), minute, second, hundredths.
 With no clock on the port the date is whatever the lines read (not
 digits), and `sub.clocks` says "No Lt. Kernal clock on port n." instead
-of setting the BBS clock. VICE has no such clock on a control port:
-`tests/standin/ltkclock.bas` checks the conversion (`&,16,0`) for each
-awkward hour, and that `&,16,1` and `&,16,2` with nothing there come back
-with CIA 1's data directions as they were. Untried on a real clock.
+of setting the BBS clock. The weekday is worked out from the date: the
+clock's means whatever the program that set it counted from.
+
+- **Port 1 works now.** `swr.ml` set the port's data direction with `dec`:
+  port 2's `$ff` became `$fe` (line 1, the clock's data, an input), but
+  port 1's `$00` became `$ff`, line 1 an output latched low, so port 1
+  always read zeros. `++ ltk clock` sets lines 2-4 out and line 1 in, and
+  puts the direction back after.
+- **Trying it:** VICE 3.8 has no such clock, so
+  `tools/vice/ds1216-smartwatch` adds one (a joyport device, "RTC (DS1216
+  SmartWatch)", `-controlport1device smartwatch`; its README).
+  `tools/ltk_clock.py` runs `tests/standin/ltkclock.bas` on an x128 built
+  with it: the conversion for each awkward hour (`&,16,0`), and the port
+  with the clock reading the host's date and time, the other non-digits;
+  both ports pass. Untried on a real SmartWatch.
 
 ## VIC screen cells to the VDC: `&,72`
 

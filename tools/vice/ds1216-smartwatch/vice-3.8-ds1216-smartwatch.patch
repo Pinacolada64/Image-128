@@ -1,0 +1,397 @@
+diff -ruN a/src/joyport/joyport.c b/src/joyport/joyport.c
+--- a/src/joyport/joyport.c	2026-11-12 23:12:22.144609967 -0800
++++ b/src/joyport/joyport.c	2026-11-12 23:12:22.148610135 -0800
+@@ -32,6 +32,7 @@
+ #include <ctype.h>
+ 
+ #include "bbrtc.h"
++#include "smartwatch.h"
+ #include "cardkey.h"
+ #include "cmdline.h"
+ #include "coplin_keypad.h"
+@@ -1245,6 +1246,12 @@
+       joyport_bbrtc_resources_shutdown,  /* resources shutdown function */
+       joyport_bbrtc_cmdline_options_init /* cmdline options init function */
+     },
++    { JOYPORT_ID_SMARTWATCH,                  /* device id */
++      VICE_MACHINE_NATIVE_5V_JOYPORTS,        /* emulators this device works on */
++      joyport_smartwatch_resources_init,      /* resources init function */
++      joyport_smartwatch_resources_shutdown,  /* resources shutdown function */
++      joyport_smartwatch_cmdline_options_init /* cmdline options init function */
++    },
+     { JOYPORT_ID_PAPERCLIP64,             /* device id */
+       VICE_MACHINE_C64_COMPATIBLE,        /* emulators this device works on */
+       joyport_paperclip64_resources_init, /* resources init function */
+@@ -1609,6 +1616,8 @@
+     { "2bitsampler",      JOYPORT_ID_SAMPLER_2BIT },
+     { "4bitsampler",      JOYPORT_ID_SAMPLER_4BIT },
+     { "bbrtc",            JOYPORT_ID_BBRTC },
++    { "smartwatch",       JOYPORT_ID_SMARTWATCH },
++    { "ds1216",           JOYPORT_ID_SMARTWATCH },
+     { "paperclip64",      JOYPORT_ID_PAPERCLIP64 },
+     { "paperclip",        JOYPORT_ID_PAPERCLIP64 },
+     { "pc64",             JOYPORT_ID_PAPERCLIP64 },
+diff -ruN a/src/joyport/joyport.h b/src/joyport/joyport.h
+--- a/src/joyport/joyport.h	2026-11-12 23:12:22.144609967 -0800
++++ b/src/joyport/joyport.h	2026-11-12 23:12:22.148610135 -0800
+@@ -84,6 +84,7 @@
+     JOYPORT_ID_PAPERCLIP64E,
+     JOYPORT_ID_PAPERCLIP64SC,
+     JOYPORT_ID_PAPERCLIP2,
++    JOYPORT_ID_SMARTWATCH,
+ 
+     /* This item always needs to be at the end */
+     JOYPORT_MAX_DEVICES
+diff -ruN a/src/joyport/Makefile.am b/src/joyport/Makefile.am
+--- a/src/joyport/Makefile.am	2026-11-12 23:12:22.144609967 -0800
++++ b/src/joyport/Makefile.am	2026-11-12 23:12:22.148610135 -0800
+@@ -22,6 +22,8 @@
+ libjoyport_a_SOURCES = \
+ 	bbrtc.c \
+ 	bbrtc.h \
++	smartwatch.c \
++	smartwatch.h \
+ 	cardkey.c \
+ 	cardkey.h \
+ 	coplin_keypad.c \
+diff -ruN a/src/joyport/smartwatch.c b/src/joyport/smartwatch.c
+--- a/src/joyport/smartwatch.c	1969-12-31 16:00:00.000000000 -0800
++++ b/src/joyport/smartwatch.c	2026-11-12 23:12:22.148610135 -0800
+@@ -0,0 +1,302 @@
++/*
++ * smartwatch.c - Dallas DS1216 SmartWatch RTC on a control port.
++ *
++ * This file is part of VICE, the Versatile Commodore Emulator.
++ * See README for copyright notice.
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++ *  02111-1307  USA.
++ *
++ */
++
++/* A Dallas DS1216 SmartWatch wired to a control port, as Image BBS's
++   "Lt. Kernal clock" reader (swr.ml; Image BBS 128's "++ ltk clock") drives
++   it: the SmartWatch's RAM-socket lines on four of the port's lines, and
++   every access is one bit, clocked by the chip enable.
++
++   Control port <--> SmartWatch connections:
++
++   cport | SmartWatch             | I/O (from the computer)
++   -------------------------------------------------------
++     1   | Q   (DQ0, data out)    |  I
++     2   | D   (A0, data in)      |  O
++     3   | /CE (chip enable)      |  O
++     4   | /WE (write enable)     |  O
++     7   | +5VDC                  | Power
++     8   | GND                    | Ground
++
++   A cycle starts when /CE goes low: with /WE low it's a write of D, with
++   /WE high a read, and Q holds the clock's bit until /CE goes high again
++   (Q is released, high, otherwise). The DS1216 protocol itself (the 64-bit
++   recognition pattern, then 64 bits of clock data read or written, a read
++   during the pattern starting it over) is core/rtc/ds1216e.c, whose read
++   function takes one cycle: address bit 2 set for a read, bit 0 the bit
++   written.
++
++   swr.ml's sequence, for reference: idle $0f (all high); a write bit: the
++   bit on line 2, lines 3 and 4 low, then $0f; a read bit: $08 (line 3 low,
++   line 4 high), read line 1, then $0f. It starts with a read cycle ($08,
++   $0f), which resets the pattern matching (anything else on the lines,
++   such as the keyboard scan on port 2's $dc00, can leave it ignoring the
++   pattern until a read).
++
++   As on a real port, the CIA's own output wins: the clock can only pull
++   line 1 low where the program left it an input (or latched high).
++
++   Works on:
++   - native port(s) (x64/x64sc/xscpu64/x128/xvic/xcbm5x0)
++*/
++
++#include "vice.h"
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++
++#include "cmdline.h"
++#include "ds1216e.h"
++#include "joyport.h"
++#include "resources.h"
++#include "snapshot.h"
++
++#include "smartwatch.h"
++
++/* rtc context */
++static rtc_ds1216e_t *smartwatch_context[JOYPORT_MAX_PORTS] = { NULL };
++
++/* rtc save */
++static int smartwatch_save;
++
++static int smartwatch_enabled[JOYPORT_MAX_PORTS] = { 0 };
++
++/* the last /CE seen, and what the clock drives on Q (1: released) */
++static uint8_t ce_line[JOYPORT_MAX_PORTS];
++static uint8_t q_line[JOYPORT_MAX_PORTS];
++
++static int joyport_smartwatch_set_enabled(int port, int enabled)
++{
++    int new_state = enabled ? 1 : 0;
++
++    if (new_state == smartwatch_enabled[port]) {
++        return 0;
++    }
++
++    if (new_state) {
++        /* enabled, create a new DS1216 RTC context for the clock on this port */
++        smartwatch_context[port] = ds1216e_init("SMARTWATCH");
++        ce_line[port] = 1;
++        q_line[port] = 1;
++    } else {
++        /* disabled, destroy this port's DS1216 RTC context */
++        if (smartwatch_context[port]) {
++            ds1216e_destroy(smartwatch_context[port], smartwatch_save);
++            smartwatch_context[port] = NULL;
++        }
++    }
++
++    smartwatch_enabled[port] = new_state;
++
++    return 0;
++}
++
++static uint8_t smartwatch_read(int port)
++{
++    uint8_t retval = 0xff;
++
++    if (!q_line[port]) {
++        retval &= (uint8_t)~(1 << JOYPORT_UP_BIT);    /* Q is on the 'up' pin */
++    }
++
++    joyport_display_joyport(port, JOYPORT_ID_SMARTWATCH, (uint16_t)(uint8_t)~retval);
++
++    return retval;
++}
++
++static void smartwatch_store(int port, uint8_t val)
++{
++    uint8_t d_val = JOYPORT_BIT_BOOL(val, JOYPORT_DOWN_BIT);      /* D on the 'down' pin */
++    uint8_t ce_val = JOYPORT_BIT_BOOL(val, JOYPORT_LEFT_BIT);     /* /CE on the 'left' pin */
++    uint8_t we_val = JOYPORT_BIT_BOOL(val, JOYPORT_RIGHT_BIT);    /* /WE on the 'right' pin */
++
++    if (!smartwatch_context[port]) {
++        return;
++    }
++
++    if (ce_line[port] && !ce_val) {
++        /* /CE goes low: one cycle, a read with /WE high, else a write of D */
++        uint16_t address = (uint16_t)((we_val ? 4 : 0) | d_val);
++        uint8_t out = ds1216e_read(smartwatch_context[port], address, 0xff);
++
++        q_line[port] = we_val ? (out & 1) : 1;
++    } else if (ce_val) {
++        /* /CE high: Q released */
++        q_line[port] = 1;
++    }
++
++    ce_line[port] = ce_val;
++}
++
++/* ------------------------------------------------------------------------- */
++
++/* Some prototypes are needed */
++static int smartwatch_write_snapshot(struct snapshot_s *s, int port);
++static int smartwatch_read_snapshot(struct snapshot_s *s, int port);
++
++static joyport_t joyport_smartwatch_device = {
++    "RTC (DS1216 SmartWatch)",      /* name of the device */
++    JOYPORT_RES_ID_NONE,            /* device can be used in multiple ports at the same time */
++    JOYPORT_IS_NOT_LIGHTPEN,        /* device is NOT a lightpen */
++    JOYPORT_POT_OPTIONAL,           /* device does NOT use the potentiometer lines */
++    JOYPORT_5VDC_REQUIRED,          /* device NEEDS +5VDC to work */
++    JOYSTICK_ADAPTER_ID_NONE,       /* device is NOT a joystick adapter */
++    JOYPORT_DEVICE_RTC,             /* device is an RTC */
++    0x0E,                           /* bits 3, 2 and 1 are output */
++    joyport_smartwatch_set_enabled, /* device enable/disable function */
++    smartwatch_read,                /* digital line read function */
++    smartwatch_store,               /* digital line store function */
++    NULL,                           /* NO pot-x read function */
++    NULL,                           /* NO pot-y read function */
++    NULL,                           /* NO powerup function */
++    smartwatch_write_snapshot,      /* device snapshot write function */
++    smartwatch_read_snapshot,       /* device snapshot read function */
++    NULL,                           /* NO device hook function */
++    0                               /* NO device hook function mask */
++};
++
++/* ------------------------------------------------------------------------- */
++
++static int set_smartwatch_save(int enabled, void *param)
++{
++    smartwatch_save = enabled ? 1 : 0;
++
++    return 0;
++}
++
++/* ------------------------------------------------------------------------- */
++
++static const resource_int_t resources_int[] = {
++    { "SmartWatchSave", 0, RES_EVENT_STRICT, (resource_value_t)0,
++      &smartwatch_save, set_smartwatch_save, NULL },
++    RESOURCE_INT_LIST_END
++};
++
++int joyport_smartwatch_resources_init(void)
++{
++    if (resources_register_int(resources_int) < 0) {
++        return -1;
++    }
++
++    return joyport_device_register(JOYPORT_ID_SMARTWATCH, &joyport_smartwatch_device);
++}
++
++void joyport_smartwatch_resources_shutdown(void)
++{
++    int i;
++
++    /* destroy any DS1216 RTC contexts */
++    for (i = 0; i < JOYPORT_MAX_PORTS; i++) {
++        if (smartwatch_context[i]) {
++            ds1216e_destroy(smartwatch_context[i], smartwatch_save);
++            smartwatch_context[i] = NULL;
++        }
++    }
++}
++
++/* ------------------------------------------------------------------------- */
++
++static const cmdline_option_t cmdline_options[] =
++{
++    { "-smartwatchsave", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
++      NULL, NULL, "SmartWatchSave", (resource_value_t)1,
++      NULL, "Enable saving of the DS1216 SmartWatch RTC data when changed." },
++    { "+smartwatchsave", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
++      NULL, NULL, "SmartWatchSave", (resource_value_t)0,
++      NULL, "Disable saving of the DS1216 SmartWatch RTC data when changed." },
++    CMDLINE_LIST_END
++};
++
++int joyport_smartwatch_cmdline_options_init(void)
++{
++    return cmdline_register_options(cmdline_options);
++}
++
++/* ------------------------------------------------------------------------- */
++
++/* SMARTWATCH snapshot module format:
++
++   type  | name | description
++   ----------------------------
++   BYTE  | CE   | last /CE line state
++   BYTE  | Q    | Q line state (what the clock drives)
++
++   followed by the DS1216E RTC's own snapshot module.
++ */
++
++static const char snap_module_name[] = "SMARTWATCH";
++#define SNAP_MAJOR   0
++#define SNAP_MINOR   1
++
++static int smartwatch_write_snapshot(struct snapshot_s *s, int port)
++{
++    snapshot_module_t *m;
++
++    m = snapshot_module_create(s, snap_module_name, SNAP_MAJOR, SNAP_MINOR);
++
++    if (m == NULL) {
++        return -1;
++    }
++
++    if (0
++        || SMW_B(m, ce_line[port]) < 0
++        || SMW_B(m, q_line[port]) < 0) {
++        snapshot_module_close(m);
++        return -1;
++    }
++    snapshot_module_close(m);
++
++    return ds1216e_write_snapshot(smartwatch_context[port], s);
++}
++
++static int smartwatch_read_snapshot(struct snapshot_s *s, int port)
++{
++    uint8_t major_version, minor_version;
++    snapshot_module_t *m;
++
++    m = snapshot_module_open(s, snap_module_name, &major_version, &minor_version);
++
++    if (m == NULL) {
++        return -1;
++    }
++
++    /* Do not accept versions higher than current */
++    if (snapshot_version_is_bigger(major_version, minor_version, SNAP_MAJOR, SNAP_MINOR)) {
++        snapshot_set_error(SNAPSHOT_MODULE_HIGHER_VERSION);
++        goto fail;
++    }
++
++    if (0
++        || SMR_B(m, &ce_line[port]) < 0
++        || SMR_B(m, &q_line[port]) < 0) {
++        goto fail;
++    }
++
++    snapshot_module_close(m);
++
++    return ds1216e_read_snapshot(smartwatch_context[port], s);
++
++fail:
++    snapshot_module_close(m);
++    return -1;
++}
+diff -ruN a/src/joyport/smartwatch.h b/src/joyport/smartwatch.h
+--- a/src/joyport/smartwatch.h	1969-12-31 16:00:00.000000000 -0800
++++ b/src/joyport/smartwatch.h	2026-11-12 23:12:22.148610135 -0800
+@@ -0,0 +1,31 @@
++/*
++ * smartwatch.h - Dallas DS1216 SmartWatch RTC on a control port.
++ *
++ * This file is part of VICE, the Versatile Commodore Emulator.
++ * See README for copyright notice.
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
++ *  02111-1307  USA.
++ *
++ */
++
++#ifndef VICE_SMARTWATCH_H
++#define VICE_SMARTWATCH_H
++
++int joyport_smartwatch_resources_init(void);
++void joyport_smartwatch_resources_shutdown(void);
++int joyport_smartwatch_cmdline_options_init(void);
++
++#endif
