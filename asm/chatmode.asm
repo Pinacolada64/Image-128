@@ -400,6 +400,8 @@ cmwr4:
 	bcc cmwr5
 	inc cmp1+1
 cmwr5:
+	ldx cmpsrc	; the line's buffer again: cmrdport's block read (and
+	jsr cmlnptr	; im's IRQ in 80 columns) left $fc/$fd changed
 	ldy #0
 cmwr6:
 	lda (cmpptr),y
@@ -684,6 +686,8 @@ cmkey6:
 	lda cmplen
 	sta cmtxtlen
 	jsr cmwrmine	; send it
+	ldx cmpsrc	; cmpptr again (cmwrmine's block I/O changes it)
+	jsr cmlnptr
 	lda cmpsrc	; and into the transcript, as it's shown
 	jsr cmwho
 	jsr cmtline
