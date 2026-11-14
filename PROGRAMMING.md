@@ -677,7 +677,17 @@ found), 4 no Lt. Kernal, 5 the room is full (15 stations), 6 an old
   reads the blocks of the stations in the room, and one other in turn (a
   station coming in is seen within 8 seconds), and prints what's new. A
   station whose tick stops for about 100 seconds is shown as timed out.
-- **Online** means in `i.ltk chat` for now: logon and logoff don't mark it.
+- **Online** means logged on (11/14/2026): `i.lo` calls `&,16,4,1` with
+  `na$` at logon (3118, normal and Instant Login alike) and `&,16,4,0` on
+  the way back to idle (3230: after every logoff, and at boot, which
+  clears a station a crash left online), through its lines 3236-3239.
+  They load `++ chatmode` at protostart (the idle screen loads `++ clock`
+  again itself, and nothing in the logon calls `&,16` before loading its
+  own). Without a Lt. Kernal (`&,16,4` answers 4) or without `++
+  chatmode` on the disk, `lq%` becomes -1 and they don't load it again.
+  `i.ltk chat` sets it online again (not offline) when the caller quits.
+  An online station's tick isn't watched: only stations in the room time
+  out.
 
 `tests/standin/chatmode.bas` (one station) and `tests/standin/chat2.bas`
 (two x128s on one emulated Lt. Kernal, ports 0 and 1) try it:

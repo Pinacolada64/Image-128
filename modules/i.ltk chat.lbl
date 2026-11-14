@@ -5,10 +5,12 @@
 ' Command Set entry (IM, then the ECS editor: the command, who may use it,
 ' and the module, "i.ltk chat").
 '
-' "Online" here means in this module: it marks the station online with the
-' caller's handle when it starts and offline when they quit (logon and
-' logoff don't, yet). ++ chatmode needs the Lt. Kernal at device 8 and
-' "++ chatmode" on the system disk (it isn't in build.sh's overlays).
+' "Online" means logged on: i.lo marks the station online with the
+' caller's handle at logon (3118) and offline on the way back to idle
+' (3230, after a logoff and at boot) (11/14/2026). This module marks it
+' online again as it starts and when they quit, which also covers a caller
+' whose handle changed. ++ chatmode needs the Lt. Kernal at device 8 and
+' "++ chatmode" on the system disk (asm/build.sh writes it).
 {uses:..\3_0-preface.lbl}
 {alpha:alt}
 {include:"..\asm\equates.asm"}
@@ -26,4 +28,4 @@
 3022 if a%=5 then:&"{f6}The chat room is full.{f6}"
 3024 goto 3012
 3026 &"{f6}The transcript (a key stops it):{f6}":&,16:goto 3012
-3030 a$=na$:&,16,4,0:goto 300
+3030 a$=na$:&,16,4,1:goto 300
