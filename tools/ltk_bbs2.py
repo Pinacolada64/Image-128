@@ -40,11 +40,16 @@ im boots to the idle screen; Loc on and I (Instant Login, the sysop, ID 1,
 password pw1), the logon's questions answered; then LTK at the main prompt
 and C (Chat). Both stations are the sysop's account, so the lines are
 told apart by their text, not the handle. Then:
+  0. station 1 types LTK first: station 0 must be listed online already
+     (logged on is online: i.lo 3118), and not in the room;
   1. station 0 sends a line; station 1 must show it, and the reverse;
   2. at station 1 the sysop turns Cht on ($1301 bit 0): the sysop joins
      and sends a line, which station 0 must show; Cht off: the sysop leaves;
   3. both leave (/x), T shows the transcript at each, which must have all
-     three lines; Q back to the main prompt.
+     three lines; Q back to the main prompt;
+  4. station 0 logs off (O!, the logoff's questions answered with their
+     defaults) to the idle screen, and station 1's W must say "Nobody
+     else." (i.lo 3230 marks it offline).
 Prints each step and both screens at the end, then "passed" or what was
 missing. Monitors on --port (6612) and --port + 2; --keep leaves both
 running.
@@ -204,15 +209,49 @@ class Station:
         self.show('never reached the main prompt')
         return False
 
-    def enter_chat(self):
+    def ltk(self):
+        """LTK at the main prompt, to i.ltk chat's menu"""
         self.v.type('LTK\r')
         if not self.wait_text("you're at station %d" % self.n, 120):
             return False
         if not self.wait_text('c)hat, t)ranscript', 60):
             return False
         self.show('i.ltk chat')
+        return True
+
+    def chat(self):
+        """C at the menu, into the chat room"""
         self.v.type('C')
         return self.wait_text('chat room. /x', 60)
+
+    def enter_chat(self):
+        return self.ltk() and self.chat()
+
+    def logoff(self):
+        """O! at the main prompt, D at the logoff menu, the rest answered,
+        until the idle screen"""
+        self.v.type('O!\r')
+        t, seen = time.time(), None
+        while time.time() - t < 240:
+            time.sleep(3)
+            if 4200 <= self.line() < 4300:
+                log('station %d: logged off, idle screen' % self.n)
+                return True
+            rows = [r for r in self.screen().split('\n')[:16] if r.strip()]
+            last = rows[-1].strip().upper() if rows else ''
+            if last == seen:
+                continue
+            seen = last
+            log('station %d logoff: %s' % (self.n, last[-70:]))
+            if last.startswith('CMD:'):
+                self.v.type('D')
+            elif 'KEY' in last or 'MORE' in last:
+                self.v.type(' ')
+            elif '?' in last or last.endswith(':'):
+                # Return takes the default (shown as ".Yes." or ".No.")
+                self.v.type('\r')
+        self.show('never got back to idle')
+        return False
 
 
 missing = []
@@ -234,15 +273,24 @@ try:
         sys.exit('a station never reached the idle screen')
     if not (a.logon() and b.logon(user2)):
         sys.exit('a station never reached the main prompt')
-    if not a.enter_chat():
-        sys.exit("station 0 never reached the chat room")
-    if not b.enter_chat():
-        sys.exit("station 1 never reached the chat room")
-    a.show('in the chat room'); b.show('in the chat room')
     # the handles as the lines show them (lowercased); with one account
     # both are the sysop's, so only the text tells the lines apart
     h0 = 'image sysop: ' if user2 else ''
     h1 = user2[5].lower() if user2 else ''
+    # logged on is online: station 1 sees station 0 before it types LTK
+    if not b.ltk():
+        sys.exit("station 1 never reached LTK's menu")
+    h0n = 'port 00: ' + ('image sysop' if user2 else '')
+    row = [r.lower() for r in b.screen().split('\n') if 'port 00:' in r.lower()]
+    ok = bool(row) and h0n in row[0] and '(chat room)' not in row[0]
+    log('station 1 %s station 0 online, not in the room: %r' % ('lists' if ok else 'MISSING', row))
+    if not ok:
+        missing.append('station 1: station 0 online at logon')
+    if not a.enter_chat():
+        sys.exit("station 0 never reached the chat room")
+    if not b.chat():
+        sys.exit("station 1 never reached the chat room")
+    a.show('in the chat room'); b.show('in the chat room')
     expect(a, '* %s joined' % h1 if user2 else 'joined')
     a.v.type('HELLO FROM ZERO\r')
     expect(b, h0 + 'hello from zero')
@@ -269,6 +317,22 @@ try:
         st.until(lambda: st.sees('c)hat, t)ranscript'), 60, 'the menu after T')
         st.v.type('Q')
         expect(st, 'main:')
+    # quitting LTK keeps a station online; logging off takes it off
+    b.v.type('LTK\r')
+    expect(b, 'port 00:')
+    b.until(lambda: b.sees('c)hat, t)ranscript'), 60, 'the menu')
+    if not a.logoff():
+        missing.append('station 0: logoff')
+    b.v.type('W')
+    time.sleep(10)
+    b.show('W after station 0 logged off')
+    tail = b.screen().lower().split('online:')[-1]
+    if 'nobody else' not in tail or 'port 00:' in tail:
+        missing.append('station 1: station 0 still online after its logoff')
+    else:
+        log('station 1 shows nobody else online')
+    b.v.type('Q')
+    expect(b, 'main:')
     a.show('the end'); b.show('the end')
     print('passed' if not missing else 'missing: ' + '; '.join(missing))
     sys.exit(0 if not missing else 1)
