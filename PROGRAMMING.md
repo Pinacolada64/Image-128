@@ -628,10 +628,26 @@ A proof of concept (11/12/2026): on a multiplexed Lt. Kernal hard drive,
 where up to 16 computers (stations, the host adapter's ports 0-15) share
 one drive, callers at different stations chat in one room, and the sysop
 comes in at any station by turning `Cht` on (and leaves by turning it
-off). `modules/i.ltk chat.lbl` runs it from the main prompt (through an
-ECS entry); the source is `asm/chatmode.asm`, whose header has the
-details. It isn't on the boot disk: Image-128's own Lt. Kernal code is
-still off (`use_ltk`, intro.asm).
+off). `modules/i.ltk chat.lbl` runs it from the main prompt: the ECS
+command `LTK` (`e.ecs.main`; how to use it is in SYSOP_COMMANDS.md,
+"`LTK`: Lt. Kernal Chat"). The source is `asm/chatmode.asm`, whose header
+has the details; `asm/build.sh` writes it to the disk as `++ chatmode`
+with the other overlays (since 11/14/2026), and Image's own Lt. Kernal
+code (`use_ltk`, intro.asm) is on.
+
+`LTK` is a long ECS entry (32 bytes, `asm/ecs.asm` has the layout): flag
+`$c0` (active, used, a module, long), access `$ff $03` (all groups), the
+command at bytes 3-9, the module's name (without `i.`) at 10-23. The
+command's letters must be stored shifted, `$c1`-`$da` (`LTK` is
+`cc d4 cb`), as im compares them; the module's name isn't (`ltk chat` is
+`4c 54 4b 20 43 48 41 54`). Written unshifted, the command is never
+matched ("Unknown Command").
+
+A sent line's text is read through `cmpptr` (`$fc`/`$fd`), which the
+whole BBS changes behind the overlay's back (in 80 columns, with im's IRQ
+running; the stand-ins don't show it): `cmwrmine` and `cmkey6` set it
+again from the line's buffer (`cmlnptr`) right before reading the text
+(11/14/2026; it sent the right length with the wrong bytes before).
 
 | Call | Does |
 |---|---|
@@ -681,7 +697,39 @@ miscl.asm, from Image 2.0; the 128's since 11/12/2026):
 
 Take the lock, do the writes, give it back. Without a Lt. Kernal (or its
 `lockfile`) both do nothing, so a module can call them on any system.
-Lock 0 is `++ chatmode`'s (its transcript); nothing else uses one yet.
+
+A lock is only a number the stations agree on: it doesn't know about
+files, and a station that writes without taking it isn't stopped. Pick one
+lock for each file (or set of files written together) that more than one
+station writes, and have every module that writes it take that lock.
+
+| Lock | Used by | For |
+|---|---|---|
+| 0 | `++ chatmode` | the transcript in `chatfile` (only the room's writer takes it) |
+| 1-15 | | free |
+
+From BASIC, around writes to a shared file:
+
+```
+3100 &,13,1,1:dr=3:a$="e.idle 1,s,a":gosub 4:print#2,d1$","b$:close 2:&,13,2,1
+```
+
+From ML (as `++ chatmode` does): `ldx #1` (take; `#2` give back),
+`ldy #lock`, `lda #13`, `jsr usetbl1`.
+
+- **It waits as long as it takes.** There's no time limit and no way out:
+  the station shows a reverse `L` at column 31 of the status line (row 24,
+  copied to the VDC in 80 columns too) until the lock is free, and the
+  caller sees nothing happen. So hold a lock only for the writes
+  themselves: never across a prompt, a key, or a modem transfer.
+- **Taking it again is fine:** a station that holds a lock gets it again
+  at once, and the count goes up; it's free once the count is back to 0
+  (as many gives as takes). Giving back a lock the station doesn't hold
+  does nothing, and so does a lock past 15 or any call but 1 and 2.
+- **A station that crashes holding a lock** keeps it until it boots
+  again: `lockinit` frees that station's locks then (the owner is the
+  port). Until it does, the others wait on that lock. There's no command
+  to free it from another station yet.
 
 - **The lockfile:** `lockfile` on LU 10, user 0, 17 contiguous blocks:
   its header, then a block for each lock: the owner (its port + `$80`; 0

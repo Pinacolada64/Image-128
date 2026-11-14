@@ -249,6 +249,107 @@ The new user application (`i/lo.new`) asks "Are You An IMAGE BBS
 Owner?", and writes the new caller's record (or `n`); it creates
 `e.sysop` if it isn't there.
 
+## `LTK`: Lt. Kernal Chat
+
+A chat room for a BBS on a multiplexed Lt. Kernal hard drive, where up to
+16 computers (stations) share one drive. Callers at different stations
+talk to each other, and the sysop can come in at any station. It's a proof
+of concept (11/2026).
+
+### What it needs
+
+- The Lt. Kernal at device 8, with LU 10 (where the chat file goes; every
+  station sees LU 10's user 0). Image finds the Lt. Kernal by itself at
+  boot.
+- `++ chatmode` and `i.ltk chat` on the system disk. `asm/build.sh` puts
+  both on `build/image128.d81`.
+- The `LTK` entry in the Extended Command Set. The `e.ecs.main` the build
+  writes has it (any access group may use it). A BBS set up before
+  11/14/2026 keeps its own `e.ecs.main`: add it with `IM`, then the ECS
+  editor: command `LTK` (a long command), module `ltk chat`, and the
+  access groups who may use it.
+
+The first time anyone uses it, it makes `chatfile` on LU 10 (34 blocks).
+
+### Running it
+
+Type `LTK` at the main prompt. It tells you your station (the Lt.
+Kernal's port number), lists who else is online, and offers a menu:
+
+```
+Lt. Kernal Chat: you're at station 1.
+
+Online:
+Port 00: IMAGE SYSOP (chat room)
+
+C)hat, T)ranscript, W)ho, Q)uit:
+```
+
+| Key | Does |
+|---|---|
+| `C` | enters the chat room |
+| `T` | shows the transcript, oldest first; a key stops it |
+| `W` | lists who's online again |
+| `Q` | back to the main prompt |
+
+"Online" means "in `LTK` right now": a station shows as online from when
+its caller types `LTK` until they quit it. Callers elsewhere on the BBS
+aren't listed. "(chat room)" after a name means they're in the room;
+"with SysOp" means the sysop is in the room at that station.
+
+### In the chat room
+
+```
+Here: IMAGE SYSOP
+
+* In the chat room. /x leaves.
+* TEST ACCOUNT joined
+IMAGE SYSOP: hello from zero
+TEST ACCOUNT: hi from one
+```
+
+- Type a line and press Return to send it (78 characters at most; Delete
+  works). It shows at every station in the room as `handle: text`.
+- `/x` and Return leaves the room, back to the menu.
+- Others coming and going show as `* handle joined`, `* handle left`, and
+  `* handle timed out` (a station that stops answering for about 100
+  seconds).
+- A new line from another station shows within about half a second; a
+  station coming into the room is seen within about 8 seconds.
+- Up to 15 stations can be in the room at once. Past that: "The chat room
+  is full."
+
+### The sysop
+
+At any station where a caller is in the room, turn `Cht` on (the
+lightbar) to join: the room sees `* SysOp joined`, and while `Cht` is on
+the keyboard at that station is the sysop's, and lines go out as
+`SysOp: text`. Turn `Cht` off to leave (`* SysOp left`). A caller on the
+modem at that station stays in the room and keeps typing on their own
+line meanwhile.
+
+### The transcript
+
+Everything said in the room, joins and leaves too, goes into the
+transcript: the last 8K or so (16 blocks of `chatfile`, the oldest
+dropped as it fills). It's written by one station only (the
+lowest-numbered one in the room), under the Lt. Kernal's lock 0 (`&,13`,
+PROGRAMMING.md), so two stations never write it at once. When that station
+leaves, the next one takes over; a line can be lost or written twice at
+that moment.
+
+### Messages
+
+| Message | Means |
+|---|---|
+| Sorry, the chat module isn't on the system disk. | `++ chatmode` is missing |
+| This BBS has no Lt. Kernal hard drive. | no Lt. Kernal found at boot |
+| The chat file isn't ready (error _n_): tell the SysOp. | 2: no room on LU 10 for `chatfile`; 3: no LU 10; 6: `chatfile` is an old, smaller one: scratch it (LU 10, user 0) and the next `LTK` makes a new one |
+| The chat room is full. | 15 stations are in it already |
+
+`LTK` also leaves at once when the caller's time is up or their carrier
+drops.
+
 ## The idle screen
 
 What the BBS shows while nobody is connected (`i/lo.idle`). `?` lists
