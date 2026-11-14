@@ -7,7 +7,14 @@ runs modules/i.ltk chat).
     tools/standin.sh tests/standin/ltkinstall.bas
     tools/ltk_install.py --fresh
     tools/setup_test.py --ltk 5 --out build/ltk-setup.d81
+    cp build/ltk/disk*.dlk build/ltk-configured/   (to run again without setup)
     tools/ltk_bbs2.py [--from DIR] [--keep] [--port N]
+
+Passed 11/14/2026 (about 5 minutes). VICE keeps the Lt. Kernal's drive
+images with every byte inverted (XOR $ff): search them for a file's bytes
+that way. To replace one file on a configured system, put the configured
+images in build/ltk-installed/ and run tools/ltk_install.py --base installed
+--source DISK --no-keep (DISK holding just that file); build/ltk/ then has it.
 
 The drive images are the Lt. Kernal's as setup_test.py --ltk left them
 (build/ltk/, or --from DIR): Image on LU 5, its System and Etcetera drives
