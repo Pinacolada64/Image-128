@@ -8,7 +8,18 @@ runs modules/i.ltk chat).
     tools/ltk_install.py --fresh
     tools/setup_test.py --ltk 5 --out build/ltk-setup.d81
     cp build/ltk/disk*.dlk build/ltk-configured/   (to run again without setup)
-    tools/ltk_bbs2.py [--from DIR] [--keep] [--port N]
+    tools/ltk_bbs2.py [--from DIR] [--keep] [--port N] [--user2 ID:PW:FIRST:LAST:EMAIL:HANDLE]
+
+    tools/ltk_bbs2.py --from build/ltk-2users --user2 '2:TEST1:TEST:ACCOUNT:TEST@EXAMPLE.COM:TEST ACCOUNT'
+
+--user2: station 1 logs on as that account through the normal logon
+(Return, Return, the ID, the password; FIRST, LAST and EMAIL answer the
+logon's "Additional Information" check; HANDLE as the chat shows it), and
+the chat's lines are checked
+with each station's handle: the sysop's at station 0 ("image sysop: ..."),
+the other's at station 1. build/ltk-2users has TEST ACCOUNT (ID 2,
+password TEST1), made 11/14/2026 through the new-user application (NEW at
+the handle prompt) on build/ltk-configured.
 
 Passed 11/14/2026 (about 5 minutes). VICE keeps the Lt. Kernal's drive
 images with every byte inverted (XOR $ff): search them for a file's bytes
@@ -55,6 +66,9 @@ src = os.path.join(repo, 'build', 'ltk')
 if '--from' in args:
     src = args[args.index('--from') + 1]
 port = 6612
+user2 = None
+if '--user2' in args:
+    user2 = args[args.index('--user2') + 1].split(':')
 if '--port' in args:
     port = int(args[args.index('--port') + 1])
 work = os.path.join(repo, 'build', 'ltk-bbs2')
@@ -129,18 +143,40 @@ class Station:
         log('station %d: idle screen' % self.n)
         return True
 
-    def logon(self):
+    def logon(self, user=None):
+        """Instant Login (the sysop), or user (ID, password, first name,
+        last name, email) through the normal logon"""
         v = self.v
         b = v.mem('ram00', CHKTBL, 1)[0]
         v.cmd('bank ram', '> %04x %02x' % (CHKTBL, b | 0x10), '> %04x 01' % (IRQ7 + 1))
         if not self.until(lambda: 'INSTANT LOGIN:' in self.screen().upper(), 120, 'Instant Login'):
             return False
-        for _ in range(3):
+        s = lambda: self.screen().upper()
+        if user:
+            uid, pw, first, last, email = user[:5]
             time.sleep(2)
-            v.type('I')
-            s = lambda: self.screen().upper()
-            if self.until(lambda: 'MAIN' in s() or 'PASSWORD' in s(), 40, 'the password'):
-                break
+            v.type('\r')
+            if not self.until(lambda: 'LOGIN:' in s().split('INSTANT LOGIN')[-1], 60, 'the Login Options menu'):
+                return False
+            v.type('\r')
+            if not self.until(lambda: 'LOGIN ID#' in s(), 60, 'the handle or ID prompt'):
+                return False
+            v.type(uid + '\r')
+            if not self.until(lambda: 'PASSWORD' in s(), 60, 'the password prompt'):
+                return False
+            v.type(pw + '\r')
+            # the "Additional Information" check: one of these three
+            if self.until(lambda: 'ADDITIONAL' in s() or 'SUCCESSFUL' in s(), 30, 'the check question'):
+                if 'ADDITIONAL' in s():
+                    time.sleep(2)
+                    q = s().split('ADDITIONAL')[-1]
+                    v.type((first if 'FIRST' in q else last if 'LAST' in q else email) + '\r')
+        else:
+            for _ in range(3):
+                time.sleep(2)
+                v.type('I')
+                if self.until(lambda: 'MAIN' in s() or 'PASSWORD' in s(), 40, 'the password'):
+                    break
         t, seen = time.time(), None
         while time.time() - t < 300:
             time.sleep(3)
@@ -156,8 +192,8 @@ class Station:
             seen = last2
             log('station %d logon: %s' % (self.n, last2[-70:]))
             if 'PASSWORD' in last2:
-                v.type('PW1\r')
-            elif 'HIT ANY KEY' in last or 'MORE' in last:
+                v.type((user[1] if user else 'PW1') + '\r')
+            elif 'KEY' in last or 'MORE' in last:     # HIT ANY KEY, (PRESS A KEY)
                 v.type(' ')
             elif 'LINES' in last2:
                 v.type('23\r')
@@ -196,18 +232,22 @@ try:
     b = Station(1)
     if not (a.boot() and b.boot()):
         sys.exit('a station never reached the idle screen')
-    if not (a.logon() and b.logon()):
+    if not (a.logon() and b.logon(user2)):
         sys.exit('a station never reached the main prompt')
     if not a.enter_chat():
         sys.exit("station 0 never reached the chat room")
     if not b.enter_chat():
         sys.exit("station 1 never reached the chat room")
     a.show('in the chat room'); b.show('in the chat room')
-    expect(a, 'joined')
+    # the handles as the lines show them (lowercased); with one account
+    # both are the sysop's, so only the text tells the lines apart
+    h0 = 'image sysop: ' if user2 else ''
+    h1 = user2[5].lower() if user2 else ''
+    expect(a, '* %s joined' % h1 if user2 else 'joined')
     a.v.type('HELLO FROM ZERO\r')
-    expect(b, 'hello from zero')
+    expect(b, h0 + 'hello from zero')
     b.v.type('HI FROM ONE\r')
-    expect(a, 'hi from one')
+    expect(a, (h1 + ': ' if user2 else '') + 'hi from one')
     b.v.cmd('bank ram00', '> %04x 01' % CHT)    # Cht on at station 1
     time.sleep(4)
     b.v.type('SYSOP AT ONE\r')
@@ -222,7 +262,8 @@ try:
         st.v.type('T')
         time.sleep(8)
         st.show('the transcript')
-        for t in ('hello from zero', 'hi from one', 'sysop at one'):
+        for t in (h0 + 'hello from zero', (h1 + ': ' if user2 else '') + 'hi from one',
+                  ('sysop: ' if user2 else '') + 'sysop at one'):
             if not st.sees(t):
                 missing.append('station %d transcript: %r' % (st.n, t))
         st.until(lambda: st.sees('c)hat, t)ranscript'), 60, 'the menu after T')
