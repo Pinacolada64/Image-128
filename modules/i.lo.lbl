@@ -42,7 +42,7 @@
 3114 im=7:gosub446:lm=1
 3115 goto3500
 3116 gosub3594:dr=1:a$="s.login":gosub3050:a$="lo."+"login":gosub3052:goto72
-3118 b$="logon":x=10:gosub3080:a$="lo."+"on":gosub72
+3118 b$="logon":x=10:gosub3080:x=1:gosub3236:a$="lo."+"on":gosub72
 3119 a$="lo."+"mail":gosub72:ifa=.then3122
 3120 a$="EM":goto70
 3122 goto300
@@ -53,12 +53,21 @@
 3204 ifi%ork%then:&"{f6}{lt. blue}Update User File?:{white} ":gosub96:im=1:onagosub445
 3220 &,52,$22,.:on-(ac%=16)goto3230:im=3:gosub446:im=1:gosub446
 3222 a$="lo."+"off":gosub72
-3230 lm=1
+3230 lm=1:x=.:gosub3236
 ' 10/27/2026: always i/lo.idle; it checks lightbar flag 55 itself (4400) to show
 ' New Messages instead of Calls/Log, which was all i/lo.idle2 did
 3231 a$="lo."+"idle"
 3232 goto72
 3234 a$="lo."+"instant":goto72
+' 11/14/2026: this station online (x=1, at logon, with na$) or offline (x=0,
+' on the way back to idle: after a logoff, and at boot, which also clears
+' a station a crash left online) for ++ chatmode (i.ltk chat, the LTK
+' command), on a multiplexed Lt. Kernal. lq% -1: no Lt. Kernal (&,16,4
+' answers 4) or no ++ chatmode, so this doesn't load it again
+3236 if lq%<. then return
+3237 a$="chatmode":gosub28:if e% then lq%=-1:return
+3238 a$=na$:&,16,4,x:if peek({sym:protostart}+3)=4 then lq%=-1
+3239 return
 3400 poke53248,1:&"{clear}":cm$="Auto-Maint":gosub9
 3401 a$="lo."+"automaint":gosub72:b$="automaint":x=11:gosub3080
 3402 gosub304:br=.:a$="e.maintmods,s,r":dr=3:gosub4:ife%thenclose2:goto3416
