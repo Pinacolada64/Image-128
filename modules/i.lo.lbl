@@ -117,7 +117,10 @@
 3586 &"{f6}{green}Password Accepted{lt. green}.{f6}":on-(l2<>1)goto3526:l2=.:&,52,40,.
 3588 gosub33:x=21:gosub1:print#2," 0Off":close2:goto3526
 3594 a$="":fora=1toll%-2:a$=a$+"{$c0}":next:ak$=" "+a$+"{f6}":return
-3600 gosub90:dr=1:on-(mid$(d1$,4,2)="12")goto3604
-3602 a$="s.logo"+str$(int(rnd(.)*7)+1):gosub13:&"{pound}u0":return
-3604 a$="s.logo"+str$(int(rnd(.)*6)+8):gosub13:&"{pound}u0":return
+' 3600 gosub90:dr=1:on-(mid$(d1$,4,2)="12")goto3604
+' 3602 a$="s.logo"+str$(int(rnd(.)*7)+1):gosub13:&"{pound}u0":return
+' if it's December, read "s.logo" + (8-13)
+' 3604 a$="s.logo"+str$(int(rnd(.)*6)+8):gosub13:&"{pound}u0":return
+3600 gosub 90:x=int(rnd(.)*7)+1:if mid$(d1$,4,2)="12" then x=int(rnd(.)*6)+8
+3602 dr=1:a$="s.logo"+str$(x):gosub 13:&"{pound}u0":return
 3999 rem "i.lo (c)nissa 230313 lh-ad-rs"
