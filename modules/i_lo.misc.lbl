@@ -6,8 +6,8 @@
 
 ' Image BBS 128 (10/21/2026): C64 addresses in peek/poke/sys are the 128's,
 ' as {sym:...} names from asm/equates.asm (included below).
-{uses:..\3_0-preface.lbl}
 {alpha:alt}
+{include:..\Basic70.bas}
 {include:..\quoters.lbl}
 {include:"..\asm\equates.asm"}
 {crunch:on}
@@ -22,46 +22,57 @@
 ' Keep z$ (zs$) across sub.clocks, which sets z$ to the date: this module runs
 ' through im line 80, which keeps the name of the module to go back to
 ' (lo.idle) in z$, and loaded "i/<the date>" instead (?load error)
-4100 &"{clear}":zs$=z$:im=.:a$="clocks":gosub 74:z$=zs$:return
-4200 &"{clear}{f6}System Password{f6:2}[A]ll Calls, [O]ne Call or [N]one? {pound}g1"
-4202 if an$="N" then l2=0:&,52,40,0:&"None{f6}"
-4203 if an$="N" then:&,69,31,19," None    ",$8 c:an$="Off":goto 4212
-4204 if an$="O" then l2=1:&,52,40,1:&"One{f6}"
-4205 if an$="O" then:&,69,31,19," One     ",$8 c:goto 4210
-4206 if an$="A" then l2=2:&,52,40,1:&"All{f6}"
-4207 if an$="A" then:&,69,31,19," All     ",$8 c:goto 4210
-4208 return
-4210 poke 53252,10:&"{f6}Enter Password: {pound}i1":if an$="" then 4200
-4212 gosub 33:l2$=an$:b$=str$(l2)+l2$:x=21:gosub 1:print# 2,b$:close 2
-4214 gosub 33:x=21:gosub 1:&,2,2:l2=val(a$):l2$=(mid$(a$,3)):close 2
-4216 &,69,5,20,l2$+"        ",$8 c:return
+4100 &"{clear}":zs$=z$:im=.:a$="clocks":gosub {$37}4:z$=zs$:return
+
+' 1 input an$:x=instr("noa",an$):on x goto 10,20,30:print"not found":end
+' 10 print"n":end
+' 20 print"o":end
+' 30 print"a":end
+'
+' ready.
+' run
+' ? g
+' not found
+
+' 11/07/2026: one line for the three choices: instr gives N, O, A as 1-3,
+' so l2 (0 none, 1 one call, 2 all calls) is that less 1, and any other key
+' returns. The word ("None", "One", "All") is echoed, and padded onto the
+' status line; flag 40 is on for One and All, which ask the password; None
+' stores "Off". The record isn't read back (the old 4214): l2 and l2$ are
+' what was just written
+4200 &"{clear}{f6}System Password{f6:2}[A]ll Calls{comma} [O]ne Call or [N]one{question} {pound}g1":l2=instr("NOA",an$)-1:if l2<. then return
+4202 a$=mid$("NoneOne All ",l2*4+1,4):&"{pound}$a{f6}":&,69,31,19," "+a$+"    ",$8c:&,52,40,-(l2>.):an$="Off":if l2=. then 4212
+4210 poke 53252,10:&"{f6}Enter Password{colon} {pound}i1":if an$="" then 4200
+' 11/07/2026: typed twice, to check it (b$=an$+"": a copy, not a pointer
+' into the input buffer, which the second input reuses)
+4211 b$=an$+"":&"{f6}Again{comma} to Check{colon} {pound}i1":if an$<>b$ then:&"{f6}They Don't Match.{f6}":goto 4210
+' n=option, <password>=password. written to disk as " n<password>"
+4212 gosub {$33}3:l2$=an$:x=21:gosub {$31}:print# 2,str$(l2)+l2$:close 2
+4216 &,69,5,20,l2$+"        ",$8c:return
 ' 11/07/2026: the prompt says how to leave (any other key: Done, as before),
 ' and No at Scan Another? (4360) leaves too, not back here: its N (No) was
 ' this prompt's N (Net Log), so answering No to the scan started another
-4300 poke 53252,1:&"{clear}[A]ctivity [I]dle [N]et Log or Return{colon} {pound}g1"
-4301 a$="r":on-(an$="A")-2*(an$="I")-3*(an$="N") goto 4304,4306,4360
-4302 &"Done{f6}":return
-4304 &"Activity{f6}":gosub 4320:b$="log"+an$:gosub 36:goto 4314
-4306 &"Idle{f6:2}":gosub 4320:b$="idle "+an$:gosub 36:if e%then 4316
+4300 poke 53252,1:lp=1:&"{clear}[A]ctivity{comma} [I]dle{comma} or [N]et Log or Return{colon} {pound}i1"
+4302  a$="r":x=instr("AIN",an$):on x goto 4304, 4306, 4360:&"Done{f6}":return
+4304 &"Activity{f6}":gosub 4320:b$="log"+an$:gosub {$33}6:goto 4314
+4306 &"Idle{f6:2}":gosub 4320:b$="idle "+an$:gosub {$33}6:if e%then 4316
 4308 &"  Time   {$dd} Since Entry  {$dd} Function{f6}{pound}vj"
-4310 input# 2,an$,b$,c$,d$:&,15:c%=val(c$):&right$(an$,7)+"M {$dd}{pound}#3{pound}# {pound}%c mins {pound}$b {$dd} {pound}$d{f6}"
-4312 on st+1 goto 4310:goto 4318
+4310 do while st=.:input# 2,an$,b$,c$,d$:&,15:c%=val(c$):&right$(an$,7)+"M {$dd}{pound}#3{pound}# {pound}%c mins {pound}$b {$dd} {pound}$d{f6}":loop
+4312 goto 4318
 4314 sh=.:if e%=.then:&,3,2
 4316 if e%then:&
 4318 close 2:&"{f6:2}{pound}q0Press Any Key: {pound}g1":goto 4300
-4320 a$="s.menu 10":dr=1:gosub 14:return
-4360 poke 53252,4:gosub 4376:gosub 4362:&"{f6}{rvrs on} Scan Another? {rvrs off}":gosub 96:on agoto 4360:goto 4302
-4362 dr=2:a$="nm.log "+an$+",s,r":gosub 4:a%=.:sh=.:if e%then 4374
+4320 a$="s.menu 10":dr=1:gosub {$31}4:return
+4360 poke 53252,4:gosub 4376:gosub 4362:&"{f6}{rvrs on} Scan Another? {rvrs off}":gosub {$39}6:on agoto 4360:goto 4302
+4362 dr=2:a$="nm.log "+an$+",s,r":gosub {$34}:a%=.:sh=.:if e%then 4374
 4364 a%=a%+1:input# 2,a$,b$:&"{f6}{white}#{pound}%a:{rvrs on}{yellow} {pound}$a {rvrs off}{f6}    {green}{$04}"+right$(b$,11)
 4366 if len(b$)>11 then:&"{f6} To {green}{$04}"+left$(b$,11)
 4368 &"{f6}{white}Files Transferred:":&,3,2:if st=.and sh=.then 4364
-4370 close 2
 4372 close 2:return
 4374 &"{f6:2}{white}No Log Found":goto 4372
 4376 &"{clear}{f6}{green}Scan which log?{f6}{white}(Enter ? for list){f6}nm.log {pound}i0":on-(an$="{f2}") goto 4380
 4378 return
-4380 dr=2:gosub 2:close 1:open 1,dv%,0,"$"+dr$+"nm.log*":&"{f6}{white}":&,8,1:close 1
+4380 dr=2:gosub {$32}:close 1:open 1,dv%,0,"$"+dr$+"nm.log*":&"{f6}{white}":&,8,1:close 1
 4382 &"{pound}{back arrow}10{f6}{rvrs on}Any Key{rvrs off}{pound}g1":goto 4376
-4397 rem net logs added 211112 x-tec
-4398 rem 7-day logs added 181120 x-tec
-4399 rem "i/lo.misc (c)nissa 211112 lh"
+4397 rem 7-day logs added 2018-11-20, net logs added 2021-11-12 x-tec
+4399 rem "i/lo.misc (c)nissa 2021-11-12 lh"
