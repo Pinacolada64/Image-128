@@ -121,8 +121,8 @@ load's own status.
 | `s.m.info` | Personal Information | `sub.info` |
 | `s.timezones` | the time zones to choose from, each with its daylight saving time rule (format in PROGRAMMING.md) | `sub.info`, `sub.clocks` |
 | `s.dstrules` | the daylight saving time rules (format in PROGRAMMING.md) | `sub.clocks`; edited by `IM` DST Rules (`i/IM.dstrules`) |
-| `s.m.params`, `s.m.modes` | terminal parameters and modes | `sub.param1` |
-| `s.m.protos`, `s.protos` | transfer protocols | `sub.protos` |
+| `s.m.protos` | the transfer protocols to choose from (below) | `sub.protos`, `sub.param1` |
+| `s.protos` | help for the protocol list (f2 at its prompt) | `sub.protos`, `sub.param1` |
 | `s.m.reledit` | SM's REL file editor | `i/SM.reledit` |
 | `s.logon info` | the Login Editor's help | `i/IM.logon` |
 | `s.lightdefs` | the lightbar checks' names, for the Lightbar editor | `i/IM.lightbar` (Lightbar Defs) |
@@ -130,6 +130,50 @@ load's own status.
 `s.config` (a "System Configuration" screen), `s.idle` (Image 2.0's idle
 screen commands: `i/lo.idle` draws its own menu) and `s.netapp` (a network
 application form) aren't opened by name by any module.
+
+### Transfer protocols: `s.m.protos`
+
+A SEQ file of lines, one protocol each, ending at a `^` line or the end of
+the file. `sub.param1` (U/D Protocol, 61000; read at 61202-61210) and `sub.protos` read it
+into `tt$()`; the one chosen loads its overlay and is set up with `&,16,4`
+(`sub.param1` 61106-61108). The release's:
+
+```
+punter00 Punter
+punter20 Image 1.3 Punter
+xmodem01 Xmodem/CRC
+punter10 Relaxed Punter
+xmodem11 Relaxed Xmodem/CRC
+```
+
+| Columns | Read into | Is |
+|---|---|---|
+| 1-6 | `left$(a$,6)` | the overlay, loaded as `"++ "` and these: `++ punter`, `++ xmodem` |
+| 7 | `f` | the overlay's flag byte, set with `&,16,4,f` (its `setflag`, kept in `defflag`) |
+| 8 | `nb` | 0 for Punter, 1 for Xmodem, but read by nothing: not in 1.2, 2.0, 3.0 or here, nor by the ML. Perhaps once the protocol's family |
+| 9 | | a space |
+| 10 on | `d4$` | the name shown in the list (and in the status line) |
+
+Column 7's bits:
+
+| Bit | `++ punter` (`asm/punter.asm`) | `++ xmodem` (`asm/xmodem.asm`) |
+|---|---|---|
+| 1 | `flag_relaxed`: relaxed timing | relaxed timing |
+| 2 | `flag_filetype`: send and take the file type in a single-file transfer (Image 1.3 Punter) | 1K blocks (STX) when sending, instead of 128 bytes (SOH); 1K blocks are taken in either case |
+
+So `punter00` is Punter, `punter10` Relaxed Punter, `punter20` Image 1.3
+Punter (with the file type), `xmodem01` Xmodem/CRC, `xmodem11` Relaxed
+Xmodem/CRC.
+
+No line offers Xmodem-1K (`xmodem21`): on the C64 a 1K block's buffer, at
+the end of `++ xmodem` (`$c686`), would run to `$ca85`, past the protocol
+area's end (`$ca80`), and the 128 has no `++ xmodem` yet (neither it nor
+`++ punter` is in `asm/build.sh`'s overlays; `xmodem.asm` doesn't
+assemble).
+
+At the console `sub.param1` adds `copier00 Copier` to the list (61206, with
+`b%=1`, `pr=2`), which loads `++ copier`. `pr` is -1 once a protocol is
+chosen: its overlay isn't loaded yet.
 
 ## Tables and settings: `e.` files
 
@@ -145,7 +189,7 @@ application form) aren't opened by name by any module.
 | `e.ecs.main` | PRG | the Extended Command Set | `im 128`, at boot; `i/IM.ecs` |
 | `e.fkeys` | SEQ | the sysop's function key macros | `im 128`, at boot; `i/IM.macros` |
 | `e.modem` | PRG | the modem types to choose from | `i/IM.modem` |
-| `e.termkeys` | SEQ | Image Term's keys | `i.t` |
+| `e.termkeys` | SEQ | Image Term's function keys | `i.t` |
 | `e.say` | REL | sayings, picked at random (`e.say (small)`: a shorter set) | `im 128`; edited by `i/SM.sayedit` |
 | `e.text` | REL | text, by record number | `im 128`; edited by `i/SM.textedit` |
 | `e.errmsg` | REL | (not opened by name by any module) | |
@@ -184,9 +228,23 @@ application form) aren't opened by name by any module.
 | `u.weedinfo` | User | Autoweed's information |
 | `u.payroll` | User | the credits paid out (`IM` Payroll Editor) |
 | `d.` _library_ | Directory | a General Files library (`d.GF` ...) |
+| `m.` _handle_ | E-Mail | a user's mail (`im 128` line 32) |
 | `f.` _handle_ | E-Mail | mail for a user, shown at login (`i/lo-fmail`) |
 | `nm.log` _n_ | E-Mail | the network log, one for each day of the week |
 | `nm.P.count` | E-Mail | the dates, times and tracking numbers of network sub-board messages sent from this BBS |
+
+`m.` and `f.` files are named with the first 14 characters of the handle (a
+16-character file name, the most a file name can have). Image 3.0's release
+kept 13 in most modules but `i/lo.on` looked for 14, so a handle of 14 or more
+characters could lose its mail; every module keeps 14 since 11/10/2026.
+Moving a 3.0 system's files over: before the BBS takes calls, run
+`i.rename mail` once as the sysop (R at the main prompt, class 3). For each
+handle of 14 characters or more it renames the `m.` and `f.` files named with
+13 characters of it to 14, and lists what it did. It leaves alone, and lists,
+a file whose 13 characters start another handle too (it held both users'
+mail) and one whose new name is taken. By hand, it's a DOS command on the
+E-Mail drive, e.g. for `THE GREAT GATSBY`: `r0:m.THE GREAT GATS=m.THE GREAT GAT`
+(and the same for an `f.` file). Shorter handles aren't affected.
 
 ## Today in History: `today.` _Mon_ and `s.today/hist`
 

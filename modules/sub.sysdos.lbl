@@ -25,6 +25,9 @@
 ' - else, as TADA's drive_id.asm: 16 bytes at $e5bb (1541/1570/1571's 73
 '   message) or $a6df (1581's), the model the four digits ending at the
 '   first byte with bit 7 set
+' - else, 11/13/2026: a Lt. Kernal hard drive has no m-r: it answers with
+'   its status line ("00, OK,00,00"), which no drive's ROM holds there
+'   (tests/standin/ltkdos.bas)
 ' Out: tt$(d) = the model ("CMD HD", "1581"...), "?" for a drive that
 ' answers but isn't recognized (SD2IEC...), "" for none; a% = how many
 ' answered. Leaves file 15 closed
@@ -36,6 +39,7 @@
 60030 if w$="rd" then c$="RAMDrive"
 60031 if c$="" then n=16:b=58811:gosub 60044:if c$="" then b=42719:gosub 60044
 60032 if c$<>"" then tt$(d)=c$
+60033 if c$="" then if mid$(w$,3,1)="," and left$(w$,1)>="0" and left$(w$,1)<="9" then tt$(d)="Lt. Kernal"
 60034 next:return
 ' n bytes at b into w$
 60040 w$="":open 15,d,15,"m-r"+chr$(b-int(b/256)*256)+chr$(b/256)+chr$(n)

@@ -23,7 +23,10 @@
 4022 return
 4024 n=0:dr=2:a$=o$+",s,r":gosub 4:if e%then 4034
 4026 &"{f6} Delivering Sysop Message..."
-4028 f$="m."+left$(sy$,13):close 3:open 3,dv%,3,dr$+f$+",s,w":gosub 5
+' 11/10/2026: mail (m.) and waiting-mail (f.) file names keep 14 characters of the
+' handle (a 16-character file name), as im line 32 and i/lo.on 4178 do; some
+' modules kept 13, so a 14+ character handle's mail went to another file
+4028 f$="m."+left$(sy$,14):close 3:open 3,dv%,3,dr$+f$+",s,w":gosub 5
 4030 if e%then close 3:open 3,dv%,3,dr$+f$+",s,a"
 4032 &,2,2:s=st:print# 3,a$:on-(a$<>"{^}" and s=0) goto 4032:n=n+1:on-(s=0) goto 4032
 4034 close 2:close 3:if n=0 then return

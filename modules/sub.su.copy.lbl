@@ -2,7 +2,8 @@
 ' review's C, before sub.su.write, which then writes the configuration
 ' files onto the drives chosen). The boot disk's files go to the drives
 ' they belong on, where a drive isn't the boot disk (device su%(10), drive
-' 0): each copied with ++ copier (&,16,0), then compared with the original
+' su%(20): 0, or on a Lt. Kernal the LU it booted from; b0$ its prefix,
+' 11/13/2026: "0:" is LU 0 there): each copied with ++ copier (&,16,0), then compared with the original
 ' (&,16,3). The boot disk keeps its own; an old copy on a drive is
 ' scratched first. 11/07/2026 (the plan's phase 4).
 '
@@ -33,13 +34,13 @@
 {number:60000}
 {:copy}
 	gosub 3414:z3$="Copying System Files...":gosub 3404:su%(8)=.
-	bv=su%(10):n=.:for k=1 to 6:if su%(10+k)<>bv or su%(20+k) then n=1
+	bv=su%(10):b0$=mid$(str$(su%(20)),2)+":":n=.:for k=1 to 6:if su%(10+k)<>bv or su%(20+k)<>su%(20) then n=1
 	next:if n=. then:&"{f6}{lt. blue}Every drive is the boot disk{colon} nothing to copy.{f6}":return
 	b=bv:&"{f6}{lt. blue}Reading the boot disk ({pound}!b)...":gosub {:dir}
 ' 11/08/2026: setup.log on the boot disk, the files that failed and why (a
 ' name with no prefix, so it isn't copied itself); a new one each time
-	open 15,bv,15,"s0:setup.log":close 15:l$="Image BBS 128 setup: files that didn't copy":gosub {:log}
-	a$="0:++ copier":&,7,bv,2
+	open 15,bv,15,"s"+b0$+"setup.log":close 15:l$="Image BBS 128 setup: files that didn't copy":gosub {:log}
+	a$=b0$+"++ copier":&,7,bv,2
 ' the screen: the file, where it goes, the counts, and the copier's own
 ' counter line on row 15 (it counts there: ++ copier's pbuf0). 11/08/2026:
 ' from row 9: ++ copier shows each block on rows 2-8 as it goes (the frame
@@ -48,7 +49,7 @@
 	&,70,0,15:&"{cyan} Good{colon} 00000  Bad{colon} 00000  Bytes{colon} 000000"
 	q=.:w=.:x=.:y=.:for f=1 to nf:t$=left$(tt$(f),1):n$=mid$(tt$(f),2):gosub {:drive}
 	if k=. or t$="d" then {:next}
-	if su%(10+k)=bv and su%(20+k)=. then {:next}
+	if su%(10+k)=bv and su%(20+k)=su%(20) then {:next}
 	if t$="r" then y=y+1:goto {:next}
 	gosub {:one}
 {:next}
@@ -81,10 +82,10 @@
 ' closes every file open on that drive, so the first try (15 closed after
 ' reading the status) shut #2 before the copy, and nothing was written
 	close 15:close 3:close 2:open 15,d,15,"s"+g$+n$
-	open 3,bv,3,"0:"+n$+y$+",r":open 2,d,2,g$+n$+y$+",w":input#15,e,e$
+	open 3,bv,3,b0$+n$+y$+",r":open 2,d,2,g$+n$+y$+",w":input#15,e,e$
 	if e>=20 then close 2:close 3:close 15:x=x+1:l$=n$+" to"+str$(d)+","+g$+str$(e)+" "+e$:gosub {:log}:goto {:counts}
 	&,16,0:close 2:close 3:close 15:q=q+1
-	open 3,bv,3,"0:"+n$+y$+",r":open 2,d,2,g$+n$+y$+",r":a%=9:&,16,3:close 2:close 3
+	open 3,bv,3,b0$+n$+y$+",r":open 2,d,2,g$+n$+y$+",r":a%=9:&,16,3:close 2:close 3
 	if a% then x=x+1:l$=n$+" to"+str$(d)+","+g$+" not the same, at byte"+str$(b%):gosub {:log}:goto {:counts}
 	w=w+1
 {:counts}
@@ -95,19 +96,23 @@
 ' a line (l$) added to setup.log on the boot disk (each failure: no file
 ' of the copy is open then)
 {:log}
-	close 5:open 5,bv,5,"0:setup.log,s,a":print#5,l$:close 5:return
+	close 5:open 5,bv,5,b0$+"setup.log,s,a":print#5,l$:close 5:return
 
-' the boot disk's directory (device b, drive 0) into tt$(1-nf): its lines
-' are 32 bytes (the header 30; tests/standin/dirlines.bas), so &,2,2,n
-' reads a line at a time: the link (two 0s: the end), then the rest (the
-' blocks, the text, its 0); &,15,6 takes the name from between the quotes,
+' the boot disk's directory (device b, drive su%(20)) into tt$(1-nf).
+' 11/13/2026: a line at a time with &,8,2,1, as i/SM.lk util and i.CP.v3.1
+' do: it reads each line to its 0 (&,2,2,n read a fixed 32 bytes, true of
+' CBM and CMD drives but not something to count on). a$: the blocks (5
+' wide), a space, then the line's text: a file's has its name in quotes at
+' 7; the header and the "blocks" lines don't, and are skipped. The end: st,
+' or the "blocks free" line. &,15,6 takes the name from between the quotes,
 ' then the type (prg, seq, usr, rel; * before it: not closed)
 {:dir}
-	nf=.:close 2:open 2,b,0,"$0":&,2,2,2:&,2,2,30
+	nf=.:close 2:open 2,b,0,"$"+mid$(str$(su%(20)),2):get#2,a$,a$:&,8,2,1:s=st
 {:dir1}
-	&,2,2,2:if a$=nl$+nl$ or st then {:dir9}
-	&,2,2,30:an$=mid$(a$,3,27):&,15,6,34:if an$="" then {:dir1}
-	&,15,6,34:n$=a$
+	if s then {:dir9}
+	&,8,2,1:s=st:if mid$(a$,7,1)="b" then {:dir9}
+	if mid$(a$,7,1)<>chr$(34) then {:dir1}
+	an$=mid$(a$,8):&,15,6,34:n$=a$
 {:dir2}
 	&,15,6,32:if a$="" and an$<>"" then {:dir2}
 	if a$="" or left$(a$,1)="*" or nf>253 then {:dir1}

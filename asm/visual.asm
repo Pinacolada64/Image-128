@@ -13,7 +13,8 @@
 ; - Ctrl-X's line count is fixed (2.0 stored the key code, 24, not 23), and
 ;   Ctrl-X puts the number of lines used (the last one that isn't blank) in
 ;   "lines" ($03fe; 128: mline, the line after it, as the line editor);
-; - Ctrl-H shows a help screen of the keys;
+; - Ctrl-H shows a help screen of the keys (11/11/2026: through sub.editor,
+;   from s.visual or s.visual 80, as .x=5);
 ; - lines are packed (pack) for saving and for the screen: a reverse or
 ;   colour code only where it changes, no colour code for plain spaces,
 ;   and no blanks after the last visible column;
@@ -147,9 +148,16 @@ visual2:
 		jsr xchrout
 		lda #$ff	; the colour isn't known yet; it carries on from
 		sta lastc	; line to line
+		jsr findend	; 11/10/2026: the last line typed, for the marker
 		ldx #1
 		stx numx
 visual3:
+		ldx numx
+		jsr markrow	; 11/10/2026: "*** End of Text ***" on the row
+		bne visual3a	; after the last line typed
+		jsr printmark
+		jmp visual3b
+visual3a:
 		ldx numx
 		jsr rowdes	; 128: the page's line numx
 		jsr lastcol
@@ -159,6 +167,7 @@ visual3:
 		lda #1
 		jsr pack
 		jsr outbuf
+visual3b:
 		lda #13
 		jsr xchrout
 		inc numx
@@ -179,6 +188,7 @@ visual4:
 
 ; main loop: get a key
 visual5:
+		jsr chkend	; 11/10/2026: the end-of-text marker follows the text
 		jsr xgetin
 		pha
 ; xgetin returns Return (13) on every call once the carrier is lost, time
@@ -230,6 +240,7 @@ visual6:
 		lda crsrx
 		cmp #40
 		bne visual5
+		jmp vwrap	; 11/11/2026: word wrap (vwrap: or the next line as before)
 ; end of a line (or Return): go to the start of the next line
 visual7:
 ; 128: a line starting with "." and a letter is a dot command, for the line
@@ -246,9 +257,7 @@ visual7:
 		cmp #$5b
 		bcs visual7a
 		sta viscmd
-		jsr blankline
-		ldx #4
-		jmp vexit
+		jmp vdotcmd	; 11/11/2026: the line wiped on the screen too
 visual7a:
 		lda crsry
 		cmp #23
@@ -322,18 +331,39 @@ keyjmp:
 		word kpgup, visual2	; Ctrl-Y: the page before; Ctrl-L: redraw
 
 ; cursor keys: move, and send the key itself
+; 11/11/2026: kupedge and kdnedge are past a branch's reach now (the
+; marker's and word wrap's code came between): "beq" built $ff, into the
+; middle of the next instruction, so Up on row 1 and Down on row 23 ran
+; garbage (random characters). bne over a jmp instead
 kup:
 		ldx crsry
 		cpx #1
-		beq kupedge	; 128: on the top row, the page before
+		bne kup1
+		jmp kupedge	; 128: on the top row, the page before
+kup1:
 		dec crsry
 		jmp visual23
+; 11/11/2026: Down stops at the End of Text marker's line (vend+1), as
+; Ctrl-V stops at its page (user's request); Return still goes further
 kdown:
+		lda crsry
+		clc
+		adc top
+		sec
+		sbc #1		; this line
+		cmp vend
+		beq kdown0
+		bcs kdown9	; past the last line of text: on the marker's
+kdown0:
 		ldx crsry
 		cpx #23
-		beq kdnedge	; 128: on the bottom row, the next page
+		bne kdown1
+		jmp kdnedge	; 128: on the bottom row, the next page
+kdown1:
 		inc crsry
 		jmp visual23
+kdown9:
+		jmp visual5
 kright:
 		ldx crsrx
 		cpx #39
@@ -443,64 +473,13 @@ kctrlw2:
 kctrlw3:
 		jmp kredraw
 
-; Ctrl-H: show the keys, wait for a key, then show the lines again
+; Ctrl-H: out to sub.editor, which shows the help (s.visual)
 khelp:
-		lda #<helptext
-		sta vhelp+1
-		lda #>helptext
-		sta vhelp+2
-vhelp:
-		lda $ffff	; self-modified
-		beq khelp2
-		jsr xchrout
-		inc vhelp+1
-		bne vhelp
-		inc vhelp+2
-		jmp vhelp
-khelp2:
-		jsr xgetin
-		jmp visual2
-
-helptext:
-		byte $93, $05	; (clear)(white)
-		ascii "Visual editor keys:"
-		byte 13, 13
-		ascii "Cursor keys  move"
-		byte 13
-		ascii "Return       next line"
-		byte 13
-		ascii "Delete       delete to the left"
-		byte 13
-		ascii "Shift-Del    insert a space"
-		byte 13
-		ascii "Ctrl-I       insert a space"
-		byte 13
-		ascii "Ctrl-D       delete at the cursor"
-		byte 13
-		ascii "Ctrl-B       delete to line start"
-		byte 13
-		ascii "Ctrl-W       delete previous word"
-		byte 13
-		ascii "Ctrl-N       go to end of line"
-		byte 13
-		ascii "Rvs On/Off   reverse on/off"
-		byte 13
-		ascii "Colour keys  change colour"
-		byte 13
-		ascii "Ctrl-V       next page"
-		byte 13
-		ascii "Ctrl-Y       page before"
-		byte 13
-		ascii "Ctrl-L       show the page again"
-		byte 13
-		ascii "Clear        start over"
-		byte 13
-		ascii "Ctrl-X       done: save the lines"
-		byte 13
-		ascii "Ctrl-H       this help"
-		byte 13, 13
-		ascii "Press a key to go back."
-		byte 0
+; 11/11/2026: Ctrl-H leaves with .x=5: sub.editor shows s.visual (s.visual 80
+; in 80 columns), waits for a key, and starts ++ visual again where it left
+; (&,16,2). The help text was here (527 bytes); the file can say more
+		ldx #5
+		jmp vexit
 
 ; redraw the line from the cursor (kredraw) or from column 1 (kredraw1)
 kredraw:
@@ -541,7 +520,8 @@ visual25:
 		ldx #1
 		jmp vexit
 
-; 128: leave with .x (1 saved, 4 a dot command): the page stored packed;
+; 128: leave with .x (1 saved, 4 a dot command, 5 Ctrl-H: the help, which
+; sub.editor shows from s.visual): the page stored packed;
 ; mline the line after the last that isn't blank (of all 254), as the line
 ; editor keeps it; the case flag back; .x in sxreg, as the line editor's
 ; done leaves it (sub.editor reads it), viscmd in .a
@@ -1017,6 +997,388 @@ curx:
 cury:
 		byte $ff	; (1 = top)
 
+; 11/11/2026: word wrap (user's request). Column 39 just typed: if it isn't a
+; space, and a space is before it (columns 38 to 1, the last one: vws), the
+; word after it (columns vws+1-39, vwt of them) goes to the start of the
+; next line: copied to wraptmp (past the overlay's end, free), blanked here
+; (and redrawn, so it leaves the screen), then put in columns 1-vwt of the
+; next line, the cursor after it. Only if that line is blank, and is there:
+; on the bottom row, the next page's first line (pgnext's test). Otherwise,
+; or with no space, the next line as before (visual7)
+vwrap:
+		ldy #3*39-1	; column 39's character
+		lda (varbuf+1),y
+		cmp #' '
+		beq vwrapno
+		ldx #38
+		ldy #3*38-1
+vwrap1:
+		lda (varbuf+1),y
+		cmp #' '
+		beq vwrap2
+		dey
+		dey
+		dey
+		dex
+		bne vwrap1
+vwrapno:
+		jmp visual7
+vwrap2:
+		stx vws		; the space's column
+		lda #39
+		sec
+		sbc vws
+		sta vwt		; the word's length
+		asl
+		clc
+		adc vwt
+		sta vwn		; its bytes (3 a column)
+		lda crsry
+		cmp #23
+		bcs vwrap3
+		tax		; the next row: blank?
+		inx
+		jsr rowdes
+		jsr lastcol
+		pha
+		ldx crsry
+		jsr rowdes	; this line again
+		pla
+		bne vwrapno
+		jmp vwrap4
+vwrap3:
+		lda top		; the bottom row: a next page (as pgnext), and
+		clc		; its first line blank (packed: no length)
+		adc #23
+		cmp #233
+		bcs vwrapno
+		cmp vmax
+		beq vwrap3a
+		bcs vwrapno
+vwrap3a:
+		tax
+		jsr getdes
+		lda varbuf
+		pha
+		ldx crsry
+		jsr rowdes
+		pla
+		bne vwrapno
+vwrap4:
+		lda vws		; the word's first byte: 3 * vws
+		asl
+		clc
+		adc vws
+		sta vtemp
+		tay
+		ldx #0
+vwrap5:
+		lda (varbuf+1),y	; the word to wraptmp
+		sta wraptmp,x
+		iny
+		inx
+		cpx vwn
+		bcc vwrap5
+		ldy vtemp	; and blanked here
+		ldx vwt
+vwrap6:
+		lda #$92
+		sta (varbuf+1),y
+		iny
+		lda #$05
+		sta (varbuf+1),y
+		iny
+		lda #' '
+		sta (varbuf+1),y
+		iny
+		dex
+		bne vwrap6
+		lda #39		; redrawn from the word's column to 39
+		sta oldend
+		ldx vws
+		inx
+		stx crsrx
+		txa
+		jsr redraw
+		lda crsry
+		cmp #23
+		bcs vwrap8
+		inc crsry	; the next row: the word in columns 1 on
+		ldx crsry
+		jsr rowdes
+		jsr vwput
+		lda #0
+		sta oldend
+		lda #1
+		jsr redraw
+		jmp visual4
+vwrap8:
+		lda top		; this line (top+22) has text now, but vend may
+		clc		; not know yet (chkend runs before the next key):
+		adc #22		; pgnext checks the next page against vend
+		cmp vend
+		bcc vwrap8a
+		sta vend
+vwrap8a:
+		jsr pgnext	; the next page (tested above), its first line
+		lda #1
+		sta crsry
+		ldx #1
+		jsr rowdes
+		jsr vwput
+		jmp visual2
+; wraptmp's word into columns 1-vwt of the line in varbuf, the cursor after it
+vwput:
+		ldy #0
+vwput1:
+		lda wraptmp,y
+		sta (varbuf+1),y
+		iny
+		cpy vwn
+		bcc vwput1
+		ldx vwt
+		inx
+		stx crsrx
+		rts
+vws:
+		byte 0
+vwt:
+		byte 0
+vwn:
+		byte 0
+
+; 11/11/2026: a dot command: the line emptied, and wiped on the screen too
+; (reverse off, spaces over what was typed, back to column 1), so the line
+; editor's echo of the command ("Help!") doesn't follow the ".h", and ++
+; visual comes back with the cursor at the line's start; then out with .x=4
+vdotcmd:
+		jsr lastcol	; how much of the line has something on it
+		sta pend
+		jsr blankline
+		lda #1
+		sta crsrx
+		jsr crsrpos
+		lda #$92	; (rvrs off)
+		jsr xchrout
+		lda #0
+		sta vscan
+vdotc1:
+		lda vscan
+		cmp pend
+		bcs vdotc2
+		lda #' '
+		jsr xchrout
+		inc vscan
+		jmp vdotc1
+vdotc2:
+		lda #1
+		sta crsrx
+		jsr crsrpos
+		ldx #4
+		jmp vexit
+
+; --- 11/10/2026: "*** End of Text ***" (user's request) on the row after
+; the last line that isn't blank (vend; none typed: line 1), moving as the
+; text grows or shrinks. Only the cursor's line changes in an edit (no key
+; moves lines), so after each key chkend looks at that line alone: text on
+; it past vend makes it the end; vend's line made blank, the end is the
+; first line with text above it. findend scans from line 254 down when a
+; page is drawn. The rows below the marker are blank and can be typed on.
+
+; Z set if the page's row X (1-23) is the marker's: top-1+X = vend+1
+markrow:
+		txa
+		clc
+		adc top
+		sec
+		sbc #2
+		cmp vend
+		rts
+
+; the marker, from the start of a row: reverse off, grey, the text
+printmark:
+		lda #$92
+		jsr xchrout
+		lda #$98	; (grey)
+		jsr xchrout
+		ldx #0
+printm1:
+		stx vscan
+		lda marktext,x
+		beq printm2
+		jsr xchrout
+		ldx vscan
+		inx
+		jmp printm1
+printm2:
+		lda #$98	; what's in effect now
+		sta lastc
+		lda #$92
+		sta lastr
+		rts
+marktext:
+		ascii "*** End of Text ***"
+		byte 0
+
+; vend: the last line with text, from line 254 down (findend) or from line
+; X down (findfrom); 0 if none. A line on the page is expanded (lastcol), one
+; off it packed (its length). Leaves varbuf on another line: the caller
+; gets its own back (rowdes)
+findend:
+		ldx #254
+findfrom:
+		stx vscan
+		cpx #0
+		beq findf9
+		txa
+		cmp top
+		bcc findf1	; above the page
+		sec
+		sbc top
+		cmp #23
+		bcs findf1	; below it
+		tax
+		inx		; its row
+		jsr rowdes
+		jsr lastcol
+		jmp findf2
+findf1:
+		ldx vscan
+		jsr getdes
+		lda varbuf	; its length
+findf2:
+		bne findf8
+		ldx vscan
+		dex
+		jmp findfrom
+findf8:
+		lda vscan
+findf9:
+		sta vend
+		rts
+
+; after a key: the cursor's line (varbuf, line top-1+crsry) against vend
+chkend:
+		jsr lastcol
+		pha
+		lda crsry
+		clc
+		adc top
+		sec
+		sbc #1
+		sta vline
+		pla
+		beq chkend2
+		lda vend	; text on it: past vend, it's the end now
+		cmp vline
+		bcs chkend9
+		sta vold
+		lda vline
+		sta vend
+		jmp movemark
+chkend2:
+		lda vline	; blank: if it was the end, look above it
+		cmp vend
+		bne chkend9
+		sta vold
+		tax
+		dex
+		jsr findfrom
+		jmp movemark
+chkend9:
+		rts
+
+; vend moved from vold: redraw the old marker's row and draw the new one,
+; then the cursor, reverse and colour back, and varbuf on its line again
+movemark:
+		lda crsrx
+		sta msx
+		lda crsry
+		sta msy
+		ldx vold
+		inx
+		jsr drawline
+		ldx vend
+		inx
+		jsr drawline
+		lda msx
+		sta crsrx
+		lda msy
+		sta crsry
+		jsr crsrpos
+		ldx crsrr
+		lda revers,x
+		jsr xchrout
+		ldx crsrc
+		lda colors,x
+		jsr xchrout
+		ldx crsry
+		jmp rowdes
+
+; line X (1-254) again, if it's on the page: the marker, or its text and
+; then spaces over what the marker left (to column 19)
+drawline:
+		cpx #0
+		beq drawl9	; 255+1: no line
+		txa
+		cmp top
+		bcc drawl9
+		sec
+		sbc top
+		cmp #23
+		bcs drawl9
+		tax
+		inx
+		stx crsry
+		lda #1
+		sta crsrx
+		jsr crsrpos
+		lda #$ff
+		sta lastc
+		ldx crsry
+		jsr markrow
+		bne drawl1
+		jmp printmark
+drawl1:
+		lda #$92
+		jsr xchrout
+		lda #$92
+		sta lastr
+		ldx crsry
+		jsr rowdes
+		jsr lastcol
+		sta pend
+		lda #1
+		jsr pack
+		jsr outbuf
+		lda #$92	; reverse off, so the spaces blank it
+		jsr xchrout
+		lda pend
+		sta vscan
+drawl2:
+		lda vscan
+		cmp #19
+		bcs drawl9
+		lda #' '
+		jsr xchrout
+		inc vscan
+		jmp drawl2
+drawl9:
+		rts
+
+vend:
+		byte 0	; the last line with text (0: none)
+vold:
+		byte 0
+vline:
+		byte 0
+vscan:
+		byte 0
+msx:
+		byte 0
+msy:
+		byte 0
+
 ; --- 128: pages (11/08/2026)
 
 ; the page's row X (1-23): tt$(top-1+X) into varbuf
@@ -1030,7 +1392,8 @@ rowdes:
 
 ; the next page (pgnext) or the one before (pgprev), if there is one: the
 ; page's lines stored packed, top moved, the new page's lines expanded;
-; carry set: none (top is already the first, or the last page that fits)
+; carry set: none (top is already the first, the last page that fits, or
+; (11/11/2026) the next would start past the End of Text marker's line)
 pgnext:
 		lda top
 		clc
@@ -1038,6 +1401,14 @@ pgnext:
 		cmp #233	; its last (+22) past 254, or
 		bcs pgnone
 		cmp vmax	; past the most lines the user may write: none
+		beq pgnext0
+		bcs pgnone
+; 11/11/2026: nor past the end of the text: its first line (top+23) at most
+; the End of Text marker's (vend+1), so top+22 <= vend (user's request)
+pgnext0:
+		sec
+		sbc #1
+		cmp vend
 		beq pgnext1
 		bcs pgnone
 pgnext1:
@@ -1255,3 +1626,6 @@ vlast:
 		byte 0		; the last line of text kept on entry
 vcode:
 		byte 0		; the exit code (.x: 1 saved, 4 a dot command)
+; 11/11/2026: word wrap's word, up to 38 columns (114 bytes): past the
+; overlay's end, in the protocol area's free room (to $2aff)
+wraptmp:

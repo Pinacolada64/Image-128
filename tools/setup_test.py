@@ -40,6 +40,13 @@ USAGE = """usage: tools/setup_test.py [disk.d81] [options]
                     4,6 (until setup copies files: the build's files are on
                     drive 8, and im loads s.* (1), nm.times (2), e.ecs.main
                     and the other e.* defaults (3) and the modules (5) at boot)
+  --ltk LU          boot Image from LU LU of VICE's Lt. Kernal (device 8),
+                    not a disk: build/ltk/, after tools/ltk_install.py put
+                    the boot disk's files there (LU 5); types "LU n",
+                    LOAD"BOOT 128",8 and RUN at the Lt. Kernal's prompt
+  --ltk-drives LIST:LU  with --ltk: which of Image's drives (1-6) to put on
+                    another LU of the Lt. Kernal (their LU question gets
+                    it), so sub.su.copy copies to it: default 1,3:6
   --vice ARG        one more argument for x128 (repeat it for more)
   --keep            leave x128 running at the end (on its monitor port)
   --port N          the x128's remote monitor port: default 6537 (another
@@ -68,6 +75,12 @@ if '--port' in args:
 hddrives = None
 if '--hd-drives' in args:
     i = args.index('--hd-drives'); hddrives = args[i + 1]; del args[i:i + 2]
+ltk = None
+if '--ltk' in args:
+    i = args.index('--ltk'); ltk = int(args[i + 1]); del args[i:i + 2]
+ltkdrives = None
+if '--ltk-drives' in args:
+    i = args.index('--ltk-drives'); ltkdrives = args[i + 1]; del args[i:i + 2]
 vice = []
 while '--vice' in args:
     i = args.index('--vice'); vice.append(args[i + 1]); del args[i:i + 2]
@@ -122,8 +135,37 @@ if drive9 in ('4844', 'hd'):
     print('drives on the HD (device 9):', ', '.join(labels[n - 1] for n in nums))
 else:
     tohd = []
-v = X128(['-drive8type', '1581'] + d9 +
-         rtc + vice + ['-warp', '-autostart', disk + ':boot 128'], cols=cols, wait=2, port=port)
+# 11/13/2026: --ltk: Image boots from an LU of VICE's Lt. Kernal (device 8):
+# its drives' LU questions (the Drives part on the Lt. Kernal asks "LU") for
+# the drives in --ltk-drives get the other LU
+toltk = []
+if ltk is not None:
+    LTK = os.path.expanduser(os.environ.get('LTK_DIR', '~/Documents/c64/ltkernal/ltk128-images'))
+    lw = os.path.join(repo, 'build', 'ltk')
+    # each run from the drive images as tools/ltk_install.py left them
+    inst = os.path.join(repo, 'build', 'ltk-installed')
+    if not os.path.exists(os.path.join(inst, 'disk0.dlk')):
+        sys.exit('setup_test.py: --ltk needs build/ltk-installed: run tools/ltk_install.py')
+    for f in ('disk0.dlk', 'disk1.dlk', 'disk2.dlk'):
+        shutil.copyfile(os.path.join(inst, f), os.path.join(lw, f))
+    nums, ltkto = (ltkdrives or '1,3:6').split(':')
+    ltkto = int(ltkto)
+    toltk = [labels[int(n) - 1] + ' lu:' for n in nums.split(',') if n.strip()]
+    print('booting from LU', ltk, 'of the Lt. Kernal; drives on LU', ltkto, ':', ', '.join(t[:-4] for t in toltk))
+    v = X128(['-cartcrt', os.path.join(LTK, 'ltk.crt'),
+              '-ltkimage0', os.path.join(lw, 'disk0.dlk'), '-ltkimage1', os.path.join(lw, 'disk1.dlk'),
+              '-ltkimage2', os.path.join(lw, 'disk2.dlk'), '-drive8type', '0'] + d9 +
+             rtc + vice + ['-warp'], cols=cols, wait=2, port=port)
+    for _ in range(60):
+        if 'c128 d#08' in '\n'.join(r.lower() for r in v.screen().split('\n')):
+            break
+        time.sleep(2)
+    # LOAD, then RUN: BASIC 7's RUN "name" (as DLOAD) puts "0:" before the
+    # name, which is LU 0 on a Lt. Kernal
+    v.type(f'LU {ltk}\r'); time.sleep(3); v.type('LOAD"BOOT 128",8\r'); time.sleep(8); v.type('RUN\r')
+else:
+    v = X128(['-drive8type', '1581'] + d9 +
+             rtc + vice + ['-warp', '-autostart', disk + ':boot 128'], cols=cols, wait=2, port=port)
 t0 = time.time()
 # 11/06/2026: a crash in this script stops its x128 too (unless --keep), so
 # the next run can have port 6537
@@ -207,7 +249,10 @@ while time.time() < deadline:
     screen = '\n'.join(rows()).lower()
     for r in screen.split('\n'):
         # the parts' menus (su.pick, 11/06/2026): "1-5, D(one), Return=next item"
-        if ('found:' in r or 'return=' in r or 'time zone....' in r or 'to change' in r) and r.strip() not in seen:
+        if ('found:' in r or 'return=' in r or 'time zone....' in r or 'to change' in r
+                or 'copied' in r or "didn't copy" in r or 'nothing to copy' in r
+                or 'lt. kernal' in r or 'use it anyway' in r or 'boot disk' in r
+                or r.startswith('to device') or r.startswith('from device') or 'done!' in r) and r.strip() not in seen:
             seen.add(r.strip()); print(ts(), 'screen:', r.strip())
     if ('time zone:' in screen or 'more?' in screen) and screen not in seen:
         seen.add(screen); print(ts(), 'time zone list:')
@@ -230,6 +275,9 @@ while time.time() < deadline:
         # cursor's row is the bare prompt, the answer typed there)
         if cur in tohd:
             tohd.remove(cur); type_line('9'); print(ts(), cur, 'typing 9')
+            time.sleep(0.5); continue
+        if cur in toltk:
+            toltk.remove(cur); type_line(str(ltkto)); print(ts(), cur, 'typing', ltkto)
             time.sleep(0.5); continue
         if pw and cur.startswith(pw[0][0]) and 'they don' not in cur:
             text, keys, note = pw.pop(0); type_line(keys); print(ts(), note)

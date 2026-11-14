@@ -107,6 +107,13 @@
 4178 &,52,28,3:ona%goto4182:return
 4179 close2:&,11:goto{$33}350
 4180 print#2,"{white}Posted On: {$04}"d1$r$:kk=kk-1:return
-4182 dr=2:a$="nm.origin,s,r":gosub4:&,2,2:z1$=r$+a$+r$+"{^}":close2:return
+' 11/10/2026: nm.origin's status read (gosub5) as soon as it's opened, and the
+' file used only if it opened: without it (no file), the drive kept 62 (file
+' not found) on channel 15 (the E-Mail drive), the next gosub5 put it in e%,
+' and i.SB 3470 / 4014 then returned before printing a post's text (every
+' entry here runs 4178 with NetMail on: reading too); z1$ was 3 junk bytes.
+' e% is cleared on the way out. The 3.0 release has the same 4182
+4182 dr=2:a$="nm.origin,s,r":gosub4:gosub5:z1$="":ife%=.then:&,2,2:z1$=r$+a$+r$+"{^}"
+4183 close2:e%=.:return
 4198 copr.1990 new image 11/18/90
 4199 rem "i/MM.sb-post (c)nissa 2021-07-15 lh-ad"

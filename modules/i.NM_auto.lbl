@@ -103,6 +103,11 @@
 3192 ifpeek({sym:protostart}+3)<>255thenpoke{sym:protostart}+3,.
 3194 rc=.:s1=1:on-(left$(c$,1)="+")gosub3390:an$=c$:gosub290:c$=an$
 3196 ifleft$(c$,1)="*"thenc$=mid$(c$,2):ifpeek({sym:protostart}+3)<>255thenpoke{sym:protostart}+3,1
+' 11/09/2026: the call counters cleared (3472) and nm.password written (3213)
+' before dialing, not between the other node's Ctrl-B and the name block (3211-
+' 3216): on a 1581 that disk work took 30 seconds, and the answering node gave
+' up after its ten GOOs (20 s) and hung up (tools/netrun.py, NETWORK.md)
+3197 gosub3472:gosub3213
 3198 a=.:ons1gosub3486,{$33}392:onagoto3200,3202:goto3202
 3200 rf=.:gosub3204:fr=.:onz1gosub3290:gosub3490:gosub3496:onfrgosub3350:onrfgosub3132
 3202 goto3496
@@ -111,10 +116,11 @@
 3208 t=t-1:gosub3018:onagoto3260:&,4:b=peek({sym:sareg})and127
 3209 on-(b=3)goto3260:on-(b=2)goto3211
 3210 on-(t/30=int(t/30))goto3207:goto3208
-3211 gosub3472:gosub3500
-3212 &"Accepted!{f6}":gosub3672:gosub3670
-3214 dr=2:gosub3:print#15,"s"dr$"nm.password":a$="nm.password,s,w":gosub4
-3216 print#2,nn$(n1)r$nn$(0):close2
+3211 gosub3500
+3212 &"Accepted!{f6}":gosub3672:gosub3670:goto3218
+3213 dr=2:gosub3:print#15,"s"dr$"nm.password":a$="nm.password,s,w":gosub4:print#2,nn$(n1)r$nn$(0):close2:return
+' 3288 (the answering node calling back) comes here: nm.password written then
+3214 gosub3213
 3218 b$=dt$(n1)+"/"+dt$(0)+"/R/nm.password":gosub3660:&,16,2:ifpeek(512)then3260
 3220 dr=2:a$="nm.password,s,r":gosub4:gosub3660:&,16,.:close2
 3222 ifpeek(512)then3260
