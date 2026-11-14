@@ -195,7 +195,13 @@ ecsnext1:
 	adc varbuf+4
 	sta varbuf+4
 	cmp #>(ecs+ecsdefs_size)
-	bne ecsscan
+; 11/13/2026: beq/jmp, not "bne ecsscan": ecsscan is more than 128 bytes
+; back, and C64List 4.04 (and 4.06) assembled the bne with no error as
+; $d0 $ff, a branch into its own operand, so the scan never went on to the
+; next definition
+	beq ecsend
+	jmp ecsscan
+ecsend:
 	lda #0
 	beq ecsquit
 
