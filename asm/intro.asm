@@ -669,7 +669,13 @@ lockinit:
 	sta ltklu
 	lda $ffd2
 	cmp #$20
-	bne lockin9
+; 11/13/2026: beq/jmp, not "bne lockin9": lockin9 is more than 127 bytes on,
+; and C64List 4.04 assembled the bne without an error as $d0 $ff (into its
+; own operand), so a 128 without a Lt. Kernal ran on into the Lt. Kernal's
+; calls as if it had one
+	beq lockin1
+	jmp lockin9
+lockin1:
 	jsr ltk_bnkout
 	jsr ltk_getprt
 	and #$0f
