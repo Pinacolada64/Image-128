@@ -292,10 +292,12 @@ C)hat, T)ranscript, W)ho, Q)uit:
 | `W` | lists who's online again |
 | `Q` | back to the main prompt |
 
-"Online" means "in `LTK` right now": a station shows as online from when
-its caller types `LTK` until they quit it. Callers elsewhere on the BBS
-aren't listed. "(chat room)" after a name means they're in the room;
-"with SysOp" means the sysop is in the room at that station.
+"Online" means logged on: a station shows as online, with its caller's
+handle, from their logon until they log off (however they leave: `/G`,
+the carrier dropping, their time running out), whether or not they've
+typed `LTK`. "(chat room)" after a name means they're in the room; "with
+SysOp" means the sysop is in the room at that station. A station that
+crashed with a caller on stays listed until it boots again.
 
 ### In the chat room
 
