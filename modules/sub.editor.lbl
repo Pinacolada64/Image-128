@@ -115,6 +115,11 @@
 60145 a=x
 60146 ifpeek(7171)<>86orpeek(7172)<>73orpeek(7173)<>83thenml$=""
 60148 a$="visual":gosub28:ife%then60101
+' 11/15/2026: ++ visual's vesc (7174, after its "vis"): 1 for C128 Esc Codes
+' (uf$ position 5, sub.param1's option 11) in Commodore translation (neither
+' flag 16, ASCII, nor 18, ANSI: chktbl+2's bits 0 and 2), so its Esc I and
+' Esc D move the caller's lines with the 128's own Esc codes; x keeps a
+60149 x=a:b=5:gosub377:poke7174,a*-((peek({sym:chktbl}+2)and5)=0):a=x
 ' 11/11/2026: the screen mask off while ++ visual runs (&,18,0), as i.IM, i.UU
 ' and i.t do: with it on, the console is rows 0-15, so the 23-line page scrolled
 ' its top off and the cursor moves went past the window. Back on (&,18,1) after,

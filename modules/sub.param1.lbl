@@ -13,7 +13,7 @@
 
 ' 11/10/2026: each sub-function starts on a hundred:
 '   60000 im dispatch: im=1 60100, 2 60400, 3 61300, 4 and 5 61100
-'   60100 the Terminal Parameters menu loop (options 1-10)  60200 its text
+'   60100 the Terminal Parameters menu loop (options 1-11)  60200 its text
 '   60300 1 computer type
 '   60400 2 translation (AT, AT+, AT-, ATn)
 '   60500 the mode's name (z$)
@@ -29,6 +29,7 @@
 '   61500 9 cursor menus
 '   61600 10 the editor
 '   61700 On/Off (an$)
+'   61800 11 C128 Esc codes
 
 60000 onimgoto60100,60400,61300,61100,61102:rem sub.param1
 60002 return
@@ -44,7 +45,8 @@
 60110 gosub60200:poke53252,2:&"{white}  > {pound}i1":a=val(an$)
 60112 ifathengosub60114:goto60100
 ' 11/10/2026: 10, the editor: the line editor or ++ visual
-60114 onagoto60300,60406,60600,60700,60800,60900,61000,61300,61500,61600
+' 11/15/2026: 11, C128 Esc codes (61800)
+60114 onagoto60300,60406,60600,60700,60800,60900,61000,61300,61500,61600,61800
 60116 c$="{left:4}"
 60118 &,69,31,19,str$(ll%)+"x"+mid$(str$(mp%),2),$8c:return
 ' 11/10/2026: the Terminal Parameters menu, as s.m.params had it (that file
@@ -52,9 +54,10 @@
 ' 11/11/2026: narrower than 80 columns, items 1-10 one after another (60204);
 ' 80: 1-5 on the left, 6-10 beside them at column 40 (60202). Item n is the
 ' subroutine at 60208+2*n (60210-60228)
+' 11/15/2026: and 11 (60230): 80 columns, 1-6 on the left, 7-11 beside them
 60200 &"{clear}{f6}{white}Terminal Parameters{colon}{f6:2}":ifll%<80then60204
-60202 forx=1to5:onxgosub60210,60212,60214,60216,60218:&"{pound}{back arrow}40":onxgosub60220,60222,60224,60226,60228:&"{f6}":next:goto60206
-60204 forx=1to10:onxgosub60210,60212,60214,60216,60218,60220,60222,60224,60226,60228:&"{f6}":next
+60202 forx=1to6:onxgosub60210,60212,60214,60216,60218,60220:&"{pound}{back arrow}40":onxgosub60222,60224,60226,60228,60230:&"{f6}":next:goto60206
+60204 forx=1to11:onxgosub60210,60212,60214,60216,60218,60220,60222,60224,60226,60228,60230:&"{f6}":next
 60206 &"{f6:2}Enter # to change or RETURN if OK{f6}":return
 60210 &"{white} 1) {lt. blue}Computer Type  {white}{pound}$b":return
 60212 &"{white} 2) {lt. blue}Translation    {white}{pound}$z":return
@@ -68,6 +71,8 @@
 60224 &"{white} 8) {lt. blue}{quotation}More{question}{quotation} Prompt {white}{pound}$w":return
 60226 &"{white} 9) {lt. blue}Cursor Menus   {white}{pound}$v":return
 60228 &"{white}10) {lt. blue}Text Editor    {white}{pound}$u":return
+' 11/15/2026: uf$ position 5 (im 377), On or Off, without a% (items 3 and 4's)
+60230 b=5:gosub377:a=sgn(a):&"{white}11) {lt. blue}C128 Esc Codes {white}"+mid$("OffOn",1+3*a,3-a):return
 
 60300 &"{f6:2}":forx=1to9:b$=co$(x):a%=x:&"{pound}%a>-{pound}$b{f6}":next
 60302 &"{f6}Computer Type{question}{colon} {pound}i1":if tr%<1 then return
@@ -170,5 +175,19 @@
 61604 &"{f6}You may only use the line-based editor.{pound}w2{f6}":return
 61700 an$="Off":ifa%thenan$="On"
 61702 return
+' 11/15/2026: 11, C128 Esc codes (user's request; modules/TODO.md, "C128
+' screen-editor escapes"): uf$ position 5, which sub.editor gives ++ visual
+' (its vesc), so Esc I and Esc D (insert, delete a line) move the lines on
+' a C128's own screen with the same Esc codes, not by drawing them again.
+' On only in Commodore translation (an ASCII or ANSI terminal would show
+' the letter), and after a test, as option 3's ruler: three lines, Esc D on
+' the second, and the caller says whether it went (im 96: a 1 for Yes).
+' Off: just off. Esc codes reach the console's screen as well (& output)
+61800 b=5:gosub377:ifathena=.:goto378
+61802 &,52,16,3:c=a%:&,52,18,3:ifcora%then:&"{f6}Only with Commodore translation (AT1).{pound}w2{f6}":return
+61804 &"{clear}{f6}{white}For a Commodore 128 in 128 mode{colon}{f6}++ visual's Esc I and Esc D (insert{comma}{f6}delete a line) move the lines on your{f6}screen with the 128's own Esc codes.{f6:2}"
+61806 &"{lt. blue}1 Line one{f6}2 This line should vanish{f6}3 Line three{f6}{up:2}":&chr$(27)+"d":&"{f6:2}{white}Did line 2 vanish{comma} 3 under 1{question} ":gosub96
+61808 ifathenb=5:goto378
+61810 &"{f6}Left off.{f6}":return
 61998 copr. 1996 new image 5/5/96
 61999 rem "sub.param1 (c)nissa 210307 lh, 2026-11-11 rs"

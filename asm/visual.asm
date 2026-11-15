@@ -80,8 +80,13 @@
 ; "lines" is the most lines the user may write (sub.editor's), not changed
 ; here: the pages stop there (254 at most). The first bytes are a jmp and
 ; "vis", so sub.editor can see ++ visual is loaded (peek 7171-7173)
+; 11/15/2026: then vesc (7174), which sub.editor pokes before each &,16:
+; 1 for a caller with "C128 Esc Codes" on (uf$ position 5, sub.param1's
+; option 11) in Commodore translation, 0 otherwise. See kesc
 		jmp vbegin
 		ascii "vis"
+vesc:
+		byte 0
 vbegin:
 		stx ventry
 		lda case	; the line editor's "convert to capitals" flag:
@@ -321,6 +326,7 @@ keys:
 		byte $04, $02, $0e, $17	; Ctrl-D, Ctrl-B, Ctrl-N, Ctrl-W
 		byte $08	; Ctrl-H
 		byte $19, $0c	; 128: Ctrl-Y, Ctrl-L
+		byte $1b	; 11/15/2026: Esc (128: the Esc key; 64: Ctrl-:)
 keyjmp:
 		word kup, kdown, kright, kleft
 		word visual, visual7, kpgdn, visual25	; Ctrl-V: the next page (3.0: redraw)
@@ -329,6 +335,7 @@ keyjmp:
 		word kctrld, kctrlb, kctrln, kctrlw
 		word khelp
 		word kpgup, visual2	; Ctrl-Y: the page before; Ctrl-L: redraw
+		word kesc	; Esc I, Esc D: insert, delete a line
 
 ; cursor keys: move, and send the key itself
 ; 11/11/2026: kupedge and kdnedge are past a branch's reach now (the
@@ -1317,6 +1324,7 @@ movemark:
 
 ; line X (1-254) again, if it's on the page: the marker, or its text and
 ; then spaces over what the marker left (to column 19)
+; 11/15/2026: the row itself drawn by drawrow (redrows uses it too)
 drawline:
 		cpx #0
 		beq drawl9	; 255+1: no line
@@ -1333,13 +1341,25 @@ drawline:
 		lda #1
 		sta crsrx
 		jsr crsrpos
+		lda #19
+		sta vpad
+		jmp drawrow
+drawl9:
+		rts
+
+; 11/15/2026: the page's row crsry, the cursor at its column 1: the marker
+; or the row's text, then spaces to column vpad (over what was there before)
+drawrow:
 		lda #$ff
 		sta lastc
 		ldx crsry
 		jsr markrow
-		bne drawl1
-		jmp printmark
-drawl1:
+		bne drawr1
+		jsr printmark
+		lda #19		; the marker's length
+		sta pend
+		jmp drawr2
+drawr1:
 		lda #$92
 		jsr xchrout
 		lda #$92
@@ -1353,17 +1373,18 @@ drawl1:
 		jsr outbuf
 		lda #$92	; reverse off, so the spaces blank it
 		jsr xchrout
+drawr2:
 		lda pend
 		sta vscan
-drawl2:
+drawr3:
 		lda vscan
-		cmp #19
-		bcs drawl9
+		cmp vpad
+		bcs drawr9
 		lda #' '
 		jsr xchrout
 		inc vscan
-		jmp drawl2
-drawl9:
+		jmp drawr3
+drawr9:
 		rts
 
 vend:
@@ -1378,6 +1399,238 @@ msx:
 		byte 0
 msy:
 		byte 0
+vpad:
+		byte 0	; drawrow: spaces to this column
+
+; --- 11/15/2026: Esc I and Esc D, insert a blank line at the cursor's (it
+; and the lines below move down one) and delete the cursor's line (the
+; lines below move up one), the C128 screen editor's own keys (user's
+; request; a 64 sends Esc with Ctrl-:). Only within the text: on or above
+; the End of Text marker's line (vend), and Insert not when the last line
+; the user may write (vmax) has text. The page is stored packed (vpack),
+; tt$()'s descriptors moved one place (&,33/&,34, as the line editor's
+; dellnx/inslnx: &,34 keeps BASIC 7's back-links right), the page expanded
+; again (vexpand) and vend found again; the cursor goes to column 1.
+; On the screen: with vesc on (a C128 in 128 mode, sub.param1's option 11)
+; the same Esc and letter go out, and the 128's editor moves the rows
+; itself (Esc D: the page's new last line drawn on row 23; Esc I: what was
+; row 23, pushed to row 24, erased there with Esc Q); otherwise the rows
+; from the cursor's down are drawn again, each over its old length (rowlen)
+kesc:
+		jsr xgetin	; the letter after Esc (Return if the carrier's
+		and #$7f	; gone: the main loop sees to that)
+		cmp #$49	; I
+		beq kinsln
+		cmp #$44	; D
+		beq kdelln
+kesc9:
+		jmp visual5
+kinsln:
+		sta vcmd
+		jsr lineno
+		lda vend
+		cmp vline
+		bcc kesc9	; below the text: nothing to move
+		cmp vmax
+		bcs kesc9	; no room for its last line
+		jsr rowlens
+		jsr vpack
+		jsr shiftdn
+		jmp klnfix
+kdelln:
+		sta vcmd
+		jsr lineno
+		lda vend
+		cmp vline
+		bcc kesc9
+		jsr rowlens
+		jsr vpack
+		jsr shiftup
+klnfix:
+		jsr vexpand
+		lda vend
+		sta vold
+		jsr findend
+		lda crsry
+		sta msy
+		lda #1
+		sta crsrx
+		lda vesc
+		bne klnesc
+		jsr redrows
+		ldx vend	; the marker gone back above the cursor's line
+		inx		; (blank lines above the one deleted): drawn
+		cpx vline	; there, as redrows started below it
+		bcs klnend
+		jsr drawline
+		jmp klnend
+klnesc:
+		jsr crsrpos	; column 1 of the cursor's row
+		lda vcmd
+		jsr sendesc
+		lda #1		; the 128 leaves the cursor at column 1
+		sta curx
+		lda vcmd
+		cmp #$44
+		beq klnesc2
+; Esc I: row 23's old line is on row 24 now, below the page: erase it
+		ldx #23
+		lda rowlen,x
+		beq klnend
+		lda #24
+		sta crsry
+		jsr crsrpos
+		lda #$51	; Q: erase to the end of the line
+		jsr sendesc
+		jmp klnend
+; Esc D: row 23 came up from row 24, blank: the page's last line there;
+; and the marker, which moved up a line with the rest (to line vold), put
+; right if vend went further back than that (blank lines above it)
+klnesc2:
+		lda #23
+		sta crsry
+		jsr crsrpos
+		lda #0
+		sta vpad
+		jsr drawrow
+		ldx vend
+		inx
+		cpx vold
+		beq klnend
+		ldx vold
+		jsr drawline
+		ldx vend
+		inx
+		jsr drawline
+; the cursor at column 1 of its row, its reverse and colour, varbuf on its
+; line, and on with the next key
+klnend:
+		lda msy
+		sta crsry
+		lda #1
+		sta crsrx
+		jsr crsrpos
+		ldx crsrr
+		lda revers,x
+		jsr xchrout
+		ldx crsrc
+		lda colors,x
+		jsr xchrout
+		jmp visual4
+
+; vline: the cursor's line in tt$() (top-1+crsry)
+lineno:
+		lda crsry
+		clc
+		adc top
+		sec
+		sbc #1
+		sta vline
+		rts
+
+; rowlen,1-23: each row's length on the screen before the change (the
+; marker's: 19), so redrows knows how far to blank
+rowlens:
+		ldx #1
+rowl1:
+		stx numy
+		jsr markrow
+		bne rowl2
+		lda #19
+		bne rowl3
+rowl2:
+		ldx numy
+		jsr rowdes
+		jsr lastcol
+rowl3:
+		ldx numy
+		sta rowlen,x
+		inx
+		cpx #24
+		bcc rowl1
+		rts
+
+; tt$(vline+1 to 254) up one place: vline's line gone, 254 empty
+shiftup:
+		ldx vline
+shup1:
+		cpx #254
+		bcs shup9
+		stx vscan
+		inx
+		jsr getdes
+		ldx vscan
+		jsr putdes
+		ldx vscan
+		inx
+		jmp shup1
+shup9:
+		lda #0
+		sta varbuf
+		ldx #254
+		jmp putdes
+
+; tt$(vline to 253) down one place (254's, blank, is lost): vline empty
+shiftdn:
+		ldx #253
+shdn1:
+		stx vscan
+		jsr getdes
+		ldx vscan
+		inx
+		jsr putdes
+		ldx vscan
+		cpx vline
+		beq shdn9
+		dex
+		jmp shdn1
+shdn9:
+		lda #0
+		sta varbuf
+		ldx vline
+		jmp putdes
+
+; the rows from the cursor's (crsry) to 23 drawn again, each over what
+; was on it (rowlen): column 1 of the first, then a Return to each next
+redrows:
+		jsr crsrpos
+redrow1:
+		ldx crsry
+		lda rowlen,x
+		sta vpad
+		jsr drawrow
+		lda crsry
+		cmp #23
+		bcs redrow9
+		lda #13
+		jsr xchrout
+		inc crsry
+		jmp redrow1
+redrow9:
+		rts
+
+; Esc and the letter in A out, to the screen and the modem; track's
+; column is put back, as the letter isn't printed
+sendesc:
+		ldx curx
+		stx escx
+		pha
+		lda #$1b
+		jsr xchrout
+		pla
+		jsr xchrout
+		lda escx
+		sta curx
+		rts
+
+vcmd:
+		byte 0	; the letter: I or D
+escx:
+		byte 0
+rowlen:
+		byte 0, 0, 0, 0, 0, 0, 0, 0	; rows 1-23 (0 unused)
+		byte 0, 0, 0, 0, 0, 0, 0, 0
+		byte 0, 0, 0, 0, 0, 0, 0, 0
 
 ; --- 128: pages (11/08/2026)
 
