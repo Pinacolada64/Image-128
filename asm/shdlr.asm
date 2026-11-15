@@ -1296,71 +1296,8 @@ trace1:
 	dec scnlock
 	jmp vdcstat	; 80 columns: the status lines to the VDC
 
-; free memory: fretop - strend (c64: lda 51 / sbc 49 ..., where the C64
-; keeps them; the 128's are two bytes on)
-trace2:
-	sec
-	lda fretop
-	sbc strend
-	tay
-	lda fretop+1
-	sbc strend+1
-	tax
-	cpy oldmem
-	bne trace3
-	cpx oldmem+1
-	beq trace4
-trace3:
-	sty oldmem
-	stx oldmem+1
-	tya
-	jsr decimal
-	ldy #4
-trace3a:
-	lda decchr,y
-	ora #$80
-	sta sdisp+14,y
-	dey
-	bpl trace3a
-trace4:
-	lda flag_trc_addr
-	and #flag_trc_l_mask
-	beq trace7
-	lda curlin	; c64: 57
-	ldx curlin+1	; c64: 58
-	cmp oldline
-	bne trace5
-	cpx oldline+1
-	beq trace7
-trace5:
-	sta oldline
-	stx oldline+1
-	jsr decimal
-	ldy #4
-trace5a:
-	lda decchr,y
-	ora #$80
-	sta sdisp+23,y
-	dey
-	bpl trace5a
-	ldx #0
-	ldy #200
-trace6:
-; pause trace with Ctrl key
-	lda shflag	; c64: 653
-	and #CONTROL_KEY; 4
-	beq trace7
-	dex
-	bne trace6
-	dey
-	bne trace6
-trace7:
-	rts
-
-oldline:
-	word 0
-oldmem:
-	word 0
+; trace2, the mask's numbers (P=, V=, L=): trace.asm, in the shared bottom
+; 16K ($e000-$fbff has no room, 11/15/2026)
 
 dspidle:
 	sta idlesec

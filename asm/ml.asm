@@ -98,6 +98,8 @@ wedge_pages = (* - wedge_exec_address) / 256
 
 	orig glue
 {include:"glue.asm"}
+; the mask's numbers, from trace0 (shdlr.asm; $e000-$fbff has no room)
+{include:"trace.asm"}
 	addrcheck $4000
 
 ;;;
