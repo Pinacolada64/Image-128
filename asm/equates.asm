@@ -1141,8 +1141,8 @@ flag_unv_l_mask	= %01000000	; 22 No immediate U/D credits
 flag_unv_r_mask	= %10000000	; 23 Allow auto-logoff
 
 flag_trc_addr	= chktbl + 3
-flag_trc_l_mask	= %00000001	; 24 On-screen trace enable
-flag_trc_r_mask	= %00000010	; 25 Undefined
+flag_trc_l_mask	= %00000001	; 24 On-screen trace enable (the mask's L=: shdlr.asm trace4)
+flag_trc_r_mask	= %00000010	; 25 Time: Reset Clock (alarm At1 sets it; i/lo.idle 4209 re-reads the clock, clears it)
 
 flag_bel_addr	= chktbl + 3
 flag_bel_l_mask	= %00000100	; 26 Local bells enabled
@@ -1190,9 +1190,10 @@ flag_h2e_r_mask	= %10000000	; 47 Undefined
 
 ; lightbar positions $3e-$6e are undefined
 
-flag_h38_addr	= chktbl + 7 	; Trb
+flag_h38_addr	= chktbl + 7 	; Dbg
 flag_h38_l_mask	= %00000001	; 56 ($38) On: Do not display BASIC variables
 flag_h38_r_mask	= %00000010	; 57 ($39) On: Enable VIC-II border color change on error
+				; (TODO, status line rework: 40-column mask shows P= V= for V= L=)
 
 flag_dcd_addr	= chktbl + 7 	; DCD
 flag_dcd_l_mask	= %00000100	; 58 ($3a) invert DCD: off=normal, on=inverted
