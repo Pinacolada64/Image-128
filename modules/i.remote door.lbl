@@ -1,0 +1,24 @@
+' i.remote door: doors, plain BASIC programs (games and utilities not
+' written for Image) run for the caller through ++ remote (asm/remote.asm,
+' PROGRAMMING.md "`++ remote`"). A door is a PRG file on the modules drive
+' (5) named "door.<name>"; the caller types the name ($ lists them). Run it
+' from the main prompt through the Extended Command Set entry DOOR (all
+' access groups, module "remote door"). 11/14/2026.
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{include:"..\asm\equates.asm"}
+
+3000 rem "i.remote door": plain basic programs as doors
+3002 p={sym:protostart}+3:a$="remote":gosub 28:if e% then:&"{f6}Sorry, the door module isn't on the system disk.{f6}":goto 300
+3004 &"{f6:2}Doors: plain BASIC programs.{f6}"
+3006 if tr%<1 then 300
+3008 poke 53252,11:&"{f6}Door ($ lists, Return quits): {pound}i0"
+3010 if an$="" then 300
+3012 if an$="$" then:&"{f6}":dr=5:gosub 3:close 2:open 2,dv%,0,"$"+dr$+"door.*":get#2,a$,a$:&,8,2,0:close 2:goto 3006
+3014 b$=an$:dr=5:gosub 2:a$=dr$+"door."+b$:&,16:a%=peek(p):b%=peek(p+1)
+3016 on a% goto 3030,3020,3024:&"{f6}Back from the door.{f6}":goto 3006
+3020 a$=mid$(str$(peek(p+2)+256*peek(p+3)),2):if b%=. then:&"{f6}The door was stopped.{f6}":goto 3006
+3022 &"{f6}The door stopped with error {pound}%b in line {pound}$a.{f6}":goto 3006
+3024 if b%=1 then:&"{f6}There's no door named {pound}$b.{f6}":goto 3006
+3026 &"{f6}That door couldn't start (reason {pound}%b): tell the SysOp.{f6}":goto 3006
+3030 goto 300

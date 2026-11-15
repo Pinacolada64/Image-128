@@ -671,6 +671,17 @@ open files as they were. The result is in `peek({sym:protostart}+3)`:
 Image 2.0's unfinished `remote.s`; `asm/remote.asm`'s header lists what
 was fixed and what changed for the 128.
 
+**Doors:** `DOOR` at the main prompt (an Extended Command Set entry, all
+access groups) runs `i.remote door`, which asks for a door's name and runs
+the PRG file `door.<name>` from the modules drive (5) with `&,16`; `$`
+lists them, Return goes back to the main prompt. It says how the door
+ended (an error and its line; "no door named ..." for a missing one).
+`tests/doors/` has two (petcat source), and `tools/door_test.py` plays
+them in the whole BBS: logs in at the console, lists the doors, wins
+Guess the Number (INPUT, then GETKEY), runs one that stops with an error,
+and asks for a missing one. `tools/ecs.py` lists or adds `e.ecs.main`
+entries (`DOOR` was added with it).
+
 ## VIC screen cells to the VDC: `&,72`
 
 ML that draws on the VIC screen as it works (`++ net`'s and `++ copier`'s
