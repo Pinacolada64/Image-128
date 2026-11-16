@@ -233,6 +233,7 @@ r80_vdc:
 	bne r80v9	; mask off: rows 20-23 are the console's
 	jsr r80_buf
 	jsr r80_mod
+	jsr r80_btm
 	ldx #2
 r80v1:
 	lda vdcst_force
@@ -386,12 +387,31 @@ r80m3:
 r80m9:
 	rts
 
+; &,9's window (btmvar wrote btmwin): row 22, columns 64-79
+r80_btm:
+	lda btmnew
+	beq r80bt9
+	lda #0
+	sta btmnew
+	ldy #15
+r80bt1:
+	lda btmwin,y
+	sta r80_text+24,y
+	dey
+	bpl r80bt1
+	lda #1
+	sta r80_dirty
+r80bt9:
+	rts
+
 ; trace2 in 80 columns: P, V and L on row 22 (all three always; the
 ; lightbar's Dbg changes nothing here): P and V on the VIC's half (columns
 ; 26-30, 34-38), L in r80_text (42-46). L follows the line while the trace
 ; (Trc left, check 24) is on, and is drawn once at the start. When
 ; sub.display drew the mask again its "P=-----" is there: forget P and V,
-; so both are drawn at once.
+; so both are drawn at once, and put "Image BBS 128" back in &,9's window
+; (as 40 columns' mask does; an &,9 after the mask still wins: r80_btm
+; runs after this, from vdcstat).
 row22	= $0400 + (40*22)	; the VIC's row 22
 trace80:
 	lda row22+26
@@ -400,6 +420,14 @@ trace80:
 	lda #$ff
 	sta oldprg+1
 	sta oldmem+1
+	ldy #15
+t80v1:
+	lda r80_ver,y
+	sta r80_text+24,y
+	dey
+	bpl t80v1
+	lda #1
+	sta r80_dirty
 t80p:
 	sec
 	lda maxmem0
@@ -507,6 +535,9 @@ r80_text:	; row 22: "L=00000 M=" name(16) " Image BBS 128", all reversed
 	byte $20,$20,$20,$20,$20,$20,$20,$20,$20,$20
 	byte $20,$20,$20,$20,$20,$20,$20,$20,$20,$20
 	byte $20,$20,$20,$20,$20,$20,$20,$20,$20,$d4
+r80_ver:	; &,9's window's own text, as the 40-column mask's
+	byte $a0,$a0,$a0,$c9,$8d,$81,$87,$85
+	byte $a0,$c2,$c2,$d3,$a0,$b1,$b2,$b8
 r80_bufn:	byte $ff
 t80_first:	byte 1
 r80_i:		byte 0

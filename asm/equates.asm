@@ -664,7 +664,11 @@
 	modnew	= $19a8	; 1: a new name (status.asm's r80_mod clears it)
 	modlen	= $19a9	; its length, 0-16
 	modname	= $19aa	; 16 bytes ($19aa-$19b9), PETSCII
-; $19ba-$19ff: free
+; &,9's 16-character window (swap2.asm btmvar) in 80 columns: row 22's
+; columns 64-79, which the VIC hasn't got; status.asm's r80_btm copies it
+	btmwin	= $19ba	; 16 bytes ($19ba-$19c9), screen codes
+	btmnew	= $19ca	; non-zero: btmwin changed
+; $19cb-$19ff: free
 
 ; $1a00-$1bff: $1ff / 511 bytes. room for IRQ/& jump tables?
 
