@@ -262,10 +262,13 @@ count as uses.
 
 | Check | Page, label | Next to |
 |---|---|---|
-| 49 | 4, `Em3` right | 48, Image 1.x mode |
 | 63 | 4, `$3e` right | 62, the CPU at 2 MHz (128) |
 | 65 | 5, `$40` right | 64, daylight saving time's trigger |
 | 66-111 | 5-7, `$42`-`$6e` | (all free) |
+
+49 (page 4, `Em3` right) was free too; the `status-line` branch takes it
+for the 40-column mask's `P=`/`V=` swap. (`Em3`'s left, 48, is the Image
+1.3 emulator: `im 128` 309 loads `im.emul13`, so "Em3" is "emulate 1.3".)
 
 **Named, but nothing in Image 128 reads them:** 15 (`U/D` right, 300 baud
 U/D lockout) and 56 (`Dbg` left, 3.0's "disable troubleshooting mode").

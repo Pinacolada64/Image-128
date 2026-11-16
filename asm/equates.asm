@@ -1188,9 +1188,10 @@ flag_h2e_addr	= chktbl + 5 	; $2e
 flag_h2e_l_mask	= %01000000	; 46 Enable express logon (i.lo 3000)
 flag_h2e_r_mask	= %10000000	; 47 Use s.detect files at connect (i.lo 3562)
 
-; 48-55, page 4's Em3 Sc2 Scp Alt: no flag_ names; 48 is Image 1.x mode (im
-; 300), 50 disables the second security check, 51 runs lo.logoff at logoff
-; (i.lo 3200), 52/53 the SuperCPU (Scp), 54/55 Alt (idle screen). 49 is free.
+; 48-55, page 4's Em3 Sc2 Scp Alt: no flag_ names; 48 is Image 1.3 mode (im
+; 309: the 1.3 emulator, im.emul13), 49 the 40-column mask's P=/V= swap
+; (status-line branch), 50 disables the second security check, 51 runs
+; lo.logoff at logoff (i.lo 3200), 52/53 the SuperCPU (Scp), 54/55 Alt.
 ; 64-111 (pages 5-7, labels $40-$6e): 64 is DST's trigger (alarm 9; i/lo.idle
 ; 4209), the rest are free. 112-127 (page 8): the alarms' (At1-At8).
 ; PROGRAMMING.md, "Lightbar checkmarks: which are free".
