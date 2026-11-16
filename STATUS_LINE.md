@@ -43,14 +43,27 @@ Row 22's right half carries on the reversed bar of its left half.
 | `I=` | (idle screen) | System idle: the rest of today's log (`st(22)`). `i/lo.automaint` reports the same two numbers as "System used x%, Idle y% this log" | same |
 | `I=` | 22, 14-18 (caller online) | The caller's idle time: minutes, tens of seconds, seconds since the last key. At `idlemax` minutes the caller is logged off | the ML, every second while it waits for a key (`dspidle`, `getchr`) |
 | `A=` | 22, 22 (caller online) | The caller's access group, 0-9 (`ac%`); the sysop's f-keys change it there (`t3fk*`) | `sub.display`, the ML |
-| `P=` | 80: 22, 24-30 (not in 40 columns) | Program space: bank 0's room left for BASIC text, `maxmem0 - txtend` ($1212 - $1210). It goes down as modules load | `trace2` / `trace80` (`asm/trace.asm`, `asm/status.asm`), between BASIC statements |
-| `V=` | 40: 23, 12-18; 80: 22, 32-38 | Variable space: bank 1's free room between the arrays and the strings, `fretop - strend`. (Image 1.2's `M=`, all of free memory on the C64) | same |
-| `L=` | 40: 23, 21-27; 80: 22, 40-46 | The BASIC line running (`curlin`), while the lightbar's left Trc (check 24) is on; Ctrl pauses it | same |
+| `P=` | 40: 23, 12-18 (Em3 right on); 80: 22, 24-30 | Program space: bank 0's room left for BASIC text, `maxmem0 - txtend` ($1212 - $1210). It goes down as modules load | `trace2` / `trace80` (`asm/trace.asm`, `asm/status.asm`), between BASIC statements |
+| `V=` | 40: 23, 12-18 (Em3 right off) or 21-27 (on); 80: 22, 32-38 | Variable space: bank 1's free room between the arrays and the strings, `fretop - strend`. (Image 1.2's `M=`, all of free memory on the C64) | same |
+| `L=` | 40: 23, 21-27 (Em3 right off); 80: 22, 40-46 | The BASIC line running (`curlin`), while the lightbar's left Trc (check 24) is on; Ctrl pauses it | same |
 | `M=` | 80: 22, 48-65 | The last module loaded, without its drive prefix (up to 16 characters; the wedge's `openroom` keeps it in `modname`) | `r80_mod` (`asm/status.asm`) |
 | `Buf` | 80: 19, 41-54 | Bytes waiting in the RS-232 receive buffer, out of 127 | `r80_buf` |
 
-In 40 columns, row 23 has room for two numbers only: `V=` and `L=`. `P=`
-is shown in 80 columns, on row 22.
+In 40 columns, row 23 has room for two numbers only. The lightbar's
+`Em3` right checkmark (page 4, check 49) picks which:
+
+```
+Em3 right off:   R           V=07504  L=04232           T
+Em3 right on:    R           P=10924  V=07504           T
+```
+
+On, it shows program space with variable space, for watching memory as
+modules load; the line isn't shown, though Ctrl still pauses the trace.
+Changing it rewrites both cells at the next BASIC statement, and turning
+it off shows `L=` with the last line run even if the trace is off. 80
+columns show all three all the time, so the checkmark changes nothing
+there. (`Em3`'s left checkmark, 48, is the Image 1.3 emulator: `im 128`
+309 loads `im.emul13`.)
 
 The idle screen's mask and the caller-online mask draw different fields in
 row 22's columns 14-23: `U=`/`I=` (system used and idle) at the idle

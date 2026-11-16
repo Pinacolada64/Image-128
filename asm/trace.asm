@@ -8,25 +8,69 @@
 ; Row 23 has two number cells, "x=00000" at sdisp+12 and sdisp+21
 ; (sub.display.lbl draws "R           V=00000  L=00000           T"):
 ;
+;	lightbar Em3 right (check 49) off:  V=00000  L=00000
+;	lightbar Em3 right (check 49) on:   P=00000  V=00000
+;
 ; V, variable space: fretop - strend, bank 1's free room between the
 ;    arrays and the strings (c64's M=, lda 51 / sbc 49 ..., which there
 ;    was all of free memory; the 128's pointers are two bytes on)
+; P, program space: maxmem0 - txtend ($1212 - $1210), bank 0's room left
+;    for BASIC text below textop; it goes down as modules load
 ; L, the BASIC line running (curlin), while the line trace (lightbar Trc
-;    left, check 24) is on; Ctrl pauses it
+;    left, check 24) is on
 ;
-; Each number is drawn only when it changes (oldmem, oldline).
+; Each number is drawn only when it changes (oldmem, oldprg, oldline).
+; The cell letters are checked against Em3's right each time: when they don't
+; match (Em3's right changed, or sub.display drew the mask again) both letters
+; are written and every number is forgotten, so each cell is drawn at
+; once; the L cell then shows the line running even with the trace off,
+; rather than keeping V's digits.
 ;
-; 80 columns show P= (program space) too, all on row 22: trace80, in
-; status.asm. (11/15/2026 the lightbar's right Dbg swapped 40 columns' V=
-; L= for P= V=; 11/16/2026 that went, Dbg being the border color on an
-; event, im's line 23.)
+; In 80 columns vdcstat copies the VIC's row 23 to the VDC, so this shows
+; there too (modules/TODO.md: the VDC's own row 23 with P, V and L).
 
 trace2:
 	bit mode
 	bpl trace2_40
 	jmp trace80	; 80 columns: row 22's P V L (status.asm)
 trace2_40:
-; V, variable space, in the first cell
+	lda flag_em3_addr
+	and #flag_em3_r_mask	; 0, or 2 with Em3's right on
+	sta trcsw
+	tax
+	lda trcltr,x
+	cmp sdisp+12
+	beq trace2a
+	sta sdisp+12
+	lda trcltr+1,x
+	sta sdisp+21
+	lda #$ff		; no number's high byte: draw each again
+	sta oldmem+1
+	sta oldprg+1
+	sta oldline+1
+trace2a:
+; P, in the first cell, with Em3's right on
+	lda trcsw
+	beq trace3
+	sec
+	lda maxmem0
+	sbc txtend
+	tay
+	lda maxmem0+1
+	sbc txtend+1
+	tax
+	cpy oldprg
+	bne trace2b
+	cpx oldprg+1
+	beq trace3
+trace2b:
+	sty oldprg
+	stx oldprg+1
+	tya
+	ldy #0
+	jsr trcnum
+; V: the first cell, or the second with Em3's right on
+trace3:
 	sec
 	lda fretop
 	sbc strend
@@ -41,14 +85,25 @@ trace2_40:
 trace3a:
 	sty oldmem
 	stx oldmem+1
-	tya
 	ldy #0
+	lda trcsw
+	beq trace3b
+	ldy #9
+trace3b:
+	lda oldmem
 	jsr trcnum
-; L, the line running, in the second, while the trace is on
+; L, in the second cell, with Em3's right off: while the trace is on, or once
+; after the cells were forgotten
 trace4:
+	lda trcsw
+	bne trace7
+	lda oldline+1
+	cmp #$ff
+	beq trace4a
 	lda flag_trc_addr
 	and #flag_trc_l_mask
 	beq trace7
+trace4a:
 	lda curlin	; c64: 57
 	ldx curlin+1	; c64: 58
 	cmp oldline
@@ -97,6 +152,14 @@ trcnum1:
 	bpl trcnum1
 	rts
 
+; the cells' letters (reversed, the lowercase set the mask is in): Em3's right
+; off, V and L; on, P and V (trcsw, 0 or 2, indexes them)
+trcltr:
+	byte $d6, $cc
+	byte $d0, $d6
+
+trcsw:
+	byte 0
 trccell:
 	byte 0
 oldline:
