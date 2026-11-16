@@ -288,7 +288,7 @@ Printable characters go through `tblcta` (PETSCII to ASCII, `intro.asm`'s
 (`mupcase`), where shifted letters are graphics, not capitals.
 
 Control codes (checked 11/15/2026 by `tests/standin/ansiout.bas` with
-`tools/ansiout.py`, which records what a SwiftLink sends):
+`tools/ansiout.py`, which records what a SwiftLink sends, `&,70` too):
 
 | PETSCII | ASCII (16) | ANSI (16 and 18) |
 |---|---|---|
@@ -307,8 +307,16 @@ Control codes (checked 11/15/2026 by `tests/standin/ansiout.bas` with
 | anything else under 32 | dropped | dropped |
 
 So the ANSI functions it makes itself are only CUU, CUD, CUF, CUB (one
-place each), CUP to 1;1, ED 2 and SGR. Others (EL `Esc[K`, IL `Esc[L`,
-DL `Esc[M`, CUP to a place, scrolling regions) a module or overlay sends
+place each), CUP to 1;1, ED 2 and SGR. And `&,70,column,row` (`cursposn`,
+from 0) sends an ANSI caller one CUP, `Esc[row;columnH` from 1 (11/15/2026,
+`asm/ansicup.asm`), where it used to send Home and a 3-byte `Esc[B` or
+`Esc[C` for each row and column (154 bytes for row 20, column 30): the
+console still gets Home, Downs and Rights, so Image's cursor follows, and
+the modem's counts (`modclm`, `usrlin`) are left as those would leave
+them. Use `&,70` to place the cursor, not cursor keys, for ANSI callers'
+sake. A Commodore caller gets Home, Downs and Rights as before; a plain
+ASCII one nothing. Others (EL `Esc[K`, IL `Esc[L`,
+DL `Esc[M`, scrolling regions) a module or overlay sends
 itself, as Esc and the rest: the capitals as shifted PETSCII, e.g.
 `chr$(27)+"[2"+chr$(203)` for `Esc[2K`. Send them with `&,51` (`poke
 254,c:&,51` for each character, as `ansiout.bas` does): `&` output goes
