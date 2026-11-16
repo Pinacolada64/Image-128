@@ -660,7 +660,11 @@
 ; drivers: the byte in ptr1 scrolled in; .a .y lost, .x kept. Main line.
 	rs_txwin = $19a2 ; 3 bytes: jmp rs_txwin0 (columns 29-38)
 	rs_rxwin = $19a5 ; 3 bytes: jmp rs_rxwin0 (columns 1-10)
-; $19a8-$19ff: free
+; the last module the wedge loaded (openroom), for 80 columns' row 21
+	modnew	= $19a8	; 1: a new name (status.asm's r80_mod clears it)
+	modlen	= $19a9	; its length, 0-16
+	modname	= $19aa	; 16 bytes ($19aa-$19b9), PETSCII
+; $19ba-$19ff: free
 
 ; $1a00-$1bff: $1ff / 511 bytes. room for IRQ/& jump tables?
 

@@ -30,6 +30,10 @@
 ; there too (modules/TODO.md: the VDC's own row 23 with P, V and L).
 
 trace2:
+	bit mode
+	bpl trace2_40
+	jmp trace80	; 80 columns: rows 20's P V L (status.asm)
+trace2_40:
 	lda flag_h38_addr
 	and #flag_h38_r_mask	; 0, or 2 with Dbg on
 	sta trcdbg
@@ -111,6 +115,7 @@ trace5:
 	stx oldline+1
 	ldy #9
 	jsr trcnum
+trace5p:
 	lda flag_trc_addr
 	and #flag_trc_l_mask
 	beq trace7

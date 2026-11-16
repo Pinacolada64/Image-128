@@ -77,6 +77,20 @@ openroo1:
 	bcc openroo1
 openroo2:
 	sty filename_len
+; the name for 80 columns' status area (status.asm's r80_mod): up to 16
+	ldx #0
+opr_mod:
+	cpx filename_len
+	bcs opr_mod1
+	lda fbuf,x
+	sta modname,x
+	inx
+	cpx #16
+	bcc opr_mod
+opr_mod1:
+	stx modlen
+	lda #1
+	sta modnew
 	lda fa		; $ba
 	sta fdev
 	lda sa		; $b9

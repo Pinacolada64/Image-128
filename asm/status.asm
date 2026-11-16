@@ -82,7 +82,7 @@ stv1:
 stv2:
 	dey
 	bpl stv1
-	rts
+	jmp r80_vdc	; then rows 20, 21 and 23's right halves
 
 ; indicator .y (.a: 0 off, 1 on) at row 24, column 40+4*.y. Keeps .y.
 stat_vdc1:
@@ -150,6 +150,8 @@ stc1:
 rs_txwin0:
 	jsr rswin_on
 	beq rswin9
+	bit mode
+	bmi r80_tx	; 80 columns: 38 wide, on the right half
 	ldy #0
 rstx1:
 	lda sdisp+30,y
@@ -164,15 +166,22 @@ rswin9:
 rs_rxwin0:
 	jsr rswin_on
 	beq rswin9
+	ldy #9		; 40 columns: 10 wide (1-10)
+	bit mode
+	bpl rsrx0
+	ldy #37		; 80 columns: 38 wide (1-38), the VIC row vdcstat copies
+rsrx0:
+	sty rsrx2+1
 	ldy #0
 rsrx1:
 	lda sdisp+2,y
 	sta sdisp+1,y
 	iny
-	cpy #9
+rsrx2:
+	cpy #9		; (set above)
 	bcc rsrx1
 	lda ptr1	; c64: $9e
-	sta sdisp+10
+	sta sdisp+1,y	; the right end: 10 or 38
 	rts
 ; .a non-zero (Z clear) when the windows show
 rswin_on:
@@ -184,6 +193,295 @@ rswin_on:
 rswin_no:
 	lda #0
 	rts
+
+; ----------------------------------------------------------------------
+; 80 columns: the right halves (columns 40-79) of rows 20, 21 and 23, kept
+; here (r80_text, 40 bytes a row) and drawn on the VDC by r80_vdc, from
+; vdcstat on the main line, when a row changed (r80_dirty) or the mask
+; came on (vdcst_force): the VIC screen has no columns past 39, and the
+; VDC can't be written from an interrupt. 11/16/2026 (user's layout):
+;   row 20  P= program space, V= variable space, L= the BASIC line (trace)
+;   row 21  Buf: bytes waiting in the RS-232 receive buffer; Module: the
+;           last module loaded (the wedge's openroom: modname)
+;   row 23  the transmit window, 38 wide (the receive window is the VIC's
+;           columns 1-38, which vdcstat copies), then T
+; Rows 20 and 21 are the system box's last two (sub.display draws 17-19).
+
+r80_tx:		; rs_txwin in 80 columns: row 23, columns 41-78
+	ldy #0
+r80tx1:
+	lda r80_text+82,y
+	sta r80_text+81,y
+	iny
+	cpy #37
+	bcc r80tx1
+	lda ptr1	; c64: $9e
+	sta r80_text+118
+	lda #1
+	sta r80_dirty+2
+	rts
+
+; from stat_vdc (vdcstat, 80 columns): Buf and the module, then any row
+; that changed, while the mask is on
+r80_vdc:
+	lda scnmode
+	bne r80v9	; mask off: rows 20-23 are the console's
+	jsr r80_buf
+	jsr r80_mod
+	ldx #2
+r80v1:
+	lda vdcst_force
+	bne r80v2
+	lda r80_dirty,x
+	beq r80v3
+r80v2:
+	lda #0
+	sta r80_dirty,x
+	stx r80_i
+	jsr r80_row
+	ldx r80_i
+r80v3:
+	dex
+	bpl r80v1
+r80v9:
+	rts
+
+; draw row r80_i's right half: its 40 characters, then their attributes
+; (columns 40 and 79 r80_edge's color, 41-78 r80_mid's; the lowercase set)
+r80_row:
+	ldy r80_rows,x
+	lda vdcrowlo,y
+	clc
+	adc #40
+	sta r80_lo
+	lda vdcrowhi,y
+	adc #0
+	sta r80_hi
+	clc
+	adc vdcscrn
+	ldy r80_lo
+	jsr vdc_set_update
+	ldx r80_i
+	ldy r80_off,x
+	lda #40
+	sta r80_n
+r80r1:
+	lda r80_text,y
+	jsr vdc_put
+	iny
+	dec r80_n
+	bne r80r1
+	lda r80_hi
+	clc
+	adc vdcattr
+	ldy r80_lo
+	jsr vdc_set_update
+	ldy #0
+r80r2:
+	ldx r80_i
+	lda r80_mid,x
+	cpy #0
+	beq r80r3
+	cpy #39
+	bne r80r4
+r80r3:
+	lda r80_edge,x
+r80r4:
+	and #$0f
+	tax
+	lda vdccolor,x
+	ora #VDC_ATTR_ALT
+	jsr vdc_put
+	iny
+	cpy #40
+	bcc r80r2
+	rts
+
+; Buf: (ridbe - ridbs) and 127, three digits at row 21, columns 46-48
+r80_buf:
+	lda ridbe
+	sec
+	sbc ridbs
+	and #127
+	cmp r80_bufn
+	beq r80b9
+	sta r80_bufn
+	ldx #0
+	jsr decimal	; decchr: five ASCII digits
+	ldx #2
+r80b1:
+	lda decchr+2,x
+	ora #$80
+	sta r80_text+40+6,x
+	dex
+	bpl r80b1
+	lda #1
+	sta r80_dirty+1
+r80b9:
+	rts
+
+; Module: when the wedge loaded one (modnew), its name (modname, modlen
+; characters) at row 21, columns 62-77, as reversed screen codes
+r80_mod:
+	lda modnew
+	beq r80m9
+	lda #0
+	sta modnew
+	ldx #0		; skip a drive prefix ("0:"): from past a ':' in
+	ldy #0		; the first three characters
+r80m0:
+	cpy modlen
+	bcs r80m0b
+	lda modname,y
+	iny
+	cmp #':'
+	bne r80m0a
+	tya
+	tax		; the name starts after it
+r80m0a:
+	cpy #3
+	bcc r80m0
+r80m0b:
+	stx r80_skip
+	ldy #0
+r80m1:
+	tya
+	clc
+	adc r80_skip
+	tax
+	lda #$a0	; past the name: reverse spaces
+	cpx modlen
+	bcs r80m3
+	lda modname,x	; PETSCII to the lowercase set's screen codes
+	cmp #$c0
+	bcc r80m2
+	sbc #$80	; $c1-$da (capitals) to $41-$5a
+	bne r80m2a
+r80m2:
+	cmp #$40
+	bcc r80m2a
+	sbc #$40	; $41-$5a (lowercase) to $01-$1a
+r80m2a:
+	ora #$80
+r80m3:
+	sta r80_text+40+22,y
+	iny
+	cpy #16
+	bcc r80m1
+	lda #1
+	sta r80_dirty+1
+r80m9:
+	rts
+
+; trace2 in 80 columns: P, V and L at row 20 (all three always; the
+; lightbar's Dbg changes nothing here). L follows the line while the trace
+; (Trc left, check 24) is on, and is drawn once at the start.
+trace80:
+	sec
+	lda maxmem0
+	sbc txtend
+	tay
+	lda maxmem0+1
+	sbc txtend+1
+	tax
+	cpy oldprg
+	bne t80a
+	cpx oldprg+1
+	beq t80b
+t80a:
+	sty oldprg
+	stx oldprg+1
+	tya
+	ldy #4		; P's digits: row 20, columns 44-48
+	jsr t80num
+t80b:
+	sec
+	lda fretop
+	sbc strend
+	tay
+	lda fretop+1
+	sbc strend+1
+	tax
+	cpy oldmem
+	bne t80c
+	cpx oldmem+1
+	beq t80d
+t80c:
+	sty oldmem
+	stx oldmem+1
+	tya
+	ldy #13		; V's: 53-57
+	jsr t80num
+t80d:
+	lda t80_first
+	bne t80e
+	lda flag_trc_addr
+	and #flag_trc_l_mask
+	beq t80f
+t80e:
+	lda curlin	; c64: 57
+	ldx curlin+1	; c64: 58
+	cmp oldline
+	bne t80g
+	cpx oldline+1
+	beq t80f
+t80g:
+	sta oldline
+	stx oldline+1
+	ldy #22		; L's: 62-66
+	jsr t80num
+	lda #0
+	sta t80_first
+	jmp trace5p	; trace2's Ctrl-key pause, while the trace is on
+t80f:
+	rts
+
+; .a/.x in decimal, five reversed digits at row 20, offset .y
+t80num:
+	sty t80_cell
+	jsr decimal
+	ldy t80_cell
+	ldx #0
+t80n1:
+	lda decchr,x
+	ora #$80
+	sta r80_text,y
+	iny
+	inx
+	cpx #5
+	bcc t80n1
+	lda #1
+	sta r80_dirty
+	rts
+
+r80_rows:	byte 20,21,23
+r80_off:	byte 0,40,80
+r80_edge:	byte 12,12,1	; colors: columns 40 and 79
+r80_mid:	byte 12,12,3	; 41-78 (the box's gray; the window's cyan)
+r80_dirty:	byte 1,1,1
+r80_text:	; row 20: " P=00000  V=00000  L=00000"
+	byte $20,$a0,$d0,$bd,$b0,$b0,$b0,$b0,$b0,$a0
+	byte $a0,$d6,$bd,$b0,$b0,$b0,$b0,$b0,$a0,$a0
+	byte $cc,$bd,$b0,$b0,$b0,$b0,$b0,$a0,$a0,$a0
+	byte $a0,$a0,$a0,$a0,$a0,$a0,$a0,$a0,$a0,$20
+		; row 21: " Buf 000/127  Module ", then the name
+	byte $20,$a0,$c2,$95,$86,$a0,$b0,$b0,$b0,$af
+	byte $b1,$b2,$b7,$a0,$a0,$cd,$8f,$84,$95,$8c
+	byte $85,$a0,$a0,$a0,$a0,$a0,$a0,$a0,$a0,$a0
+	byte $a0,$a0,$a0,$a0,$a0,$a0,$a0,$a0,$a0,$20
+		; row 23: a reverse space, the transmit window, T
+	byte $a0,$20,$20,$20,$20,$20,$20,$20,$20,$20
+	byte $20,$20,$20,$20,$20,$20,$20,$20,$20,$20
+	byte $20,$20,$20,$20,$20,$20,$20,$20,$20,$20
+	byte $20,$20,$20,$20,$20,$20,$20,$20,$20,$d4
+r80_bufn:	byte $ff
+t80_first:	byte 1
+r80_i:		byte 0
+r80_lo:		byte 0
+r80_hi:		byte 0
+r80_n:		byte 0
+t80_cell:	byte 0
+r80_skip:	byte 0
 
 ; by index: Abt Pau Dsk GC Swp Lck Ovr Flo Int Car
 stat_col40:
