@@ -186,7 +186,7 @@
 ' since the daily reset and since setup (st(39), st(40): im 4035) and free
 ' stack (usr(0), as im's 209 shows it), labels reversed light gray and
 ' values plain gray (11/16/2026; free string space went: row 22's V= shows
-' it all the time). Row 19 (Buf), row 22's P= V= L= Mod: and row 24's
+' it all the time). Row 19 (Buf), row 22's P= V= L= M= and row 24's
 ' bar on to column 79 are the ML's (status.asm; vdcrinit). Only a$ and l, which this
 ' module uses anyway, so callers keep
 ' their variables. Drawn whenever the status area is drawn

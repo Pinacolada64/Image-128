@@ -200,9 +200,9 @@ rswin_no:
 ; vdcstat on the main line, when a row changed (r80_dirty) or the mask
 ; came on (vdcst_force): the VIC screen has no columns past 39, and the
 ; VDC can't be written from an interrupt. 11/16/2026 (user's layout):
-;   row 22  the C= N= bar on to column 79: L= the BASIC line (trace), Mod:
-;           the last module loaded (the wedge's openroom: modname; 13
-;           characters of it), and "Image BBS 128" at 67-79; P= program space and V= variable
+;   row 22  the C= N= bar on to column 79: L= the BASIC line (trace), M=
+;           the last module loaded (the wedge's openroom: modname, up to
+;           16 characters), and "Image BBS 128" at 67-79; P= program space and V= variable
 ;           space are at 24-39, on the VIC's half (sub.display draws
 ;           "P=----- V=----- " there; trace80 the digits)
 ;   row 19  Buf: bytes waiting in the RS-232 receive buffer
@@ -333,8 +333,8 @@ r80b1:
 r80b9:
 	rts
 
-; Mod: when the wedge loaded one (modnew), its name (modname, modlen
-; characters, the first 13) at row 22, columns 53-65, reversed
+; M=: when the wedge loaded one (modnew), its name (modname, modlen
+; characters, up to 16) at row 22, columns 50-65, reversed
 r80_mod:
 	lda modnew
 	beq r80m9
@@ -377,9 +377,9 @@ r80m2:
 r80m2a:
 	ora #$80
 r80m3:
-	sta r80_text+13,y
+	sta r80_text+10,y
 	iny
-	cpy #13
+	cpy #16
 	bcc r80m1
 	lda #1
 	sta r80_dirty
@@ -492,9 +492,9 @@ r80_mid:	byte 1,12,3	; 41-78, plain cells: values (the window's cyan)
 r80_rev:	byte 1,15,3	; 41-78, reversed: row 22's white bar, the box's
 			; light gray labels, the window
 r80_dirty:	byte 1,1,1
-r80_text:	; row 22: "L=00000 Mod: " name(13) " Image BBS 128", all reversed
-	byte $cc,$bd,$b0,$b0,$b0,$b0,$b0,$a0,$cd,$8f
-	byte $84,$ba,$a0,$a0,$a0,$a0,$a0,$a0,$a0,$a0
+r80_text:	; row 22: "L=00000 M=" name(16) " Image BBS 128", all reversed
+	byte $cc,$bd,$b0,$b0,$b0,$b0,$b0,$a0,$cd,$bd
+	byte $a0,$a0,$a0,$a0,$a0,$a0,$a0,$a0,$a0,$a0
 	byte $a0,$a0,$a0,$a0,$a0,$a0,$a0,$c9,$8d,$81
 	byte $87,$85,$a0,$c2,$c2,$d3,$a0,$b1,$b2,$b8
 		; row 19: [Buf   ] 000/127 ([] reversed)
