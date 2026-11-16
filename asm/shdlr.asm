@@ -945,27 +945,30 @@ vdcrinit:
 	jsr vdcrini2
 	lda color
 	jsr vdc_fill
-; row 24's part (columns 40-79): reverse spaces in white, as the VIC's
-; row 24 is (tdisp; the IRQ keeps tcolr white), so the bottom line runs
-; on to column 79. setup draws it at boot; nothing clears it after that
-; (scclear stops at row 23). (sub.display drew it with &,69 before.)
-	lda #<(8*VDC_COLS+40)
+; rows 23 and 24's parts (columns 40-79): reverse spaces in white, as the
+; VIC's rows are (row 23 the mask's, sub.display's $81; row 24 tdisp, the
+; IRQ keeping tcolr white), so both bars run on to column 79. One fill of
+; 120 from row 23, column 40 (row 24's columns 0-39 between aren't used:
+; vdcright is the right halves). Row 24: setup draws it at boot, and
+; nothing clears it (scclear stops at row 23); row 23: vdcmask draws it
+; each time the mask goes on. (sub.display drew row 24 with &,69 before.)
+	lda #<(7*VDC_COLS+40)
 	sta vdc_dst
-	lda #>($1400+8*VDC_COLS+40)
+	lda #>($1400+7*VDC_COLS+40)
 	sta vdc_dst+1
 	jsr vdcrini3
 	lda #$a0	; reverse space
 	jsr vdc_fill
-	lda #<(8*VDC_COLS+40)
+	lda #<(7*VDC_COLS+40)
 	sta vdc_dst
-	lda #>($1c00+8*VDC_COLS+40)
+	lda #>($1c00+7*VDC_COLS+40)
 	sta vdc_dst+1
 	jsr vdcrini3
 	lda vdccolor+1	; white
 	ora #VDC_ATTR_ALT	; the status rows' lowercase set (vdcsrow)
 	jmp vdc_fill
 vdcrini3:
-	lda #40
+	lda #120
 	sta vdc_count
 	lda #0
 	sta vdc_count+1
