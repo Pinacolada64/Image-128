@@ -1233,9 +1233,9 @@ flag_mhz_addr	= chktbl + 7 	; mHz (128; the lightbar's label, 11/05/2026)
 flag_mhz_l_mask	= %01000000	; 62 ($3e) 128: on = the CPU at 2 MHz ($d030 bit 0;
 			; setup.asm's speed_update sets it from the speed)
 flag_mhz_r_mask	= %10000000	; 63 ($3f) Undefined
-flag_em3_addr	= chktbl + 6	; Em3 (page 4, label 1; here, not in order, 11/16/2026)
-flag_em3_l_mask	= %00000001	; 48 ($30) Image 1.3 emulator: im 309 loads im.emul13
-flag_em3_r_mask	= %00000010	; 49 ($31) 40 columns: the mask's row 23 shows P= V=
+flag_prg_addr	= chktbl + 6	; Prg (page 4, label 1; was Em3; here, not in order, 11/16/2026)
+flag_prg_l_mask	= %00000001	; 48 ($30) Image 1.3 emulator: im 309 loads im.emul13
+flag_prg_r_mask	= %00000010	; 49 ($31) 40 columns: the mask's row 23 shows P= V=
 			; rather than V= L= (trace.asm; STATUS_LINE.md)
 
 ; editor input flags: &,1,x,y

@@ -8,8 +8,8 @@
 ; Row 23 has two number cells, "x=00000" at sdisp+12 and sdisp+21
 ; (sub.display.lbl draws "R           V=00000  L=00000           T"):
 ;
-;	lightbar Em3 right (check 49) off:  V=00000  L=00000
-;	lightbar Em3 right (check 49) on:   P=00000  V=00000
+;	lightbar Prg right (check 49) off:  V=00000  L=00000
+;	lightbar Prg right (check 49) on:   P=00000  V=00000
 ;
 ; V, variable space: fretop - strend, bank 1's free room between the
 ;    arrays and the strings (c64's M=, lda 51 / sbc 49 ..., which there
@@ -20,8 +20,8 @@
 ;    left, check 24) is on
 ;
 ; Each number is drawn only when it changes (oldmem, oldprg, oldline).
-; The cell letters are checked against Em3's right each time: when they don't
-; match (Em3's right changed, or sub.display drew the mask again) both letters
+; The cell letters are checked against Prg's right each time: when they don't
+; match (Prg's right changed, or sub.display drew the mask again) both letters
 ; are written and every number is forgotten, so each cell is drawn at
 ; once; the L cell then shows the line running even with the trace off,
 ; rather than keeping V's digits.
@@ -34,8 +34,8 @@ trace2:
 	bpl trace2_40
 	jmp trace80	; 80 columns: row 22's P V L (status.asm)
 trace2_40:
-	lda flag_em3_addr
-	and #flag_em3_r_mask	; 0, or 2 with Em3's right on
+	lda flag_prg_addr
+	and #flag_prg_r_mask	; 0, or 2 with Prg's right on
 	sta trcsw
 	tax
 	lda trcltr,x
@@ -49,7 +49,7 @@ trace2_40:
 	sta oldprg+1
 	sta oldline+1
 trace2a:
-; P, in the first cell, with Em3's right on
+; P, in the first cell, with Prg's right on
 	lda trcsw
 	beq trace3
 	sec
@@ -69,7 +69,7 @@ trace2b:
 	tya
 	ldy #0
 	jsr trcnum
-; V: the first cell, or the second with Em3's right on
+; V: the first cell, or the second with Prg's right on
 trace3:
 	sec
 	lda fretop
@@ -92,7 +92,7 @@ trace3a:
 trace3b:
 	lda oldmem
 	jsr trcnum
-; L, in the second cell, with Em3's right off: while the trace is on, or once
+; L, in the second cell, with Prg's right off: while the trace is on, or once
 ; after the cells were forgotten
 trace4:
 	lda trcsw
@@ -152,7 +152,7 @@ trcnum1:
 	bpl trcnum1
 	rts
 
-; the cells' letters (reversed, the lowercase set the mask is in): Em3's right
+; the cells' letters (reversed, the lowercase set the mask is in): Prg's right
 ; off, V and L; on, P and V (trcsw, 0 or 2, indexes them)
 trcltr:
 	byte $d6, $cc
