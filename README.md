@@ -51,7 +51,8 @@ how the port deals with it; `PROGRAMMING.md`, writing BASIC for Image
 128 (errors and TRAP, BASIC 7.0's stack, `&` output);
 `BASIC_VARIABLES.md`, the variables the ML uses; `DEBUG_TECHNIQUES.md`,
 how problems were tracked down; `tests/standin/README.md`, the test
-programs.
+programs; `IMAGE_3_1.md`, what Image 128 adds to 3.0 and which of
+Image 3.1's changes are still to port.
 
 `im 128.bas` needs C64List 4.06: 4.04 ignores the `{tokenizer}` directives in
 `Basic70.bas` (copied from C64List 4.06), so BASIC 7.0 keywords would come out
