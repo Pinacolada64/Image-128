@@ -642,7 +642,21 @@
 	viscmd	= $199e	; 1 byte: ++ visual's dot command letter (11/08/2026):
 			; it exits with .x=4 and the letter here; the line
 			; editor's entry4 (&,54,3) runs it
-; $199f-$19ff: free
+; 11/16/2026: the status line's indicators (asm/status.asm): .a = index,
+; .x = 0 off / non-zero on; keeps .a .x .y. Safe from the IRQ and NMI.
+	draw_status_line = $199f ; 3 bytes: jmp draw_status_line0
+	stat_abt = 0	; output aborted (/, space, Ctrl-C)	40: A, column 30
+	stat_pau = 1	; output paused (Ctrl-S)		40: P, column 30
+	stat_dsk = 2	; load/save, SwiftLink interrupts off	40: L, column 30
+	stat_gc  = 3	; garbage collection			40: G, column 31
+	stat_swp = 4	; page swap				40: S, column 31
+	stat_lck = 5	; waiting for a Lt. Kernal lock		40: L, column 31
+	stat_ovr = 6	; receive overrun (on until logoff)	40: O, column 29
+	stat_flo = 7	; flow control: RTS dropped		40: F, column 32
+	stat_int = 8	; 6551 interrupts off			40: I, column 32 (with F)
+	stat_car = 9	; carrier present			40: check, column 39
+	stat_count = 10	; (80 columns: label idx at row 24, column 40+4*idx)
+; $19a2-$19ff: free
 
 ; $1a00-$1bff: $1ff / 511 bytes. room for IRQ/& jump tables?
 

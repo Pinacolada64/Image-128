@@ -63,6 +63,10 @@ hcd21:
 hcd24:
 	jmp evalfil0
 
+; 11/16/2026: the status line's indicators (status.asm)
+	orig draw_status_line
+	jmp draw_status_line0
+
 
 ;;;
 ;;; & jump table: $1a00
@@ -100,6 +104,8 @@ wedge_pages = (* - wedge_exec_address) / 256
 {include:"glue.asm"}
 ; the mask's numbers, from trace0 (shdlr.asm; $e000-$fbff has no room)
 {include:"trace.asm"}
+; the status line's indicators: shared, for the IRQ and the NMI
+{include:"status.asm"}
 	addrcheck $4000
 
 ;;;
@@ -219,8 +225,9 @@ swapper0:
 	sty swappg2	; destination page
 	stx swapsiz	; how many pages to swap
 swapagn0:
-	lda #$d3	; reverse capital "S"
-	sta tdisp+31
+	lda #stat_swp
+	ldx #1
+	jsr draw_status_line
 	jsr rsdisab
 	sei
 swappg1 = *+1
@@ -253,9 +260,9 @@ swapr1:
 	bne swapr1
 	cli
 	jsr rsinabl
-	lda #$a0	; reverse space
-	sta tdisp+31
-	rts
+	lda #stat_swp
+	ldx #0
+	jmp draw_status_line
 
 getversn:
 	lda #version_length

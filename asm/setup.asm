@@ -11,11 +11,7 @@ logoff:
 	sta varbuf+2
 	ldx #var_d1_string
 	jsr putvar
-	lda #$a0
-	sta tdisp+30
-	sta tdisp+31
-	sta tdisp+32
-	rts
+	jmp stat_clear	; the status line's indicators 0-7 off
 
 setbaud:
 	txa

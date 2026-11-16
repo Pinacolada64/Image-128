@@ -268,6 +268,7 @@ setup1:
 	sta inchat
 	jsr iosetup
 	jsr setptrs
+	jsr stat_init	; the status line's indicators off, cells blank
 	jsr setirq
 	jsr trapoff
 	jsr setscrn

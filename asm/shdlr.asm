@@ -1155,6 +1155,7 @@ vdcst1:
 	cpx #16
 	bcs vdcst1
 vdcst2:
+	jsr stat_vdc	; the indicators' labels (status.asm)
 	lda #0
 	sta vdcst_force
 	pla

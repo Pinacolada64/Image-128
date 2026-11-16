@@ -447,11 +447,12 @@ arytab_hi = $0032	; dirty hack to assemble "lda arytab+1,y"
 ; stopped the program with ?out of memory (wgone). The reverse G on the
 ; status line while it runs is gc.asm's.
 collect:
-	lda #$c7	; reverse uppercase G
-	sta tdisp+31
+	lda #stat_gc
+	ldx #1
+	jsr draw_status_line
 	jsr glue	; farcall, the first thing in glue.asm (the wedge is
 	byte cfg_rom	; assembled on its own, without its label)
 	word k_garbag
-	lda #$a0
-	sta tdisp+31
-	rts
+	lda #stat_gc
+	ldx #0
+	jmp draw_status_line

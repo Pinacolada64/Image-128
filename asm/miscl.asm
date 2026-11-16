@@ -320,8 +320,8 @@ lock:
 	bpl idle
 	cmp ltkport
 	beq lock1
-	ldy #$cc ; reverse uppercase L
-	sty tdisp+31
+	ldx #1
+	jsr lock_ind	; Lck on
 	jsr tdelay
 	bne lock
 idle:
@@ -336,8 +336,12 @@ lock1:
 	jsr ltklkblk
 	cmp ltkport
 	bne lock
-	ldy #$a0
-	sty tdisp+31
+	ldx #0		; Lck off; .a (the port) kept
+lock_ind:
+	pha
+	lda #stat_lck
+	jsr draw_status_line
+	pla
 	rts
 
 unlock:
