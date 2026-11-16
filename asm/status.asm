@@ -195,18 +195,22 @@ rswin_no:
 	rts
 
 ; ----------------------------------------------------------------------
-; 80 columns: the right halves (columns 40-79) of rows 22, 21 and 23, kept
+; 80 columns: the right halves (columns 40-79) of rows 22, 19 and 23, kept
 ; here (r80_text, 40 bytes a row) and drawn on the VDC by r80_vdc, from
 ; vdcstat on the main line, when a row changed (r80_dirty) or the mask
 ; came on (vdcst_force): the VIC screen has no columns past 39, and the
 ; VDC can't be written from an interrupt. 11/16/2026 (user's layout):
-;   row 22  P= program space, V= variable space, L= the BASIC line (trace),
-;           on the C= N= bar's right half, reversed white as its left
-;   row 21  Buf: bytes waiting in the RS-232 receive buffer; Module: the
-;           last module loaded (the wedge's openroom: modname)
+;   row 22  the C= N= bar on to column 79: L= the BASIC line (trace), Mod:
+;           the last module loaded (the wedge's openroom: modname; 13
+;           characters of it), and "Image BBS 128" at 67-79; P= program space and V= variable
+;           space are at 24-39, on the VIC's half (sub.display draws
+;           "P=----- V=----- " there; trace80 the digits)
+;   row 19  Buf: bytes waiting in the RS-232 receive buffer
 ;   row 23  the transmit window, 38 wide (the receive window is the VIC's
 ;           columns 1-38, which vdcstat copies), then T
-; Row 21 is the system box's last (sub.display draws 17-20).
+; Row 19 is the system box's third (sub.display draws 17-18 and blanks
+; 20-21). A cell's color: columns 40 and 79 r80_edge's; the others
+; r80_rev's when reversed (labels), r80_mid's when not (values).
 
 r80_tx:		; rs_txwin in 80 columns: row 23, columns 41-78
 	ldy #0
@@ -248,7 +252,7 @@ r80v9:
 	rts
 
 ; draw row r80_i's right half: its 40 characters, then their attributes
-; (columns 40 and 79 r80_edge's color, 41-78 r80_mid's; the lowercase set)
+; (colors as above; the lowercase set)
 r80_row:
 	ldy r80_rows,x
 	lda vdcrowlo,y
@@ -264,6 +268,7 @@ r80_row:
 	jsr vdc_set_update
 	ldx r80_i
 	ldy r80_off,x
+	sty r80_o
 	lda #40
 	sta r80_n
 r80r1:
@@ -280,13 +285,21 @@ r80r1:
 	ldy #0
 r80r2:
 	ldx r80_i
-	lda r80_mid,x
-	cpy #0
-	beq r80r3
-	cpy #39
-	bne r80r4
-r80r3:
 	lda r80_edge,x
+	cpy #0
+	beq r80r4
+	cpy #39
+	beq r80r4
+	tya
+	clc
+	adc r80_o
+	tax
+	lda r80_text,x
+	ldx r80_i
+	asl		; reversed? (bit 7)
+	lda r80_mid,x
+	bcc r80r4
+	lda r80_rev,x
 r80r4:
 	and #$0f
 	tax
@@ -298,7 +311,7 @@ r80r4:
 	bcc r80r2
 	rts
 
-; Buf: (ridbe - ridbs) and 127, three digits at row 21, columns 46-48
+; Buf: (ridbe - ridbs) and 127, three digits at row 19, columns 48-50
 r80_buf:
 	lda ridbe
 	sec
@@ -311,9 +324,8 @@ r80_buf:
 	jsr decimal	; decchr: five ASCII digits
 	ldx #2
 r80b1:
-	lda decchr+2,x
-	ora #$80
-	sta r80_text+40+6,x
+	lda decchr+2,x	; (plain: a value)
+	sta r80_text+40+8,x
 	dex
 	bpl r80b1
 	lda #1
@@ -321,8 +333,8 @@ r80b1:
 r80b9:
 	rts
 
-; Module: when the wedge loaded one (modnew), its name (modname, modlen
-; characters) at row 21, columns 62-77, as reversed screen codes
+; Mod: when the wedge loaded one (modnew), its name (modname, modlen
+; characters, the first 13) at row 22, columns 53-65, reversed
 r80_mod:
 	lda modnew
 	beq r80m9
@@ -365,19 +377,30 @@ r80m2:
 r80m2a:
 	ora #$80
 r80m3:
-	sta r80_text+40+22,y
+	sta r80_text+13,y
 	iny
-	cpy #16
+	cpy #13
 	bcc r80m1
 	lda #1
-	sta r80_dirty+1
+	sta r80_dirty
 r80m9:
 	rts
 
-; trace2 in 80 columns: P, V and L at row 22 (all three always; the
-; lightbar's Dbg changes nothing here). L follows the line while the trace
-; (Trc left, check 24) is on, and is drawn once at the start.
+; trace2 in 80 columns: P, V and L on row 22 (all three always; the
+; lightbar's Dbg changes nothing here): P and V on the VIC's half (columns
+; 26-30, 34-38), L in r80_text (42-46). L follows the line while the trace
+; (Trc left, check 24) is on, and is drawn once at the start. When
+; sub.display drew the mask again its "P=-----" is there: forget P and V,
+; so both are drawn at once.
+row22	= $0400 + (40*22)	; the VIC's row 22
 trace80:
+	lda row22+26
+	cmp #$ad	; a reversed '-'
+	bne t80p
+	lda #$ff
+	sta oldprg+1
+	sta oldmem+1
+t80p:
 	sec
 	lda maxmem0
 	sbc txtend
@@ -393,7 +416,7 @@ t80a:
 	sty oldprg
 	stx oldprg+1
 	tya
-	ldy #4		; P's digits: row 22, columns 44-48
+	ldy #26		; P's digits: row 22, columns 26-30 (VIC)
 	jsr t80num
 t80b:
 	sec
@@ -411,7 +434,7 @@ t80c:
 	sty oldmem
 	stx oldmem+1
 	tya
-	ldy #13		; V's: 53-57
+	ldy #34		; V's: 34-38 (VIC)
 	jsr t80num
 t80d:
 	lda t80_first
@@ -429,7 +452,7 @@ t80e:
 t80g:
 	sta oldline
 	stx oldline+1
-	ldy #22		; L's: 62-66
+	ldy #42		; L's: 42-46 (r80_text)
 	jsr t80num
 	lda #0
 	sta t80_first
@@ -437,7 +460,8 @@ t80g:
 t80f:
 	rts
 
-; .a/.x in decimal, five reversed digits at row 22, offset .y
+; .a/.x in decimal, five reversed digits on row 22 from column .y: the
+; VIC's row below 40, r80_text's from 40
 t80num:
 	sty t80_cell
 	jsr decimal
@@ -446,7 +470,13 @@ t80num:
 t80n1:
 	lda decchr,x
 	ora #$80
-	sta r80_text,y
+	cpy #40
+	bcs t80n2
+	sta row22,y
+	bcc t80n3	; (always)
+t80n2:
+	sta r80_text-40,y
+t80n3:
 	iny
 	inx
 	cpx #5
@@ -455,22 +485,23 @@ t80n1:
 	sta r80_dirty
 	rts
 
-r80_rows:	byte 22,21,23
+r80_rows:	byte 22,19,23
 r80_off:	byte 0,40,80
 r80_edge:	byte 1,12,1	; colors: columns 40 and 79
-r80_mid:	byte 1,12,3	; 41-78 (row 22's white bar; the box's gray;
-			; the window's cyan)
+r80_mid:	byte 1,12,3	; 41-78, plain cells: values (the window's cyan)
+r80_rev:	byte 1,15,3	; 41-78, reversed: row 22's white bar, the box's
+			; light gray labels, the window
 r80_dirty:	byte 1,1,1
-r80_text:	; row 22: " P=00000  V=00000  L=00000", all reversed
-	byte $a0,$a0,$d0,$bd,$b0,$b0,$b0,$b0,$b0,$a0
-	byte $a0,$d6,$bd,$b0,$b0,$b0,$b0,$b0,$a0,$a0
-	byte $cc,$bd,$b0,$b0,$b0,$b0,$b0,$a0,$a0,$a0
-	byte $a0,$a0,$a0,$a0,$a0,$a0,$a0,$a0,$a0,$a0
-		; row 21: " Buf 000/127  Module ", then the name
-	byte $20,$a0,$c2,$95,$86,$a0,$b0,$b0,$b0,$af
-	byte $b1,$b2,$b7,$a0,$a0,$cd,$8f,$84,$95,$8c
-	byte $85,$a0,$a0,$a0,$a0,$a0,$a0,$a0,$a0,$a0
-	byte $a0,$a0,$a0,$a0,$a0,$a0,$a0,$a0,$a0,$20
+r80_text:	; row 22: "L=00000 Mod: " name(13) " Image BBS 128", all reversed
+	byte $cc,$bd,$b0,$b0,$b0,$b0,$b0,$a0,$cd,$8f
+	byte $84,$ba,$a0,$a0,$a0,$a0,$a0,$a0,$a0,$a0
+	byte $a0,$a0,$a0,$a0,$a0,$a0,$a0,$c9,$8d,$81
+	byte $87,$85,$a0,$c2,$c2,$d3,$a0,$b1,$b2,$b8
+		; row 19: [Buf   ] 000/127 ([] reversed)
+	byte $20,$c2,$95,$86,$a0,$a0,$a0,$20,$30,$30
+	byte $30,$2f,$31,$32,$37,$20,$20,$20,$20,$20
+	byte $20,$20,$20,$20,$20,$20,$20,$20,$20,$20
+	byte $20,$20,$20,$20,$20,$20,$20,$20,$20,$20
 		; row 23: a reverse space, the transmit window, T
 	byte $a0,$20,$20,$20,$20,$20,$20,$20,$20,$20
 	byte $20,$20,$20,$20,$20,$20,$20,$20,$20,$20
@@ -484,6 +515,7 @@ r80_hi:		byte 0
 r80_n:		byte 0
 t80_cell:	byte 0
 r80_skip:	byte 0
+r80_o:		byte 0
 
 ; by index: Abt Pau Dsk GC Swp Lck Ovr Flo Int Car
 stat_col40:
