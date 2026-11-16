@@ -142,6 +142,49 @@ stc1:
 	bpl stc1
 	rts
 
+; row 23's transmit (rs_txwin) and receive (rs_rxwin) windows, from the
+; RS-232 drivers' rsout and rsget (each driver had its own copy; moved
+; here 11/16/2026 for their room): while the mask is on and the
+; lightbar's check 61 (enable RX/TX windows) is, the window scrolls one to
+; the left and the byte in ptr1 goes in at its right. .a .y lost, .x kept.
+rs_txwin0:
+	jsr rswin_on
+	beq rswin9
+	ldy #0
+rstx1:
+	lda sdisp+30,y
+	sta sdisp+29,y
+	iny
+	cpy #9
+	bcc rstx1
+	lda ptr1	; c64: $9e
+	sta sdisp+38
+rswin9:
+	rts
+rs_rxwin0:
+	jsr rswin_on
+	beq rswin9
+	ldy #0
+rsrx1:
+	lda sdisp+2,y
+	sta sdisp+1,y
+	iny
+	cpy #9
+	bcc rsrx1
+	lda ptr1	; c64: $9e
+	sta sdisp+10
+	rts
+; .a non-zero (Z clear) when the windows show
+rswin_on:
+	lda scnmode
+	bne rswin_no
+	lda flag_dsr_addr
+	and #flag_dsr_r_mask
+	rts
+rswin_no:
+	lda #0
+	rts
+
 ; by index: Abt Pau Dsk GC Swp Lck Ovr Flo Int Car
 stat_col40:
 	byte 30,30,30,31,31,31,29,32,32,39	; (I at 32 with F: a space before time left)

@@ -362,26 +362,8 @@ rsout_entry:
 	sta ptr1	; c64: $9e
 	sty $97
 
-; update on-screen buffers
+	jsr rs_txwin	; row 23's transmit window (status.asm)
 
-	ldy scnmode
-	bne rsout_skip_screen
-
-	lda flag_dsr_addr
-	and #flag_dsr_r_mask
-	beq rsout_skip_screen
-
-	ldy #0
-outdisp:
-	lda sdisp+30,y
-	sta sdisp+29,y
-	iny
-	cpy #9
-	bcc outdisp
-	lda ptr1	; c64: $9e
-	sta sdisp+38
-
-rsout_skip_screen:
 	lda #comint_none
 	sta m6551_command
 
@@ -484,26 +466,8 @@ rsget_entry:
 rsget_no_wrap:
 	sty ridbs
 
-; update on screen buffers
+	jsr rs_rxwin	; row 23's receive window (status.asm)
 
-	ldy scnmode
-	bne rsget_skip_screen
-
-	lda flag_dsr_addr
-	and #flag_dsr_r_mask
-	beq rsget_skip_screen
-
-	ldy #0
-inpdisp:
-	lda sdisp+2,y
-	sta sdisp+1,y
-	iny
-	cpy #9
-	bcc inpdisp
-	lda ptr1	; c64: $9e
-	sta sdisp+10
-
-rsget_skip_screen:
 	lda ridbe
 	sec
 	sbc ridbs

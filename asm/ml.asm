@@ -66,6 +66,8 @@ hcd24:
 ; 11/16/2026: the status line's indicators (status.asm)
 	orig draw_status_line
 	jmp draw_status_line0
+	jmp rs_txwin0	; rs_txwin, $19a2
+	jmp rs_rxwin0	; rs_rxwin, $19a5
 
 
 ;;;

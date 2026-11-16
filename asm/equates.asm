@@ -656,7 +656,11 @@
 	stat_int = 8	; 6551 interrupts off			40: I, column 32 (with F)
 	stat_car = 9	; carrier present			40: check, column 39
 	stat_count = 10	; (80 columns: label idx at row 24, column 40+4*idx)
-; $19a2-$19ff: free
+; row 23's receive and transmit windows (status.asm), for both RS-232
+; drivers: the byte in ptr1 scrolled in; .a .y lost, .x kept. Main line.
+	rs_txwin = $19a2 ; 3 bytes: jmp rs_txwin0 (columns 29-38)
+	rs_rxwin = $19a5 ; 3 bytes: jmp rs_rxwin0 (columns 1-10)
+; $19a8-$19ff: free
 
 ; $1a00-$1bff: $1ff / 511 bytes. room for IRQ/& jump tables?
 
