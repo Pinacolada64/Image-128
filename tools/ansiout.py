@@ -10,7 +10,7 @@ Listens on --tcp (25233) as the far end of x128's ip232 RS-232 (carrier up,
 $ff $01), records what arrives and prints each test: the PETSCII code sent
 between "<" and ">", what the caller got, and whether that's what outmod
 (asm/modem.asm) should send (PROGRAMMING.md, "What an ASCII or ANSI caller
-gets"). The disk is used from a copy (build/ansiout.d81).
+gets"), and &,70's cursor position (CUP, asm/ansicup.asm). The disk is used from a copy (build/ansiout.d81).
 """
 import argparse, os, shutil, socket, sys, threading, time
 
@@ -39,6 +39,9 @@ WANT = [
     ('Esc ($1b)', b'\x1b'),
     ('Esc [ L (insert line)', E + b'L'),
     ('Esc [ 2 K (erase line)', E + b'2K'),
+    ('&,70,5,3 (CUP)', E + b'4;6H'),
+    ('&,70,0,0 (CUP)', E + b'1;1H'),
+    ('&,70,79,24 (CUP)', E + b'25;80H'),
 ]
 
 
@@ -88,6 +91,7 @@ def main():
         while v.mem('ram00', 0x0b01, 1)[0] != 2 and time.time() - t0 < 300:
             time.sleep(1)
         time.sleep(2)
+        con = tuple(v.mem('ram00', 0x0b04, 2))
     finally:
         v.cmd('quit', resume=False); stop.set()
     data = bytes(got).replace(b'\xff\xff', b'\xff')
@@ -104,8 +108,11 @@ def main():
         good = (want is None and bool(g)) or (want is not None and g == want)
         ok += good
         print('%-24s %-34r %s' % (name, g, 'ok' if good else 'want %r' % want))
-    print('%d of %d as expected; raw: %r' % (ok, len(WANT), data[:60]))
-    return 0 if ok == len(WANT) else 1
+    good = con == (9, 7)
+    print('%-24s %-34s %s' % ('&,70,7,9 on the console', 'row %d, column %d' % con, 'ok' if good else 'want row 9, column 7'))
+    ok += good
+    print('%d of %d as expected; raw: %r' % (ok, len(WANT) + 1, data[:60]))
+    return 0 if ok == len(WANT) + 1 else 1
 
 
 if __name__ == '__main__':
