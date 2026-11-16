@@ -244,6 +244,44 @@ The abort key (`rc`) stops it between characters, elements and arrays.
 the statement after the `&`); `&,66,0` is a GOTO. The line must be under
 32768 (`a%` is an integer).
 
+## Lightbar checkmarks: which are free
+
+The lightbar has 128 checkmarks: 8 pages of 8 labels, each with a left
+(even) and right (odd) checkmark. `&,52,`*n*`,3` reads one into `a%`;
+`,0`, `,1` and `,2` clear, set and toggle it. A new feature that needs a
+switch should take a free one, and its label renamed in Lightbar Labels
+(`IM` H, `D`).
+
+Found 11/16/2026 by looking for every `&,52,`*n* (decimal and `$hex`) in
+`im 128` and the modules and every `flag_` name and `ldx #`*n* / `chkflag`
+in the ML, on every branch. `i.LB` (a caller's lightbar menu) and `im 128`
+3256 (loading `e.lightdefs`) set any checkmark by number, so they don't
+count as uses.
+
+**Free** (nothing reads them, and Image 3.0 gave them no meaning):
+
+| Check | Page, label | Next to |
+|---|---|---|
+| 49 | 4, `Em3` right | 48, Image 1.x mode |
+| 63 | 4, `$3e` right | 62, the CPU at 2 MHz (128) |
+| 65 | 5, `$40` right | 64, daylight saving time's trigger |
+| 66-111 | 5-7, `$42`-`$6e` | (all free) |
+
+**Named, but nothing in Image 128 reads them:** 15 (`U/D` right, 300 baud
+U/D lockout) and 56 (`Dbg` left, 3.0's "disable troubleshooting mode").
+Better left for what they're named.
+
+**Used, though `equates.asm` called them undefined** (its comments now say
+what they are): 37 (`Frd` right: logon loads `lo.login+`, `i.lo` 3052), 42
+(`Mnt` left: callers are dropped at connect, maintenance, `i.lo` 3553), 46
+and 47 (`Xpr`: express logon, and `s.detect` files at connect, `i.lo`), 51
+(`Sc2` right: `lo.logoff` at logoff, `i.lo` 3200), 64 (`$40` left: daylight
+saving time, set by alarm 9 at 2:00; `i/lo.idle` 4209 runs `sub.clocks`).
+
+**Page 8 (112-127) is the alarms':** `At1`-`At8`'s left checkmarks switch
+alarms 1-8 on, and the right ones are what those alarms set
+(`SYSOP_COMMANDS.md`, Alarms). No code names them, but they aren't free.
+
 ## Writing `&` output
 
 - After THEN, write `then:&"..."`: the wedge only sees `&` at the start

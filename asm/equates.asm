@@ -1166,7 +1166,7 @@ flag_mor_r_mask	= %00001000	; 35 More prompt not available
 
 flag_frd_addr	= chktbl + 4
 flag_frd_l_mask	= %00010000	; 36 Full-color read disable
-flag_frd_r_mask	= %00100000	; 37 Undefined
+flag_frd_r_mask	= %00100000	; 37 Alternate login: i.lo 3052 loads lo.login+ (3.0: undefined)
 
 flag_sub_addr	= chktbl + 4
 flag_sub_l_mask	= %01000000	; 38 Messages bases closed
@@ -1177,7 +1177,7 @@ flag_res_l_mask	= %00000001	; 40 System reserved
 flag_res_r_mask	= %00000010	; 41 Network reserved
 
 flag_mnt_addr	= chktbl + 5	; Mnt
-flag_mnt_l_mask	= %00000100	; 42 Undefined
+flag_mnt_l_mask	= %00000100	; 42 Maintenance: callers are dropped at connect (i.lo 3553)
 flag_mnt_r_mask	= %00001000	; 43 Modem answer disabled
 
 flag_mnu_addr	= chktbl + 5 	; Mnu
@@ -1185,10 +1185,15 @@ flag_mnu_l_mask	= %00010000	; 44 Is user in menu mode?
 flag_mnu_r_mask	= %00100000	; 45 Are menus available on BBS?
 
 flag_h2e_addr	= chktbl + 5 	; $2e
-flag_h2e_l_mask	= %01000000	; 46 Undefined
-flag_h2e_r_mask	= %10000000	; 47 Undefined
+flag_h2e_l_mask	= %01000000	; 46 Enable express logon (i.lo 3000)
+flag_h2e_r_mask	= %10000000	; 47 Use s.detect files at connect (i.lo 3562)
 
-; lightbar positions $3e-$6e are undefined
+; 48-55, page 4's Em3 Sc2 Scp Alt: no flag_ names; 48 is Image 1.x mode (im
+; 300), 50 disables the second security check, 51 runs lo.logoff at logoff
+; (i.lo 3200), 52/53 the SuperCPU (Scp), 54/55 Alt (idle screen). 49 is free.
+; 64-111 (pages 5-7, labels $40-$6e): 64 is DST's trigger (alarm 9; i/lo.idle
+; 4209), the rest are free. 112-127 (page 8): the alarms' (At1-At8).
+; PROGRAMMING.md, "Lightbar checkmarks: which are free".
 
 flag_h38_addr	= chktbl + 7 	; Trb
 flag_h38_l_mask	= %00000001	; 56 ($38) On: Do not display BASIC variables
