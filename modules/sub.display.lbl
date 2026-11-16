@@ -107,7 +107,7 @@
 {:mask_bottom}
 ' 80 columns (11/16/2026): row 23's VIC half is R and the receive window,
 ' 38 wide; the ML draws its right half (the transmit window, T) and the
-' numbers (rows 20-21: status.asm's r80_*)
+' numbers (rows 21-22: status.asm's r80_*)
 	if sw=80 then:&,69,00,23,"R{space:39}",$81:&,69,01,23,"{space:38}",3:gosub {:sub.prime_time}:return
 	&,69,00,23,"R           V=00000  L=00000           T",$81
 	&,69,01,23,"          ",3:&,69,29,23,"          ",3
@@ -186,15 +186,15 @@
 ' since the daily reset and since setup (st(39), st(40): im 4035), free
 ' string space (fretop - strend, bank 1) and free stack (usr(0), as im's 209
 ' shows it); row 24's bar on to column 79 is the ML's now (vdcrinit,
-' drawn at boot: setup), and so are rows 20-21 (P= V= L=, Buf, Module:
-' status.asm). Only a$ and l, which this
+' drawn at boot: setup), and so are row 21 (Buf, Module) and row 22's
+' right half (P= V= L=): status.asm. Only a$ and l, which this
 ' module uses anyway, so callers keep
 ' their variables. Drawn whenever the status area is drawn
 {:sub.system_box}
 	a$=" Errors today/total: "+mid$(str$(st(39)),2)+"/"+mid$(str$(st(40)),2):l=17:gosub {:system_line}
 	a$=" String space free:  "+mid$(str$(peek({sym:fretop})+256*peek({sym:fretop}+1)-peek({sym:strend})-256*peek({sym:strend}+1)),2):gosub {:system_line}
 	a$=" Stack free:         "+mid$(str$(usr(0)),2):gosub {:system_line}
-	return
+	a$="":gosub {:system_line}:return
 ' a$ on row l, padded to 38 columns
 {:system_line}
 	&,69,41,l,left$(a$+"{space:38}",38),$8c:l=l+1:return

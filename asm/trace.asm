@@ -32,7 +32,7 @@
 trace2:
 	bit mode
 	bpl trace2_40
-	jmp trace80	; 80 columns: rows 20's P V L (status.asm)
+	jmp trace80	; 80 columns: row 22's P V L (status.asm)
 trace2_40:
 	lda flag_h38_addr
 	and #flag_h38_r_mask	; 0, or 2 with Dbg on

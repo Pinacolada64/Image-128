@@ -195,17 +195,18 @@ rswin_no:
 	rts
 
 ; ----------------------------------------------------------------------
-; 80 columns: the right halves (columns 40-79) of rows 20, 21 and 23, kept
+; 80 columns: the right halves (columns 40-79) of rows 22, 21 and 23, kept
 ; here (r80_text, 40 bytes a row) and drawn on the VDC by r80_vdc, from
 ; vdcstat on the main line, when a row changed (r80_dirty) or the mask
 ; came on (vdcst_force): the VIC screen has no columns past 39, and the
 ; VDC can't be written from an interrupt. 11/16/2026 (user's layout):
-;   row 20  P= program space, V= variable space, L= the BASIC line (trace)
+;   row 22  P= program space, V= variable space, L= the BASIC line (trace),
+;           on the C= N= bar's right half, reversed white as its left
 ;   row 21  Buf: bytes waiting in the RS-232 receive buffer; Module: the
 ;           last module loaded (the wedge's openroom: modname)
 ;   row 23  the transmit window, 38 wide (the receive window is the VIC's
 ;           columns 1-38, which vdcstat copies), then T
-; Rows 20 and 21 are the system box's last two (sub.display draws 17-19).
+; Row 21 is the system box's last (sub.display draws 17-20).
 
 r80_tx:		; rs_txwin in 80 columns: row 23, columns 41-78
 	ldy #0
@@ -373,7 +374,7 @@ r80m3:
 r80m9:
 	rts
 
-; trace2 in 80 columns: P, V and L at row 20 (all three always; the
+; trace2 in 80 columns: P, V and L at row 22 (all three always; the
 ; lightbar's Dbg changes nothing here). L follows the line while the trace
 ; (Trc left, check 24) is on, and is drawn once at the start.
 trace80:
@@ -392,7 +393,7 @@ t80a:
 	sty oldprg
 	stx oldprg+1
 	tya
-	ldy #4		; P's digits: row 20, columns 44-48
+	ldy #4		; P's digits: row 22, columns 44-48
 	jsr t80num
 t80b:
 	sec
@@ -436,7 +437,7 @@ t80g:
 t80f:
 	rts
 
-; .a/.x in decimal, five reversed digits at row 20, offset .y
+; .a/.x in decimal, five reversed digits at row 22, offset .y
 t80num:
 	sty t80_cell
 	jsr decimal
@@ -454,16 +455,17 @@ t80n1:
 	sta r80_dirty
 	rts
 
-r80_rows:	byte 20,21,23
+r80_rows:	byte 22,21,23
 r80_off:	byte 0,40,80
-r80_edge:	byte 12,12,1	; colors: columns 40 and 79
-r80_mid:	byte 12,12,3	; 41-78 (the box's gray; the window's cyan)
+r80_edge:	byte 1,12,1	; colors: columns 40 and 79
+r80_mid:	byte 1,12,3	; 41-78 (row 22's white bar; the box's gray;
+			; the window's cyan)
 r80_dirty:	byte 1,1,1
-r80_text:	; row 20: " P=00000  V=00000  L=00000"
-	byte $20,$a0,$d0,$bd,$b0,$b0,$b0,$b0,$b0,$a0
+r80_text:	; row 22: " P=00000  V=00000  L=00000", all reversed
+	byte $a0,$a0,$d0,$bd,$b0,$b0,$b0,$b0,$b0,$a0
 	byte $a0,$d6,$bd,$b0,$b0,$b0,$b0,$b0,$a0,$a0
 	byte $cc,$bd,$b0,$b0,$b0,$b0,$b0,$a0,$a0,$a0
-	byte $a0,$a0,$a0,$a0,$a0,$a0,$a0,$a0,$a0,$20
+	byte $a0,$a0,$a0,$a0,$a0,$a0,$a0,$a0,$a0,$a0
 		; row 21: " Buf 000/127  Module ", then the name
 	byte $20,$a0,$c2,$95,$86,$a0,$b0,$b0,$b0,$af
 	byte $b1,$b2,$b7,$a0,$a0,$cd,$8f,$84,$95,$8c
