@@ -21,7 +21,7 @@
 
 DOCS := PORTING_NOTES.md PROGRAMMING.md DEBUG_TECHNIQUES.md DATA_FILES.md \
 	BASIC_VARIABLES.md SYSOP_COMMANDS.md editor.md modules/TODO.md \
-	docs/loop-report.md
+	docs/loop-report.md IMAGE_3_1.md
 OUT := build/docs
 PREAMBLE := tools/pdf-preamble.tex
 
