@@ -49,9 +49,43 @@ Row 22's right half carries on the reversed bar of its left half.
 | `M=` | 80: 22, 48-65 | The last module loaded, without its drive prefix (up to 16 characters; the wedge's `openroom` keeps it in `modname`) | `r80_mod` (`asm/status.asm`) |
 | `Buf` | 80: 19, 41-54 | Bytes waiting in the RS-232 receive buffer, out of 127 | `r80_buf` |
 
-In 40 columns, row 23 has room for two numbers only. With the lightbar's
-right Dbg (check 57) off they are `V=` and `L=`; with it on, `P=` and `V=`.
-80 columns shows all of them all the time, and Dbg changes nothing there.
+In 40 columns, row 23 has room for two numbers only, so the lightbar's
+right `Dbg` checkmark picks which: see the next section. 80 columns shows
+all of them all the time.
+
+## `Dbg`: the 40-column mask's numbers
+
+`Dbg` is the lightbar's fifth label on page 4 (checks 56 and 57). Its right
+checkmark, check 57, picks what row 23's two number cells show on the
+40-column screen mask (11/15/2026):
+
+```
+Dbg right off:   R           V=07504  L=04232           T
+Dbg right on:    R           P=10924  V=07504           T
+```
+
+- **Off** (as Image 3.0 had it, with 1.2's `M=` renamed `V=`): variable
+  space and the BASIC line. `L=` follows the line only while the left
+  `Trc` checkmark (check 24, the line trace) is on, and holding Ctrl
+  pauses the program there.
+- **On**: program space and variable space, for watching memory while
+  modules load (`P=` goes down as each one is loaded over the program).
+  The line isn't shown; Ctrl still pauses the trace.
+- **Changing it** rewrites both cells' letters and draws both numbers at
+  once, at the next BASIC statement. Turning it off shows `L=` with the
+  last line run even if the trace is off, so the cell doesn't keep `V=`'s
+  digits.
+
+`trace2` (`asm/trace.asm`) reads the checkmark between BASIC statements
+while the mask is on. In 80 columns it changes nothing: `P=`, `V=` and `L=`
+are all on row 22.
+
+Check 57 was also meant to turn the VIC-II's border red on an error (`im
+128` 4034), but that test is commented out there (`rem &,52,57,3:if a%
+then color 4,3`), so for now the checkmark only does the above. The left
+`Dbg` checkmark, check 56, is "do not display BASIC variables"; nothing in
+Image 128 acts on it yet (`i.LB`'s lightbar menu can toggle it, as it can
+any checkmark).
 
 The idle screen's mask and the caller-online mask draw different fields in
 row 22's columns 14-23: `U=`/`I=` (system used and idle) at the idle

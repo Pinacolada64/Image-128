@@ -1218,7 +1218,9 @@ flag_h2e_r_mask	= %10000000	; 47 Undefined
 
 flag_h38_addr	= chktbl + 7 	; Dbg
 flag_h38_l_mask	= %00000001	; 56 ($38) On: Do not display BASIC variables
-flag_h38_r_mask	= %00000010	; 57 ($39) On: Enable VIC-II border color change on error
+flag_h38_r_mask	= %00000010	; 57 ($39) On: the 40-column mask's row 23 shows P= V=
+			; rather than V= L= (trace.asm; STATUS_LINE.md); and was
+			; to turn the VIC-II border red on an error (im 4034, rem'd)
 				; (TODO, status line rework: 40-column mask shows P= V= for V= L=)
 
 flag_dcd_addr	= chktbl + 7 	; DCD
