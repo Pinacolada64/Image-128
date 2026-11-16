@@ -266,9 +266,10 @@ count as uses.
 | 65 | 5, `$40` right | 64, daylight saving time's trigger |
 | 66-111 | 5-7, `$42`-`$6e` | (all free) |
 
-49 (page 4, `Em3` right) was free too; the `status-line` branch takes it
-for the 40-column mask's `P=`/`V=` swap. (`Em3`'s left, 48, is the Image
-1.3 emulator: `im 128` 309 loads `im.emul13`, so "Em3" is "emulate 1.3".)
+49 (page 4's first label, right) was free too; the `status-line` branch
+takes it for the 40-column mask's `P=`/`V=` swap and renames the label
+`Prg` (was `Em3`): its left, 48, is the Image 1.3 emulator (`im 128` 309
+loads `im.emul13`), so both checkmarks are about the program.
 
 **Named, but nothing in Image 128 reads them:** 15 (`U/D` right, 300 baud
 U/D lockout) and 56 (`Dbg` left, 3.0's "disable troubleshooting mode").
