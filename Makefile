@@ -20,7 +20,8 @@
 #   striping on table rows.
 
 DOCS := PORTING_NOTES.md PROGRAMMING.md DEBUG_TECHNIQUES.md DATA_FILES.md \
-	BASIC_VARIABLES.md SYSOP_COMMANDS.md editor.md modules/TODO.md \
+	BASIC_VARIABLES.md SYSOP_COMMANDS.md STATUS_LINE.md editor.md \
+	modules/TODO.md \
 	docs/loop-report.md
 OUT := build/docs
 PREAMBLE := tools/pdf-preamble.tex
