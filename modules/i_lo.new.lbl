@@ -7,7 +7,7 @@
 {uses:..\3_0-preface.lbl}
 {alpha:alt}
 
-4000 poke53280,5:close2:dr=3:gosub61:ifa>20then4008
+4000 a=5:gosub23:close2:dr=3:gosub61:ifa>20then4008
 4002 &"{f6:2}Sorry, There Is Not Enough Disk Space{f6}For You To Logon At This Time."
 4004 &"{f6}Please Try Again Later!{f6:2}":goto4088
 4006 return

@@ -244,6 +244,16 @@ The abort key (`rc`) stops it between characters, elements and arrays.
 the statement after the `&`); `&,66,0` is a GOTO. The line must be under
 32768 (`a%` is an integer).
 
+## The border color on an event: `gosub 23`
+
+`a=`*color*`:gosub 23` sets the VIC-II border to *color* (0-15, the
+numbers `poke 53280` takes) if the lightbar's right `Dbg` (check 57,
+Border Color on Event) is on, and does nothing if it's off. It uses
+`a%`. Use it rather than `poke 53280` for anything that marks an event, so
+the sysop's checkmark decides: im's error handler (4034, red), `i/lo.new`
+(green), `sub.feedback` and `i/lo-sysop info` (blue), `i/lo!telecheck`
+(light blue). `3_0-preface.lbl` names it `im.border_color`.
+
 ## Writing `&` output
 
 - After THEN, write `then:&"..."`: the wedge only sees `&` at the start

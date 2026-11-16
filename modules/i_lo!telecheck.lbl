@@ -11,7 +11,7 @@
 4500 rem"i/lo!telecheck  - Rask v2.0 -           Date Stamp: 05 Jan 95 10:22pm
 4502 rem
 4504 b$="telecheck":gosub 37:gosub 4522
-4506 print# 2,"{^}":close 2:poke 53280,14
+4506 print# 2,"{^}":close 2:a=14:gosub 23
 4508 kk=.:a$="s.tchkmail,s,r":dr=1:gosub 4:if e%then close 2:return
 4510 kk=kk+1:&,2,2:s=(64 and st):tt$(kk)=a$:if s=.then 4510
 4512 close 2:tt$=na$:a$="a":gosub 32:if e%then a$="w":gosub 32

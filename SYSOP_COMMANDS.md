@@ -404,6 +404,16 @@ which sets the lightbar's checks from `e.lightdefs` (`im 128` line
 offers to make the saved table active. (Modem Config has no carrier
 setting: its flag 9 is DTR, the BBS's own line to the modem.)
 
+## The border color on events: `Dbg`
+
+The lightbar's right `Dbg` checkmark (page 4, check 57, "Border Color on
+Event") lets Image change the 40-column screen's border to show what
+happened: red on an error, green for a new user, blue for feedback,
+light blue after a telecheck. With it off, nothing changes the border, so
+there's nothing to set back by hand afterwards (`$d020` from a monitor,
+as before 3.1). Reading feedback (`VF`) sets the border back to black
+either way.
+
 ## `IM` H: Lightbar/Alarms
 
 `IM`, then `H`. `i.IM` draws the menu; each choice but the last loads
