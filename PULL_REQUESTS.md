@@ -32,7 +32,7 @@ _(none)_
 | `docs-vice-features` | `3115b6e` | | DEBUG_TECHNIQUES.md, "Using features in VICE": the x128 switches the start scripts and tools pass, a table and a command line for each feature (machine and autostart, JiffyDOS ROMs, drives, DS12C887 RTC, SwiftLink and tcpser, Lt. Kernal, debugging). SYSOP_COMMANDS.md, "Running the BBS in VICE": the sysop's view (start-image-128.sh's switches, what to set in IM to match, settings, start-setup.sh, errors). Based on master at 2a57549 (Lt. Kernal and DST tools). |
 | `pdf-table-autowidth` | `754e283` | | `tools/autowidth.lua`: `make docs`' tables get columns as wide as their contents need (from TADA's filter), instead of pandoc's widths from the dashes in the `\|---\|` line; 0.2 em to spare in each column, so a word never breaks at its hyphen. |
 | `border-color` | `4eddc7b` | | Border color on events through im's gosub 23, only while the right Dbg is on; SYSOP_COMMANDS.md: the border colors and what each means. |
-| `docs-port-from-31` | `b6ab7e5` | | Local. IMAGE_3_1.md: what Image 128 adds to 3.0, and 3.1's changes still to port; built as a PDF. |
+| `docs-port-from-31` | `b6ab7e5` | | IMAGE_3_1.md: what Image 128 adds to 3.0, and 3.1's changes still to port; built as a PDF. |
 | `lightbar-checks` | `ea0eac9` | | Which lightbar checkmarks are free (PROGRAMMING.md); check 49 goes to the status line's 40-column P=/V= swap; Em3 is "emulate 1.3"; page 4's first label becomes Prg. |
 | `status-line` | `adada09` | | STATUS_LINE.md: the status area's fields and indicators. 80 columns: row 22 is C= N= U= I= P= V= L= M=, &,9's window at columns 64-79. 40 columns: Dbg switches row 23 between P= V= and V= L=. |
 | `todo-clock-set-color` | `c6e14bb` | | TODO: the boot frame's colour after "...Clock Set." (sub.clocks clobbers c). |
@@ -41,13 +41,13 @@ _(none)_
 | `visual-esc` | `f52a870` | `visual-editor` | C128 Esc codes: the console checked (esctest), i.test esc for callers; ++ visual: Esc I / Esc D insert and delete a line; EP option 11 (C128 Esc Codes); tools/ep11_test.py. |
 | `remote-overlay` | `712a574` | `visual-editor` | ++ remote: Image 2.0's remote.s, fixed and ported, runs a plain BASIC program as a door; DOOR runs i.remote door; tests/doors, door_test.py. |
 | `im-prime-time` | `7919afc` | | i.IM: show Prime Time as "60, 1A-9A", from p1%-p3% (from i.IM-2021). |
-| `term-phonebook-settings` | `683789d` | | Local. i.t: graphics mode and BPS rate for each phone book entry. |
+| `term-phonebook-settings` | `683789d` | | i.t: graphics mode and BPS rate for each phone book entry. |
 | `chatmode` | `56fddb3` | `visual-editor` | ++ chatmode: chat between Lt. Kernal stations, with a transcript (from Image 2.0's chatmode.asm); &,13's locks between stations; lockinit fix; ECS command LTK; logon/logoff mark the station online. Its own work is on master as cherry-picks adapted to a master without network and visual-editor under it (see Direct commits); the branch itself stays unmerged because of those two. |
 | `chatmode-bbs-test` | `71f8e1f` | `chatmode`, `ltk-copy` | ++ chatmode in the whole BBS on two Lt. Kernal stations: ltk_bbs2.py (--user2, online at logon, offline after logoff); e.ecs.main: LTK's letters shifted. |
 | `ltk-copy` | `4f40444` | `visual-editor` | Setup on the Lt. Kernal: boot from an LU, drives on LUs, the copy's dir read with &,8; i_su.config.lbl moved to modules/; tests/standin/ltkdos.bas. Carries chatmode (merged in). |
-| `merge-master` | `121ff32` | `ltk-copy` | Local. Merge of ltk-copy (network, visual-editor, chatmode, Lt. Kernal setup) toward master; TODO: new user setup asks for the U/D protocol and the editor. |
-| `ecs-branch-fix` | `36a00d9` | | Local. ecs: the definitions scan goes on to the next definition again. |
-| `lo-misc` | `0c961ab` | | Local. i/lo.misc: the system password and log menus reworked (work in progress). |
+| `merge-master` | `121ff32` | `ltk-copy` | Merge of ltk-copy (network, visual-editor, chatmode, Lt. Kernal setup) toward master; TODO: new user setup asks for the U/D protocol and the editor. |
+| `ecs-branch-fix` | `36a00d9` | | ecs: the definitions scan goes on to the next definition again. |
+| `lo-misc` | `0c961ab` | | i/lo.misc: the system password and log menus reworked (work in progress). |
 | `new-user` | `ada4c93` | `network` | i/lo.new: redesign started (work in progress); sub.param1 menus printed by the module, option 10 the editor; editor for ASCII callers; DATA_FILES.md: s.m.protos' format. |
 | `visual-editor` | `985c34d` | `network` | ++ visual after its first merge (c303598): word wrap, End of Text marker, Up/Down and Ctrl-V stop at the end of the text, help from s.visual; sub.param1 menus in one or two columns; tools/visual_wf.py. |
 | `ltk-clock` | `bcd9d0a` | `visual-editor` | ++ ltk clock: swr.ml relocated, the Lt. Kernal (DS1216 SmartWatch) clock on the 128; a DS1216 joyport device for VICE 3.8. |
