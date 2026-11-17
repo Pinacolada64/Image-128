@@ -611,3 +611,109 @@ moves the clock to match the rule if it needs it.
 A local end time is asked and shown as the clock reads it then, on daylight
 time (2:00 AM for the US). When a country changes its dates, this is where
 to change them.
+
+## Running the BBS in VICE
+
+On a PC, Image BBS 128 runs in VICE's C128 emulator, x128 (VICE 3.8),
+with tcpser as its modem: callers telnet in, and tcpser answers them
+like a Hayes modem on the BBS's SwiftLink. `start-image-128.sh` starts
+both. What each x128 switch it uses does for the BBS is below; the
+debugging ones are in `DEBUG_TECHNIQUES.md`, "Using features in VICE".
+
+### Starting it
+
+```sh
+sh start-image-128.sh
+```
+
+It starts tcpser, then x128, which boots the BBS from `boot 128`.
+Callers telnet to port 6128 (`telnet your.host 6128`). Quitting x128
+stops tcpser too. tcpser's log is `build/tcpser.log`.
+
+To change what it uses, set these before the command, e.g.
+`TELNET_PORT=6400 sh start-image-128.sh`:
+
+| Setting | Default | Is |
+|---|---|---|
+| `TELNET_PORT` | `6128` | the port callers telnet to |
+| `MODEM_PORT` | `25232` | the port between x128 and tcpser (this computer only) |
+| `BAUD` | `19200` | the SwiftLink's speed, as IM's "tcpser (VICE)" modem profile |
+| `TCPSER` | `~/bin/tcpser/tcpser` | where tcpser is |
+| `JIFFYDOS` | `~/Documents/c64/JiffyDOS` | where the JiffyDOS ROMs are |
+| `TCPSER_TRACE` | (off) | `sS` also logs the AT commands the BBS sends and tcpser's replies |
+
+### The x128 switches, and what to set in Image to match
+
+| Switch | For the BBS |
+|---|---|
+| `-ntsc` | an NTSC C128 |
+| `-80col` | starts on the 80-column screen |
+| `-kernal` | `JDOS128.rom`: JiffyDOS in the 128 |
+| `-dos1581` | `Jiffy1581.rom`: JiffyDOS in the 1581s |
+| `-drive8type` | `1581`: drive 8 is a 1581, with the system disk (`build/setup-test.d81`) |
+| `-drive9type` | `1581`: drive 9 is a 1581 |
+| `-9` | `build/s_files.d81`: the disk in drive 9 |
+| `-ds12c887rtc` | a DS12C887 clock cartridge, so the BBS knows the time at boot |
+| `-ds12c887rtcbase` | `0xd700`: the clock's address |
+| `-ds12c887rtcrunning` | the clock is running |
+| `-ds12c887rtcsave` | the clock keeps its time between runs |
+| `-acia1` | a SwiftLink cartridge, the BBS's modem port |
+| `-acia1base` | `0xde00`: at `$de00`, where Image looks for a SwiftLink |
+| `-acia1mode` | `1`: a SwiftLink (not a Turbo232) |
+| `-acia1irq` | `1`: on NMI, as a real SwiftLink |
+| `-myaciadev` | `2`: its line goes to RS-232 device 3, below |
+| `-rsdev3` | `127.0.0.1:25232`: device 3 is tcpser (`MODEM_PORT`) |
+| `-rsdev3ip232` | so tcpser can tell the BBS about a caller (DCD) and hang up (DTR) |
+| `-rsdev3baud` | `19200` (`BAUD`) |
+| `-userportdevice` | `0`: no user-port modem, so only the SwiftLink has the line |
+| `-autostart-warp` | loads at full speed, then runs at 1x (a modem needs 1x) |
+| `-autostart` | `"build/setup-test.d81:boot 128"`: runs `boot 128` |
+
+In Image, to match:
+
+- **Clock:** `IM`, **K** Set Time, *Choose Different Clock Source*,
+  **D** *DS12C887 Clock Chip*, base address `d700` (it offers `$D500`,
+  where the chip is on a C64; on the 128 that's the MMU).
+- **Modem:** `IM`'s modem configuration: the RS-232 interface (flag 11)
+  is the SwiftLink, and the modem profile is "tcpser (VICE)".
+- **Carrier:** tcpser runs without `-I`, so set Invert DCD: press `T`
+  at the idle screen until it says `DCD Inverted: OK`, and save it in
+  Lightbar Defs ("`T`: carrier detect (DCD)", above).
+- **Drives:** the new-system setup's Drives part, for drives 8 and 9.
+
+### Trying the setup
+
+`start-setup.sh` boots a fresh, unconfigured copy of the system disk
+(`build/setup-try.d81`, copied from `build/image128.d81` each time), to
+go through the new-system setup (press 1 at the start-up menu). Same
+JiffyDOS and DS12C887 clock, without saving the clock's time, and no
+modem.
+
+| Option | Does |
+|---|---|
+| (none) | 80 columns, a fresh copy |
+| `-40` | 40 columns |
+| `-9 1571` | a drive 9 of that model (1541, 1571, 1581...) with no disk, for the setup's drive scan |
+| `-hd` | a CMD HD as drive 9 (`-drive9type 4844`), its partitions 1-6 named for Image's drives |
+| `-k` | keep the copy as the last setup left it, to boot that again |
+| `-- ARGS` | more switches for x128 |
+
+### Calling it
+
+From another window: `telnet localhost 6128`. For a Commodore terminal,
+`start-desterm.sh` runs DesTerm 128 in a second x128 with its own tcpser:
+dial `atdt127.0.0.1:6128` in its terminal. Both can run beside the BBS:
+each x128 and tcpser has its own ports.
+
+### If it doesn't start
+
+| Message | Means |
+|---|---|
+| `port 25232 is already in use (is another tcpser running?)` | a tcpser (or another BBS) is still running: quit it, or use other ports |
+| `tcpser not found` | set `TCPSER` to where it is |
+| `moved a stray "127.0.0.1:25232" file to build/` | x128 had left a file named like the modem's address; it would have taken the modem's data. Moved aside, and the BBS starts normally |
+| `an x128 has build/setup-try.d81 open` (`start-setup.sh`) | quit the x128 using it first, or `-k` |
+
+Change a disk image (copying files onto it with another program) only
+with x128 quit, or the disk detached in x128: x128 writes its own copy
+of the disk back.
