@@ -23,6 +23,8 @@ DOCS := PORTING_NOTES.md PROGRAMMING.md DEBUG_TECHNIQUES.md DATA_FILES.md \
 	BASIC_VARIABLES.md SYSOP_COMMANDS.md editor.md modules/TODO.md \
 	docs/loop-report.md
 OUT := build/docs
+# PULL_REQUESTS.md: the catalog of PRs and feature branches
+DOCS += PULL_REQUESTS.md
 PREAMBLE := tools/pdf-preamble.tex
 
 PANDOC := pandoc
