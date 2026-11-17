@@ -99,8 +99,7 @@
 {include:quoters.lbl}
 {:60000}
 {step:2}
-	if im=16 then {:sub.ultimate_write}
-	on im+1 goto {:sub.from_record_37},{:sub.manual},{:sub.cmd},{:sub.ltk},{:sub.ds12c887},{:sub.ultimate},{:sub.teensyrom},{:sub.automaint},{:sub.save_method},{:sub.write},{:sub.auto},{:sub.auto},{:sub.dst},{:sub.dst_init},{:sub.dst_caller},{:sub.dst_alarms}
+	on im+1 goto {:sub.from_record_37},{:sub.manual},{:sub.cmd},{:sub.ltk},{:sub.ds12c887},{:sub.ultimate},{:sub.teensyrom},{:sub.automaint},{:sub.save_method},{:sub.write},{:sub.auto},{:sub.auto},{:sub.dst},{:sub.dst_init},{:sub.dst_caller},{:sub.dst_alarms},{:sub.ultimate_write}
 	return
 
 {nice:100}
