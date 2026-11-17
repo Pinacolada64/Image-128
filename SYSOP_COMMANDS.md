@@ -570,6 +570,8 @@ time.
 
 ### `IM` Misc. Features `H`: DST Rules
 
+From `IM`'s main menu: `I` (Misc. Features), then `H`.
+
 The rules say when DST starts and ends; each zone names its rule by letter.
 The screen starts with the system's zone and where its clock stands, then
 lists each rule in words, with this year's dates (`*` marks the system's):
@@ -585,10 +587,16 @@ Clock: MDT, daylight; set back: not yet
 ```
 
 `Clock` says whether the BBS has its clock on daylight time (the zone's
-daylight name) or standard time, and whether this autumn's set-back has
-been done: after the clock goes back at the end of DST, `set back: done`
-(until it goes forward again in spring), so the hour that comes twice
-isn't set back twice. They're e.data record 46's flags (PROGRAMMING.md).
+daylight name) or standard time, and whether the set-back at the end of DST
+has been done: after the clock goes back, `set back: done` until it goes
+forward again when DST next starts, so the hour that comes twice isn't set
+back twice. (In the north that's from autumn to spring; for Australia and
+New Zealand, whose DST ends in April, from April to the spring in October
+or September.) They're e.data record 46's flags (PROGRAMMING.md).
+
+If `Clock` is wrong (the clock was set by hand across a change, say), set
+the flags right with `F`, then check with `C`: with the flags right, `C`
+moves the clock to match the rule if it needs it.
 
 | Key | Does |
 |---|---|
