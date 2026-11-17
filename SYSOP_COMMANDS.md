@@ -571,14 +571,24 @@ time.
 ### `IM` Misc. Features `H`: DST Rules
 
 The rules say when DST starts and ends; each zone names its rule by letter.
-The list shows each rule in words, with this year's dates:
+The screen starts with the system's zone and where its clock stands, then
+lists each rule in words, with this year's dates (`*` marks the system's):
 
 ```
-1) U US and Canada (since 2007)
+DST Rules: MST/MDT, rule U
+Clock: MDT, daylight; set back: not yet
+
+1) U US and Canada (since 2007) *
    Starts Mar 2nd Sun, 2:00 AM
    Ends   Nov 1st Sun, 2:00 AM
    2026: Mar 8 to Nov 1
 ```
+
+`Clock` says whether the BBS has its clock on daylight time (the zone's
+daylight name) or standard time, and whether this autumn's set-back has
+been done: after the clock goes back at the end of DST, `set back: done`
+(until it goes forward again in spring), so the hour that comes twice
+isn't set back twice. They're e.data record 46's flags (PROGRAMMING.md).
 
 | Key | Does |
 |---|---|
@@ -586,6 +596,8 @@ The list shows each rule in words, with this year's dates:
 | `A` | add a rule, starting from the US one |
 | `D` | delete a rule, after saying how many time zones use it (they'd have no DST) |
 | `S` | save; if the BBS's zone has a rule, its DST and alarms are set again by the rule as saved |
+| `F` | the flags by hand: is the clock on daylight time, and (on standard time) has it been set back this year. Only the flags: the clock isn't moved (use `K`, Set Time, for that, or `C`) |
+| `C` | check the clock by the rule now, as the DST alarm does: if it's on the wrong side, it's moved an hour forward or back (and a CMD or DS12C887 clock with it), and the flags with it |
 | `Q` | back (offering to save changes) |
 
 A local end time is asked and shown as the clock reads it then, on daylight
