@@ -62,7 +62,11 @@
 '   10   L: local, U: UTC
 ' A start month after the end month (Australia) means DST across New Year.
 ' e.data record 46 keeps the BBS's state: "1," (the clock is on daylight
-' time; "0," not) and the rule line, so each check needn't read the file.
+' time; "0," not), then "1," once the autumn's set-back is done ("0," until
+' then), and the rule line's first 19 characters, so each check needn't read
+' the file. 11/16/2026: the set-back flag (db) and only 19 characters: the
+' record is 31 long, and the whole line overflowed it. A record from before
+' ("1,U0321...") is read with db=0.
 ' A clock this can't write (Lt. Kernal, Ultimate, TeensyROM) is taken to
 ' keep standard time: reading it adds the hour while record 46 says 1.
 '
@@ -372,7 +376,13 @@
 	if du then {:sub.dst_init_now}
 	gosub {:sub.bbs_time}:gosub {:sub.dst_std}:gosub {:sub.dst_eval}:if a=dg then e%=1:goto {:sub.dst_bbs_zone}
 ' on: standard time + 1 hour; off: the standard time itself
-	dg=a:if dg then s=60:gosub {:sub.min_shift}
+' 11/16/2026: the clock goes back once only. db=1: this autumn's set-back
+' is done, so the clock already shows standard time; record that (dg=0)
+' rather than set it back again. Without this, a check that found dg=1 again
+' in the repeated hour set the clock back at every 2:00, round and round
+	if dg and db then dg=.:gosub {:sub.dst_save}:e%=1:goto {:sub.dst_bbs_zone}
+' forward: db=0, the next set-back still to come; back: db=1
+	dg=a:db=1-a:if dg then s=60:gosub {:sub.min_shift}
 	h=j:gosub {:sub.build_z$}:gosub {:sub.set_bbs_clock}:gosub {:sub.dst_save}:gosub {:sub.dst_bbs_zone}
 	gosub {:sub.read_record_37}:if ck=2 or ck=4 then gosub {:sub.write_clock}
 	e%=.:return
@@ -384,7 +394,11 @@
 	gosub {:sub.dst_alarms}:gosub {:sub.dst_load}:if e% then {:sub.dst_bbs_zone}
 {:sub.dst_init_now}
 	gosub {:sub.bbs_time}:gosub {:sub.dst_eval}:if a then s=-60:gosub {:sub.min_shift}:gosub {:sub.dst_eval}
-	dg=a:gosub {:sub.dst_save}:goto {:sub.dst_bbs_zone}
+' 11/16/2026: on daylight time, the set-back is still to come (db=0). On
+' standard time db is kept: in the repeated hour this takes the clock as
+' standard time (as standard, the end has come), so it's already back
+	dg=a:if a then db=.
+	gosub {:sub.dst_save}:goto {:sub.dst_bbs_zone}
 
 {:sub.dst_caller}
 ' im=14: the caller's zone (b$): their standard time from the BBS's, moved by
@@ -447,11 +461,13 @@
 {:sub.dst_load}
 ' tz$ -> dz (its standard offset from UTC, in minutes) and c$ (its rule
 ' letter); record 46 -> dg (1: the clock is on daylight time) and dq$ (the
-' rule kept with it). du=1 if the rule had to be read from s.dstrules (none
+' rule kept with it), db (1: the clock has been set back this autumn; see
+' sub.dst). du=1 if the rule had to be read from s.dstrules (none
 ' kept yet, or another letter). e%=1 if the zone has no rule (dg=0 then)
 	dz=val(mid$(tz$,4,2))*60+val(mid$(tz$,6,2))-720:c$=mid$(tz$,8,1):du=.
-	gosub 33:x=46:gosub 1:&,2,2:close 2:dg=val(a$):dq$=mid$(a$,3)
-	if c$="" or c$="-" or c$=" " then e%=1:if dg then dg=.:dq$="":goto {:sub.dst_save_no}
+	gosub 33:x=46:gosub 1:&,2,2:close 2:dg=val(a$):db=.:dq$=mid$(a$,3)
+	if mid$(a$,4,1)="," then db=val(mid$(a$,3,1)):dq$=mid$(a$,5)
+	if c$="" or c$="-" or c$=" " then e%=1:if dg then dg=.:db=.:dq$="":goto {:sub.dst_save_no}
 	if c$="" or c$="-" or c$=" " then e%=1:return
 	e%=.:if left$(dq$,1)=c$ then return
 	du=1:gosub {:sub.dst_rule}:if e% then dg=.:return
@@ -467,8 +483,8 @@
 	close 2:return
 
 {:sub.dst_save}
-' dg and dq$ -> record 46
-	gosub 33:x=46:gosub 1:print# 2,mid$(str$(dg),2)+","+dq$:close 2:e%=.:return
+' dg, db and dq$ (its 19 characters the checks use) -> record 46
+	gosub 33:x=46:gosub 1:print# 2,mid$(str$(dg),2)+","+mid$(str$(db),2)+","+left$(dq$,19):close 2:e%=.:return
 {:sub.dst_save_no}
 	gosub {:sub.dst_save}:e%=1:return
 
