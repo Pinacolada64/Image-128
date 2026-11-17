@@ -13,6 +13,8 @@
 ' record 46 starts "1," (daylight time), reading it adds the hour and
 ' writing it takes the hour off.
 ' VICE (no Ultimate there): DS12C887 with -ds12c887rtc -ds12c887rtcbase 0xd700
+' Run it as a module: R at the main prompt, class 3 (an i.* module, as in
+' Image BBS 3), "test clocks".
 {alpha:alt}
 {include:..\quoters.lbl}
 {:3000}
