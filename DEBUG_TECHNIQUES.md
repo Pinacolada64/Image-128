@@ -168,6 +168,139 @@ part as the setup's frame shows it; then it watches `im` boot from the
 new configuration and prints where it stopped. About a minute for the
 setup in warp mode.
 
+## Using features in VICE
+
+The x128 (VICE 3.8) command-line switches that give Image the hardware
+it uses, as `start-image-128.sh`, `start-setup.sh`, `start-desterm.sh`
+and the tools pass them. `x128 -help` lists them all; `+name` turns off
+what `-name` turns on. A switch on the command line is for that run;
+it only ends up in `vicerc` when Save settings on exit (`-saveres`) is on.
+
+### The machine, the screen and starting a disk
+
+| Switch | Does |
+|---|---|
+| `-ntsc` | an NTSC machine (`-pal` for PAL) |
+| `-80col` / `-40col` | start in 80 columns (the VDC) or 40 (the VIC-II) |
+| `+sound` | sound off (the tools run this way) |
+| `-warp` | warp mode from the start |
+| `-autostart-warp` | warp only while autostart loads, then 1x |
+| `-autostart` | `"d.d81:boot 128"`: attach `d.d81` to drive 8 and `RUN` the file `boot 128` |
+
+```sh
+x128 -ntsc -80col -drive8type 1581 -autostart-warp \
+	-autostart "build/setup-test.d81:boot 128"
+```
+
+### ROMs: JiffyDOS
+
+| Switch | Does |
+|---|---|
+| `-kernal` | `<file>`: the C128 KERNAL (`$JIFFYDOS/JDOS128.rom`) |
+| `-dos1581` | `<file>`: every emulated 1581's DOS (`$JIFFYDOS/Jiffy1581.rom`) |
+
+`JIFFYDOS` is `~/Documents/c64/JiffyDOS` unless set; the start scripts
+take another directory from it.
+
+### Drives
+
+| Switch | Does |
+|---|---|
+| `-drive8type` | drive 8's model: `1541`, `1571`, `1581`, `4000` (CMD FD-4000), `4844` (CMD HD), `0` (none) |
+| `-drive9type` | the same for drive 9 (`-drive10type`, `-drive11type` likewise) |
+| `-9` | `<image>`: attach a disk image (`.d81`, `.dhd`...) to drive 9 (`-8`, `-10`, `-11` likewise) |
+| `-dos4000` | `<rom>`: the FD-4000's DOS (not in the repo) |
+| `-dosCMDHD` | `<rom>`: the CMD HD's boot ROM (`ROMs/cmd_hd_bootrom_v2.80.bin`, not in git) |
+
+```sh
+sh start-setup.sh -9 1571     # a 1571 as drive 9 for the bus scan
+sh start-setup.sh -hd         # a CMD HD as drive 9 (build/setup-try.dhd)
+```
+
+`start-image-128.sh`: drive 8 is the run disk (`build/setup-test.d81`),
+drive 9 `build/s_files.d81` (DATA_FILES.md). Detach a disk in x128
+before changing its image outside it: x128 writes its own copy back.
+
+### The clock: a DS12C887 RTC
+
+| Switch | Does |
+|---|---|
+| `-ds12c887rtc` | the DS12C887 real-time clock cartridge |
+| `-ds12c887rtcbase` | `0xd700`: at `$d700` (`$de00` is the SwiftLink's, `$d500` the 128's MMU) |
+| `-ds12c887rtcrunning` | its oscillator running from power-on |
+| `-ds12c887rtcsave` | keep its time between runs (`start-image-128.sh` only) |
+
+In IM's clock settings this is `sub.clocks`' DS12C887 method (`ck=4`,
+`cp=55040`). `tools/dst_test.py` adds `-warp` to these to run the
+autumn DST change.
+
+### The modem: a SwiftLink and tcpser
+
+| Switch | Does |
+|---|---|
+| `-acia1` | the ACIA cartridge (SwiftLink) |
+| `-acia1base` | `0xde00`: at `$de00` |
+| `-acia1mode` | `1`: SwiftLink mode (`0` normal, `2` Turbo232) |
+| `-acia1irq` | `1`: on NMI (`2` IRQ) |
+| `-myaciadev` | `<0-3>`: which RS-232 device it uses: `0` is `-rsdev1`, `2` `-rsdev3` |
+| `-rsdev3` | `127.0.0.1:<port>`: RS-232 device 3 is a TCP connection to tcpser |
+| `-rsdev3ip232` | ip232 on it (tcpser `-v`), which carries DCD and DTR too |
+| `-rsdev3baud` | `19200`: its speed (IM's "tcpser (VICE)" modem profile) |
+| `-userportdevice` | `0`: nothing on the user port, so its RS-232 can't take the connection (`2`: a user-port modem) |
+
+```sh
+x128 -acia1 -acia1base 0xde00 -acia1mode 1 -acia1irq 1 -myaciadev 2 \
+	-userportdevice 0 \
+	-rsdev3 127.0.0.1:25232 -rsdev3ip232 -rsdev3baud 19200 ...
+```
+
+`tools/netpair.py` does the same on `-rsdev1` (`-myaciadev 0`), and
+`tests/standin/README.md` has a user-port modem instead
+(`-userportdevice 2 -rsuserdev 0 -rsuserbaud 1200 -rsdev1 ...`). Two
+x128s can run at once on different tcpser ports (`start-desterm.sh`
+calls the BBS: `atdt127.0.0.1:6128`); the RS-232 section below has what
+the connection does.
+
+### The Lt. Kernal hard drive
+
+| Switch | Does |
+|---|---|
+| `-cartcrt` | `<dir>/ltk.crt`: the Lt. Kernal host adapter, from its cartridge image |
+| `-ltkimage0` | `<file>.dlk`: hard drive 0's image (`-ltkimage1`, `-ltkimage2`: the others) |
+| `-ltkport` | `<0-15>`: this computer's port on the multiplexer |
+| `-ltkserial` | `<8 digits>`: the serial number the DOS install disks are keyed to (default 87000000) |
+| `-drive8type` | `0`: no drive 8 (as the Lt. Kernal tools run it) |
+
+```sh
+LTK=~/Documents/c64/ltkernal/ltk128-images
+x128 -cartcrt $LTK/ltk.crt -ltkport 1 \
+	-ltkimage0 build/ltk/disk0.dlk -ltkimage1 build/ltk/disk1.dlk \
+	-ltkimage2 build/ltk/disk2.dlk \
+	-drive8type 0 -drive9type 1581 -9 build/standin-chat2-1.d81
+```
+
+Two x128s on the same `.dlk` images with ports 0 and 1 are two stations
+sharing one Lt. Kernal (`tools/ltk_chat2.py`, `tools/ltk_lock.py`); the
+tools copy the images to `build/ltk/` first (`LTK_DIR` for others).
+
+### Debugging
+
+| Switch | Does |
+|---|---|
+| `-remotemonitor` | the monitor over TCP, for `tools/vmon.py` |
+| `-remotemonitoraddress` | `127.0.0.1:6537`: on 6537, not the 6510 your own VICE has (below) |
+| `+remotemonitor` | none (`start-desterm.sh`, beside the BBS's x128) |
+| `-jamaction` | `1`, "continue": on a JAM the CPU stays jammed and the remote monitor answers; `2`, "Monitor": x128's own monitor window, and the remote monitor stops answering |
+| `-exitscreenshotvicii` | `<file>`: save the VIC-II screen when x128 exits |
+
+```sh
+x128 -80col +sound -remotemonitor -remotemonitoraddress 127.0.0.1:6537 \
+	-jamaction 1 -autostart "build/setup-test.d81:boot 128"
+```
+
+`tools/setup_test.py --vice <arg>` passes one more argument to x128
+(repeat it), e.g. `--vice -drive9type --vice 4000`.
+
 ## RS-232 in VICE
 
 The ACIA (`-acia1 ...`) and the user port modem (`-userportdevice 2`)
