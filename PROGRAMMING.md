@@ -433,8 +433,11 @@ set-back flag, and while it's set a check that finds the flag for daylight
 time on records standard time without moving the clock (else the 2:00 alarm
 set it back every time the clock came round to 2:00 again). Setting the clock
 forward clears it, and so does 13 when it finds daylight time. Clocks `sub.clocks` can't
-write (Lt. Kernal, Ultimate, TeensyROM) are taken to keep standard time:
-reading one adds the hour while record 46 says `1`.
+write (Lt. Kernal, TeensyROM) are taken to keep standard time:
+reading one adds the hour while record 46 says `1`. So is the Ultimate, which
+`sub.clocks` can write (`im=16`, or `im=9` when record 37 names it, with the
+Command Interface's `SET_TIME`, `$27`): it writes standard time, taking the
+hour off while record 46 says `1`, so a DST change doesn't need to write it.
 
 ## The sysop information file: `e.sysop`
 

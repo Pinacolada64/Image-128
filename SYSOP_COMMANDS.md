@@ -564,9 +564,10 @@ sees the right time all year, and the zone's name follows (`PST`, `PDT`).
 A caller whose zone was chosen before this is asked to choose again, once.
 
 **Clocks.** A CMD or DS12C887 clock is set too when the BBS's clock moves.
-A clock the BBS can't set (Lt. Kernal, Ultimate, TeensyROM) is taken to
+A clock the BBS can't set (Lt. Kernal, TeensyROM) is taken to
 keep standard time: the BBS adds the hour when it reads one on daylight
-time.
+time. The Ultimate is kept on standard time too: when the BBS sets it
+(`K`, Set Time, after setting the clock by hand), it takes the hour off.
 
 ### `IM` Misc. Features `H`: DST Rules
 
