@@ -29,7 +29,8 @@ _(none)_
 | Branch | Tip | On | Summary |
 |--------|-----|----|---------|
 | `pull-request-catalog` | (this file) | | This catalog, and `make docs` builds it as a PDF. |
-| `pdf-table-autowidth` | `3ef43ae` | | `tools/autowidth.lua`: `make docs`' tables get columns as wide as their contents need (from TADA's filter), instead of pandoc's widths from the dashes in the `\|---\|` line. |
+| `docs-vice-features` | `9b5a292` | | Local. DEBUG_TECHNIQUES.md, "Using features in VICE": the x128 switches the start scripts and tools pass, a table and a command line for each feature (machine and autostart, JiffyDOS ROMs, drives, DS12C887 RTC, SwiftLink and tcpser, Lt. Kernal, debugging). Based on the local master (Lt. Kernal and DST tools). |
+| `pdf-table-autowidth` | `754e283` | | `tools/autowidth.lua`: `make docs`' tables get columns as wide as their contents need (from TADA's filter), instead of pandoc's widths from the dashes in the `\|---\|` line; 0.2 em to spare in each column, so a word never breaks at its hyphen. |
 | `border-color` | `4eddc7b` | | Border color on events through im's gosub 23, only while the right Dbg is on; SYSOP_COMMANDS.md: the border colors and what each means. |
 | `docs-port-from-31` | `b6ab7e5` | | Local. IMAGE_3_1.md: what Image 128 adds to 3.0, and 3.1's changes still to port; built as a PDF. |
 | `lightbar-checks` | `ea0eac9` | | Which lightbar checkmarks are free (PROGRAMMING.md); check 49 goes to the status line's 40-column P=/V= swap; Em3 is "emulate 1.3"; page 4's first label becomes Prg. |
