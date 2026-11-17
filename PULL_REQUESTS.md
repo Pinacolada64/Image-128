@@ -14,7 +14,7 @@ and/or tip commit), name, and a short summary of what the change adds or fixes.
 
 Sections: Open PRs → Feature branches (no PR) → Direct commits to master → Merged branches (newest first).
 
-Seeded 2026-11-17.
+Seeded 2026-11-17; updated 2026-11-17 against master at `87d1590`.
 
 ---
 
@@ -55,7 +55,9 @@ _(none)_
 | `xmodem-1k` | `012ccf8` | `network` | PORTING_NOTES.md: Xmodem-1K, a possibility for the 128. |
 | `zmodem` | `828fd35` | `xmodem-1k` | PORTING_NOTES.md: ZMODEM, a possibility for the 128. |
 | `serial-registry` | `b29ef87` | | Serial number at logon ("S# A0001"); tools/serial.py; owners DB design. |
-| `lightbar` | `c6f7b02` | | 2024 lightbar work: '64 3.0-style labels, theming, monochrome theme, clock seconds on the screen mask, opening instructions, Help key detection. |
+| `lightbar` | `c6f7b02` | | 2024 lightbar work: '64 3.0-style labels, theming, monochrome theme, clock seconds on the screen mask, opening instructions, Help key detection. Local and origin have diverged from `7c5d01e`: local has `c6f7b02` (notes about lightbar slots), origin has `31a53bd` and `db31ca4` (clock display fixes). |
+| `clocks-ultimate-write` | `985c34d` | `visual-editor` | No commits of its own yet (created at `visual-editor`'s tip; checked out in Image-128-vdc). Local. |
+| `editor-scale` | `2dfd9ba` | | 2023: tests/print-cols.asm, `.# Scale` printing a ruler as wide as the caller's terminal (work in progress). On GitHub only, no local branch. |
 
 ---
 
@@ -71,6 +73,7 @@ _(none)_
 
 | Branch | Merged as | Tip | Summary |
 |--------|-----------|-----|---------|
+| `ultimate-set-time` | `bcb1fcf`, `87d1590` | `7e83cab` | sub.clocks im=16 writes the BBS clock to an Ultimate (UCI SET_TIME `$27`), from the on...goto list; i.test clocks ported from ImageBBS3 with the Ultimate's read and write, and how to run it; PROGRAMMING.md and SYSOP_COMMANDS.md. Merged 2026-11-17 (twice: the second brings the on...goto fix). |
 | `dst-status` | `2a57549` | `d88df38` | DST Rules (IM, I, H): the clock's DST state, F (flags) and C (check); SYSOP_COMMANDS.md: the menu path, set back for southern rules. Merged 2026-11-16. |
 | `dst-setback-flag` | `75fcb77` | `4f2624d` | DST: set the clock back once only (e.data record 46's set-back flag); im 3155's d1$ for the boot's DST check; tools/dst_test.py. Merged 2026-11-16. |
 | `visual-editor` | `c303598` | `a9ff89d` | ++ visual: the visual editor, ported from 3.0, with paging and dot commands. Merged 2026-11-09; the branch has gone on since (above). |
