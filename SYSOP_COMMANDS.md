@@ -370,8 +370,8 @@ before `System Idle` comes back:
 ### `T`: carrier detect (DCD)
 
 The modem tells the BBS a caller is connected with its DCD (carrier
-detect) line. Some modems, and tcpser run with `-I`, give it the other
-way round, so Image can invert it: the lightbar's `DCD` checkmark, left
+detect) line. Some modems, and tcpser through VICE's SwiftLink without
+`-I`, give it the other way round, so Image can invert it: the lightbar's `DCD` checkmark, left
 side ("Invert DCD Signal", flag 58). With the wrong setting, the check
 mark at the right of the status line ("Carrier Present", flag 59) shows
 while nobody is connected, and the BBS takes a call that isn't there.
@@ -391,7 +391,7 @@ right:
 connected there, so a carrier means the setting is the wrong way round.
 Pressing `T` while a call is coming in can give `Wrong` when the setting
 is right; press it again when the line is quiet. With tcpser run by
-`start-image-128.sh` (`-I`), the right setting is `DCD Inverted`.
+`start-image-128.sh` (without `-I`), the right setting is `DCD Inverted`.
 
 The setting is the lightbar checkmark itself, so it can be changed there
 too. Until 10/28/2026 the ML put it back off every few moments (the
