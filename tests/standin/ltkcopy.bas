@@ -16,12 +16,14 @@
 100 for i=1 to n:l$=l$(i)
 110 c$=left$(l$,1):q$=mid$(l$,2):y$=",p":if c$="s" then y$=",s"
 115 if c$="u" then y$=",u"
-120 open 15,d,15,"s"+u$+q$
+116 rem 11/18/2026: "source=dest" copies the 1581's source to dest on the lu
+117 r$=q$:k=instr(q$,"="):if k then r$=mid$(q$,k+1):q$=left$(q$,k-1)
+120 open 15,d,15,"s"+u$+r$
 125 open 3,s,3,"0:"+q$+y$+",r":input#14,e,e$:if e>=20 then f$=f$+q$+" on the 1581:"+str$(e)+" "+e$+chr$(13):x=x+1:close 3:close 15:goto 290
-130 open 2,d,2,u$+q$+y$+",w":input#15,e,e$:if e>=20 then f$=f$+q$+str$(e)+" "+e$+chr$(13):x=x+1:close 2:close 3:close 15:goto 290
+130 open 2,d,2,u$+r$+y$+",w":input#15,e,e$:if e>=20 then f$=f$+q$+str$(e)+" "+e$+chr$(13):x=x+1:close 2:close 3:close 15:goto 290
 140 &,16,0:close 2:close 3:close 15
-150 open 3,s,3,"0:"+q$+y$+",r":open 2,d,2,u$+q$+y$+",r":a%=9:&,16,3:close 2:close 3:if a% then f$=f$+q$+" differs at byte"+str$(b%)+chr$(13):x=x+1:goto 290
-160 print i;q$
+150 open 3,s,3,"0:"+q$+y$+",r":open 2,d,2,u$+r$+y$+",r":a%=9:&,16,3:close 2:close 3:if a% then f$=f$+q$+" differs at byte"+str$(b%)+chr$(13):x=x+1:goto 290
+160 print i;r$
 290 next
 300 close 14:print chr$(147);"copied";n;"files,";x;"failed":print f$:end
 600 l$="":if eo then return

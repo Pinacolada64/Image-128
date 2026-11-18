@@ -12,6 +12,8 @@ Runs tests/standin/ltkcopy.bas with the Lt. Kernal at device 8 (booted in
 --source; it has to boot, so one asm/build.sh made) with the stand-in as
 "im 128" and ltkcopy.list, the LU and the files to copy. Each FILE is
 scratched on the LU, copied with ++ copier and compared (&,16,3).
+"im 128" works too: the stand-in has that name on its disk, so the real
+one goes there as "im 128.real" and is copied to the LU as "im 128".
 
 FILE is the name as c1541 lists it: a capital letter is a shifted one
 (i.IM is "i." and shifted I and M). The LU is 10 (the one the Lt. Kernal
@@ -35,6 +37,7 @@ build = os.path.join(repo, 'build')
 disk = os.path.join(build, 'standin-ltkcopy.d81')
 PORT = int(os.environ.get('VMON_PORT', '6603'))
 IMAGES = ('disk0.dlk', 'disk1.dlk', 'disk2.dlk')
+REAL_IM = 'im 128.real'  # the real im 128 on the stand-in's disk
 
 args = sys.argv[1:]
 if not args or '-h' in args or '--help' in args:
@@ -88,9 +91,19 @@ with open(lst, 'wb') as f:
     for name in files:
         # the type letter in PETSCII too: an ASCII "s" ($73) is a shifted
         # character there, so the stand-in opened every seq file as a prg
-        f.write(petscii(types[name] + name) + b'\r')
-subprocess.run(['c1541', '-attach', disk, '-delete', 'im 128', '-write', prg, 'im 128',
-                '-delete', 'ltkcopy.list', '-write', lst, 'ltkcopy.list,s'],
+        # 11/18/2026: "im 128" is the stand-in on this disk, so the real one
+        # goes on as REAL_IM and the list says "source=dest" (an LU then got
+        # the stand-in as its im 128, which boots to ?LOAD ERROR IN 80)
+        src = REAL_IM + '=' + name if name == 'im 128' else name
+        f.write(petscii(types[name] + src) + b'\r')
+c1541 = ['c1541', '-attach', disk]
+if 'im 128' in files:
+    real = os.path.join(work, 'im128-real.prg')
+    subprocess.run(['c1541', '-attach', source, '-read', 'im 128', real],
+                   capture_output=True, check=True)
+    c1541 += ['-delete', REAL_IM, '-write', real, REAL_IM]
+subprocess.run(c1541 + ['-delete', 'im 128', '-write', prg, 'im 128',
+                        '-delete', 'ltkcopy.list', '-write', lst, 'ltkcopy.list,s'],
                capture_output=True, check=True)
 
 for f in IMAGES:
