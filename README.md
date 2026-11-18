@@ -49,7 +49,8 @@ build/setup-test.d81` updates a configured system as well.
 `PORTING_NOTES.md` has what differs between the C64 and the 128 and
 how the port deals with it; `PROGRAMMING.md`, writing BASIC for Image
 128 (errors and TRAP, BASIC 7.0's stack, `&` output);
-`BASIC_VARIABLES.md`, the variables the ML uses; `DEBUG_TECHNIQUES.md`,
+`BASIC_VARIABLES.md`, the variables the ML uses; `STATUS_LINE.md`, what the
+status area's fields and indicators show; `DEBUG_TECHNIQUES.md`,
 how problems were tracked down; `tests/standin/README.md`, the test
 programs.
 

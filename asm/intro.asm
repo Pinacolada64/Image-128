@@ -268,9 +268,18 @@ setup1:
 	sta inchat
 	jsr iosetup
 	jsr setptrs
+	jsr stat_init	; the status line's indicators off, cells blank
 	jsr setirq
 	jsr trapoff
 	jsr setscrn
+; 80 columns: the status line (row 24) on to column 79 -- vdcrinit makes
+; that part of vdcright reverse spaces, vdcrcopy puts it on the screen
+	bit mode
+	bpl setup2
+	lda #24
+	sta vdcm_row
+	jsr vdcrcopy
+setup2:
 	ldx #3
 	jsr comq	; set mci color default?
 	jsr startmsg
