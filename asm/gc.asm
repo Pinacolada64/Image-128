@@ -9,8 +9,9 @@ size = 128
 
 ; setup gc parameters
 ; entry point: gc in equates.asm (= protostart, where this assembles)
-	lda #$c7 ; reverse uppercase G
-	sta tdisp+31
+	lda #stat_gc
+	ldx #1
+	jsr draw_status_line
 
 	lda 3
 	pha
@@ -120,9 +121,9 @@ gc7:
 	sta 4
 	pla
 	sta 3
-	lda #$a0
-	sta tdisp+31
-	rts
+	lda #stat_gc
+	ldx #0
+	jmp draw_status_line
 
 add3:
 	clc

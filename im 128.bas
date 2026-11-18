@@ -481,7 +481,11 @@
 ' clock (CMD, DS12C887, Ultimate, TeensyROM, the last AutoMaint date), where
 ' 3348-3366 knew only CMD and Lt. Kernal. "Clock Set." on the same line (3405).
 ' Manual (y%=0), or no clock read: from the date im was built, as before (3170)
-3155 if y% then z3$="Setting Clock...":gosub 3404:im=10:a$="clocks":gosub 74:if e%=. then z2$=left$(" "+z3$+" Clock Set."+s$,36):gosub 3405:goto 3158
+' 11/16/2026: d1$=z$, the time just read: 3153 left d1$ the build's date and
+' time (the IRQ keeps d1str, not d1$, up to date until the ML's logoff points
+' d1$ at it), and the DST check at 3158 (sub.clocks im=12) read that: on
+' daylight time it moved the clock by the build's date, not the clock's
+3155 if y% then z3$="Setting Clock...":gosub 3404:im=10:a$="clocks":gosub 74:if e%=. then d1$=z$:z2$=left$(" "+z3$+" Clock Set."+s$,36):gosub 3405:goto 3158
 3156 z$={usedef:imdate}:gosub 3170
 ' 10/20/2026: ptrlinm and usrlin (c64 970, 971): on the 128, 970 ($03ca)
 ' is in the routines BASIC 7 keeps in RAM, and poking it stopped the

@@ -417,8 +417,8 @@ bcdtoa:
 ;* display time remaining
 
 disptime:
-	ldx #32
-	lda #' '
+	ldx #32		; a space at column 33 (dispdt: tdisp+1+x), before
+	lda #' '	; time left (no indicator there since I went to 32)
 	jsr dispdt
 	jsr gettsr
 	beq dt0
@@ -531,8 +531,9 @@ carrier_update_not_present:
 	lda #1
 	sta carrst
 
-	lda #$a0 ; reverse space
-	sta tdisp+39
+	lda #stat_car
+	ldx #0
+	jsr draw_status_line
 
 	lda flag_dcd_addr
 	and #~flag_dcd_r_mask
@@ -550,8 +551,9 @@ carrier_update_present:
 	ora #128
 	sta carrst
 
-	lda #$fa ; reverse checkmark
-	sta tdisp+39
+	lda #stat_car
+	ldx #1
+	jsr draw_status_line
 
 	lda flag_dcd_addr
 	ora #flag_dcd_r_mask

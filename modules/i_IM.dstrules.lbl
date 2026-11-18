@@ -12,9 +12,17 @@
 ' rule, sub.clocks im=13 sets the daylight time flag and the DST alarms
 ' again, by the rule as saved.
 '
+' 11/16/2026: the BBS's state above the list (tz$, and e.data record 46:
+' daylight time or not, the clock set back or not, sub.clocks' notes), and
+' two keys: F sets record 46's flags by hand (the clock isn't moved), C
+' checks the clock by the rule now (sub.clocks im=12, as the 2:00 alarm
+' does). sub.clocks uses n as a temporary: after each call n is counted
+' again from tt$() (which it doesn't touch), so unsaved changes stay.
+'
 ' Variables: n (rules), tt$(1-n) (them), tz (changed), dn$ (the rule being
-' edited), dp$ (a start or end, 9 characters); temporary: a b c d h i j m r
-' t v w y dd dj dl dx, a$ b$ c$ an$
+' edited), dp$ (a start or end, 9 characters), dg db dq$ (record 46, as
+' sub.clocks names them); temporary: a b c d h i j m r t v w y dd dj dl dx,
+' a$ b$ c$ an$
 
 {uses:..\3_0-preface.lbl}
 {alpha:alt}
@@ -25,14 +33,20 @@
 {:4000}
 	gosub {:load}
 {:show}
-	y=val(mid$(d1$,2,2)):&"{clear}{lt. blue}Daylight Saving Time Rules{f6}"
+' 11/16/2026: the title line has the system zone, the next its state
+' ({:status}); the system's rule is marked * in the list. No blank line
+' before the prompt: four rules still fit the screen
+	y=val(mid$(d1$,2,2)):&"{clear}{lt. blue}DST Rules"
+	gosub {:status}
 	if n=. then:&"{f6}{white}None yet.{f6}"
 	for i=1 to n:dn$=tt$(i):gosub {:show_rule}:next
-	&"{f6}{white}#{blue}/{white}A{lt. blue}dd{blue}/{white}D{lt. blue}elete{blue}/{white}S{lt. blue}ave{blue}/{white}Q{lt. blue}uit{blue}{colon}{white} {pound}i1"
+	&"{white}#{blue}/{white}A{lt. blue}dd{blue}/{white}D{lt. blue}el{blue}/{white}S{lt. blue}ave{blue}/{white}F{lt. blue}lags{blue}/{white}C{lt. blue}heck{blue}/{white}Q{lt. blue}uit{blue}{colon}{white} {pound}i1"
 	a=val(an$):if a>. and a<=n then r=a:dn$=tt$(r):gosub {:edit}:goto {:show}
 	if an$="A" then gosub {:add}:goto {:show}
 	if an$="D" then gosub {:delete}:goto {:show}
 	if an$="S" then gosub {:save}:goto {:show}
+	if an$="F" then gosub {:flags}:goto {:show}
+	if an$="C" then gosub {:check}:goto {:show}
 	if tz then:&"{f6}Save Changes{question} ":gosub 94:if a then gosub {:save}
 	return
 
@@ -45,10 +59,36 @@
 	if st=. and n<20 then {:load_line}
 	close 2:return
 
+{nice:100}
+{:status}
+' 11/16/2026: after the title, the system zone (tz$: its names and rule
+' letter), then whether the clock is on daylight time and whether it's been
+' set back (record 46), e.g.
+'   DST Rules: MST/MDT, rule U
+'   Clock: MDT, daylight; set back: not yet
+' (this year's dates are in the rule's own lines below)
+	c$=mid$(tz$,8,1):a$=left$(tz$,3)
+	if c$="" or c$="-" or c$=" " then:&"{colon} {white}{pound}$a{lt. blue}, no DST{f6}":return
+	b$=mid$(tz$,9,3):&"{colon} {white}{pound}$a/{pound}$b{lt. blue}, rule {yellow}{pound}$c{f6}"
+	gosub {:read_46}:a$=left$(tz$,3):b$="standard":if dg then a$=mid$(tz$,9,3):b$="daylight"
+	c$="not yet":if db then c$="done"
+	&"{lt. blue}Clock{colon} {white}{pound}$a{lt. blue}, {pound}$b; set back{colon} {white}{pound}$c{f6}"
+	c$=mid$(tz$,8,1):v=.:for i=1 to n:if left$(tt$(i),1)=c$ then v=i:i=99
+	next:if v=. then:&"{lt. red}Rule {pound}$c isn't in the list.{f6}":return
+	if left$(dq$,1)<>c$ then:&"{lt. red}Record 46 has no copy of rule {pound}$c{colon} C sets it.{f6}"
+	return
+
+{:read_46}
+' e.data record 46 -> dg, db, dq$ (as sub.clocks reads it: "dg,db,rule", or
+' an older "dg,rule" with db=0)
+	gosub 33:x=46:gosub 1:&,2,2:close 2:dg=val(a$):db=.:dq$=mid$(a$,3)
+	if mid$(a$,4,1)="," then db=val(mid$(a$,3,1)):dq$=mid$(a$,5)
+	return
+
 {:show_rule}
-' rule i (dn$): its letter and description, its start and end, and the
-' dates they come this year (y)
-	a%=i:b$=left$(dn$,1):c$=mid$(dn$,20)
+' rule i (dn$): its letter and description (11/16/2026: and * if it's the
+' system's), its start and end, and the dates they come this year (y)
+	a%=i:b$=left$(dn$,1):c$=mid$(dn$,20):if b$=mid$(tz$,8,1) then c$=c$+" {white}*"
 	&"{f6}{white}{pound}%a) {yellow}{pound}$b {cyan}{pound}$c{f6}"
 	dx=2:gosub {:point_text}:&"   {lt. blue}Starts {white}{pound}$a{f6}"
 	dx=11:gosub {:point_text}:&"   {lt. blue}Ends   {white}{pound}$a{f6}"
@@ -171,6 +211,43 @@
 	dr=1:gosub 3:print# 15,"s"dr$"s.dstrules":a$="s.dstrules,s,w":gosub 4:gosub 5:if e% then close 2:&:return
 	for i=1 to n:print# 2,tt$(i):next:close 2:tz=.:&"{f6}{white}Saved.{f6}"
 	a$=mid$(tz$,8,1):if a$="" or a$="-" or a$=" " then return
-	&"Setting the BBS's daylight saving time...{f6}":im=13:a$="clocks":gosub 74:return
+	&"Setting the BBS's daylight saving time...{f6}":im=13:a$="clocks":gosub 74:goto {:recount}
+
+{:recount}
+' 11/16/2026: n again, after sub.clocks (it uses n): the rules are the
+' tt$() up to the last one that's set (delete blanks the one past the end)
+	n=.:for i=1 to 20:if len(tt$(i))>18 then n=i
+	next:return
+
+{nice:100}
+{:flags}
+' 11/16/2026: record 46's flags by hand, for a state that's wrong. Only the
+' flags: the clock isn't moved (K, Set Time, sets it; C checks it by the
+' rule). On daylight time the set-back is still to come, so it's asked only
+' on standard time (sub.clocks would take daylight time and "set back" to
+' mean the set-back is done and not move the clock again). The rule kept
+' with them is the list's (an older copy, or none, would make the next
+' check take the clock as right and work the flags out again)
+	c$=mid$(tz$,8,1):if c$="" or c$="-" or c$=" " then:&"{f6}{lt. red}The system zone has no DST.{pound}w2":return
+	gosub {:read_46}:a$=mid$(tz$,9,3)
+	&"{f6}{white}Is the clock on daylight time ({pound}$a)? ":gosub 96:dg=a:db=.
+	if dg=. then:&"{white}Has it been set back this year? ":gosub 96:db=a
+	for i=1 to n:if left$(tt$(i),1)=c$ then dq$=tt$(i):i=99
+	next:if i<99 then dq$=""
+	gosub 33:x=46:gosub 1:print# 2,mid$(str$(dg),2)+","+mid$(str$(db),2)+","+left$(dq$,19):close 2
+' the ML's zone for its time conversions, as sub.clocks sets it: the
+' standard hour, plus 1 on daylight time
+	b=val(mid$(tz$,4,2))+dg:b=b+24*(b>23):poke {sym:tzoneh},b:poke {sym:tzonem},val(mid$(tz$,6,2))
+	&"{f6}{white}Saved. The clock wasn't moved.{pound}w2":return
+
+{:check}
+' 11/16/2026: the check the 2:00 alarm makes (sub.clocks im=12): the clock
+' moved an hour if it's on the wrong side of the rule. e%=0: it was; which
+' way from record 46 after (the time is on the status line)
+	c$=mid$(tz$,8,1):if c$="" or c$="-" or c$=" " then:&"{f6}{lt. red}The system zone has no DST.{pound}w2":return
+	&"{f6}{white}Checking the clock by rule {pound}$c...{f6}":im=12:a$="clocks":gosub 74:a=e%:gosub {:recount}
+	if a then:&"{lt. blue}No change{colon} the clock fits the rule.{pound}w2":return
+	gosub {:read_46}:a$="back":if dg then a$="forward"
+	&"{lt. blue}Moved the clock {white}{pound}$a{lt. blue} an hour.{pound}w2":return
 
 	rem "i/IM.dstrules (c)nissa 2026-11-02 rs"
