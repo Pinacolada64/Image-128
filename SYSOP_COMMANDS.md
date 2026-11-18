@@ -404,31 +404,6 @@ which sets the lightbar's checks from `e.lightdefs` (`im 128` line
 offers to make the saved table active. (Modem Config has no carrier
 setting: its flag 9 is DTR, the BBS's own line to the modem.)
 
-## The border color on events: `Dbg`
-
-The lightbar's right `Dbg` checkmark (page 4, check 57, "Border Color on
-Event") lets Image change the 40-column screen's border to show what
-happened since you last looked. With it off, nothing changes the border,
-so there's nothing to set back by hand afterwards (`$d020` from a
-monitor, as before 3.1).
-
-| Border | Means | Where to look | Set by |
-|---|---|---|---|
-| Black | nothing new: the BBS started, or `VF` was run | | `im 128` 3001 (boot), `i.VF` |
-| Red | a BASIC error: Image trapped it, logged it (`e.errlog`) and carried on | `VF`, Error Log | `im 128` 4034 |
-| Green | a caller started the new-user application | `VF`, New Users | `i/lo.new` |
-| Blue | a caller left feedback, or the sysop information was changed (logged as feedback) | `VF`, Feedback | `sub.feedback`, `i/lo-sysop info` |
-| Light blue | a login failed its security check ("Login is not valid": the password, or the first name, last name or e-mail address it asked for at random, didn't match) | `VF`, Telecheck | `i/lo!telecheck` |
-
-The border keeps the last event's color, so a red border may have been
-turned blue by feedback since. Reading feedback (`VF`) sets it back to
-black, with the checkmark on or off, so a color set before you turned the
-checkmark off is cleared too. The 80-column screen has no border; the
-colors show on the 40-column screen only.
-
-Modules set it with `a=`*color*`:gosub 24` (`PROGRAMMING.md`), using the
-VIC-II's color numbers: 0 black, 2 red, 5 green, 6 blue, 14 light blue.
-
 ## `IM` H: Lightbar/Alarms
 
 `IM`, then `H`. `i.IM` draws the menu; each choice but the last loads
@@ -560,6 +535,31 @@ On the release's `e.lightbar`, pages 5 to 7 and the last label on page 4
 have placeholder labels: the left checkmark's number in hex (`$3E`,
 `$40`...). Naming one changes only its label, not what uses the
 checkmarks.
+
+## The border color on events: `Dbg`
+
+The lightbar's right `Dbg` checkmark (page 4, check 57, "Border Color on
+Event") lets Image change the 40-column screen's border to show what
+happened since you last looked. With it off, nothing changes the border,
+so there's nothing to set back by hand afterwards (`$d020` from a
+monitor, as before 3.1).
+
+| Border | Means | Where to look | Set by |
+|---|---|---|---|
+| Black | nothing new: the BBS started, or `VF` was run | | `im 128` 3001 (boot), `i.VF` |
+| Red | a BASIC error: Image trapped it, logged it (`e.errlog`) and carried on | `VF`, Error Log | `im 128` 4034 |
+| Green | a caller started the new-user application | `VF`, New Users | `i/lo.new` |
+| Blue | a caller left feedback, or the sysop information was changed (logged as feedback) | `VF`, Feedback | `sub.feedback`, `i/lo-sysop info` |
+| Light blue | a login failed its security check ("Login is not valid": the password, or the first name, last name or e-mail address it asked for at random, didn't match) | `VF`, Telecheck | `i/lo!telecheck` |
+
+The border keeps the last event's color, so a red border may have been
+turned blue by feedback since. Reading feedback (`VF`) sets it back to
+black, with the checkmark on or off, so a color set before you turned the
+checkmark off is cleared too. The 80-column screen has no border; the
+colors show on the 40-column screen only.
+
+Modules set it with `a=`*color*`:gosub 24` (`PROGRAMMING.md`), using the
+VIC-II's color numbers: 0 black, 2 red, 5 green, 6 blue, 14 light blue.
 
 ## Daylight saving time
 
