@@ -335,6 +335,20 @@ btmvar:
 	inc scnlock
 	lda scnmode
 	bne btm2
+; 80 columns (11/16/2026): the window is row 22's columns 64-79, past the
+; VIC's row: write btmwin instead, which status.asm's r80_btm copies there
+	lda #<(adisp+24)
+	ldx #>(adisp+24)
+	bit mode
+	bpl btmv1
+	lda #<btmwin
+	ldx #>btmwin
+	stx btmnew	; (non-zero)
+btmv1:
+	sta btm0+1
+	stx btm0+2
+	sta btm1b+1
+	stx btm1b+2
 	ldy #15
 	lda #$a0
 btm0:
@@ -363,6 +377,7 @@ btm1:
 	eor #64
 btm1a:
 	ora #$80
+btm1b:
 	sta adisp+24,x
 	inx
 	cpx #16

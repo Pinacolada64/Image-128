@@ -944,7 +944,34 @@ vdcrinit:
 	sta vdc_dst+1
 	jsr vdcrini2
 	lda color
+	jsr vdc_fill
+; rows 23 and 24's parts (columns 40-79): reverse spaces in white, as the
+; VIC's rows are (row 23 the mask's, sub.display's $81; row 24 tdisp, the
+; IRQ keeping tcolr white), so both bars run on to column 79. One fill of
+; 120 from row 23, column 40 (row 24's columns 0-39 between aren't used:
+; vdcright is the right halves). Row 24: setup draws it at boot, and
+; nothing clears it (scclear stops at row 23); row 23: vdcmask draws it
+; each time the mask goes on. (sub.display drew row 24 with &,69 before.)
+	lda #<(7*VDC_COLS+40)
+	sta vdc_dst
+	lda #>($1400+7*VDC_COLS+40)
+	sta vdc_dst+1
+	jsr vdcrini3
+	lda #$a0	; reverse space
+	jsr vdc_fill
+	lda #<(7*VDC_COLS+40)
+	sta vdc_dst
+	lda #>($1c00+7*VDC_COLS+40)
+	sta vdc_dst+1
+	jsr vdcrini3
+	lda vdccolor+1	; white
+	ora #VDC_ATTR_ALT	; the status rows' lowercase set (vdcsrow)
 	jmp vdc_fill
+vdcrini3:
+	lda #120
+	sta vdc_count
+	lda #0
+	sta vdc_count+1
 vdcrini1:
 	rts
 vdcrini2:
@@ -1131,6 +1158,7 @@ vdcst1:
 	cpx #16
 	bcs vdcst1
 vdcst2:
+	jsr stat_vdc	; the indicators' labels (status.asm)
 	lda #0
 	sta vdcst_force
 	pla
@@ -1219,6 +1247,29 @@ vdcs_d2:
 	cpy #40
 	bcc vdcs5
 	jsr lbar2_putc	; (row 16: the other page's colors)
+; row 24: columns 40-79 (vdcrinit's reverse spaces) take the left half's
+; color too, which the IRQ flashes white and gray while the clock isn't
+; set (irq1, timeset); each flash changes the checksum, so it comes here
+	ldx vdcs_row
+	cpx #24
+	bne vdcs9
+	lda vdcr_atr
+	clc
+	adc #40
+	sta vdc_dst
+	lda vdcr_atr+1
+	adc #0
+	sta vdc_dst+1
+	lda #40
+	sta vdc_count
+	lda #0
+	sta vdc_count+1
+	lda tcolr
+	and #$0f
+	tax
+	lda vdccolor,x
+	ora #VDC_ATTR_ALT
+	jsr vdc_fill
 vdcs9:
 	ldx vdcs_row
 	rts
@@ -1296,71 +1347,8 @@ trace1:
 	dec scnlock
 	jmp vdcstat	; 80 columns: the status lines to the VDC
 
-; free memory: fretop - strend (c64: lda 51 / sbc 49 ..., where the C64
-; keeps them; the 128's are two bytes on)
-trace2:
-	sec
-	lda fretop
-	sbc strend
-	tay
-	lda fretop+1
-	sbc strend+1
-	tax
-	cpy oldmem
-	bne trace3
-	cpx oldmem+1
-	beq trace4
-trace3:
-	sty oldmem
-	stx oldmem+1
-	tya
-	jsr decimal
-	ldy #4
-trace3a:
-	lda decchr,y
-	ora #$80
-	sta sdisp+14,y
-	dey
-	bpl trace3a
-trace4:
-	lda flag_trc_addr
-	and #flag_trc_l_mask
-	beq trace7
-	lda curlin	; c64: 57
-	ldx curlin+1	; c64: 58
-	cmp oldline
-	bne trace5
-	cpx oldline+1
-	beq trace7
-trace5:
-	sta oldline
-	stx oldline+1
-	jsr decimal
-	ldy #4
-trace5a:
-	lda decchr,y
-	ora #$80
-	sta sdisp+23,y
-	dey
-	bpl trace5a
-	ldx #0
-	ldy #200
-trace6:
-; pause trace with Ctrl key
-	lda shflag	; c64: 653
-	and #CONTROL_KEY; 4
-	beq trace7
-	dex
-	bne trace6
-	dey
-	bne trace6
-trace7:
-	rts
-
-oldline:
-	word 0
-oldmem:
-	word 0
+; trace2, the mask's numbers (P=, V=, L=): trace.asm, in the shared bottom
+; 16K ($e000-$fbff has no room, 11/15/2026)
 
 dspidle:
 	sta idlesec

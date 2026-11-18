@@ -5,5 +5,7 @@
   luaotfload.add_fallback("emojifallback", {"Symbola:mode=harf;"})
 }
 \setmainfont{latinmodern-math.otf}[RawFeature={fallback=emojifallback}]
+% code blocks too (STATUS_LINE.md's screens have a check mark, 11/16/2026)
+\setmonofont{lmmono10-regular.otf}[RawFeature={fallback=emojifallback}]
 \usepackage[table]{xcolor}
 \rowcolors{2}{black!5}{white}
