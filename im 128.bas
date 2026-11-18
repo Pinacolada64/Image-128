@@ -104,7 +104,9 @@
 80 a$=z$:z$=mid$(p1$,3):gosub 72:a$=z$:dr=5:if lc<>1 then 77:else return
 82 for i=1 to 4:&,11,i:next
 83 &,11,.:return
-84 a=int(mn%/60):pt%=-(a>=p2% and a<p3%)*sgn(p1%):return
+' Prime Time (pt%) from the hour: from p2% until p3%; an end earlier than the
+' start runs past midnight (11/17/2026: 10P-2A, or 12P-12A, never came on)
+84 a=int(mn%/60):pt%=-((a>=p2% and a<p3%) or ((a>=p2% or a<p3%) and p3%<p2%))*sgn(p1%):return
 85 &"{f6}Would You Like To Leave Feedback? ":gosub 93:if a=. then return:else dr=3:gosub 61
 86 x=2:if bf<35 then 390:else im=1:goto 444
 ' FIXME: building the string like this is terribly inefficient
