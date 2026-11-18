@@ -252,8 +252,8 @@ r80v3:
 r80v9:
 	rts
 
-; draw row r80_i's right half: its 40 characters, then their attributes
-; (colors as above; the lowercase set)
+; draw row r80_i's right half: its characters (r80_len: 40, or 39 for row
+; 19), then their attributes (colors as above; the lowercase set)
 r80_row:
 	ldy r80_rows,x
 	lda vdcrowlo,y
@@ -270,7 +270,7 @@ r80_row:
 	ldx r80_i
 	ldy r80_off,x
 	sty r80_o
-	lda #40
+	lda r80_len,x
 	sta r80_n
 r80r1:
 	lda r80_text,y
@@ -283,6 +283,9 @@ r80r1:
 	adc vdcattr
 	ldy r80_lo
 	jsr vdc_set_update
+	ldx r80_i
+	lda r80_len,x	; r80_n is the count of cells again (0 after r80r1)
+	sta r80_n
 	ldy #0
 r80r2:
 	ldx r80_i
@@ -308,7 +311,7 @@ r80r4:
 	ora #VDC_ATTR_ALT
 	jsr vdc_put
 	iny
-	cpy #40
+	cpy r80_n
 	bcc r80r2
 	rts
 
@@ -515,6 +518,9 @@ t80n3:
 
 r80_rows:	byte 22,19,23
 r80_off:	byte 0,40,80
+r80_len:	byte 40,39,40	; cells drawn: row 19 stops at column 78, as
+			; column 79 of rows 17-21 is PRIME's (sub.display,
+			; i/lo.idle, i/lo.on: column sw-1). 11/17/2026
 r80_edge:	byte 1,12,1	; colors: columns 40 and 79
 r80_mid:	byte 1,12,3	; 41-78, plain cells: values (the window's cyan)
 r80_rev:	byte 1,15,3	; 41-78, reversed: row 22's white bar, the box's
