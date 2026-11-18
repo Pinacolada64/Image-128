@@ -244,9 +244,9 @@ The abort key (`rc`) stops it between characters, elements and arrays.
 the statement after the `&`); `&,66,0` is a GOTO. The line must be under
 32768 (`a%` is an integer).
 
-## The border color on an event: `gosub 23`
+## The border color on an event: `gosub 24`
 
-`a=`*color*`:gosub 23` sets the VIC-II border to *color* (0-15, the
+`a=`*color*`:gosub 24` sets the VIC-II border to *color* (0-15, the
 numbers `poke 53280` takes) if the lightbar's right `Dbg` (check 57,
 Border Color on Event) is on, and does nothing if it's off. It uses
 `a%`. Use it rather than `poke 53280` for anything that marks an event, so

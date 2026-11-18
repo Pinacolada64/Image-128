@@ -426,7 +426,7 @@ black, with the checkmark on or off, so a color set before you turned the
 checkmark off is cleared too. The 80-column screen has no border; the
 colors show on the 40-column screen only.
 
-Modules set it with `a=`*color*`:gosub 23` (`PROGRAMMING.md`), using the
+Modules set it with `a=`*color*`:gosub 24` (`PROGRAMMING.md`), using the
 VIC-II's color numbers: 0 black, 2 red, 5 green, 6 blue, 14 light blue.
 
 ## `IM` H: Lightbar/Alarms
