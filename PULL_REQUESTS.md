@@ -16,7 +16,7 @@ and/or tip commit), name, and a short summary of what the change adds or fixes.
 Sections: Open PRs → Feature branches (no PR) → Direct commits to master →
 Merged PRs → Merged branches (newest first).
 
-Seeded 2026-11-17; updated 2026-11-17 against origin/master at `ba51bd4`.
+Seeded 2026-11-17; updated 2026-11-17 against origin/master at `52f2cf4`.
 
 ---
 
@@ -24,12 +24,11 @@ Seeded 2026-11-17; updated 2026-11-17 against origin/master at `ba51bd4`.
 
 | PR | Branch | Tip | On | Summary |
 |----|--------|-----|----|---------|
+| [#11](https://github.com/Pinacolada64/Image-128/pull/11) | `ansi-esc-cup` | `f4c5211` | | `ansi-esc` and `ansi-cup` rebased onto master (not on `visual-editor`): outmod lets Esc through for ANSI callers (flag 18), so modules can send `Esc[L`, `Esc[K`...; `&,70` sends one `Esc[row;colH` instead of Home, Downs and Rights; PROGRAMMING.md, "What an ASCII or ANSI caller gets"; `tests/standin/ansiout.bas`, `tools/ansiout.py`. Built on master, 20 of 20; the whole-BBS check not rerun. |
 | [#10](https://github.com/Pinacolada64/Image-128/pull/10) | `pull-request-catalog` | (this file) | `pdf-table-autowidth` | This catalog, and `make docs` builds it as a PDF (6 pages); carries `pdf-table-autowidth` (merged in, so its tables are sized to their contents). |
 | [#9](https://github.com/Pinacolada64/Image-128/pull/9) | `border-color` | `5c42284` | | Border color on events (error red, new user green, feedback blue, failed login light blue) only while the lightbar's right `Dbg` is on: `im 128` line 24, `if a% then begin:color 4,a+1:bend`, called as `a=`*color*`:gosub 24` instead of `poke 53280`; PROGRAMMING.md and SYSOP_COMMANDS.md (its section after `IM` H, clear of #4/#5). Master merged in; `dd81599` was pushed with conflict markers in equates.asm, `7bbfc8e` takes them out (squash merge keeps them out of master). Not run in x128 yet. |
 | [#7](https://github.com/Pinacolada64/Image-128/pull/7) | `ltk-primetime-test` | `a312d63` | | `tools/ltk_primetime.py`: IM's Prime Time screen tried on a configured system on VICE's Lt. Kernal (60 minutes, `12P`, `12A`, `1p`, `13`, saved, the Misc. Features line); `ltk_copy.py --images DIR`. |
 | [#6](https://github.com/Pinacolada64/Image-128/pull/6) | `prime-indicator` | `75b47b2` | | `PRIME` down the screen's right edge, column `sw-1` (39 or 79), in `sub.display`, `i/lo.idle` and `i/lo.on`; master (#8) merged in, and `status.asm`'s 80-column row 19 stops at column 78 so `Buf` doesn't wipe it. |
-| [#5](https://github.com/Pinacolada64/Image-128/pull/5) | `prime-time-wrap` | `c2d0a83` | `docs-im-sysop` | Prime Time can run past midnight (`im 128` line 84: an end before the start runs into the next morning); SYSOP_COMMANDS.md to match. Merge #4 first. |
-| [#4](https://github.com/Pinacolada64/Image-128/pull/4) | `docs-im-sysop` | `c5034e9` | | SYSOP_COMMANDS.md: IM, the Configuration Editor: running it, the main menu `A`–`Q`, Misc. Features `A`–`O`, Prime Time (`12A`/`12P`, the `Tsr` checkmark). |
 
 ---
 
@@ -42,8 +41,8 @@ Seeded 2026-11-17; updated 2026-11-17 against origin/master at `ba51bd4`.
 | `docs-port-from-31` | `b6ab7e5` | | IMAGE_3_1.md: what Image 128 adds to 3.0, and 3.1's changes still to port; built as a PDF. Conflicts with master in the Makefile's `DOCS :=` line (keep both `STATUS_LINE.md` and `IMAGE_3_1.md`). |
 | `lightbar-checks` | `ea0eac9` | | Which lightbar checkmarks are free (PROGRAMMING.md); check 49 goes to the status line's 40-column P=/V= swap; Em3 is "emulate 1.3"; page 4's first label becomes Prg. |
 | `todo-clock-set-color` | `c6e14bb` | | TODO: the boot frame's colour after "...Clock Set." (sub.clocks clobbers c). |
-| `ansi-cup` | `d1718c5` | `ansi-esc` | &,70: one CUP (Esc[row;colH) for an ANSI caller. |
-| `ansi-esc` | `7c18c07` | `visual-editor` | outmod: Esc passes through in ANSI; PROGRAMMING.md: what ASCII/ANSI callers get. |
+| `ansi-cup` | `d1718c5` | `ansi-esc` | &,70: one CUP (Esc[row;colH) for an ANSI caller. Superseded by #11 (rebased onto master); delete once it is merged. |
+| `ansi-esc` | `7c18c07` | `visual-editor` | outmod: Esc passes through in ANSI; PROGRAMMING.md: what ASCII/ANSI callers get. Superseded by #11 (rebased onto master); delete once it is merged. |
 | `visual-esc` | `f52a870` | `visual-editor` | C128 Esc codes: the console checked (esctest), i.test esc for callers; ++ visual: Esc I / Esc D insert and delete a line; EP option 11 (C128 Esc Codes); tools/ep11_test.py. |
 | `remote-overlay` | `712a574` | `visual-editor` | ++ remote: Image 2.0's remote.s, fixed and ported, runs a plain BASIC program as a door; DOOR runs i.remote door; tests/doors, door_test.py. |
 | `term-phonebook-settings` | `683789d` | | i.t: graphics mode and BPS rate for each phone book entry. |
@@ -78,6 +77,8 @@ Seeded 2026-11-17; updated 2026-11-17 against origin/master at `ba51bd4`.
 
 | PR | Merge commit | Branch | Tip | Summary |
 |----|--------------|--------|-----|---------|
+| [#5](https://github.com/Pinacolada64/Image-128/pull/5) | `52f2cf4` | `prime-time-wrap` | `c2d0a83` | Prime Time can run past midnight (`im 128` line 84: an end before the start runs into the next morning); SYSOP_COMMANDS.md to match. Merged 2026-11-17, after #4. |
+| [#4](https://github.com/Pinacolada64/Image-128/pull/4) | `db89726` | `docs-im-sysop` | `c5034e9` | SYSOP_COMMANDS.md: IM, the Configuration Editor: running it, the main menu `A`–`Q`, Misc. Features `A`–`O`, Prime Time (`12A`/`12P`, the `Tsr` checkmark). Merged 2026-11-17. |
 | [#8](https://github.com/Pinacolada64/Image-128/pull/8) | `ba51bd4` | `status-line` | `adada09` | Status line rework (28 commits): `draw_status_line` (`asm/status.asm`) for 40 and 80 columns, RX/TX windows moved there; 80 columns' row 22 `C= N= U= I= P= V= L= M=`, the system box, `&,9`'s window at columns 64–79; 40 columns' `V=`, check 49's `P= V=` swap, `Prg` and `Dbg` labels; STATUS_LINE.md, built as a PDF. Merged 2026-11-17. |
 | [#3](https://github.com/Pinacolada64/Image-128/pull/3) | `7d89fe7` | `ltk-copy-files` | `4a0c176` | `tools/ltk_copy.py`: copy files onto an LU of VICE's Lt. Kernal (`tests/standin/ltkcopy.bas` with `++ copier`, compared after; `--save` writes back only changed images, keeping the old ones). Merged 2026-11-17. |
 | [#2](https://github.com/Pinacolada64/Image-128/pull/2) | `d0d9b62` | `im-prime-time` | `5f9e218` | Prime Time in IM shown as ` 60, 1A-9A` from `p1%`-`p3%`; `12A`/`12P` typed and shown right (`12P` was stored as 24 and never matched); `i.IM` 3365 split. Merged 2026-11-17. |
