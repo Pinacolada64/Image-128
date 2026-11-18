@@ -44,9 +44,10 @@
 4043 gosub{$39}:poke{sym:idlemsgt},(ti/60)and255:poke{sym:idlemsgt}+1,ti/15360:return
 4044 gosub{$38}4:&,52,7,3:ifa%thenpt%=1-pt%:ifp1%<1thenp1%=30
 4046 b%=val(mid$(fl$,18,2)):b%=b%-101*(b%=.):onpt%+1goto4050
-' TODO: move for 80 columns:
-4048 fory=1to5:&,69,26,y+16,mid$("PRIME",y,1),135:next:goto4052
-4050 fory=1to5:&,69,26,y+16,mid$("     ",y,1),140:next
+' 11/17/2026: PRIME down the right edge, rows 17-21: column sw-1 (39 in 40
+' columns, 79 in 80), as sub.display has it (it was 26)
+4048 fory=1to5:&,69,sw-1,y+16,mid$("PRIME",y,1),135:next:goto4052
+4050 fory=1to5:&,69,sw-1,y+16,mid$("     ",y,1),140:next
 4052 return
 4100 a=.:gosub{$33}75:b$="logoff":x=10:mm=4:gosub{$33}000:&,52,4:&,52,5:tr%=.
 4102 f1=.:&,28,1:dr=3:b$="e.idle cmds":a$=b$:gosub{$34}:ife%thenwc=.:close2:goto4106

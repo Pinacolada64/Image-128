@@ -169,16 +169,16 @@
 	gosub 84:&,52,7,3:if a% then pt%=1-pt%:if p1%<1 then p1%=30
 	b%=val(mid$(fl$,18,2)):b%=b%-101*(b%=.)
 	a$="PRIME":c=$87:if pt%=. then a$="     ":c=$8c
-'	for y=1 to 5:&,69,39,y+16,mid$("PRIME",y,1),$87:next:return
-'{:60306}
-'	for y=1 to 5:&,69,39,y+16,mid$("     ",y,1),$8c:next:return
-	for y=1 to 5:&,69,39,y+16,mid$(a$,y,1),c:next:return
+' 11/17/2026: down the screen's right edge, rows 17-21: column 39 in 40
+' columns, 79 in 80 (sw-1; it was 39 in both, the middle of the 80-column
+' screen). i/lo.idle and i/lo.on draw it there too
+	for y=1 to 5:&,69,sw-1,y+16,mid$(a$,y,1),c:next:return
 
 	rem sub.display (c)nissa 2020-05-19 lh, 2024-06-06 pinacolada
 
 {nice:100}
 ' 10/27/2026: in 80 columns, system stats on the status area's right half,
-' rows 17-21 from column 41 (the left half's PRIME flag is column 39): errors
+' rows 17-21 from column 41 to 78 (PRIME is down column 79): errors
 ' since the daily reset and since setup (st(39), st(40): im 4035), free
 ' string space (fretop - strend, bank 1) and free stack (usr(0), as im's 209
 ' shows it), and row 24's bar on to column 79. Only a$ and l, which this
