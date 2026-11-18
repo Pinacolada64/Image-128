@@ -18,6 +18,9 @@
 # - tools/pdf-preamble.tex: Latin Modern with a Symbola fallback, for the
 #   characters it lacks (arrows, check marks, box drawing), and light
 #   striping on table rows.
+# - tools/autowidth.lua: each table's columns as wide as their contents need
+#   (pandoc would otherwise share a wide table out by the dashes in its
+#   |---|---| line, and break long names and hex mid-word).
 
 DOCS := PORTING_NOTES.md PROGRAMMING.md DEBUG_TECHNIQUES.md DATA_FILES.md \
 	BASIC_VARIABLES.md SYSOP_COMMANDS.md editor.md modules/TODO.md \
@@ -26,10 +29,12 @@ OUT := build/docs
 # PULL_REQUESTS.md: the catalog of PRs and feature branches
 DOCS += PULL_REQUESTS.md
 PREAMBLE := tools/pdf-preamble.tex
+FILTER := tools/autowidth.lua
 
 PANDOC := pandoc
 PANDOC_FLAGS := -f markdown-tex_math_dollars -t pdf --pdf-engine=lualatex \
-	-V geometry:margin=1in -V colorlinks=true --toc -H $(PREAMBLE)
+	-V geometry:margin=1in -V colorlinks=true --toc -H $(PREAMBLE) \
+	--lua-filter=$(FILTER)
 
 # docs/x.md goes to build/docs/x.pdf, not build/docs/docs/x.pdf
 PDFS := $(patsubst %.md,$(OUT)/%.pdf,$(patsubst docs/%,%,$(DOCS)))
@@ -38,12 +43,12 @@ PDFS := $(patsubst %.md,$(OUT)/%.pdf,$(patsubst docs/%,%,$(DOCS)))
 
 docs: $(PDFS)
 
-$(OUT)/%.pdf: %.md $(PREAMBLE)
+$(OUT)/%.pdf: %.md $(PREAMBLE) $(FILTER)
 	@mkdir -p $(dir $@)
 	@echo "Rendering $< -> $@"
 	$(PANDOC) $< $(PANDOC_FLAGS) -o $@
 
-$(OUT)/%.pdf: docs/%.md $(PREAMBLE)
+$(OUT)/%.pdf: docs/%.md $(PREAMBLE) $(FILTER)
 	@mkdir -p $(dir $@)
 	@echo "Rendering $< -> $@"
 	$(PANDOC) $< $(PANDOC_FLAGS) -o $@
