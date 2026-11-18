@@ -24,6 +24,7 @@ Seeded 2026-11-17; updated 2026-11-17 against origin/master at `ba51bd4`.
 
 | PR | Branch | Tip | On | Summary |
 |----|--------|-----|----|---------|
+| [#10](https://github.com/Pinacolada64/Image-128/pull/10) | `pull-request-catalog` | (this file) | `pdf-table-autowidth` | This catalog, and `make docs` builds it as a PDF (6 pages); carries `pdf-table-autowidth` (merged in, so its tables are sized to their contents). |
 | [#9](https://github.com/Pinacolada64/Image-128/pull/9) | `border-color` | `5c42284` | | Border color on events (error red, new user green, feedback blue, failed login light blue) only while the lightbar's right `Dbg` is on: `im 128` line 24, `if a% then begin:color 4,a+1:bend`, called as `a=`*color*`:gosub 24` instead of `poke 53280`; PROGRAMMING.md and SYSOP_COMMANDS.md (its section after `IM` H, clear of #4/#5). Master merged in; `dd81599` was pushed with conflict markers in equates.asm, `7bbfc8e` takes them out (squash merge keeps them out of master). Not run in x128 yet. |
 | [#7](https://github.com/Pinacolada64/Image-128/pull/7) | `ltk-primetime-test` | `a312d63` | | `tools/ltk_primetime.py`: IM's Prime Time screen tried on a configured system on VICE's Lt. Kernal (60 minutes, `12P`, `12A`, `1p`, `13`, saved, the Misc. Features line); `ltk_copy.py --images DIR`. |
 | [#6](https://github.com/Pinacolada64/Image-128/pull/6) | `prime-indicator` | `75b47b2` | | `PRIME` down the screen's right edge, column `sw-1` (39 or 79), in `sub.display`, `i/lo.idle` and `i/lo.on`; master (#8) merged in, and `status.asm`'s 80-column row 19 stops at column 78 so `Buf` doesn't wipe it. |
@@ -36,9 +37,8 @@ Seeded 2026-11-17; updated 2026-11-17 against origin/master at `ba51bd4`.
 
 | Branch | Tip | On | Summary |
 |--------|-----|----|---------|
-| `pull-request-catalog` | (this file) | | This catalog, and `make docs` builds it as a PDF. |
 | `docs-vice-features` | `3115b6e` | | DEBUG_TECHNIQUES.md, "Using features in VICE": the x128 switches the start scripts and tools pass, a table and a command line for each feature (machine and autostart, JiffyDOS ROMs, drives, DS12C887 RTC, SwiftLink and tcpser, Lt. Kernal, debugging). SYSOP_COMMANDS.md, "Running the BBS in VICE": the sysop's view (start-image-128.sh's switches, what to set in IM to match, settings, start-setup.sh, errors). Based on master at 2a57549 (Lt. Kernal and DST tools). |
-| `pdf-table-autowidth` | `754e283` | | `tools/autowidth.lua`: `make docs`' tables get columns as wide as their contents need (from TADA's filter), instead of pandoc's widths from the dashes in the table's separator line; 0.2 em to spare in each column, so a word never breaks at its hyphen. |
+| `pdf-table-autowidth` | `754e283` | | `tools/autowidth.lua`: `make docs`' tables get columns as wide as their contents need (from TADA's filter), instead of pandoc's widths from the dashes in the table's separator line; 0.2 em to spare in each column, so a word never breaks at its hyphen. Carried by #10 (merged into `pull-request-catalog`). |
 | `docs-port-from-31` | `b6ab7e5` | | IMAGE_3_1.md: what Image 128 adds to 3.0, and 3.1's changes still to port; built as a PDF. Conflicts with master in the Makefile's `DOCS :=` line (keep both `STATUS_LINE.md` and `IMAGE_3_1.md`). |
 | `lightbar-checks` | `ea0eac9` | | Which lightbar checkmarks are free (PROGRAMMING.md); check 49 goes to the status line's 40-column P=/V= swap; Em3 is "emulate 1.3"; page 4's first label becomes Prg. |
 | `todo-clock-set-color` | `c6e14bb` | | TODO: the boot frame's colour after "...Clock Set." (sub.clocks clobbers c). |
