@@ -2,7 +2,7 @@
 """ltk_copy.py: copy files from a 1581 disk onto an LU of VICE's Lt. Kernal.
 
     asm/build.sh
-    tools/ltk_copy.py [--lu N] [--source disk.d81] [--save] [--keep] FILE...
+    tools/ltk_copy.py [--lu N] [--source disk.d81] [--images DIR] [--save] [--keep] FILE...
 
 e.g. tools/ltk_copy.py i.IM i/IM.misc --save
 
@@ -21,6 +21,10 @@ The run uses copies of LTK DIR's drive images (ltk_chatmode.py's header has
 what they are), made fresh each time in build/ltk-copy/, so the originals
 don't change. --save, if every file copied: each image the run changed
 replaces LTK DIR's, after the old one is kept as <image>.before-<date>-<time>.
+--images DIR takes the drive images from DIR instead (and --save puts them
+back there), e.g. a configured system's (tools/ltk_bbs2.py's
+build/ltk-configured: Image on LU 5, so --lu 5); ltk.crt still comes from
+LTK DIR. VICE keeps the images with every byte inverted (XOR $ff).
 --keep leaves x128 running at the end.
 """
 import filecmp, os, re, shutil, subprocess, sys, time
@@ -45,6 +49,9 @@ if '--lu' in args:
 source = os.path.join(build, 'image128.d81')
 if '--source' in args:
     i = args.index('--source'); source = args[i + 1]; del args[i:i + 2]
+images = LTK
+if '--images' in args:
+    i = args.index('--images'); images = args[i + 1]; del args[i:i + 2]
 save = '--save' in args
 keep = '--keep' in args
 files = [a for a in args if a not in ('--save', '--keep')]
@@ -94,7 +101,7 @@ subprocess.run(['c1541', '-attach', disk, '-delete', 'im 128', '-write', prg, 'i
                capture_output=True, check=True)
 
 for f in IMAGES:
-    shutil.copy(os.path.join(LTK, f), work)
+    shutil.copy(os.path.join(images, f), work)
 
 
 def waitfor(v, texts, limit, every=3):
@@ -129,13 +136,13 @@ finally:
         v.stop()
 
 if not ok:
-    sys.exit('ltk_copy.py: not every file copied; LTK DIR left as it was')
+    sys.exit(f'ltk_copy.py: not every file copied; {images} left as it was')
 changed = [f for f in IMAGES
-           if not filecmp.cmp(os.path.join(LTK, f), os.path.join(work, f), shallow=False)]
+           if not filecmp.cmp(os.path.join(images, f), os.path.join(work, f), shallow=False)]
 print('changed:', ', '.join(changed) or 'none')
 if save:
     stamp = time.strftime('%Y%m%d-%H%M')
     for f in changed:
-        shutil.copy2(os.path.join(LTK, f), os.path.join(LTK, f'{f}.before-{stamp}'))
-        shutil.copy(os.path.join(work, f), os.path.join(LTK, f))
-        print(f'saved {f} in {LTK} (the old one: {f}.before-{stamp})')
+        shutil.copy2(os.path.join(images, f), os.path.join(images, f'{f}.before-{stamp}'))
+        shutil.copy(os.path.join(work, f), os.path.join(images, f))
+        print(f'saved {f} in {images} (the old one: {f}.before-{stamp})')
