@@ -404,6 +404,107 @@ which sets the lightbar's checks from `e.lightdefs` (`im 128` line
 offers to make the saved table active. (Modem Config has no carrier
 setting: its flag 9 is DTR, the BBS's own line to the modem.)
 
+## `IM`: Configuration Editor
+
+The BBS's settings, in one module (`i.IM`) and the `i/IM.*` modules it
+loads for each part.
+
+### Running it
+
+- Type `IM` at the main prompt (a maintenance command in the Extended
+  Command Set, `e.ecs.main`; who may use it is set in that entry).
+- Or press `I` (IM Configurator) at the idle screen: the local sysop, no
+  login. `Q` then goes back to the idle screen.
+
+Each menu is a lightbar menu: press an item's letter, or move to it and
+press Return. Every submenu's last item goes back to the main menu.
+
+### The main menu
+
+| Key | Item | What it does | Module |
+|---|---|---|---|
+| `A` | Macros Editor | the macros (`e.macros`) | `i/IM.macros` |
+| `B` | Command Set | the Extended Command Set: the main prompt's commands, the modules they run and who may use them | `i/IM.ecs` |
+| `C` | Payroll Editor | the users paid credits at AutoMaint, each an ID and an amount (`u.payroll`) | `i.IM` |
+| `D` | Module Editors | a menu: `A` Login Mods, `B` AutoMaint Mods, `C` Wall Ads, `D` Quicklist | `i/IM.logon` |
+| `E` | Access Groups | the access groups' names and what each may do | `i/IM.access` |
+| `F` | File Lists | the lists of files the BBS shows | `i/IM.filelist` |
+| `G` | Function Keys | what the function keys type (`e.fkeys`) | `i/IM.macros` |
+| `H` | Lightbar/Alarms | the lightbar's checkmarks, labels and alarms: below | `i/IM.lightbar` |
+| `I` | Misc. Features | the settings below | `i/IM.misc` |
+| `J` | Modem Config | the modem's profile (`nimodem.dat`) | `i/IM.modem` |
+| `K` | Set Time | sets the clock: from the clock source chosen (CMD, Lt. Kernal, DS12C887, Ultimate, TeensyROM, or the last AutoMaint date), by hand, or chooses another source | `sub.clocks` |
+| `L` | System Drives | each of Image's six drives (System, E-Mail, Etcetera, Directory, Module, User): its device and drive (or Lt. Kernal LU), e.data records 52-57 | `i.IM` |
+| `M` | Netmail Config | a menu: local info, modem specs, calling hours, `nm.create`, connections, the forward list, Netwall/Grf | `i/IM.netmail` |
+| `N` | Base Editors | System Maintenance's editors | `i.SM` (if it's on the Module drive) |
+| `Q` | Quit | back to the main prompt, or the idle screen | |
+
+### `I`: Misc. Features
+
+Each line shows the setting as it is; choose it to change it. Most are
+e.data records, written as soon as they're changed; Return at a prompt
+keeps what's there.
+
+| Key | Item | Setting |
+|---|---|---|
+| `A` | Lt. Kernal Device | the Lt. Kernal's device number: 7-32, or 0 for none (e.data 38) |
+| `B` | Autoweed Cutoff | months without a call before AutoMaint weeds an account: 0-48 (39) |
+| `C` | Default Color | the text colour, 1-15, from a list (40) |
+| `D` | Printer Address | the printer's secondary address (41) |
+| `E` | Printer Linefeeds | whether the printer gets a linefeed after each Return (42) |
+| `F` | Password Masks | the characters shown in place of a password as it's typed (43) |
+| `G` | Time Zone | the system's time zone, from a list; with DST, its alarms are set too (Daylight saving time, below) |
+| `H` | DST Rules | when DST starts and ends: below |
+| `I` | Main Prompt | the main prompt's text (`bd.data`, on the boot disk) |
+| `J` | BBS Name | (47) |
+| `K` | System ID | two characters (51) |
+| `L` | New User Credits | the credits a new account starts with: 1-65000 (58) |
+| `M` | Prime Time | below |
+| `N` | Chat Messages | the messages shown as the sysop enters and leaves chat (48, 49) |
+| `O` | Main Menu | back to `IM`'s menu |
+
+### Misc. Features `M`: Prime Time
+
+Prime Time is the busy part of the day, when each call is kept short so
+more callers get on. In it, a caller's time is cut to the Prime Time
+minutes when they log on ("Please Note: It is now PRIME TIME."), the
+idle screen shows `*PRIMETIME*`, and the status line `PRIME`.
+
+The Misc. Features line shows it as the minutes and the hours: `Not Set`,
+or `60, 12P-11P`. Choosing it shows:
+
+```
+1> Minutes/Call: 60
+2> Start Time  : 12PM
+3> End Time    : 11PM
+```
+
+| Key | Sets |
+|---|---|
+| `1` | Minutes/Call, 0-999: the time each call gets in Prime Time. 0 is no Prime Time |
+| `2` | Start Time: the hour it starts |
+| `3` | End Time: the hour it ends |
+| Return | leaves ("Changes Saved.") |
+
+Each change is saved as it's made (e.data record 20). Type an hour as
+12-hour, `A` or `P` after it (`12A` is midnight, `12P` noon, `4P` 4:00
+PM), or as a 24-hour number without either (`16`); only 0-23 are taken.
+
+Prime Time runs from the start of the Start hour **until** the End hour:
+`12P` to `11P` is noon to 11:00 PM. It can't run past midnight: the End
+Time has to be later in the day than the Start Time, so an End Time of
+`12A` (midnight, hour 0) means it never comes on. For Prime Time until
+midnight, the nearest is `11P`. (`im 128` line 84: on while the hour is
+at least the start and less than the end.)
+
+The lightbar's `Tsr` right checkmark ("Prime Time Enabled", flag 7)
+turns Prime Time the other way while it's set: on outside the hours, off
+in them (30 minutes a call, if Minutes/Call is 0).
+
+Until 11/15/2026 the screen showed noon as `12AM` and midnight as `0AM`,
+and a typed `12P` was stored as 24, which never matched; the Misc.
+Features line showed the setting as the module last loaded it.
+
 ## `IM` H: Lightbar/Alarms
 
 `IM`, then `H`. `i.IM` draws the menu; each choice but the last loads
