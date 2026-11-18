@@ -491,11 +491,10 @@ Each change is saved as it's made (e.data record 20). Type an hour as
 PM), or as a 24-hour number without either (`16`); only 0-23 are taken.
 
 Prime Time runs from the start of the Start hour **until** the End hour:
-`12P` to `11P` is noon to 11:00 PM. It can't run past midnight: the End
-Time has to be later in the day than the Start Time, so an End Time of
-`12A` (midnight, hour 0) means it never comes on. For Prime Time until
-midnight, the nearest is `11P`. (`im 128` line 84: on while the hour is
-at least the start and less than the end.)
+`12P` to `11P` is noon to 11:00 PM. An End Time earlier in the day than
+the Start Time runs past midnight: `12P` to `12A` is noon until midnight,
+`10P` to `2A` is 10:00 PM to 2:00 AM. The same Start and End Time is no
+Prime Time. (`im 128` line 84.)
 
 The lightbar's `Tsr` right checkmark ("Prime Time Enabled", flag 7)
 turns Prime Time the other way while it's set: on outside the hours, off
@@ -503,7 +502,9 @@ in them (30 minutes a call, if Minutes/Call is 0).
 
 Until 11/15/2026 the screen showed noon as `12AM` and midnight as `0AM`,
 and a typed `12P` was stored as 24, which never matched; the Misc.
-Features line showed the setting as the module last loaded it.
+Features line showed the setting as the module last loaded it. Until
+11/17/2026 Prime Time couldn't run past midnight: an End Time earlier
+than the Start Time never turned it on.
 
 ## `IM` H: Lightbar/Alarms
 
