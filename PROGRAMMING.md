@@ -411,9 +411,12 @@ AM UTC), `A` south-eastern Australia, `N` New Zealand.
 ### The BBS's state: `e.data` records 45 and 46
 
 Record 45 is the BBS's zone (above). Record 46 is `1,` when the clock is on
-daylight time (`0,` when not), then a copy of the zone's rule line, so the
-check needn't read `s.dstrules` each time. A different letter, or no copy,
-makes the next check read the rule and take the clock as right.
+daylight time (`0,` when not), then `1,` once the autumn's set-back has been
+done (`0,` until then), then the first 19 characters of the zone's rule line
+(the letter and the dates; the record is 31 long), so the check needn't read
+`s.dstrules` each time: `1,0,U03210200L11110100L`. A different letter, or no
+copy, makes the next check read the rule and take the clock as right. A
+record from before the set-back flag (`1,U0321...`) is read as `0`.
 
 ### `sub.clocks`: entries 12-15
 
@@ -424,10 +427,17 @@ makes the next check read the rule and take the clock as right.
 | 14 | the caller's zone by their rule: `uzoneh` and the name shown (`PST` or `PDT`) | `i/lo.on` at login |
 | 15 | the alarms that set checkmark 64 at the minutes the rule changes the clock, on its change weekdays; old ones (checkmark 64) taken out first; `e.alarms` saved | `i/su.config`, 13 |
 
-The check uses the rule's start and end in standard time, so the autumn's
-hour that happens twice is never set back twice. Clocks `sub.clocks` can't
-write (Lt. Kernal, Ultimate, TeensyROM) are taken to keep standard time:
-reading one adds the hour while record 46 says `1`.
+The check uses the rule's start and end in standard time. The autumn's hour
+that happens twice is set back once only: setting the clock back sets the
+set-back flag, and while it's set a check that finds the flag for daylight
+time on records standard time without moving the clock (else the 2:00 alarm
+set it back every time the clock came round to 2:00 again). Setting the clock
+forward clears it, and so does 13 when it finds daylight time. Clocks `sub.clocks` can't
+write (Lt. Kernal, TeensyROM) are taken to keep standard time:
+reading one adds the hour while record 46 says `1`. So is the Ultimate, which
+`sub.clocks` can write (`im=16`, or `im=9` when record 37 names it, with the
+Command Interface's `SET_TIME`, `$27`): it writes standard time, taking the
+hour off while record 46 says `1`, so a DST change doesn't need to write it.
 
 ## The sysop information file: `e.sysop`
 

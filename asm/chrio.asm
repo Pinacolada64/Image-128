@@ -23,13 +23,13 @@ xchrout2:
 output:
 	jsr outchr
 	jsr getchr
-	ldx #$a0
+	ldx #0		; Abt off
 	lda $fe
 	beq output1a
 	cmp #cursor_home ;  control-s for flow control
 	beq output2
 output0:
-	ldx #$a0
+	ldx #0		; Abt off
 	cmp #'/'
 	beq output1
 	cmp #' '
@@ -38,16 +38,21 @@ output0:
 	bne output1a
 output1:
 	sta chat
-	ldx #$c1 ;  reverse capital "A"
+	ldx #1		; Abt on
 output1a:
-	stx tdisp+30
+	pha
+	lda #stat_abt
+	jsr draw_status_line
+	pla
 	rts
 output2:
-	lda #$d0 ;  reverse capital "P"
-	sta tdisp+30
+	lda #stat_pau
+	ldx #1
+	jsr draw_status_line
 	jsr xgetchr0
-	lda #$a0
-	sta tdisp+30
+	lda #stat_pau
+	ldx #0
+	jsr draw_status_line
 	lda $fe
 	jmp output0
 

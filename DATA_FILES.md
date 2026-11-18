@@ -58,6 +58,7 @@ the optional `80`. A screen that isn't on the disk is skipped.
 
 | File | Shown | By |
 |---|---|---|
+| `s.logo 1` ... `s.logo 13` | one picked at random as a caller connects, after the terminal is detected and before `s.login` (below): `s.logo 1` to `s.logo 7` most of the year, `s.logo 8` to `s.logo 13` in December. Not the local console's login. Their names have no mode or `80` | `i.lo` (3600) |
 | `s.login` _n_ `[80]` | before the Login Options menu | `i.lo` (3116) |
 | `s.detect` _n_ `[80]` | after the terminal is detected, if "Use s.detect Files" is on (`i.LB`, option G) | `i.lo` (3562) |
 | `s.lines/screen` | asks how many lines the caller's screen has, when that isn't set | `i/lo.on` (4030) |
@@ -76,6 +77,13 @@ In Image 3.0, a missing `s.welcome` screen also skips every login module:
 KERNAL LOAD) doesn't set, so it still holds "file not found" from the
 screen. Fixed here 10/29/2026: 4190 ends with `gosub 5`, which reads the
 load's own status.
+
+The `s.logo` screens aren't on the Image 3.0 release disks, and no
+documentation mentioned them (found 11/14/2026). To show callers a logo,
+save screens with those names on the System drive: `s.logo 1` to
+`s.logo 7` for most of the year, `s.logo 8` to `s.logo 13` for December.
+The ranges are fixed in `i.lo`; a number picked with no file shows
+nothing, so a single `s.logo 1` shows only one time in seven.
 
 ### Sections
 

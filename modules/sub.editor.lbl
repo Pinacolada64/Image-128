@@ -119,7 +119,7 @@
 ' and i.t do: with it on, the console is rows 0-15, so the 23-line page scrolled
 ' its top off and the cursor moves went past the window. Back on (&,18,1) after,
 ' once its exit code is read: every & call puts its registers in sareg/sxreg
-' 11/11/2026: visfrom ($199f) 1 marks a dot command from ++ visual (60152), so
+' 11/11/2026: visfrom ($19cb) 1 marks a dot command from ++ visual (60152), so
 ' the line editor's .H help (60098) goes back to ++ visual after a key
 60150 &,18,0:&,16,a:a=peek({sym:sxreg}):&,18,1:poke{sym:visfrom},0:ifa<4then60092
 ' 11/11/2026: .x=5, Ctrl-H: its help, s.visual (60154)

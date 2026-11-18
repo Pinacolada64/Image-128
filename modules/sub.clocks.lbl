@@ -19,7 +19,7 @@
 ' im=7: use the last AutoMaint date and time (e.data record 35)
 ' im=8: save the method ck and parameter cp to e.data record 37
 ' im=9: write the BBS clock to the clock saved in e.data record 37: a CMD
-'       device or a DS12C887 (the others can't be written from here)
+'       device, a DS12C887 or an Ultimate (the others can't be written from here)
 ' im=10: as im=0, but without a word, for im at boot: nothing (e%=1) if the
 '       saved method is manual, and no messages
 ' im=11: the same, for the idle screen's periodic re-read (lightbar Trc
@@ -39,9 +39,11 @@
 '       At login, after sub.info sets them (i/lo.on)
 ' im=15: the alarms that set checkmark 64 at the hours tz$'s rule changes
 '       the clock (e.alarms, and the ML's table): i/su.config, im=13
+' im=16: write the BBS clock to a 1541 Ultimate/Ultimate 64's clock (Command
+'       Interface SET_TIME), whatever record 37 says; in standard time
 '
-' After im=1 sets the BBS clock, if record 37 names a CMD device or a
-' DS12C887, it offers to write the time to that clock too (as im=9 does).
+' After im=1 sets the BBS clock, if record 37 names a CMD device, a DS12C887
+' or an Ultimate, it offers to write the time to that clock too (as im=9 does).
 '
 ' On return from im=0-7:
 '   e%=0: the BBS clock was set from z$ (an 11-digit Image date string)
@@ -62,9 +64,14 @@
 '   10   L: local, U: UTC
 ' A start month after the end month (Australia) means DST across New Year.
 ' e.data record 46 keeps the BBS's state: "1," (the clock is on daylight
-' time; "0," not) and the rule line, so each check needn't read the file.
-' A clock this can't write (Lt. Kernal, Ultimate, TeensyROM) is taken to
-' keep standard time: reading it adds the hour while record 46 says 1.
+' time; "0," not), then "1," once the autumn's set-back is done ("0," until
+' then), and the rule line's first 19 characters, so each check needn't read
+' the file. 11/16/2026: the set-back flag (db) and only 19 characters: the
+' record is 31 long, and the whole line overflowed it. A record from before
+' ("1,U0321...") is read with db=0.
+' A clock this can't write (Lt. Kernal, TeensyROM) is taken to keep standard
+' time: reading it adds the hour while record 46 says 1. So is the Ultimate:
+' writing it (im=9, 16) takes the hour off, so DST changes needn't write it.
 '
 ' e.data record 37 (clock setting method). Image BBS 3.0's im reads it with
 ' val(), and treats 4 like 0 (manual), so new methods are stored after "4,":
@@ -92,7 +99,7 @@
 {include:quoters.lbl}
 {:60000}
 {step:2}
-	on im+1 goto {:sub.from_record_37},{:sub.manual},{:sub.cmd},{:sub.ltk},{:sub.ds12c887},{:sub.ultimate},{:sub.teensyrom},{:sub.automaint},{:sub.save_method},{:sub.write},{:sub.auto},{:sub.auto},{:sub.dst},{:sub.dst_init},{:sub.dst_caller},{:sub.dst_alarms}
+	on im+1 goto {:sub.from_record_37},{:sub.manual},{:sub.cmd},{:sub.ltk},{:sub.ds12c887},{:sub.ultimate},{:sub.teensyrom},{:sub.automaint},{:sub.save_method},{:sub.write},{:sub.auto},{:sub.auto},{:sub.dst},{:sub.dst_init},{:sub.dst_caller},{:sub.dst_alarms},{:sub.ultimate_write}
 	return
 
 {nice:100}
@@ -163,8 +170,9 @@
 	tr%=u:gosub {:sub.set_clock}:gosub 33:x=19:gosub 1:print# 2,d1$:close 2
 ' 10/13/2026: if record 37 names a clock that can be written, offer to set it
 ' too, so it's right at the next boot. The BBS clock is set either way (e%=0)
-	gosub {:sub.read_record_37}:if ck<>2 and ck<>4 then e%=.:return
+	gosub {:sub.read_record_37}:if ck<>2 and ck<>4 and ck<>5 then e%=.:return
 	b$="DS12C887 clock":if ck=2 then b$="CMD clock (device"+str$(cp)+")"
+	if ck=5 then b$="Ultimate's clock"
 	&"{f6}{cyan}Also set the "+b$+"? ":gosub {:sub.manual_key}:if e% then e%=.:return
 	gosub 96:if a then gosub {:sub.write_clock}
 	e%=.:return
@@ -249,22 +257,49 @@
 
 {nice:100}
 {:sub.ultimate}
-' $df1d reads $c9 (or $49) when the Command Interface is enabled
-	u=57116:a=peek(57117):if a<>201 and a<>73 then e%=1:on -(im>9) goto {:sub.return}:&"{f6}{lt. red}No Ultimate Command Interface.{f6}":return
-	if peek(u) and 8 then poke u,8
+	gosub {:sub.uci_check}:if e% then on -(im>9) goto {:sub.return}:&"{f6}{lt. red}No Ultimate Command Interface.{f6}":return
 ' DOS target ($01), GET_TIME ($26), format 0: "yyyy/mm/dd hh:mm:ss"
-	poke 57117,1:poke 57117,38:poke 57117,.:poke u,1:i=.
-{:sub.ultimate_wait}
-	i=i+1:if (peek(u) and 48)<32 and i<2000 then {:sub.ultimate_wait}
-	a$=""
-{:sub.ultimate_data}
-	if peek(u) and 128 then a$=a$+chr$(peek(57118)):goto {:sub.ultimate_data}
-{:sub.ultimate_status}
-	if peek(u) and 64 then a=peek(57119):goto {:sub.ultimate_status}
-	poke u,2:if len(a$)<19 then e%=1:on -(im>9) goto {:sub.return}:&"{f6}{lt. red}The Ultimate didn't send the time.{f6}":return
+	c$=chr$(1)+chr$(38)+chr$(.):gosub {:sub.uci}
+	if len(a$)<19 then e%=1:on -(im>9) goto {:sub.return}:&"{f6}{lt. red}The Ultimate didn't send the time.{f6}":return
 	y=val(mid$(a$,3,2)):n=val(mid$(a$,6,2)):d=val(mid$(a$,9,2))
 	h=val(mid$(a$,12,2)):m=val(mid$(a$,15,2))
 	gosub {:sub.build_z$}:goto {:sub.set_clock_std}
+
+{:sub.uci_check}
+' $df1d reads $c9 (or $49) when the Command Interface is enabled: e%=0,
+' u=57116 ($df1c), and an earlier error flag cleared
+	u=57116:a=peek(57117):e%=1:if a<>201 and a<>73 then return
+	e%=.:if peek(u) and 8 then poke u,8
+	return
+
+{:sub.uci}
+' send c$ (target, command, parameters); the response data -> a$, the
+' status (e.g. "00,OK") -> b$
+	for i=1 to len(c$):poke 57117,asc(mid$(c$,i,1)):next:poke u,1:i=.
+{:sub.uci_wait}
+	i=i+1:if (peek(u) and 48)<32 and i<2000 then {:sub.uci_wait}
+	a$="":b$=""
+{:sub.uci_data}
+	if peek(u) and 128 then a$=a$+chr$(peek(57118)):goto {:sub.uci_data}
+{:sub.uci_status}
+	if peek(u) and 64 then b$=b$+chr$(peek(57119)):goto {:sub.uci_status}
+	poke u,2:return
+
+' --- 16: write the BBS clock to an Ultimate ---
+
+{nice:100}
+{:sub.ultimate_write}
+' 11/17/2026: DOS target ($01), SET_TIME ($27), 6 binary bytes: year-1900,
+' month, date, hour (0-23), minute, second (UCI DOS 1.2 and up; firmware's
+' software/filemanager/dos.cc). It replies with its clock read back
+' ("www yyyy/mm/dd hh:mm:ss") and "00,OK". Standard time, as the Ultimate
+' is read (sub.set_clock_std): an hour back while record 46 says 1. Its
+' messages show even for im=16 (im>9 is quiet elsewhere)
+	gosub {:sub.uci_check}:if e% then &"{f6}{lt. red}No Ultimate Command Interface.{f6}":return
+	gosub 33:x=46:gosub 1:&,2,2:close 2:s=val(a$):gosub {:sub.bbs_time}:if s then s=-60:gosub {:sub.min_shift}
+	c$=chr$(1)+chr$(39)+chr$(y-100*(y<80))+chr$(n)+chr$(d)+chr$(j)+chr$(m)+chr$(.):gosub {:sub.uci}
+	if left$(b$,2)<>"00" then e%=1:&"{f6}{lt. red}The Ultimate didn't set its clock{colon} {white}"+b$+"{f6}":return
+	e%=.:&"{f6}{lt. blue}Ultimate clock{colon} {white}"+a$+"{f6}":return
 
 ' --- 6: TeensyROM (time only) ---
 
@@ -304,7 +339,7 @@
 	if ck>4 then b$="4,"+mid$("uta",ck-4,1)
 	gosub 33:x=37:gosub 1:print# 2,b$:close 2:return
 
-' --- 9: write the BBS clock to a CMD device or DS12C887 ---
+' --- 9: write the BBS clock to a CMD device, DS12C887 or Ultimate ---
 
 {nice:100}
 {:sub.write}
@@ -313,6 +348,7 @@
 ' ck, cp as read from record 37
 	if ck=2 then {:sub.cmd_write}
 	if ck=4 then {:sub.ds_write}
+	if ck=5 then {:sub.ultimate_write}
 	e%=1:&"{f6}{lt. red}The saved clock can't be written from here.{f6}":return
 
 {:sub.bbs_time}
@@ -372,7 +408,13 @@
 	if du then {:sub.dst_init_now}
 	gosub {:sub.bbs_time}:gosub {:sub.dst_std}:gosub {:sub.dst_eval}:if a=dg then e%=1:goto {:sub.dst_bbs_zone}
 ' on: standard time + 1 hour; off: the standard time itself
-	dg=a:if dg then s=60:gosub {:sub.min_shift}
+' 11/16/2026: the clock goes back once only. db=1: this autumn's set-back
+' is done, so the clock already shows standard time; record that (dg=0)
+' rather than set it back again. Without this, a check that found dg=1 again
+' in the repeated hour set the clock back at every 2:00, round and round
+	if dg and db then dg=.:gosub {:sub.dst_save}:e%=1:goto {:sub.dst_bbs_zone}
+' forward: db=0, the next set-back still to come; back: db=1
+	dg=a:db=1-a:if dg then s=60:gosub {:sub.min_shift}
 	h=j:gosub {:sub.build_z$}:gosub {:sub.set_bbs_clock}:gosub {:sub.dst_save}:gosub {:sub.dst_bbs_zone}
 	gosub {:sub.read_record_37}:if ck=2 or ck=4 then gosub {:sub.write_clock}
 	e%=.:return
@@ -384,7 +426,11 @@
 	gosub {:sub.dst_alarms}:gosub {:sub.dst_load}:if e% then {:sub.dst_bbs_zone}
 {:sub.dst_init_now}
 	gosub {:sub.bbs_time}:gosub {:sub.dst_eval}:if a then s=-60:gosub {:sub.min_shift}:gosub {:sub.dst_eval}
-	dg=a:gosub {:sub.dst_save}:goto {:sub.dst_bbs_zone}
+' 11/16/2026: on daylight time, the set-back is still to come (db=0). On
+' standard time db is kept: in the repeated hour this takes the clock as
+' standard time (as standard, the end has come), so it's already back
+	dg=a:if a then db=.
+	gosub {:sub.dst_save}:goto {:sub.dst_bbs_zone}
 
 {:sub.dst_caller}
 ' im=14: the caller's zone (b$): their standard time from the BBS's, moved by
@@ -447,11 +493,13 @@
 {:sub.dst_load}
 ' tz$ -> dz (its standard offset from UTC, in minutes) and c$ (its rule
 ' letter); record 46 -> dg (1: the clock is on daylight time) and dq$ (the
-' rule kept with it). du=1 if the rule had to be read from s.dstrules (none
+' rule kept with it), db (1: the clock has been set back this autumn; see
+' sub.dst). du=1 if the rule had to be read from s.dstrules (none
 ' kept yet, or another letter). e%=1 if the zone has no rule (dg=0 then)
 	dz=val(mid$(tz$,4,2))*60+val(mid$(tz$,6,2))-720:c$=mid$(tz$,8,1):du=.
-	gosub 33:x=46:gosub 1:&,2,2:close 2:dg=val(a$):dq$=mid$(a$,3)
-	if c$="" or c$="-" or c$=" " then e%=1:if dg then dg=.:dq$="":goto {:sub.dst_save_no}
+	gosub 33:x=46:gosub 1:&,2,2:close 2:dg=val(a$):db=.:dq$=mid$(a$,3)
+	if mid$(a$,4,1)="," then db=val(mid$(a$,3,1)):dq$=mid$(a$,5)
+	if c$="" or c$="-" or c$=" " then e%=1:if dg then dg=.:db=.:dq$="":goto {:sub.dst_save_no}
 	if c$="" or c$="-" or c$=" " then e%=1:return
 	e%=.:if left$(dq$,1)=c$ then return
 	du=1:gosub {:sub.dst_rule}:if e% then dg=.:return
@@ -467,8 +515,8 @@
 	close 2:return
 
 {:sub.dst_save}
-' dg and dq$ -> record 46
-	gosub 33:x=46:gosub 1:print# 2,mid$(str$(dg),2)+","+dq$:close 2:e%=.:return
+' dg, db and dq$ (its 19 characters the checks use) -> record 46
+	gosub 33:x=46:gosub 1:print# 2,mid$(str$(dg),2)+","+mid$(str$(db),2)+","+left$(dq$,19):close 2:e%=.:return
 {:sub.dst_save_no}
 	gosub {:sub.dst_save}:e%=1:return
 

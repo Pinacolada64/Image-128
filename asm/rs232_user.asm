@@ -253,24 +253,7 @@ rsout1:
 	cpy rodbs
 	beq fulbuf
 	sty rodbe
-
-	lda scnmode
-	bne strtup
-	lda flag_dsr_addr
-	and #flag_dsr_r_mask
-	beq strtup
-
-; update TX window
-
-	ldy #0
-outdisp:
-	lda sdisp+30,y
-	sta sdisp+29,y
-	iny
-	cpy #9
-	bcc outdisp
-	lda ptr1	; c64: $9e
-	sta sdisp+38
+	jsr rs_txwin	; row 23's transmit window (status.asm)
 strtup:
 	lda enabl
 	and #1
@@ -351,24 +334,7 @@ rsget_entry:
 	ldy #0
 rsget1:
 	sty ridbs
-
-	lda scnmode
-	bne ret1
-	lda flag_dsr_addr
-	and #flag_dsr_r_mask
-	beq ret1
-
-; update RX window
-
-	ldy #0
-inpdisp:
-	lda sdisp+2,y
-	sta sdisp+1,y
-	iny
-	cpy #9
-	bcc inpdisp
-	lda ptr1	; c64: $9e
-	sta sdisp+10
+	jsr rs_rxwin	; row 23's receive window (status.asm)
 ret1:
 	clc
 ret2:
