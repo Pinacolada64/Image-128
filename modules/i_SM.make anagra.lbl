@@ -6,6 +6,7 @@
 
 {uses:..\3_0-preface.lbl}
 {alpha:alt}
+{include:..\quoters.lbl}
 {crunch:on}
 
 4000 &"{clear}{rvrs on}{gray3}Anagram Maintenance for{f6}{rvrs on}    {f5}i/lo-anagrams{f5}    {f6}{yellow}By:"
@@ -14,16 +15,16 @@
 4006 dr=3:a$="e.anagram":gosub 4:x=1:&,2,2:y=val(a$):on-(e%<>.) goto 4010:return
 4008 print# 2,tt$r$"0" r$"0" r$"0":return
 4010 &"{f6:2}{lt. red}File Not Found!"
-4012 &"{f6:2}{white}{rvrs on}Hit a Key{rvrs off}{lt. blue}: {pound}g1":on flgoto 4000:goto 4014
+4012 &"{f6:2}{white}{rvrs on}Hit a Key{rvrs off}{lt. blue}: {pound}g1":on fl goto 4000
 4014 &"{f6:2}{green}{rvrs on}Options{rvrs off}{white}:{f6:2}{yellow}? - {lt. green}Help Menu{f6}{yellow}1 - {lt. green}Create Word File{f6}{yellow}2 - {lt. green}Add Words"
-4016 &"{f6}{yellow}3 - {lt. green}Edit Words{f6}{yellow}4 - {lt. green}List Words{f6}{yellow}5 - {lt. green}Quit{f6:2}{green}{rvrs on}Opt{rvrs off}{white}? {pound}g1{pound}v7{f6}"
+4016 &"{f6}{yellow}3 - {lt. green}Edit Words{f6}{yellow}4 - {lt. green}List Words{f6}{yellow}5 - {lt. green}Quit{f6:2}{green}{rvrs on}Option{rvrs off}{white}? {pound}g1{pound}v7{f6}"
 4018 if an$="{f2}" then 4104
 4020 x=val(an$):if x<1 or x>5 then 4014
 4022 on xgoto 4024,4064,4028,4082,4117:goto 4014
 4024 &"{clear}{cyan}{rvrs on}Create Word File!{f6:2}{lt. blue}Continue{white}? ":gosub 94:if a=.then 4014
-4026 gosub 4004:for x=1 to 20:gosub ub1:print# 2,"{^}":next:close 2:&"{f6:2}{lt. green}Created{yellow}!!":goto 4012
+4026 gosub 4004:for x=1 to 20:gosub 1:print# 2,"{^}":next:close 2:&"{f6:2}{lt. green}Created{yellow}!":goto 4012
 4028 &"{clear}{purple}{yellow}Edit Words.{f6:2}":gosub 4006:x=y+1:if y=.then y=1
-4030 if x=.then:&"{f6:2}{yellow}No Words!!":goto 4012
+4030 if x=.then:&"{f6:2}{yellow}No Words!":goto 4012
 4032 &"{f6}{lt. green}No. {green}Word           {gray3}Used    {white}Right{f6}{pound}{back arrow}26 {lt. red}1st {lt. blue}2nd"
 4034 for x=2 to y+1:gosub 1:input# 2,tt$,a%,c%,d%
 4036 b%=x-1:if a%>10 then if c%>=10 then gosub 4044:goto 4046
@@ -61,21 +62,23 @@
 4100 &"{f6}{lt. green}{pound}%b{pound}{back arrow}04{green}":&tt$:&"{pound}{back arrow}19{gray3}{pound}%a     {yellow}{pound}%c  {lt. blue}{pound}%d":return
 4102 &"{f6}{lt. green}{pound}%b{pound}{back arrow}04{green}":&tt$:&"{pound}{back arrow}19{lt. red}{pound}%a     {cyan}{pound}%c   {gray3}{pound}%d":return
 4104 fl=.:&"{clear}      {rvrs on}{yellow}          Help Menu          {rvrs off}"
-4106 &"{f6}{lt. blue}                {$b7:4} {$b7:4}{f6:2}  {lt. green}Use Each Option In The Order Listed."
-4108 &"{f6:2}  You MUST Create The File FIRST And{f6:2}  Then ADD The Words You Would "
-4110 &"Like To{f6:2}  Have Your Users Attempt To Decipher.{f6:2}  One FEATURE That Isn't"
-4112 &" Documented{f6:2}  In The {f5}+.on.anagram{f5} File Is"
-4114 &"{f6:2}  The Ability To Get The CORRECT Answer{f6:2}  By Putting A ? At The Prompt"
-4116 &" In{f6:2}  The Anagram File - Only On The First{f6:2}  Attempt!":fl=1:goto 4012
-4117 return
-4118 rem"                              "
-4120 rem" By:                          "
-4122 rem"    Port Commodore            "
-4124 rem"     801-423-2734             "
-4126 rem"                              "
-4128 rem"     A NISSA File             "
-4130 rem"    7/14/94 (c) FSD           "
-4132 rem"                              "
-4134 rem"  Please Don't Remove         "
-4136 rem"   Our Credit Lines.          "
-4138 rem "i/SM.make anagra (c)nissa 190124 lh"
+4106 &"{f6}{lt. blue}{pound}{back arrow}16{$b7:4} {$b7:4}{f6:2}"
+4107 lp=1:&"{lt. green}Use each option in the order listed.{f6:2}"
+4108 lp=1:&"You must create the file first and then add the words you would "
+4110 lp=1:&"like to have your users attempt to decipher.{f6:2}":lp=1:&"One feature that isn't "
+4112 lp=1:&"documented in {f5}i/lo-anagram{f5} module is "
+4114 lp=1:&"the ability to get the correct answer by typing a {f5}{question}{f5} at the {f5}Solve{question}{f5} prompt "
+4116 lp=1:&"in the anagram file - only on the first attempt, and the player is still charged 30 credits.":fl=1:goto 4012
+4117 return:rem quit
+4118 rem
+4120 rem " By:                  "
+4122 rem "    Port Commodore    "
+4124 rem "     801-423-2734     "
+4126 rem "                      "
+4128 rem "     A NISSA File     "
+4130 rem "    7/14/94 (c) FSD   "
+4132 rem "                      "
+4134 rem "  Please Don't Remove "
+4136 rem "   Our Credit Lines.  "
+4138 rem
+4140 rem "i/SM.make anagra (c)nissa 2019-01-24 lh"

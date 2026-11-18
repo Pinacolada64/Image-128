@@ -668,7 +668,10 @@
 ; columns 64-79, which the VIC hasn't got; status.asm's r80_btm copies it
 	btmwin	= $19ba	; 16 bytes ($19ba-$19c9), screen codes
 	btmnew	= $19ca	; non-zero: btmwin changed
-; $19cb-$19ff: free
+	visfrom	= $19cb	; 1 byte (11/11/2026): 1 while sub.editor runs a dot command
+			; from ++ visual (its .H help then goes back to it); was $199f,
+			; which draw_status_line took (11/18/2026)
+; $19cc-$19ff: free
 
 ; $1a00-$1bff: $1ff / 511 bytes. room for IRQ/& jump tables?
 
@@ -946,6 +949,8 @@
 	; (assembled apart): copies 8 bytes of the character ROM to charbuf8
 	charrom8		= $3780
 	charbuf8		= charrom8 + 40
+	ltkon			= charbuf8 + 8	; 11/13/2026: 1 if there's a Lt. Kernal (lockinit), glue.asm
+	ltklu			= ltkon + 1	; the LU logged in at boot (lockinit; im 3077)
 	romtab			= $c000	; romtab.asm, then the resident ML:
 	resident_lo_end		= $d000	;   $c000-$cfff
 	resident_hi		= $e000	;   and $e000-$feff ($ff00-: MMU, and the
