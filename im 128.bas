@@ -51,6 +51,12 @@
 18 gosub 19:a$=a$+",s,w":goto 4
 19 gosub 3:print#15,"s"dr$a$:return
 ' "scratch(dr$+a$) on u dr%(dr)" doesn't seem to work in basic 7.0
+' 11/16/2026: the VIC-II border color on an event (an error, a new user,
+' feedback...): a = the color (0-15, as poke 53280 takes it), and only while
+' the lightbar's right Dbg is on (check 57, "Border Color on Event"; the
+' user's 3.1 addition, so an error's red border needn't be undone by hand at
+' $d020). Uses a%. BASIC 7's color 4 takes 1-16.
+24 &,52,57,3:if a% then begin:color 4,a+1:bend:return
 28 cm$=a$:gosub 9:dr=5:gosub 3:if "++ "+a$=ml$ then e%=.:return
 29 ml$="++ "+a$:cm$=ml$:gosub 9:a$=dr$+ml$:&,7,dv%,2:goto 5
 30 dr=3:a$="e.stats":goto 4
@@ -718,8 +724,8 @@
 4028 print#2,"Program: "pr$r$"Module: "p1$r$"Sub Module: "p2$
 4030 print#2,"ML File: "ml$r$"Protocol: "d4$r$
 4032 for i=1 to 10:a$=chr$(58-i):if hs$(i)<>"" then print#2," {uparrow}"a$": "hs$(i)
-' check right Dbg lightbar flag *before* color 4,3 to turn vic-ii border red
-4034 next:print#2,"^":close 2:rem &,52,57,3:if a% then color 4,3
+' a red border on an error, if the lightbar's right Dbg is on (line 24)
+4034 next:print#2,"^":close 2:a=2:gosub 24
 ' 10/27/2026: count the error: st(39) since the daily reset (i/lo.automaint
 ' 4064), st(40) since setup. e.stats has 40 records (i/su.config); 39 and 40
 ' were unused. sub.display shows them in 80 columns

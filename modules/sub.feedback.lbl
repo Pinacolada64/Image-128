@@ -20,7 +20,7 @@
 60020 a=val(an$):ifan$="A"thentt$="ALL":goto60026
 60022 ifa<1ora>a%thentt=-1:goto60026
 60024 a=ff%(a):&,60,1,20,fb%(1,a),tt$:tt=fb%(.,a):iffb%(11,a)and2thentt=.
-60026 on-(tt=-1)goto60056:gosub60060:gosub542:on-(kk=.)goto60056:poke53280,6
+60026 on-(tt=-1)goto60056:gosub60060:gosub542:on-(kk=.)goto60056:a=6:gosub24
 60028 &"{f6:2}Filing Feedback...{f6:2}":iftt=.then60044
 60030 y=tt:tt$(.)="[Feedback]":nn$=tt$
 60032 z=1:a$="w":tt$=nn$:gosub32:ife%thena$="a":z=.:gosub32
