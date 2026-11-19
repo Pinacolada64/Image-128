@@ -8,7 +8,7 @@ runs modules/i.ltk chat).
     tools/ltk_install.py --fresh
     tools/setup_test.py --ltk 5 --out build/ltk-setup.d81
     cp build/ltk/disk*.dlk build/ltk-configured/   (to run again without setup)
-    tools/ltk_bbs2.py [--from DIR] [--keep] [--port N] [--user2 ID:PW:FIRST:LAST:EMAIL:HANDLE]
+    tools/ltk_bbs2.py [--from DIR] [--keep] [--port N] [--modem] [--user2 ID:PW:FIRST:LAST:EMAIL:HANDLE]
 
     tools/ltk_bbs2.py --from build/ltk-2users --user2 '2:TEST1:TEST:ACCOUNT:TEST@EXAMPLE.COM:TEST ACCOUNT'
 
@@ -53,11 +53,21 @@ told apart by their text, not the handle. Then:
 Prints each step and both screens at the end, then "passed" or what was
 missing. Monitors on --port (6612) and --port + 2; --keep leaves both
 running.
+
+--modem gives each station a SwiftLink with its own tcpser as the modem
+(tools/vmon.py's Modem): station n's link port is 25270+n and callers
+telnet to 6470+n (logs build/ltk-bbs2/tcpser-n.log). A system whose modem
+is configured needs it: the boot's sub.modem waits for the modem to answer
+and never reaches the idle screen without one (11/18/2026).
+
+With --user2, mind the account's time limit: warp runs the BBS clock about
+10x, and TEST ACCOUNT's 15 minutes ran out before the last step ("Sorry,
+Time Limit Exceeded." at station 1, 11/18/2026); the sysop has no limit.
 """
 import os, re, shutil, sys, time
 here = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, here)
-from vmon import X128
+from vmon import X128, Modem, in_sub_modem_wait
 
 repo = os.path.dirname(here)
 LTK = os.path.expanduser(os.environ.get('LTK_DIR', '~/Documents/c64/ltkernal/ltk128-images'))
@@ -76,6 +86,7 @@ if '--user2' in args:
     user2 = args[args.index('--user2') + 1].split(':')
 if '--port' in args:
     port = int(args[args.index('--port') + 1])
+use_modem = '--modem' in args
 work = os.path.join(repo, 'build', 'ltk-bbs2')
 os.makedirs(work, exist_ok=True)
 for f in ('disk0.dlk', 'disk1.dlk', 'disk2.dlk'):
@@ -102,12 +113,16 @@ def log(*a):
 class Station:
     def __init__(self, n):
         self.n = n
+        self.modem = None
+        if use_modem:
+            self.modem = Modem(25270 + n, 6470 + n, os.path.join(work, 'tcpser-%d.log' % n))
         self.v = X128(['+saveres', '-cartcrt', os.path.join(LTK, 'ltk.crt'), '-ltkport', str(n),
                        '-ltkimage0', os.path.join(work, 'disk0.dlk'),
                        '-ltkimage1', os.path.join(work, 'disk1.dlk'),
                        '-ltkimage2', os.path.join(work, 'disk2.dlk'),
                        '-drive8type', '0',
                        '-ds12c887rtc', '-ds12c887rtcbase', '0xd700', '-ds12c887rtcrunning',
+                       *(self.modem.args if self.modem else []),
                        '-warp'], cols=80, wait=4, port=port + 2 * n)
 
     def screen(self):
@@ -144,6 +159,9 @@ class Station:
         self.v.type('LOAD"BOOT 128",8\r'); time.sleep(8)
         self.v.type('RUN\r')
         if not self.until(lambda: 4200 <= self.line() < 4300, 600, 'the idle screen', every=4):
+            if not self.modem and in_sub_modem_wait(self.line()):
+                print('station %d: the boot is waiting for a modem (sub.modem): try --modem' % self.n,
+                      flush=True)
             return False
         log('station %d: idle screen' % self.n)
         return True
@@ -339,7 +357,11 @@ try:
 finally:
     if keep:
         print('left running: monitors on ports %d and %d' % (port, port + 2))
+        if use_modem:
+            print('tcpsers left running: callers telnet to ports 6470 and 6471')
     else:
         for st in (a, b):
             if st:
                 st.v.stop()
+                if st.modem:
+                    st.modem.stop()
