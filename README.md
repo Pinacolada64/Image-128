@@ -17,7 +17,6 @@ https://rvbelzen.tripod.com/128intpt/index.html
 ### ML
 
 * `&,9`: fix outputting numeric variables to window
-* update `ak$` (seperator line) whenever `ll%` (user line length) changes
 * `£g_x_`: put value of key pressed into `kp%` after key hit. This eliminates `an=asc(an$+nl$)`, or similar code.
 * output to the VDC for 80 column sysop screen
 
