@@ -62,11 +62,16 @@
 ' 11/14/2026: this station online (x=1, at logon, with na$) or offline (x=0,
 ' on the way back to idle: after a logoff, and at boot, which also clears
 ' a station a crash left online) for ++ chatmode (i.ltk chat, the LTK
-' command), on a multiplexed Lt. Kernal. lq% -1: no Lt. Kernal (&,16,4
-' answers 4) or no ++ chatmode, so this doesn't load it again
-3236 if lq%<. then return
-3237 a$="chatmode":gosub28:if e% then lq%=-1:return
-3238 a$=na$:&,16,4,x:if peek({sym:protostart}+3)=4 then lq%=-1
+' command), on a multiplexed Lt. Kernal.
+' 11/19/2026 (user): only with a Lt. Kernal configured: lk%, its device
+' number from e.data 38 (im 3138; 0 if there isn't one). gosub 28 loads ++
+' chatmode and reads the drive's status (29: goto 5), so e% is the load's
+' error, e.g. no ++ chatmode on the disk. lq%, which was to stop it loading
+' again, is gone: set after im 3168's &,27,1 mark, every &,28,1 (im 300,
+' 302) dropped it, so the overlay was loaded at every boot, logon and logoff
+3236 if lk%=. then return
+3237 a$="chatmode":gosub28:if e% then return
+3238 a$=na$:&,16,4,x
 3239 return
 3400 poke53248,1:&"{clear}":cm$="Auto-Maint":gosub9
 3401 a$="lo."+"automaint":gosub72:b$="automaint":x=11:gosub3080
