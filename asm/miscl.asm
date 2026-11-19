@@ -149,8 +149,7 @@ cursposn:
 	stx cursp2+1
 	jsr cursmode
 	beq cursp4
-	lda #cursor_home
-	jsr xchrout
+	jsr cursans	; 11/15/2026: Home, or for ANSI all of it (ansicup.asm)
 cursp0:
 	ldx #0
 	beq cursp2
