@@ -367,6 +367,24 @@ before `System Idle` comes back:
 | `£` | `Answering Call` |
 | `T` | the carrier detect setting (below) |
 
+### Every 10 minutes
+
+The idle screen does two things every 10 minutes: 36,000 jiffies of
+`ti`, counted from the start of its loop (`i/lo.idle` 4200-4202 set
+`ti$` to `000000`).
+
+- It checks Prime Time again (4204, then 4044): the hours from IM's
+  Misc. Features and the lightbar's `Tsr` right checkmark. Then it draws
+  `PRIME` down the screen's right edge, or clears it.
+- It resets the modem (4205: `i.lo` 3040, logged as "modem reset"). That
+  sets `ti$` back to `000000`, which starts the next 10 minutes.
+
+So a change to Prime Time's hours, or to the `Tsr` checkmark, can take up
+to 10 minutes to show at the idle screen. Going back to the start of the
+idle loop (4200), for instance after the `1`, `7` or `8` key, starts the
+10 minutes again. In x128's warp mode the BBS clock runs about 10 times
+as fast: about a minute.
+
 ### `T`: carrier detect (DCD)
 
 The modem tells the BBS a caller is connected with its DCD (carrier
@@ -527,6 +545,17 @@ Prime Time. (`im 128` line 84.)
 The lightbar's `Tsr` right checkmark ("Prime Time Enabled", flag 7)
 turns Prime Time the other way while it's set: on outside the hours, off
 in them (30 minutes a call, if Minutes/Call is 0).
+
+**When it's checked.** Prime Time isn't watched all the time:
+
+- At logon (`i/lo.on` 4162). This sets the call's time, and the logon
+  draws `PRIME`.
+- During a call, whenever `sub.display` draws the caller's status area.
+- At the idle screen, every 10 minutes ("Every 10 minutes", under "The
+  idle screen").
+
+So after the hours or the `Tsr` checkmark change, the idle screen's
+`PRIME` can take up to 10 minutes to appear or go.
 
 Until 11/15/2026 the screen showed noon as `12AM` and midnight as `0AM`,
 and a typed `12P` was stored as 24, which never matched; the Misc.
