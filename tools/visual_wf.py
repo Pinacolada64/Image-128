@@ -4,11 +4,11 @@ with it in the whole BBS (the stand-in, tests/standin/visual.bas, runs it
 alone).
 
     tools/visual_wf.py [DISK] [--overlay FILE.prg] [--password PW] [--zone N]
-                       [--port N] [--keep]
+                       [--port N] [--modem] [--keep]
 
 On a copy of DISK (build/visual-test.d81 if not given; the copy is
 build/visual-wf.d81, so DISK itself isn't changed) in an 80-column x128
-(warp, JiffyDOS, the DS12C887 at $d700; no modem):
+(warp, JiffyDOS, the DS12C887 at $d700; no modem unless --modem):
   1. boots to the idle screen;
   2. turns Loc on (flag 4: chktbl bit 4, and irq7 told to redraw) and
      presses I (Instant Login), giving the password (--password, PW1) and
@@ -30,6 +30,11 @@ entry pushes the MMU setting, Y, X and A on the BRK's status and return
 address (the BRK + 2), so the stack names the BRK, and the code before it
 is disassembled.
 
+--modem gives x128 a SwiftLink with tcpser as its modem (tools/vmon.py's
+Modem: link port 25262, callers telnet to 6462; log build/visual-wf-tcpser.log).
+A configured disk needs it: the boot's sub.modem waits for a modem to answer
+and never reaches the idle screen without one (11/18/2026).
+
 The x128's monitor is on --port (6538; not a running test's: see
 tools/vmon.py). --keep leaves it running at the end, to look further
 with the monitor; otherwise it quits.
@@ -41,7 +46,7 @@ import argparse, os, re, shutil, subprocess, sys, time
 
 repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(repo, 'tools'))
-from vmon import X128
+from vmon import X128, Modem, in_sub_modem_wait
 
 JIFFY = os.environ.get('JIFFYDOS', os.path.expanduser('~/Documents/c64/JiffyDOS'))
 CHKTBL = 0x1300     # chktbl: flag 4 (Loc) is bit 4 of its first byte
@@ -110,6 +115,7 @@ def main():
     ap.add_argument('--zone', default='4')
     ap.add_argument('--port', type=int, default=6538)
     ap.add_argument('--keep', action='store_true')
+    ap.add_argument('--modem', action='store_true')
     ap.add_argument('--catch-brk', action='store_true')
     ap.add_argument('--wait', type=int, default=60)
     args = ap.parse_args()
@@ -123,8 +129,13 @@ def main():
     if os.path.exists(os.path.join(JIFFY, 'JDOS128.rom')):
         jiffy = ['-kernal', os.path.join(JIFFY, 'JDOS128.rom'),
                  '-dos1581', os.path.join(JIFFY, 'Jiffy1581.rom')]
+    modem = None
+    if args.modem:
+        modem = Modem(25262, 6462, os.path.join(repo, 'build', 'visual-wf-tcpser.log'))
+        print('modem: tcpser, callers telnet to port 6462', flush=True)
     v = X128(['-ntsc', '-drive8type', '1581', *jiffy,
               '-ds12c887rtc', '-ds12c887rtcbase', '0xd700', '-ds12c887rtcrunning',
+              *(modem.args if modem else []),
               '-warp', '-autostart', disk + ':boot 128'], cols=80, wait=2, port=args.port)
 
     def line():
@@ -162,6 +173,8 @@ def main():
             return False
         booted.retried = False
         if not until(booted, 400, 'the idle screen'):
+            if not modem and in_sub_modem_wait(line()):
+                print('the boot is waiting for a modem (sub.modem): try --modem', flush=True)
             return 1
         b = v.mem('ram00', CHKTBL, 1)[0]
         v.cmd('bank ram', '> %04x %02x' % (CHKTBL, b | 0x10), '> %04x 01' % (irq7 + 1))
@@ -248,8 +261,12 @@ def main():
     finally:
         if args.keep:
             print('x128 left running: its monitor is on port %d' % args.port)
+            if modem:
+                print('tcpser left running (pid %d): callers telnet to port 6462' % modem.p.pid)
         else:
             v.cmd('quit', resume=False)
+            if modem:
+                modem.stop()
 
 
 if __name__ == '__main__':
