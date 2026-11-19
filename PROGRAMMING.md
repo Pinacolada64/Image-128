@@ -693,8 +693,17 @@ found), 4 no Lt. Kernal, 5 the room is full (15 stations), 6 an old
   clears a station a crash left online), through its lines 3236-3239.
   They load `++ chatmode` at protostart (the idle screen loads `++ clock`
   again itself, and nothing in the logon calls `&,16` before loading its
-  own). Without a Lt. Kernal (`&,16,4` answers 4) or without `++
-  chatmode` on the disk, `lq%` becomes -1 and they don't load it again.
+  own). Only with a Lt. Kernal configured: when `lk%`, its device number
+  from `e.data` record 38, is 0 they return at once and `++ chatmode`
+  isn't loaded, and `i.ltk chat` says so the same way (its line 3001).
+  Otherwise `gosub 28` loads it and reads the drive's status (`im` 29 ends
+  `goto 5`), so `e%` is the load's error (e.g. no `++ chatmode` on the
+  disk) and they return. Don't add a `gosub 5` after it: the status has
+  been read, and a second read gives `00, OK`. (11/19/2026: `lq%`, which
+  was to stop the overlay loading again, is gone. It was set after `im`
+  3168's `&,27,1` mark, so every `&,28,1` (`im` 300, 302) dropped it, and
+  without a Lt. Kernal the overlay was loaded at every boot, logon and
+  logoff.)
   `i.ltk chat` sets it online again (not offline) when the caller quits.
   An online station's tick isn't watched: only stations in the room time
   out.
