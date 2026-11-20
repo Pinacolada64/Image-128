@@ -587,24 +587,13 @@ cnumc:
 	ascii "0"
 
 ;\_ - mci tab
+; 11/20/2026: mtab (center.asm) pads to the caller's column (modclm, up to
+; modclmn-1) when the modem gets output, the screen's otherwise; it was
+; always the screen's (scnpos, rmargin), so a 40-column console stopped an
+; 80-column caller's tab at column 39
 ctab:
 	inc $96
-	lda mval
-	cmp scnpos
-	bcc ctab0
-	beq ctab0
-	cmp rmargin	; past the last column (39 or 79)? c64: cmp #40
-	beq ctab1
-	bcs ctab0
-ctab1:
-	lda #' '
-	sta $fe
-	jsr output
-	lda mval
-	cmp scnpos
-	bne ctab1
-ctab0:
-	rts
+	jmp mtab
 
 ;* repeat a character(\b,\h,\n,\o)
 repchr:

@@ -35,7 +35,9 @@
 3102 poke53248,.:b$="connect":x=11:gosub3080:&,52,5,zz:&,25:gosub33:x=43:gosub1
 3103 &,2,2:an$=mid$(a$,cn-int(cn/len(a$))*len(a$)+1,1):&,15,2:poke{sym:mask},asc(an$)
 3104 close2:&,52,2,3:a=a%:&,52,4,3:a=a+a%:&,52,6,3:a=a+a%:ifathen:&,52,4,4
-3106 tr%=4:on-(zz=.)goto3114:qb$="Local Console":nl=1:ll%=40:gosub90:&,52,16,.:&"{f6}"
+' 11/19/2026 (user): the console's width is the screen's, sw (40 or 80), not
+' 40: ll% and l9% (which Instant Login's ll%=l9% takes); ak$ follows ll%
+3106 tr%=4:on-(zz=.)goto3114:qb$="Local Console":nl=1:ll%=sw:l9%=sw:gosub90:&,52,16,.:&"{f6}"
 3107 &,22,5
 3108 &"{f6} Press RETURN For Normal Login or{f6} Press {f5}I{f5} For Instant Login: {pound}g1"
 3110 a=-(an$="I"):&mid$("InstantNormal",8-a*7,7)+"{f6}":onagoto3234:goto3116
@@ -49,7 +51,9 @@
 3200 &,52,51,3:if a% then a$="lo."+"logoff":gosub72:onf1goto3202:goto3004
 3201 ifi%=.then:&"{f6}Leave Feedback? : ":gosub94:onagosub3418
 3202 &,52,$22,.:an$=ff$:&,15,1:&"{f6:2} {green}Bye{comma} {lt. green}{pound}v7{green}!{f6:2}":dr=1:a$="s.end":gosub3050
-3203 oni%ork%goto3204:im=3:gosub446:ll%=40:gosub90
+' 11/19/2026: back to 40 for the next caller, but sw at the console (zz):
+' (zz<>.) is -1 there. A refused login comes through here too
+3203 oni%ork%goto3204:im=3:gosub446:ll%=40-(sw-40)*(zz<>.):gosub90
 3204 ifi%ork%then:&"{f6}{lt. blue}Update User File?:{white} ":gosub96:im=1:onagosub445
 3220 &,52,$22,.:on-(ac%=16)goto3230:im=3:gosub446:im=1:gosub446
 3222 a$="lo."+"off":gosub72
@@ -130,7 +134,9 @@
 3584 on-(a<3andtr%>.)goto3580:goto3508
 3586 &"{f6}{green}Password Accepted{lt. green}.{f6}":on-(l2<>1)goto3526:l2=.:&,52,40,.
 3588 gosub33:x=21:gosub1:print#2," 0Off":close2:goto3526
-3594 a$="":fora=1toll%-2:a$=a$+"{$c0}":next:ak$=" "+a$+"{f6}":return
+' 11/19/2026: ak$ follows ll% by itself now (the ML's akfix, trace.asm)
+' between statements; this built it a character at a time
+3594 return
 ' 3600 gosub90:dr=1:on-(mid$(d1$,4,2)="12")goto3604
 ' 3602 a$="s.logo"+str$(int(rnd(.)*7)+1):gosub13:&"{pound}u0":return
 ' if it's December, read "s.logo" + (8-13)

@@ -26,7 +26,8 @@
 4036 return
 4100 f4=.:oncd%gosub4010:cd%=1:ifll%<1thenll%=40
 4101 ifpw$=""thenna$="VISITOR"
-4102 a$="":fora=1toll%-2:a$=a$+"{$c0}":next:ak$=" "+a$+"{f6}"
+' 11/19/2026: ak$ follows ll% by itself now (the ML's akfix, trace.asm)
+' between statements; 4102 built it here, from ll% as it was then
 4103 f1=.:ao%=ac%:gosub320
 4104 gosub90:an$=ff$:&,15,1:a=1:b=7:ifmn%>719thena=8:b=9:ifmn%>1079thena=17:b=7
 4106 b$="Good "+mid$("MorningAfternoonEvening",a,b)+", "+an$

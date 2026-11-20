@@ -267,6 +267,53 @@ the statement after the `&`); `&,66,0` is a GOTO. The line must be under
   of text that callers see. `tests/standin/escq.bas` and `escq80.bas`
   try both.
 
+### Centering: `&,15,7`
+
+`&,15,7` puts the MCI tab (`{pound}{back arrow}nn`) to column
+`(width - visible) / 2` in front of a string (11/20/2026, `asm/center.asm`):
+
+| Call | Centers | For |
+|---|---|---|
+| `&,15,7` | `a$` | `ll%` |
+| `&,15,7,w` | `a$` | `w` columns (0: `ll%`) |
+| `&,15,7,w,s$` | `s$`, any string variable | `w` (0: `ll%`) |
+
+`&` reads two numbers after the command (7 and `w`), so a variable comes
+third: `&,15,7,0,b$`. A tab already at the string's start is replaced,
+so it can be centered again for another width. A number variable is left
+as it is; with no `ll%` yet (0) nothing changes.
+
+The visible length is what the string prints. Colors, reverse and the
+other control characters ($00-$1f, $80-$9f, Image's tokens such as its
+return) count nothing. MCI commands count what they print: `{pound}$x`
+and `{pound}vX` the variable's length, `{pound}%x` the integer's digits
+and sign (at least the width of an earlier `{pound}#n` in the same
+string), `{pound}o` 19, `{pound}h` back its number, `{pound}a` (a compare)
+nothing up to the next `{pound}`, the rest nothing. `{pound}!x`, a
+floating point number, counts nothing. Two `{pound}`s print one.
+
+```
+b$="Good "+x$+", "+an$:&,15,7,0,b$:&"{f6}"+b$
+```
+
+`&,15,8,s,n` gives the widest visible width among `tt$(1)` to `tt$(n)`,
+each from its character `s` (0 or 1: all of it), counted as `&,15,7`
+counts. BASIC reads the result as `peek(6)` (`sareg`; an `&` routine's
+`.a`). `n` 0, or no `tt$()`, gives 0. `sub.columns` uses it for its
+column width:
+
+```
+&,15,8,s,n:w=peek({sym:sareg})
+```
+
+The MCI tab itself (`mtab`, `asm/center_lo.asm`) counts columns on the
+caller's line when the modem gets output (`local` 0, a console login
+too): `modclm`, up to `modclmn - 1`, which the ML keeps at `ll%`. At the
+idle screen (`local` 1) it is the screen's (`scnpos`, up to `rmargin`).
+It used the screen's always, so on a 40-column console a tab past column
+39 did nothing for an 80-column caller. `tests/standin/center.bas` tries
+both.
+
 ## Lists in columns: `sub.columns`
 
 `sub.columns` (11/20/2026) prints `tt$(1)` to `tt$(n)` in as many columns as
@@ -286,18 +333,18 @@ zones keep the 11-character zone, and `sub.param1`'s protocols show from
 
 The columns: `(ll% + 1) / (number + widest item + 2)`, kept within 1-4 and
 no more than `n`, each `ll% / columns` wide. The MCI tab starts each one
-but the first. An item's width leaves out control characters (colors,
-reverse), so items can carry colors. MCI commands in an item would be
-counted, so leave them out.
+but the first. The widest item comes from `&,15,8`, which counts as
+`&,15,7` does: control characters (colors, reverse) nothing, and MCI
+commands what they print. So items can carry colors and MCI.
 
 A long list pauses at the More prompt (flag 34). On the console the More
 prompt doesn't run, so `sub.columns` pauses itself with `<Hit any key>`
 whenever the editor window (`sctop` to `scbot`) is nearly full. "The
 console" is `local` (`peek(53248)`, at the idle screen and in setup) or
 the Loc checkmark (flag 4, a sysop logged on at the console, where `local`
-is 0). Output stopped (`rc`) stops the list. It uses `a`, `a%`, `b$`,
-`c7`-`c9`, `d9`, `h9`, `i`, `j`, `k`, `k9`, `r9` and `w9`, and leaves `n`,
-`x`, `s` and `tt$()` as they were.
+is 0). Output stopped (`rc`) stops the list. It uses `a`, `a%`, `c7`-`c9`,
+`d9`, `h9`, `i`, `j`, `k9`, `r9` and `w9`, and leaves `n`, `x`, `s` and
+`tt$()` as they were.
 
 ```
 61002 &"{f6}Available Protocols{colon}{f6:2}":n=x:x=1:s=10:im=1:gosub432:x=n

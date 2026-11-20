@@ -148,6 +148,13 @@ built part (`build/ml.res2` etc., which start with the load address) or
 in a `-lst:` disassembly, and compare the target with `ml.sym`. Use
 `bxx skip / jmp target` for anything that might be far.
 
+`tools/branchcheck.py` looks for the sign in every assembled part
+(`asm/ml.prg`, `*.bin`, `*.prg`): a branch opcode followed by `$ff`, a
+branch to its own operand. Data can look the same, so it lists each hit
+with the nearest label; three are known data (its docstring). It found
+two in `center.asm` on 11/20/2026 (`&,15,7`'s early return, and `cva`),
+both from code that grew past 128 bytes.
+
 Found 2026-10-20: swapscn's `bmi vdcmask` stopped reaching vdcmask once
 vdcrinit and vdcrcopy went in between, and the mask toggle silently
 skipped the VDC side.

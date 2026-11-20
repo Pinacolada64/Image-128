@@ -14,7 +14,8 @@
 ' i.lo.vf, which this replaces, did: the sysop logged in locally (3001),
 ' Mail Check on the menu (3103, 3107), and back to idle on quitting (3425)
 3000 poke 53280,0:dim fl$(15):f4=.:lh=.:on peek({sym:idletool}) gosub 3001:goto 3080
-3001 &,18,0:poke 53252,20:gosub 304:zz=1:&,52,4,1:&,52,5,1:id=1:im=2:gosub 445:ll%=40:gosub 90:return
+' 11/19/2026 (user): the sysop at the console: ll% is the screen's width, sw
+3001 &,18,0:poke 53252,20:gosub 304:zz=1:&,52,4,1:&,52,5,1:id=1:im=2:gosub 445:ll%=sw:gosub 90:return
 3002 on bz+1 goto 3010:&"{f6}":for x=1 to bz:b%=x:b$=dt$(x):&" {pound}%b. {pound}$b{f6}":next:return
 ' 10/27/2026: the count so far after each message, then that many backspaces
 ' ({pound}h and the number of digits), so the next one prints over it

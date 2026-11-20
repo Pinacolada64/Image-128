@@ -10,17 +10,18 @@
 '       caller can keep a key in front of it (sub.info, sub.param1)
 ' The columns: as many as fit (ll% + 1) / (the number's width + the widest
 ' item + 2), from 1 to 4 and no more than n; each ll% / columns wide, and
-' the MCI tab ({pound}{back arrow}nn) starts each one but the first. An
-' item's width leaves out control characters (colors, reverse: $00-$1f,
-' $80-$9f), so items can carry their own colors; MCI commands in an item
-' would count, so leave them out. A long list pauses at the More prompt
+' the MCI tab ({pound}{back arrow}nn) starts each one but the first. The
+' widest item comes from &,15,8 (11/20/2026: the user's choice over a BASIC
+' loop through every character), which counts as &,15,7 does: control
+' characters (colors, reverse) nothing, MCI commands what they print, so
+' items can carry colors and MCI. A long list pauses at the More prompt
 ' (flag 34). On the console it pauses itself (the user's request), as the
 ' More prompt doesn't there: "<Hit any key>" each time the editor window
 ' (sctop to scbot, $e5/$e4) is nearly full, less 3 rows for the prompt. The
 ' console: local (peek(53248) 1, the idle screen and setup) or the Loc
 ' checkmark (flag 4: the sysop logged on at the console, where local is 0).
 ' Output stopped (rc) stops it.
-' Uses a, a%, b$, c9, c8, c7, d9, h9, i, j, k, k9, r9, w9; leaves n, x, s, tt$()
+' Uses a, a%, c9, c8, c7, d9, h9, i, j, k9, r9, w9; leaves n, x, s, tt$()
 ' as they were.
 
 {uses:..\3_0-preface.lbl}
@@ -30,12 +31,12 @@
 
 60000 on im goto 60100:return
 
-' the widest item's visible width (w9), the number's (d9: digits + ") ")
+' the widest item's visible width (w9: &,15,8), the number's (d9: digits +
+' ") ")
 60100 if n<1 then return
 60102 if s<1 then s=1
-60104 w9=.:for i=1 to n:b$=mid$(tt$(i),s):k=len(b$):for j=1 to k:a=asc(mid$(b$,j,1)) and 127:if a<32 then k=k-1
-60106 next:if k>w9 then w9=k
-60108 next:d9=.:if x then d9=len(str$(n))+1
+60104 &,15,8,s,n:w9=peek({sym:sareg})
+60108 d9=.:if x then d9=len(str$(n))+1
 ' the columns (c9, 1-4), each c8 wide; r9 rows
 60110 c9=int((ll%+1)/(d9+w9+2)):if c9<1 then c9=1
 60112 if c9>4 then c9=4

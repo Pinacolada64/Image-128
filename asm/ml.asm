@@ -68,6 +68,10 @@ hcd24:
 	jmp draw_status_line0
 	jmp rs_txwin0	; rs_txwin, $19a2
 	jmp rs_rxwin0	; rs_rxwin, $19a5
+; 11/20/2026: $19cc-$19ff, free after visfrom: &,15,8's entry
+	orig $19cc
+{include:"widest.asm"}
+	addrcheck jmptbl
 
 
 ;;;
@@ -99,6 +103,14 @@ hcd24:
 wedge_pages = (* - wedge_exec_address) / 256
 
 ;;;
+;;; $3581-$35ff: the rest of center.asm (&,15,7, the MCI tab)
+;;;
+
+	orig $3581
+{include:"center_lo.asm"}
+	addrcheck glue
+
+;;;
 ;;; glue: $3600-$3fff
 ;;;
 
@@ -108,6 +120,8 @@ wedge_pages = (* - wedge_exec_address) / 256
 {include:"trace.asm"}
 ; the status line's indicators: shared, for the IRQ and the NMI
 {include:"status.asm"}
+
+{include:"center.asm"}
 	addrcheck $4000
 
 ;;;
@@ -205,6 +219,8 @@ swap3_pages = (* - swap3_load_address) / 256
 {include:"setup.asm"}
 
 {include:"varbl.asm"}
+
+{include:"widest2.asm"}
 
 	addrcheck resident_lo_end
 

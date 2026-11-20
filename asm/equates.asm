@@ -417,6 +417,9 @@
 	; leave it there), and trace0 copies it into a string of its own before
 	; the next statement. BASIC 7's x$=an$ copies only the descriptor
 	anfix	= $0af4	; 2804
+	; 11/20/2026: &,15,8 (widest.asm): s (the start index) and the items left
+	wst	= $0af5	; 2805
+	wn	= $0af6	; 2806
 	keychk	= $033c	; 128 only: KEYCHK, the editor's vector for each decoded key
 			; on its way into the buffer (.a: the key; default $c6ad)
 
@@ -1121,6 +1124,7 @@ var_kp_integer	= 38
 var_c3_string	= 39
 var_mp_string	= 48
 var_mn_integer	= 49
+var_ak_string	= 14	; ak$, the separator line (trace.asm's akfix keeps it ll% long)
 
 ; indices and bit masks for chktbl
 flag_sys_addr	= chktbl + 0

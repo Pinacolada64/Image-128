@@ -29,7 +29,9 @@
 60032 ac%=asc(a$)-48:ac%=ac%+135*(ac%>9):af%=val(mid$(a$,2))
 60034 input#2,ct%,tc%,co%,ll%,ul,uf$,em,dc,uc,bd,bu,cr,ps,rp,d5$,fl$:close2
 60036 cd%=.:iflen(d5$)>11thencd%=val(mid$(d5$,12,1)):d5$=left$(d5$,11)
-60038 mp%=int(ll%/256):ll%=ll%-256*mp%:co$=co$(co%)
+' 11/19/2026 (user): at the console (zz) the width is the screen's, sw, not
+' the account's (a refused login left it there); a caller's is l9% later
+60038 mp%=int(ll%/256):ll%=ll%-256*mp%:co$=co$(co%):if zz then ll%=sw
 60040 iflen(uf$)<5thenuf$=mid$(str$(val(uf$)),2,1)+"1000"
 60041 &,52,16,3:ifa%=1then:&,52,17,1:uf$="1"+mid$(uf$,2)
 60042 lf=val(left$(uf$,1)):&,52,44,val(mid$(uf$,3,1)):&,52,34,val(mid$(uf$,2,1))
