@@ -1,0 +1,55 @@
+' sub.columns: a list in 1-4 columns for the caller's width (11/20/2026, the
+' user's design). im loads it through line 432 (a$="columns":goto 74), so
+' a module calls it with im=1:gosub 432; called from another sub module,
+' im 75 loads that one again afterwards (im$(), is).
+'
+' im=1: tt$(1) to tt$(n), down the first column, then the next:
+'   n   the number of items
+'   x   1: each numbered, "nn) " (right-aligned to n's digits); 0: not
+'   s   where each item's shown text starts (0 or 1: all of it), so a
+'       caller can keep a key in front of it (sub.info, sub.param1)
+' The columns: as many as fit (ll% + 1) / (the number's width + the widest
+' item + 2), from 1 to 4 and no more than n; each ll% / columns wide, and
+' the MCI tab ({pound}{back arrow}nn) starts each one but the first. An
+' item's width leaves out control characters (colors, reverse: $00-$1f,
+' $80-$9f), so items can carry their own colors; MCI commands in an item
+' would count, so leave them out. A long list pauses at the More prompt
+' (flag 34). On the console it pauses itself (the user's request), as the
+' More prompt doesn't there: "<Hit any key>" each time the editor window
+' (sctop to scbot, $e5/$e4) is nearly full, less 3 rows for the prompt. The
+' console: local (peek(53248) 1, the idle screen and setup) or the Loc
+' checkmark (flag 4: the sysop logged on at the console, where local is 0).
+' Output stopped (rc) stops it.
+' Uses a, a%, b$, c9, c8, c7, d9, h9, i, j, k, k9, r9, w9; leaves n, x, s, tt$()
+' as they were.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{include:"..\asm\equates.asm"}
+{crunch:on}
+
+60000 on im goto 60100:return
+
+' the widest item's visible width (w9), the number's (d9: digits + ") ")
+60100 if n<1 then return
+60102 if s<1 then s=1
+60104 w9=.:for i=1 to n:b$=mid$(tt$(i),s):k=len(b$):for j=1 to k:a=asc(mid$(b$,j,1)) and 127:if a<32 then k=k-1
+60106 next:if k>w9 then w9=k
+60108 next:d9=.:if x then d9=len(str$(n))+1
+' the columns (c9, 1-4), each c8 wide; r9 rows
+60110 c9=int((ll%+1)/(d9+w9+2)):if c9<1 then c9=1
+60112 if c9>4 then c9=4
+60114 if c9>n then c9=n
+60116 c8=int(ll%/c9):r9=int((n+c9-1)/c9)
+' the console: h9 rows a page (0: the More prompt does it)
+60118 k9=.:h9=.:&,52,4,3:if peek(53248) or a% then h9=peek({sym:scbot})-peek({sym:sctop})-3:if h9<1 then h9=1
+' row i, column c7: item i+c7*r9; the tab first but in column 0
+60120 for i=1 to r9:for c7=.to c9-1:j=i+c7*r9:if j>n then 60128
+60122 if c7 then a=c7*c8:&"{pound}{back arrow}"+right$("0"+mid$(str$(a),2),2)
+60124 if x then a%=j:&"{white}"+left$("    ",d9-len(str$(j))-1)+"{pound}%a) "
+60126 &mid$(tt$(j),s)
+60128 next:&"{f6}":if rc then i=r9
+60129 if h9 then k9=k9+1:if k9>=h9 and i<r9 then k9=.:&" {white}<Hit any key>{pound}g1{f6}"
+60130 next:return
+
+60990 rem "sub.columns 11/20/2026"

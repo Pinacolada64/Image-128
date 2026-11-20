@@ -267,6 +267,42 @@ the statement after the `&`); `&,66,0` is a GOTO. The line must be under
   of text that callers see. `tests/standin/escq.bas` and `escq80.bas`
   try both.
 
+## Lists in columns: `sub.columns`
+
+`sub.columns` (11/20/2026) prints `tt$(1)` to `tt$(n)` in as many columns as
+fit the caller's width, 1 to 4, down the first column and then the next.
+A module calls it through `im` 432: `im=1:gosub 432` (from another sub
+module too: `im` 75 loads that one again afterwards).
+
+| Variable | Meaning |
+|---|---|
+| `n` | the number of items |
+| `x` | 1: each numbered, `nn) ` (right-aligned); 0: not |
+| `s` | where each item's shown text starts (0 or 1: all of it) |
+
+`s` lets a caller keep a key in front of the shown text. `sub.info`'s time
+zones keep the 11-character zone, and `sub.param1`'s protocols show from
+10.
+
+The columns: `(ll% + 1) / (number + widest item + 2)`, kept within 1-4 and
+no more than `n`, each `ll% / columns` wide. The MCI tab starts each one
+but the first. An item's width leaves out control characters (colors,
+reverse), so items can carry colors. MCI commands in an item would be
+counted, so leave them out.
+
+A long list pauses at the More prompt (flag 34). On the console the More
+prompt doesn't run, so `sub.columns` pauses itself with `<Hit any key>`
+whenever the editor window (`sctop` to `scbot`) is nearly full. "The
+console" is `local` (`peek(53248)`, at the idle screen and in setup) or
+the Loc checkmark (flag 4, a sysop logged on at the console, where `local`
+is 0). Output stopped (`rc`) stops the list. It uses `a`, `a%`, `b$`,
+`c7`-`c9`, `d9`, `h9`, `i`, `j`, `k`, `k9`, `r9` and `w9`, and leaves `n`,
+`x`, `s` and `tt$()` as they were.
+
+```
+61002 &"{f6}Available Protocols{colon}{f6:2}":n=x:x=1:s=10:im=1:gosub432:x=n
+```
+
 ## Today in History files: `today.<Mon>` and `s.today/hist`
 
 `i/lo/today` (the maker, `modules/i_lo_today.lbl`) reads this month's

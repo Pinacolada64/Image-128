@@ -244,6 +244,8 @@
 429 a$="comm2":goto 74
 430 a$="param1":goto 74
 431 a$="param2":goto 74
+' 11/20/2026: sub.columns, a list in 1-4 columns for ll% (im=1)
+432 a$="columns":goto 74
 436 a$="menus":goto 74
 437 a$="sysdos":goto 74
 438 a$="stats":goto 74

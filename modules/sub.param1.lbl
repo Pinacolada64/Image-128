@@ -122,18 +122,14 @@
 60800 &,52,17,2:&,52,17,3:lf=a%:a=a%:b=1:goto378
 60900 &,52,20,2:&,52,20,3:em=a%:return
 61000 gosub61202:onx+1goto999:a=val(mid$(an$,3,3)):ifa>.then61006
-' 11/11/2026: the list as the Parameters menu: narrower than 80 columns, one
-' after another (61004); 80: the first half down the left, the rest beside
-' them at column 40 (61003). 61012 prints item a%, 61011 tabs to 40 first
-61002 &"{f6}Available Protocols{colon}{f6:2}":ifll%<80then61004
-61003 fori=1toint((x+1)/2):a%=i:gosub61012:a%=i+int((x+1)/2):on-(a%<=x)gosub61011:&"{f6}":next:goto61005
-61004 fori=1tox:a%=i:gosub61012:&"{f6}":next
+' 11/20/2026: the list through sub.columns (im 432), numbered, in as many
+' columns as fit ll% (it was one, or two at 80). Items show from 10; x, the
+' number of protocols, is kept in n meanwhile (sub.columns' x is numbering)
+61002 &"{f6}Available Protocols{colon}{f6:2}":n=x:x=1:s=10:im=1:gosub432:x=n
 61005 &"{f6}--> {pound}g1":a=val(an$)
 61006 ifa>.anda<=xthenlp=1:&mid$(tt$(a),10):ifa<xorb%=.thenul=a-1
 61008 ifan$="{question}"thena$="s.protos":dr=1:gosub13:goto61002
 61010 a=-a*(a>.):return
-61011 &"{pound}{back arrow}40"
-61012 lp=1:a$=mid$(tt$(a%),10):&"{pound}%a) {pound}$a":return
 61100 &,52,4,3:ona%goto999:gosub61000:goto61104
 61102 gosub61202:a=ul+1:ifa%thena=x
 61104 ml$="":ona+1goto999:ifb%=1anda=xthena$="copier":goto28

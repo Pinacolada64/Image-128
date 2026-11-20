@@ -114,6 +114,7 @@
 {assign:429	=429	} ' im.sub_comm2
 {assign:430	=430	} ' im.sub_param1
 {assign:431	=431	} ' im.sub_param2
+{assign:432	=432	} ' im.sub_columns (11/20/2026)
 {assign:436	=436	} ' im.sub_menus
 {assign:437	=437	} ' im.sub_sysdos
 {assign:438	=438	} ' im.sub_stats
