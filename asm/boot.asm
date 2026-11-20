@@ -111,6 +111,7 @@ parts:
 	byte 2, name_mod_end-name_mod, name_mod-loader
 	byte 1, name_res1_end-name_res1, name_res1-loader
 	byte 1, name_res2_end-name_res2, name_res2-loader
+	byte 1, name_io_end-name_io, name_io-loader	; 11/20/2026: $d000, under I/O
 	byte 0
 
 name_buf:
@@ -128,6 +129,9 @@ name_res1_end:
 name_res2:
 	ascii "ml.res2"
 name_res2_end:
+name_io:
+	ascii "ml.io"
+name_io_end:
 
 loader_end:
 ; (the copy loop's "cpy #loader_end-loader" stops the build if this

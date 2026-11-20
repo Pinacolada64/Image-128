@@ -129,6 +129,11 @@
 			; so the ML at $c000, the screen, Image's tables and
 			; glue.asm all stay visible, and the C64 code's
 			; "lda (pointer),y" on variables and strings just works
+	cfg_io	= $7f	; 11/20/2026: cfg_ml with RAM, not I/O, at $d000-$dfff; the
+			; shared top 16K makes it bank 0's RAM, where the code
+			; ml.io loads runs (&,15,7, &,15,8: center.asm, widest*.asm)
+			; through farcall. Bank 1's variables are seen as in
+			; cfg_ml; nothing there may touch I/O
 	cfg_bank0= $3f	; bank 0 all RAM, no I/O: to read BASIC program text
 	cfg_charrom= $01 ; bank 0 with the ROMs, and the character ROM at $d000
 			; in place of I/O (editor.asm's big letters read it)
