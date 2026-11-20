@@ -1,0 +1,273 @@
+{uses:..\3_0-preface.lbl}
+' i/test calls 0: i.test calls' handlers for & calls 0-19 (11/20/2026: split
+' out of i.test calls, which had run out of room for a demo of each call).
+' i.test calls' dispatch sets a% to the handler, line 4100 + 100 * (the call
+' - 0), and loads this through im 72 (only when it isn't the one already
+' loaded); line 4000 jumps there (&,66). A handler returns to the dispatch.
+' i.test calls' subroutines, at fixed lines there:
+'   3004  sub.input_range (l, h, m, q: an, e9)
+'   3010  sub.out_of_range
+'   3012  sub.todo
+' g9 set on return: the dispatch runs that option next
+{alpha:alt}
+{crunch:on}
+{include:..\quoters.lbl}
+{include:"..\asm\equates.asm"}
+{assign:3004	=3004	}
+{assign:3010	=3010	}
+{assign:3012	=3012	}
+
+{:4000}
+{step:1}
+	&,66
+
+{:4100} ' &,0: output a$
+	gosub 3012:return
+
+{:4200} ' &,1,x,y: input an$
+' &,1,x,y: x = editor flags, y = password flags (source/swap1.s, inline)
+
+' x: Binary | Decimal | Purpose (if set)
+' %00000001 | 1   | allow graphics, color and cursor characters
+' %00000010 | 2   | "." or "/" on column one exits input
+' %00000100 | 4   | don't show the prompt (p$)
+' %00001000 | 8   | allow typing the MCI character (pound)
+' %00010000 | 16  | word wrap
+' %00100000 | 32  | edit mode (shows w$ to edit)
+' %01000000 | 64  | ignore time remaining
+' %10000000 | 128 | Delete on column one exits input
+
+' y: Binary | Decimal | Purpose (if set)
+' %00000001 | 1   | show the mask character, peek(4850) ($12f2, "X" at
+'                   boot), for each character typed
+' %00000010 | 2   | no output: nothing typed is shown
+
+' returns an$, and peek(53254) ($d006):
+' 0 = normal, 1 = Delete or dot on column one, 2 = chat key, 3 = carrier
+' lost or time up
+
+' password input: masked (&,1,0,1) or not echoed at all (&,1,0,2); any
+' editor flags (&,1,x,0), with w$ as the text to edit
+	l=peek(53252):pl=.:qf=.
+{:amp_1_menu}
+	&"{f6}Mask character{colon} "+chr$(peek({sym:mask}))+"{f6:2}"
+	&"1) &{comma}1{comma}0{comma}1{colon} password{comma} shown masked{f6}"
+	&"2) &{comma}1{comma}0{comma}2{colon} password{comma} not shown{f6}"
+	&"3) Change the mask character{f6}"
+	&"4) Editor flags (&{comma}1{comma}x{comma}0){f6}"
+	&"Q) Quit{f6}"
+	poke 53252,1:pl=1:p$="Which":&,1,0,0:pl=.:if an$="" or an$="Q" or tr%<1 then poke 53252,l:return
+	op=val(an$):if op<1 or op>4 then {:amp_1_menu}
+	if op=3 then p$="Mask":&,1,0,0:if an$<>"" then poke {sym:mask},asc(an$)
+	if op=3 then {:amp_1_menu}
+	if op=4 then {:amp_1_editor}
+	poke 53252,15:p$="Password":on op goto {:amp_1_masked},{:amp_1_hidden}
+{:amp_1_masked}
+	&,1,0,1:goto {:amp_1_result}
+{:amp_1_hidden}
+	&,1,0,2
+{:amp_1_result}
+	b=peek(53254):&"{f6}an${equal}{quotation}{pound}v7{quotation}{comma} w${equal}{quotation}{pound}$w{quotation}{comma} peek(53254){equal}{pound}!b{f6}":if qf then {:amp_1_flags}
+	goto {:amp_1_menu}
+
+' editor flags: 1-8 toggle a bit (shown On/Off), T tries &,1,x,0 with them
+{:amp_1_editor}
+	x=.:qf=1:q1$(1)="graphics{comma} color and cursor keys allowed":q1$(2)=". or / on column one exits"
+	q1$(3)="no prompt":q1$(4)="the MCI character allowed":q1$(5)="word wrap: a word typed past the end goes to w$"
+	q1$(6)="edit mode: w$ shown to edit":q1$(7)="time remaining ignored":q1$(8)="Delete on column one exits"
+{:amp_1_flags}
+' bit values by doubling: 2^n can come out a hair short, and "and" truncates
+	&"{f6}Editor flags{colon} &{comma}1{comma}{pound}!x{comma}0{f6:2}":b=1
+' lp=1: word-wrap these lines rather than break words at column 40. With
+' lp=1, & ends the line itself (source/strio.s, outstr3), so no {f6} at the end
+	for i=1 to 8:lp=1:&"{pound}!i) "+mid$("Off On ",1-4*((x and b)>0),3)+" "+q1$(i):b=b*2:next
+	lp=1:&"{f6}T) Try it{f6}N) Try it with no time left (tr%{equal}0{colon} bit 7 decides){f6}Return) Back"
+	poke 53252,1:pl=1:p$="Toggle":&,1,0,0:pl=.:if an$="" or tr%<1 then qf=.:goto {:amp_1_menu}
+	if an$="T" then w$="Edit me":poke 53252,30:p$="Input":&,1,x,0:goto {:amp_1_result}
+' &,1 checks the time left by reading tr% (gettsr, source/irqhn.s): save it,
+' set it to 0 for the input, then put it back
+	if an$="N" then q2%=tr%:tr%=.:w$="Edit me":poke 53252,30:p$="Input":&,1,x,0:tr%=q2%:goto {:amp_1_result}
+	i=val(an$):if i<1 or i>8 then {:amp_1_flags}
+' a for loop always runs once, even "for j=2 to 1", so only loop for i>1
+	b=1:if i>1 then for j=2 to i:b=b*2:next
+	if x and b then x=x-b:goto {:amp_1_flags}
+	x=x+b:goto {:amp_1_flags}
+
+{:4300} ' &,2: dskin
+	gosub 3012:return
+
+{:4400} ' &,3: readfile
+	gosub 3012:return
+
+{:4500} ' &,4: frommodem
+	gosub 3012:return
+
+{:4600} ' &,5: Get Version
+	&,5
+{:amp_5_show}
+' call for &,19 also
+' returns:
+' lp: major.minor (3.1; Image 1.3: 1.3)
+' a%: revision (0; Image 1.3: 1)
+' a$: the git commit the ML was built from, 8 characters (Image 1.3: the
+'     date, "12/29/91  1:18p"); shows "Image BBS 64 v3.1.0: f9850df0"
+	v=lp:&"Image BBS 128 v{pound}!v.{pound}%a{colon} "+a$+"{f6}"
+	return
+
+{:4700} ' &,6: password
+	gosub 3012:return
+
+{:4800} ' &,7: loadfile
+	gosub 3012:return
+
+{:4900} ' &,8: dskdir
+	gosub 3012:return
+
+{:5000} ' &,9: btmvar
+' enumerate variables that can be displayed, from &,9,x table:
+' FIXED Oct 2026: displays ints and floats properly
+' 0-9:
+	v$="an$a$ b$ tr$d1$d2$d3$d4$d5$ld$"
+' 10-19:
+	v$=v$+"tt$na$rn$ph$ak$lp pl rc sh mw "
+' 20-29:
+	v$=v$+"nl ul qe rq ac%ef lf w$ p$ tr%"
+' 30-39:
+	v$=v$+"a% b% dv%dr$c1$c2$co$ch$kp%c3$"
+' 40-49:
+	v$=v$+"f1$f2$f3$f4$f5$f6$f7$f8$mp$mn%"
+{:amp_9_help}
+' display table row:
+' a% a$   b% b$   c% c$   d% d$   e% e$
+	for rw=0 to 9
+' column indices [must be >=1, mid$() doesn't handle negative values]:
+	a%=rw+1:b%=a%+10:c%=b%+10:d%=c%+10:e%=d%+10
+' extract row's variable names:
+	a$=mid$(v$,a%*3-2,3):b$=mid$(v$,b%*3-2,3):c$=mid$(v$,c%*3-2,3)
+	d$=mid$(v$,d%*3-2,3):e$=mid$(v$,e%*3-2,3)
+' decrement indices so they display properly (0-49, not 1-50):
+	a%=a%-1:b%=b%-1:c%=c%-1:d%=d%-1:e%=e%-1
+' display a row:
+	&"{pound}#2{pound}# {pound}%a {pound}$a  {pound}#2{pound}# {pound}%b {pound}$b  "
+	&"{pound}#2{pound}# {pound}%c {pound}$c  {pound}#2{pound}# {pound}%d {pound}$d  "
+	&"{pound}#2{pound}# {pound}%e {pound}$e{f6}":next
+
+{:amp_9_prompt}
+	h=49:&"{f6}[0-{pound}!h{comma} A)ll{comma} M)ain Menu{comma} {question}{equal}List]{f6}":p$="Display variable"+"":&,1:op$=an$
+	on -(op$="A")-2*(op$="M")-3*(op$="{question}") goto {:amp_9_all}, {:amp_9_quit}, {:amp_9_help}
+	an=int(val(op$)):if an<0 or an>h then gosub 3010:goto {:amp_9_prompt}
+	gosub {:sub.amp_9_display}:goto {:amp_9_prompt}
+{:amp_9_all}
+	&"[At {quotation}Key{colon}{quotation} prompt{comma} {quotation}Q{quotation} quits.]{f6}"
+	for an=0 to h:i%=an:&"[#{pound}#2{pound}# {pound}%i/{pound}!h] "
+	gosub {:sub.amp_9_display}:if an$="Q" then:&"Quitting.{f6}":an=50
+	next:goto {:amp_9_prompt}
+{:sub.amp_9_display}
+	&,9,an:&"Displaying "+mid$(v$,(an+1)*3-2,3)+". Key{colon} {pound}g1{f6}":return
+{:amp_9_quit}
+' restore window to computer type string
+' var 36 is co$, computer type:
+	&"Restoring window to computer type.{f6}":&,9,36:return
+
+{:5100} ' &,10: Terminal Mode
+	&"C{equal} + Ctrl exits terminal mode.{f6}"
+	&,10:return
+
+{:5200} ' &,11: Clear Array
+' TODO: Protect against clearing reserved arrays
+	gosub 3012:return
+
+{:5300} ' &,12: New User
+	gosub 3012:return
+
+{:5400} ' &,13: arbit
+	if lk%=. then:&"No Lt.Kernal HD configured.{f6}"
+	gosub 3012:return
+
+{:5500} ' &,14: Dump Array
+	gosub 3012:return
+
+{:5600} ' &,15: convan
+	&"{f6}"
+	&"&{comma}15   Convert Date{f6}"
+	&"&{comma}15{comma}1 Title Case{f6}"
+	&"&{comma}15{comma}2 Decode Function Keys{f6}"
+' they both point to same call
+	&"&{comma}15{comma}3 {pound}$i{f6}"
+	&"&{comma}15{comma}4 (points to &{comma}15{comma}3){f6}"
+	&"&{comma}15{comma}5 newdate {pound}$i{f6}"
+	&"&{comma}15{comma}6 Scan string...{f6}"
+	&"&{comma}15{comma}7 Center a string (128){f6}"
+	&"&{comma}15{comma}8 Widest of tt$() (128){f6}"
+{:amp_15_prompt}
+	l=0:h=8:q=1:m=1:gosub 3004:on q goto {:5600}:if m then return
+	on an+1 gosub 3012, 3012, 3012, 3012, 3012, {:15_5}, {:15_6}, {:amp_15_7}, {:amp_15_8}:if g9 then return
+	goto {:amp_15_prompt}
+{:amp_15_7}
+' 7 and 8 are demos 71 and 72, in i/test calls 60: this returns with g9
+' set, and the dispatch (i.test calls) runs that option next
+	g9=71:return
+{:amp_15_8}
+	g9=72:return
+
+{:15_5}' &,15,5: newdate
+' Drops the weekday digit, leaving a sortable 10-digit "yymmddhhmm";
+' also changes hour 12 -> 00 (12 AM) and 92 -> 80 (12 PM).
+' Result is shown as plain text: Ctrl-D always reads 11 digits.
+'
+' "61112250412" -> "1112250412"  Fri Nov 25, 2011  4:12 AM (hour unchanged)
+' "61112251204" -> "1112250004"  hour 12 -> 00
+' "61112259204" -> "1112258004"  hour 92 -> 80
+' "2111225"     -> "2111225"     not 11 digits: unchanged
+
+	an$="61112250412":gosub {:sub.test_newdate}
+	an$="61112251204":gosub {:sub.test_newdate}
+	an$="61112259204":gosub {:sub.test_newdate}
+	an$="2111225":gosub {:sub.test_newdate}
+	return
+{:sub.test_newdate}
+	&"{f6}Old{colon} an${equal}{quotation}{pound}v7{quotation}{f6}":&,15,5
+	&"New{colon} an${equal}{quotation}{pound}v7{quotation}{f6}":return
+
+{:15_6}
+' from programmer's reference guide
+	&"&{comma}15{comma}6{comma}x{colon} Scan string{f6:2}"
+	&"Split String Two Ways [from PRG]{colon}{f6:2}"
+	&"1) Scan Using chr$(value){f6}"
+	&"2) Scan Using  asc({quotation}char{quotation}){f6:2}"
+	&"Other Examples{colon}{f6:2}"
+	&"3) Simulate {quotation}instring{quotation} function{f6}"
+	&"4) Input scan string/split char{f6:2}"
+{:15_6_prompt}
+	l=1:h=4:m=1:q=1:gosub 3004
+	v$="an$={quotation}Hello world{quotation}:&,15,6,":on an gosub {:sub.15_6_scan_string_chr}, {:sub.15_6_scan_string_asc}, 3012, 3012
+' q="?" entered, m="M"main menu:
+	on -(m=1) -2* (q=1) goto {:15_6}, {:15_6_quit}:goto {:15_6_prompt}
+{:sub.15_6_scan_string_chr}
+' an$="Hello world":&,15,6,32
+	&"{pound}$v32{f6}":an$="Hello world":&,15,6,32:gosub {:sub.15_6_results}:return
+{:sub.15_6_scan_string_asc}
+' an$="Hello world":&,15,6,asc(" ")
+	&"{pound}$vasc({quotation} {quotation}){f6}":an$="Hello world":&,15,6,asc(" "):gosub {:sub.15_6_results}:return
+{:sub.15_6_results}
+' returns a$="Hello", an$="world":
+	&"a${equal}{quotation}{pound}$a{quotation}{comma} an${equal}{quotation}{pound}v7{quotation}{f6:2}":return
+
+{:15_6_quit}
+	&,28,2:return
+
+{:5700} ' &,16: sys49152
+	gosub 3012:return
+
+{:5800} ' &,17: sys49155
+	gosub 3012:return
+
+{:5900} ' &,18: Screen Mode
+	gosub 3012:return
+
+{:6000} ' &,19: Get Version
+' call &,5 display routine
+	goto {:amp_5_show}
+
+{nice:10}
+	rem "i/test calls 0"

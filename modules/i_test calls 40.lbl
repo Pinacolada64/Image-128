@@ -1,0 +1,108 @@
+{uses:..\3_0-preface.lbl}
+' i/test calls 40: i.test calls' handlers for & calls 40-59 (11/20/2026: split
+' out of i.test calls, which had run out of room for a demo of each call).
+' i.test calls' dispatch sets a% to the handler, line 4100 + 100 * (the call
+' - 40), and loads this through im 72 (only when it isn't the one already
+' loaded); line 4000 jumps there (&,66). A handler returns to the dispatch.
+' i.test calls' subroutines, at fixed lines there:
+'   3004  sub.input_range (l, h, m, q: an, e9)
+'   3010  sub.out_of_range
+'   3012  sub.todo
+' g9 set on return: the dispatch runs that option next
+{alpha:alt}
+{crunch:on}
+{include:..\quoters.lbl}
+{include:"..\asm\equates.asm"}
+{assign:3004	=3004	}
+{assign:3010	=3010	}
+{assign:3012	=3012	}
+
+{:4000}
+{step:1}
+	&,66
+
+{:4100} ' &,40: forcegc
+	gosub 3012:return
+
+{:4200} ' &,41: setbaud
+	gosub 3012:return
+
+{:4300} ' &,42: ecs commands
+	gosub 3012:return
+
+{:4400} ' &,43: chatchk
+	gosub 3012:return
+
+{:4500} ' &,44: trace
+	gosub 3012:return
+
+{:4600} ' &,45: prtvar
+	gosub 3012:return
+
+{:4700} ' &,46: prtvar0
+	gosub 3012:return
+
+{:4800} ' &,47: carchk
+	gosub 3012:return
+
+{:4900} ' &,48: getkbd
+	gosub 3012:return
+
+{:5000} ' &,49: getmod
+	gosub 3012:return
+
+{:5100} ' &,50: outscn
+	gosub 3012:return
+
+{:5200} ' &,51: outmod
+	gosub 3012:return
+
+{:5300} ' &,52: lightbar interface
+	gosub 3012:return
+
+{:5400} ' &,53: logoff, also see &,53,a
+' &,53[,idle]: stores idle in curdsp ($12e4, 4836): 0 = idle timer off,
+' anything else = on. Also clears the chat page flag (53256) and sound
+' repeat counter (962), re-links d1$ to the ML's live date string, and
+' blanks status line columns 30-32.
+' curdsp is restored afterwards. A pending chat page is cleared.
+	&"{f6}&{comma}53 Logoff{f6:2}"
+	q=peek({sym:curdsp}):x=q:&"curdsp before{colon}   {pound}!x{f6:2}"
+' d1$: give it a value of its own, then let &,53 point it back at the clock
+	d1$="test":&"d1$ set to{colon}      {quotation}"+d1$+"{quotation}{f6}"
+	&,53:x=peek({sym:curdsp}):&"After &{comma}53{colon}     d1${equal}{quotation}"+d1$+"{quotation} (expect date){f6}"
+	&"                curdsp{equal}{pound}!x (expect 0){f6}"
+	&,53,1:x=peek({sym:curdsp}):&"After &{comma}53{comma}1{colon}   curdsp{equal}{pound}!x (expect 1){f6}"
+	&,53,255:x=peek({sym:curdsp}):&"After &{comma}53{comma}255{colon} curdsp{equal}{pound}!x (expect 255){f6}"
+' idle timer: does I= count on the sysop screen while curdsp is not 0?
+' (only shown when the screen is in its normal mode)
+	&,53,1:lp=1:&"{f6}Idle timer on{colon} watch for I{equal} counting on the sysop screen{comma} then hit a key{colon} {pound}g1{f6}"
+	&,53,q:x=peek({sym:curdsp}):&"Restored{colon}       curdsp{equal}{pound}!x{f6}":return
+
+{:5500} ' &,54: text editor interface
+	gosub 3012:return
+
+{:5600} ' &,55: output
+	gosub 3012:return
+
+{:5700} ' &,56: chatmode
+	gosub 3012:return
+
+{:5800} ' &,57: relread
+	gosub 3012:return
+
+{nice:10}
+{:sub.which_record}
+' if e9=1, a is out of bounds
+	rem for &,57 (relread)
+	&"[1-{pound}!t]{f6}":p$="Which Record"+"":&,1:a=int(val(an$)):e9=-(a<1 or a>t)
+	return
+
+{:5900} ' &,58: setalarm
+	gosub 3012:return
+
+{:6000} ' &,59: farerr
+	gosub 3012:return
+
+{nice:10}
+	rem "i/test calls 40"

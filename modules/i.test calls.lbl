@@ -31,6 +31,8 @@
 	rem "i.test calls" {usedef:__BuildDate} {usedef:__BuildTime}
 	gosub {:sub.setup}:goto {:show_page}
 
+' 3004, 3010, 3012: the i/test calls sub-modules gosub these by number
+{number:3004}
 {:sub.input_range}
 {step:1}
 ' on entry:
@@ -55,10 +57,11 @@
 	e9=-(an<l or an>h):if q+m=. then if e9 then gosub {:sub.out_of_range}
 	&"{f6}":return
 
-{nice:5}
 {step:2}
+{number:3010}
 {:sub.out_of_range}
 	&"Out of range [1-{pound}!t].{f6}":return
+{number:3012}
 {:sub.todo}
 	&"TODO{colon} Finish this!{f6}":return
 
@@ -85,7 +88,7 @@
 '  0) &,0  Output a$
 '  1) &,1  Input an$
 ' (etc.)
-	for n=0 to 9:n%=n:&sf$:gosub {:header_page_1}:next:return
+	for n=0 to 9:n%=n:&fs$:gosub {:header_page_1}:next:return
 
 {number:3040}
 {:header_page_2}
@@ -104,7 +107,7 @@
 	&"&{comma}19 Get Version{f6}":return
 {number:3052}
 {:display_page_2}
-	for n=0 to 9:n%=n+10:&sf$:gosub {:header_page_2}:next:return
+	for n=0 to 9:n%=n+10:&fs$:gosub {:header_page_2}:next:return
 
 {:header_page_3}
 {number:3060}
@@ -122,7 +125,7 @@
 	&"&{comma}29 usevar"+m$+"{f6}":return
 {number:3072}
 {:display_page_3}
-	for n=0 to 9:n%=n+20:&sf$:gosub {:header_page_3}:next:return
+	for n=0 to 9:n%=n+20:&fs$:gosub {:header_page_3}:next:return
 
 {:header_page_4}
 {number:3080}
@@ -140,7 +143,7 @@
 	&"&{comma}39 prtln{f6}":return
 {number:3092}
 {:display_page_4}
-	&"ML Functions{colon}{f6:2}":for n=0 to 9:n%=n+30:&sf$:gosub {:header_page_4}:next:return
+	&"ML Functions{colon}{f6:2}":for n=0 to 9:n%=n+30:&fs$:gosub {:header_page_4}:next:return
 
 {:header_page_5}
 {number:3100}
@@ -152,7 +155,7 @@
 	&"&{comma}43 chatchk"+m$+"{f6}":return
 {number:3112}
 {:display_page_5}
-	for n=0 to 3:n%=n+40:&sf$:gosub {:header_page_5}:next:return
+	for n=0 to 3:n%=n+40:&fs$:gosub {:header_page_5}:next:return
 
 {:header_page_6}
 {number:3120}
@@ -174,7 +177,7 @@
 {:display_page_6}
 ' n : loop counter, & call number in {:header_page_6}
 ' n%: the displayed menu selection number (51-60)
-	for n=0 to 9:n%=n+50:&sf$:gosub {:header_page_6}:next:return
+	for n=0 to 9:n%=n+50:&fs$:gosub {:header_page_6}:next:return
 
 {:header_page_7}
 {number:3140}
@@ -192,7 +195,7 @@
 	&"&{comma}69 Display String on Console{f6}":return
 {number:3152}
 {:display_page_7}
-	for n=0 to 9:n%=n+60:&sf$:gosub {:header_page_7}:next:return
+	for n=0 to 9:n%=n+60:&fs$:gosub {:header_page_7}:next:return
 
 {:header_page_8}
 {number:3160}
@@ -206,7 +209,7 @@
 	&"[128] ak$ Follows ll%{f6}":return
 {number:3172}
 {:display_page_8}
-	&"{f6}Image 128{colon}{f6:2}":for n=0 to 5:n%=n+70:&sf$:gosub {:header_page_8}:next:return
+	&"{f6}Image 128{colon}{f6:2}":for n=0 to 5:n%=n+70:&fs$:gosub {:header_page_8}:next:return
 
 {number:3176}
 {:show_page}
@@ -229,627 +232,15 @@
 	a%=3020+t*20:if db then:&"[header line] a%{equal}{pound}%a{comma} [item] 10s{colon} an{equal}"+str$(an)+"{comma} 1s{colon} n{equal}{pound}!n{f6}"
 	&,66,1
 
-' FIXME: temporary hook:
-	if an=23 then gosub {:4350}:goto {:prompt}
-	if an=25 then gosub {:4450}:goto {:prompt}
-	if an=26 then gosub {:4500}:goto {:prompt}
-	if an=65 then gosub {:sub.convert}:goto {:prompt}
-	if an=67 then gosub {:sub.copyright}:goto {:prompt}
-	if an>15 and an<71 then:&"& calls 16-70 not finished yet.{f6}":goto {:prompt}
-' &,66,1: calcgosub: routines start on 50-line increments
-	a%=3200+an*50:if db then:&"[& line] a%{equal}{pound}%a{f6}"
-	&,66,1:goto {:prompt}
-
-{:3200} ' &,0: output a$
-	gosub {:sub.todo}:return
-
-{:3250} ' &,1,x,y: input an$
-' &,1,x,y: x = editor flags, y = password flags (source/swap1.s, inline)
-
-' x: Binary | Decimal | Purpose (if set)
-' %00000001 | 1   | allow graphics, color and cursor characters
-' %00000010 | 2   | "." or "/" on column one exits input
-' %00000100 | 4   | don't show the prompt (p$)
-' %00001000 | 8   | allow typing the MCI character (pound)
-' %00010000 | 16  | word wrap
-' %00100000 | 32  | edit mode (shows w$ to edit)
-' %01000000 | 64  | ignore time remaining
-' %10000000 | 128 | Delete on column one exits input
-
-' y: Binary | Decimal | Purpose (if set)
-' %00000001 | 1   | show the mask character, peek(4850) ($12f2, "X" at
-'                   boot), for each character typed
-' %00000010 | 2   | no output: nothing typed is shown
-
-' returns an$, and peek(53254) ($d006):
-' 0 = normal, 1 = Delete or dot on column one, 2 = chat key, 3 = carrier
-' lost or time up
-
-' password input: masked (&,1,0,1) or not echoed at all (&,1,0,2); any
-' editor flags (&,1,x,0), with w$ as the text to edit
-	l=peek(53252):pl=.:qf=.
-{:amp_1_menu}
-	&"{f6}Mask character{colon} "+chr$(peek({sym:mask}))+"{f6:2}"
-	&"1) &{comma}1{comma}0{comma}1{colon} password{comma} shown masked{f6}"
-	&"2) &{comma}1{comma}0{comma}2{colon} password{comma} not shown{f6}"
-	&"3) Change the mask character{f6}"
-	&"4) Editor flags (&{comma}1{comma}x{comma}0){f6}"
-	&"Q) Quit{f6}"
-	poke 53252,1:pl=1:p$="Which":&,1,0,0:pl=.:if an$="" or an$="Q" or tr%<1 then poke 53252,l:return
-	op=val(an$):if op<1 or op>4 then {:amp_1_menu}
-	if op=3 then p$="Mask":&,1,0,0:if an$<>"" then poke {sym:mask},asc(an$)
-	if op=3 then {:amp_1_menu}
-	if op=4 then {:amp_1_editor}
-	poke 53252,15:p$="Password":on op goto {:amp_1_masked},{:amp_1_hidden}
-{:amp_1_masked}
-	&,1,0,1:goto {:amp_1_result}
-{:amp_1_hidden}
-	&,1,0,2
-{:amp_1_result}
-	b=peek(53254):&"{f6}an${equal}{quotation}{pound}v7{quotation}{comma} w${equal}{quotation}{pound}$w{quotation}{comma} peek(53254){equal}{pound}!b{f6}":if qf then {:amp_1_flags}
-	goto {:amp_1_menu}
-
-' editor flags: 1-8 toggle a bit (shown On/Off), T tries &,1,x,0 with them
-{:amp_1_editor}
-	x=.:qf=1:q1$(1)="graphics{comma} color and cursor keys allowed":q1$(2)=". or / on column one exits"
-	q1$(3)="no prompt":q1$(4)="the MCI character allowed":q1$(5)="word wrap: a word typed past the end goes to w$"
-	q1$(6)="edit mode: w$ shown to edit":q1$(7)="time remaining ignored":q1$(8)="Delete on column one exits"
-{:amp_1_flags}
-' bit values by doubling: 2^n can come out a hair short, and "and" truncates
-	&"{f6}Editor flags{colon} &{comma}1{comma}{pound}!x{comma}0{f6:2}":b=1
-' lp=1: word-wrap these lines rather than break words at column 40. With
-' lp=1, & ends the line itself (source/strio.s, outstr3), so no {f6} at the end
-	for i=1 to 8:lp=1:&"{pound}!i) "+mid$("Off On ",1-4*((x and b)>0),3)+" "+q1$(i):b=b*2:next
-	lp=1:&"{f6}T) Try it{f6}N) Try it with no time left (tr%{equal}0{colon} bit 7 decides){f6}Return) Back"
-	poke 53252,1:pl=1:p$="Toggle":&,1,0,0:pl=.:if an$="" or tr%<1 then qf=.:goto {:amp_1_menu}
-	if an$="T" then w$="Edit me":poke 53252,30:p$="Input":&,1,x,0:goto {:amp_1_result}
-' &,1 checks the time left by reading tr% (gettsr, source/irqhn.s): save it,
-' set it to 0 for the input, then put it back
-	if an$="N" then q2%=tr%:tr%=.:w$="Edit me":poke 53252,30:p$="Input":&,1,x,0:tr%=q2%:goto {:amp_1_result}
-	i=val(an$):if i<1 or i>8 then {:amp_1_flags}
-' a for loop always runs once, even "for j=2 to 1", so only loop for i>1
-	b=1:if i>1 then for j=2 to i:b=b*2:next
-	if x and b then x=x-b:goto {:amp_1_flags}
-	x=x+b:goto {:amp_1_flags}
-
-{:3300} ' &,2: dskin
-	gosub {:sub.todo}:return
-
-{:3350} ' &,3: readfile
-	gosub {:sub.todo}:return
-
-{:3400} ' &,4: frommodem
-	gosub {:sub.todo}:return
-
-{:3450} ' &,5: Get Version
-	&,5
-{:3452}
-' call for &,19 also
-' returns:
-' lp: major.minor (3.1; Image 1.3: 1.3)
-' a%: revision (0; Image 1.3: 1)
-' a$: the git commit the ML was built from, 8 characters (Image 1.3: the
-'     date, "12/29/91  1:18p"); shows "Image BBS 64 v3.1.0: f9850df0"
-	v=lp:&"Image BBS 128 v{pound}!v.{pound}%a{colon} "+a$+"{f6}"
-	return
-
-{:3500} ' &,6: password
-	gosub {:sub.todo}:return
-
-{:3550} ' &,7: loadfile
-	gosub {:sub.todo}:return
-
-{:3600} ' &,8: dskdir
-	gosub {:sub.todo}:return
-
-{:3650} ' &,9: btmvar
-' enumerate variables that can be displayed, from &,9,x table:
-' FIXED Oct 2026: displays ints and floats properly
-' 0-9:
-	v$="an$a$ b$ tr$d1$d2$d3$d4$d5$ld$"
-' 10-19:
-	v$=v$+"tt$na$rn$ph$ak$lp pl rc sh mw "
-' 20-29:
-	v$=v$+"nl ul qe rq ac%ef lf w$ p$ tr%"
-' 30-39:
-	v$=v$+"a% b% dv%dr$c1$c2$co$ch$kp%c3$"
-' 40-49:
-	v$=v$+"f1$f2$f3$f4$f5$f6$f7$f8$mp$mn%"
-{:amp_9_help}
-' display table row:
-' a% a$   b% b$   c% c$   d% d$   e% e$
-	for rw=0 to 9
-' column indices [must be >=1, mid$() doesn't handle negative values]:
-	a%=rw+1:b%=a%+10:c%=b%+10:d%=c%+10:e%=d%+10
-' extract row's variable names:
-	a$=mid$(v$,a%*3-2,3):b$=mid$(v$,b%*3-2,3):c$=mid$(v$,c%*3-2,3)
-	d$=mid$(v$,d%*3-2,3):e$=mid$(v$,e%*3-2,3)
-' decrement indices so they display properly (0-49, not 1-50):
-	a%=a%-1:b%=b%-1:c%=c%-1:d%=d%-1:e%=e%-1
-' display a row:
-	&"{pound}#2{pound}# {pound}%a {pound}$a  {pound}#2{pound}# {pound}%b {pound}$b  "
-	&"{pound}#2{pound}# {pound}%c {pound}$c  {pound}#2{pound}# {pound}%d {pound}$d  "
-	&"{pound}#2{pound}# {pound}%e {pound}$e{f6}":next
-
-{:amp_9_prompt}
-	h=49:&"{f6}[0-{pound}!h{comma} A)ll{comma} M)ain Menu{comma} {question}{equal}List]{f6}":p$="Display variable"+"":&,1:op$=an$
-	on -(op$="A")-2*(op$="M")-3*(op$="{question}") goto {:amp_9_all}, {:amp_9_quit}, {:amp_9_help}
-	an=int(val(op$)):if an<0 or an>h then gosub {:sub.out_of_range}:goto {:amp_9_prompt}
-	gosub {:sub.amp_9_display}:goto {:amp_9_prompt}
-{:amp_9_all}
-	&"[At {quotation}Key{colon}{quotation} prompt{comma} {quotation}Q{quotation} quits.]{f6}"
-	for an=0 to h:i%=an:&"[#{pound}#2{pound}# {pound}%i/{pound}!h] "
-	gosub {:sub.amp_9_display}:if an$="Q" then:&"Quitting.{f6}":an=50
-	next:goto {:amp_9_prompt}
-{:sub.amp_9_display}
-	&,9,an:&"Displaying "+mid$(v$,(an+1)*3-2,3)+". Key{colon} {pound}g1{f6}":return
-{:amp_9_quit}
-' restore window to computer type string
-' var 36 is co$, computer type:
-	&"Restoring window to computer type.{f6}":&,9,36:return
-
-{:3700} ' &,10: Terminal Mode
-	&"C{equal} + Ctrl exits terminal mode.{f6}"
-	&,10:return
-
-{:3750} ' &,11: Clear Array
-' TODO: Protect against clearing reserved arrays
-	gosub {:sub.todo}:return
-
-{:3800} ' &,12: New User
-	gosub {:sub.todo}:return
-
-{:3850} ' &,13: arbit
-	if lk%=. then:&"No Lt.Kernal HD configured.{f6}"
-	gosub {:sub.todo}:return
-
-{:3900} ' &,14: Dump Array
-	gosub {:sub.todo}:return
-
-{:3950} ' &,15: convan
-	&"{f6}"
-	&"&{comma}15   Convert Date{f6}"
-	&"&{comma}15{comma}1 Title Case{f6}"
-	&"&{comma}15{comma}2 Decode Function Keys{f6}"
-' they both point to same call
-	&"&{comma}15{comma}3 {pound}$i{f6}"
-	&"&{comma}15{comma}4 (points to &{comma}15{comma}3){f6}"
-	&"&{comma}15{comma}5 newdate {pound}$i{f6}"
-	&"&{comma}15{comma}6 Scan string...{f6}"
-	&"&{comma}15{comma}7 Center a string (128){f6}"
-	&"&{comma}15{comma}8 Widest of tt$() (128){f6}"
-{:amp_15_prompt}
-	l=0:h=8:q=1:m=1:gosub {:sub.input_range}:on q goto {:3950}:if m then return
-	on an+1 gosub {:sub.todo}, {:sub.todo}, {:sub.todo}, {:sub.todo}, {:sub.todo}, {:15_5}, {:15_6}, {:6750}, {:6800}:goto {:amp_15_prompt}
-
-{:15_5}' &,15,5: newdate
-' Drops the weekday digit, leaving a sortable 10-digit "yymmddhhmm";
-' also changes hour 12 -> 00 (12 AM) and 92 -> 80 (12 PM).
-' Result is shown as plain text: Ctrl-D always reads 11 digits.
-'
-' "61112250412" -> "1112250412"  Fri Nov 25, 2011  4:12 AM (hour unchanged)
-' "61112251204" -> "1112250004"  hour 12 -> 00
-' "61112259204" -> "1112258004"  hour 92 -> 80
-' "2111225"     -> "2111225"     not 11 digits: unchanged
-
-	an$="61112250412":gosub {:sub.test_newdate}
-	an$="61112251204":gosub {:sub.test_newdate}
-	an$="61112259204":gosub {:sub.test_newdate}
-	an$="2111225":gosub {:sub.test_newdate}
-	return
-{:sub.test_newdate}
-	&"{f6}Old{colon} an${equal}{quotation}{pound}v7{quotation}{f6}":&,15,5
-	&"New{colon} an${equal}{quotation}{pound}v7{quotation}{f6}":return
-
-{:15_6}
-' from programmer's reference guide
-	&"&{comma}15{comma}6{comma}x{colon} Scan string{f6:2}"
-	&"Split String Two Ways [from PRG]{colon}{f6:2}"
-	&"1) Scan Using chr$(value){f6}"
-	&"2) Scan Using  asc({quotation}char{quotation}){f6:2}"
-	&"Other Examples{colon}{f6:2}"
-	&"3) Simulate {quotation}instring{quotation} function{f6}"
-	&"4) Input scan string/split char{f6:2}"
-{:15_6_prompt}
-	l=1:h=4:m=1:q=1:gosub {:sub.input_range}
-	v$="an$={quotation}Hello world{quotation}:&,15,6,":on an gosub {:sub.15_6_scan_string_chr}, {:sub.15_6_scan_string_asc}, {:sub.todo}, {:sub.todo}
-' q="?" entered, m="M"main menu:
-	on -(m=1) -2* (q=1) goto {:15_6}, {:15_6_quit}:goto {:15_6_prompt}
-{:sub.15_6_scan_string_chr}
-' an$="Hello world":&,15,6,32
-	&"{pound}$v32{f6}":an$="Hello world":&,15,6,32:gosub {:sub.15_6_results}:return
-{:sub.15_6_scan_string_asc}
-' an$="Hello world":&,15,6,asc(" ")
-	&"{pound}$vasc({quotation} {quotation}){f6}":an$="Hello world":&,15,6,asc(" "):gosub {:sub.15_6_results}:return
-{:sub.15_6_results}
-' returns a$="Hello", an$="world":
-	&"a${equal}{quotation}{pound}$a{quotation}{comma} an${equal}{quotation}{pound}v7{quotation}{f6:2}":return
-
-{:15_6_quit}
-	&,28,2:return
-
-{:4000} ' &,16: sys49152
-	gosub {:sub.todo}:return
-
-{:4050} ' &,17: sys49155
-	gosub {:sub.todo}:return
-
-{:4100} ' &,18: Screen Mode
-	gosub {:sub.todo}:return
-
-{:4150} ' &,19: Get Version
-' call &,5 display routine
-	goto {:3452}
-
-{:4200} ' &,20: Read From Interface Table
-	gosub {:sub.todo}:return
-
-{:4250} ' &,21: Write to Interface Table
-	gosub {:sub.todo}:return
-
-{:4300} ' &,22: Wait x Tenths of a Second
-	gosub {:sub.todo}:return
-
-' test code from image bbs 2.0:
-' https://github.com/Pinacolada64/ImageBBS/blob/5b564adb919f49e7644c303e7c21e8b75fd192f0/v2/core/jack/i_UD.lbl#L93-L97
-
-' 10 x=11:print"auto-logoff. press space to abort"
-' 20 x=x-1:printx;:ford=1to1000:next:geta$:ifa$<>" "thenon-(x>1)goto20:goto40
-' 30 print"aborted":end
-' 40 print"auto-logoff"
-
-{:4350} ' &,23: xgetin
-	&"{pound}$f{colon}{f6:2}"
-
-{:4352}
-	&"(Simulated) Auto-Logoff in ten seconds.{f6:2}Press Space to abort{colon}{f6}":i=11
-{:23_loop}
-' NOTE: using &,4 gives inconsistent results, and never the PetSCII value of the typed character
-	i=i-1:&"{f6}{pound}!i":&,22,10:&,4:c=peek({sym:sareg}):&" c{equal}{pound}!c{comma} rc{equal}"+str$(rc)
-	if c<>32 then on -(i>1) goto {:23_loop}:&"Timed out.{f6}":goto {:23_again}
-' 92: ">>> Canceled!"
-	gosub 92
-{:23_again}
-' 96: "[Yes]"
-	&"Again [Y/n]{question}{colon} ":gosub 96:on a goto {:4352}:return
-
-{:4400} ' &,24: xchrout1
-	gosub {:sub.todo}:return
-
-{:4450} ' &,25: Sound
-' &,25,<sound>,<repeat> (source/swap2.s, sound; repeats in irqhn.s)
-' <sound> = 0-3: beep, ding, higher ding, CCGMS gong; 255: stop repeating
-' <repeat> = 0: play once; 1-254: play it repeat+1 times; 255: forever
-' While a sound repeats, another &,25 (except 255) is ignored. Sound 0 is
-' silent if lightbar flag 27 (local beeps disabled) is on.
-	l=peek(53252):&,52,27,3:if a% then:&"{f6}Lightbar 27 (beeps disabled) is on{colon} sound 0 is silent.{f6}"
-{:amp_25_menu}
-	&"{f6}0-3) Play sound 0-3 once (&{comma}25{comma}x{comma}0){f6}R) Repeat a sound{f6}"
-	&"F) Forever (&{comma}25{comma}x{comma}255){f6}S) Stop (&{comma}25{comma}255){f6}Q) Quit{f6}"
-	poke 53252,1:pl=1:p$="Sound":&,1,0,0:pl=.:if an$="" or an$="Q" or tr%<1 then:&,25,255:poke 53252,l:return
-	if an$="S" then:&,25,255:goto {:amp_25_menu}
-	if an$>="0" and an$<="3" then s=val(an$):&,25,s,0:goto {:amp_25_menu}
-	if an$<>"R" and an$<>"F" then {:amp_25_menu}
-	r=255:o$=an$:poke 53252,1:p$="Which sound (0-3)":&,1,0,0:s=val(an$):if an$<"0" or an$>"3" then {:amp_25_menu}
-	if o$="R" then poke 53252,3:p$="Repeat (1-254)":&,1,0,0:r=val(an$):if r<1 or r>254 then {:amp_25_menu}
-	&,25,s,r:if r<255 then:&"{f6}&{comma}25{comma}{pound}!s{comma}{pound}!r{colon} plays {pound}!r more time(s) after the first.{f6}":goto {:amp_25_menu}
-	&"{f6}&{comma}25{comma}{pound}!s{comma}255{colon} repeating. Another &{comma}25 is ignored now{colon}{f6}"
-	poke 53252,1:p$="Return plays sound 1":&,1,0,0:&,25,1,0
-	p$="Return stops it (&{comma}25{comma}255)":&,1,0,0:&,25,255:goto {:amp_25_menu}
-
-{:4500} ' &,26: ecschk (find record by flags and name)
-' &,26,size,count,mask,array%(element),s$
-' a%=first record (1-count) whose flag word (bytes 2-3) shares a bit
-' with mask, and whose name (bytes 6-13, chr$(0)-padded) matches s$; 0=none
-' zt%(7,2): each record zt%(0-7,r) is 8 integers (16 bytes)
-' flags in zt%(1,r), name from zt%(3,r); search starts at record 1
-	if zt=0 then dim zt%(7,2):zt=1
-	zt%(1,1)=1:&,60,0,8,zt%(3,1),"FOO"
-	zt%(1,2)=2:&,60,0,8,zt%(3,2),"BAR"
-	&"&{comma}26 Find Record by Flags and Name{f6:2}"
-	&,26,16,2,2,zt%(0,1),"BAR":&"mask 2{comma} BAR{colon}      {pound}%a (expect 2){f6}"
-	&,26,16,2,1,zt%(0,1),"BAR":&"mask 1{comma} BAR{colon}      {pound}%a (expect 0){f6}"
-	&,26,16,2,3,zt%(0,1),"FOO":&"mask 3{comma} FOO{colon}      {pound}%a (expect 1){f6}"
-	&,26,16,2,3,zt%(0,1),"":&"mask 3{comma} empty{colon}    {pound}%a (expect 0){f6}"
-	&,26,16,2,0,zt%(0,1),"BAR":&"mask 0{comma} BAR{colon}      {pound}%a (expect 0){f6}"
-' only 8 characters are compared:
-	&,26,16,2,3,zt%(0,1),"BARxxxxxZ":&"mask 3{comma} BARxxxxxZ{colon}{pound}%a (expect 0){f6}"
-	&,60,0,8,zt%(3,2),"BARxxxxx"
-	&,26,16,2,3,zt%(0,1),"BARxxxxxZ":&"mask 3{comma} BARxxxxxZ{colon}{pound}%a (expect 2){f6}"
-' bit 15: stored as -32768, passed in mask as 32768:
-	zt%(1,2)=-32768:&,26,16,2,32768,zt%(0,1),"BARxxxxx"
-	&"mask 32768{colon}       {pound}%a (expect 2){f6}"
-	return
-
-{:4550} ' &,27: array pointer save
-' TODO: protect against &,27,1 (erases working variables for BBS)
-	gosub {:sub.todo}:return
-
-{:4600} ' &,28: array pointer restore
-	gosub {:sub.todo}:return
-
-{:4650} ' &,29: usevar
-	gosub {:sub.todo}:return
-
-{:4700} ' &,30: putvar
-	gosub {:sub.todo}:return
-
-{:4750} ' &,31: zero
-	gosub {:sub.todo}:return
-
-{:4800} ' &,32: minusone
-	gosub {:sub.todo}:return
-
-{:4850} ' &,33: getarr
-	gosub {:sub.todo}:return
-
-{:4900} ' &,34: putarr
-	gosub {:sub.todo}:return
-
-{:4950} ' &,35: getln
-	gosub {:sub.todo}:return
-
-{:5000} ' &,36: putln
-	gosub {:sub.todo}:return
-
-{:5050} ' &,37: trapon
-	gosub {:sub.todo}:return
-
-{:5100} ' &,38: trapoff
-	gosub {:sub.todo}:return
-
-{:5150} ' &,39: prtln
-	gosub {:sub.todo}:return
-
-{:5200} ' &,40: forcegc
-	gosub {:sub.todo}:return
-
-{:5250} ' &,41: setbaud
-	gosub {:sub.todo}:return
-
-{:5300} ' &,42: ecs commands
-	gosub {:sub.todo}:return
-
-{:5350} ' &,43: chatchk
-	gosub {:sub.todo}:return
-
-{:5400} ' &,44: trace
-	gosub {:sub.todo}:return
-
-{:5450} ' &,45: prtvar
-	gosub {:sub.todo}:return
-
-{:5500} ' &,46: prtvar0
-	gosub {:sub.todo}:return
-
-{:5550} ' &,47: carchk
-	gosub {:sub.todo}:return
-
-{:5600} ' &,48: getkbd
-	gosub {:sub.todo}:return
-
-{:5650} ' &,49: getmod
-	gosub {:sub.todo}:return
-
-{:5700} ' &,50: outscn
-	gosub {:sub.todo}:return
-
-{:5750} ' &,51: outmod
-	gosub {:sub.todo}:return
-
-{:5800} ' &,52: lightbar interface
-	gosub {:sub.todo}:return
-
-{:5850} ' &,53: logoff, also see &,53,a
-' &,53[,idle]: stores idle in curdsp ($12e4, 4836): 0 = idle timer off,
-' anything else = on. Also clears the chat page flag (53256) and sound
-' repeat counter (962), re-links d1$ to the ML's live date string, and
-' blanks status line columns 30-32.
-' curdsp is restored afterwards. A pending chat page is cleared.
-	&"{f6}&{comma}53 Logoff{f6:2}"
-	q=peek({sym:curdsp}):x=q:&"curdsp before{colon}   {pound}!x{f6:2}"
-' d1$: give it a value of its own, then let &,53 point it back at the clock
-	d1$="test":&"d1$ set to{colon}      {quotation}"+d1$+"{quotation}{f6}"
-	&,53:x=peek({sym:curdsp}):&"After &{comma}53{colon}     d1${equal}{quotation}"+d1$+"{quotation} (expect date){f6}"
-	&"                curdsp{equal}{pound}!x (expect 0){f6}"
-	&,53,1:x=peek({sym:curdsp}):&"After &{comma}53{comma}1{colon}   curdsp{equal}{pound}!x (expect 1){f6}"
-	&,53,255:x=peek({sym:curdsp}):&"After &{comma}53{comma}255{colon} curdsp{equal}{pound}!x (expect 255){f6}"
-' idle timer: does I= count on the sysop screen while curdsp is not 0?
-' (only shown when the screen is in its normal mode)
-	&,53,1:lp=1:&"{f6}Idle timer on{colon} watch for I{equal} counting on the sysop screen{comma} then hit a key{colon} {pound}g1{f6}"
-	&,53,q:x=peek({sym:curdsp}):&"Restored{colon}       curdsp{equal}{pound}!x{f6}":return
-
-{:5900} ' &,54: text editor interface
-	gosub {:sub.todo}:return
-
-{:5950} ' &,55: output
-	gosub {:sub.todo}:return
-
-{:6000} ' &,56: chatmode
-	gosub {:sub.todo}:return
-
-{:6050} ' &,57: relread
-	gosub {:sub.todo}:return
-
-{nice:10}
-{:sub.which_record}
-' if e9=1, a is out of bounds
-	rem for &,57 (relread)
-	&"[1-{pound}!t]{f6}":p$="Which Record"+"":&,1:a=int(val(an$)):e9=-(a<1 or a>t)
-	return
-
-{:6100} ' &,58: setalarm
-	gosub {:sub.todo}:return
-
-{:6150} ' &,59: farerr
-	gosub {:sub.todo}:return
-
-{:6200} ' &,60: structs
-	gosub {:sub.todo}:return
-
-{:6250} ' &,61: poscrsr
-	gosub {:sub.todo}:return
-
-{:6300} ' &,62: set time
-' &,62,hour,minute: hour as in d1$: 12, 1-11 = AM; 92, 81-91 = PM
-' The CIA hours register (BCD) should show the same two digits as the hour,
-' and d1$ (rebuilt by the ML on the next IRQ) should too.
-' 0 and 80 aren't valid CIA hours: see what happens.
-'
-' This changes the real BBS clock: d1$ is saved, and the time is restored
-' afterwards (seconds since the test started are lost).
-' Minute 30 is used so that 12 AM doesn't trigger the midnight date
-' rollover in irq2 (hours=$12 and minutes=0).
-' Each &,62 may take 1 minute off the user's time remaining.
-'
-' CIA #1 time of day: 56331 ($dc0b) hours, 56330 ($dc0a) minutes,
-' 56328 ($dc08) tenths. Reading hours freezes these registers until
-' tenths is read, so tenths is read last.
-	&"{f6}&{comma}62 Set Time{f6:2}"
-	lp=1:&"This changes the BBS clock (it is restored afterwards). Continue{question} ":gosub 96:if a=. then return
-	s$=d1$:hx$="0123456789abcdef":h$="1201119281910080"
-	&"{f6}Before{colon} d1${equal}{quotation}{pound}$s{quotation}{f6:2}"
-	for i=0 to 7:h=val(mid$(h$,i*2+1,2)):e$=mid$(h$,i*2+1,2):if i>5 then e$="??"
-	c=30:gosub {:sub.test_settim}:next
-	h=val(mid$(s$,8,2)):c=val(mid$(s$,10,2)):&,62,h,c
-	&"{f6}Restored{colon} d1${equal}{quotation}"+d1$+"{quotation}{f6}":return
-{:sub.test_settim}
-' set the time, wait for the next IRQ, then read the CIA clock and d1$
-	&,62,h,c:for w=1 to 100:next
-	hv=peek(56331):mv=peek(56330):tv=peek(56328)
-	r$=mid$(hx$,int(hv/16)+1,1)+mid$(hx$,(hv and 15)+1,1)
-	&"&{comma}62{comma}{pound}!h{comma}{pound}!c{colon} CIA hours ${pound}$r (expect {pound}$e){comma} d1$ hour "+mid$(d1$,8,2)+"{f6}"
-	return
-
-{:6350} ' &,63: inline1
-	gosub {:sub.todo}:return
-
-{:6400} ' &,64: convstr
-	gosub {:sub.todo}:return
-
-{:6450} ' &,65: convert
-{:sub.convert}
-' assumptions:
-' define an$
-
-' &,65,0: convnam (check for ' in string, lowercase character afterwards?)
-' - test: an$="O'MALLEY'S BAR" (two apostrophes) -> "O'malley's Bar" (really should be "O'Malley's" but I picked an edge case on purpose)
-' - result: an$="" (?)
-' - &,65,0,"string" returns "?type mismatch error"
-
-' &,65,1: disk data
-' &,65,2: special characters to Image-encoded function keys, and
-' &,65,3: check special characters.
-' print an$
-{:display_header_convert}
-	&"Convert names{f6}":return
-	&"Convert disk data ({question}){f6}":return
-	lp=1:&"Convert special characters to Image-encoded function keys{f6}":return
-	&"Check string for special characters ({question}){f6}":return
-{:header_convert_input}
-	lp=1:&"Input search string [currently {f5}"+sf$+"{f5}]{f6}":return
-{:header_convert_reset}
-	&"Reset defaults{f6}":return
-{:display_page_convert}
-	for n=0 to 3:n%=n:&sf$:gosub {:display_header_convert}:next:&"{f6}I) ":gosub {:header_convert_input}:&"R) ":gosub {:header_convert_reset}
-{:convert_reset}
-' sf$="search for". quote and return excluded for display reasons:
-	sf$="{f1}{f3}{f7}{f2}{f4}{f8}"
-
-{:convert_prompt}
-	m=1:l=.:h=3:gosub {:sub.input_range}:on -(a$="I")-2*(a$="R") goto {:convert_input},{:convert_reset}
-	a%=6450+20*an:&,66
-
-{:convert_input}
-	gosub {:sub.todo}:return
-
-{:6500} ' &,66: calculated goto
-	' &,66,1: calculated gosub
-	gosub {:sub.todo}:return
-
-{:6550} ' &,67: copyright
-{:sub.copyright}
-' prints an$ from ml
-	&,67:return
-
-{:6600} ' &,68: struct
-	gosub {:sub.todo}:return
-
-{:6650} ' &,69: display string on console
-	gosub {:sub.todo}:return
-
-{:6700} ' &,70: position terminal cursor
-	gosub {:sub.todo}:return
-
-' ********************************
-' *  Image 128 (11/20/2026)      *
-' ********************************
-
-{:6750} ' 71: &,15,7: center a string
-' &,15,7[,w[,s$]]: the MCI tab to column (w - visible) / 2 put in front of
-' s$ (a$ when left out); w 0: ll%. Colors and other control characters
-' count nothing, MCI commands what they print. Two pounds in & output
-' print one, so the text shows the commands as typed
-	&"{f6}&{comma}15{comma}7 Center a String{f6:2}"
-	b$="world":n%=128:lp=1:&"Type a string{comma} colors and MCI allowed ({pound}{pound}$b prints b$ {f5}{pound}$b{f5}{comma} {pound}{pound}%n n% {pound}%n). Return{colon} an example.{f6}"
-	w$="":poke 53252,38:p$="String":&,1,9,0:if tr%<1 then return
-	c$=an$:if c$="" then c$="{lt. blue}Hello{white}{comma} {pound}$b! {cyan}({pound}%n){white}"
-	poke 53252,2:p$="Width (Return{colon} ll%)":&,1,0,0:w=val(an$):if w<1 or w>80 then w=.
-	z=w:if z=. then z=ll%
-	a$=c$:&,15,7,w,c$:&"{f6}&{comma}15{comma}7{comma}{pound}!w{comma}c${colon} the tab put in front is {pound}{pound}{back arrow}"+mid$(c$,3,2)+"{f6}"
-	lp=1:&"Centered for {pound}!z columns (each line below ends at column {pound}!z){colon}{f6}":gosub {:sub.128_ruler}
-	&c$+"{f6}"
-' again for another width: the tab is replaced, not added to
-' then:& -- the wedge only sees & at the start of a statement
-	if z<>40 then:&,15,7,40,c$:&"{f6}...and for 40 (the old tab replaced){colon}{f6}":z=40:gosub {:sub.128_ruler}:&c$+"{f6}"
-	return
-
-{:6800} ' 72: &,15,8: the widest of tt$()
-' &,15,8,s,n: the widest visible width among tt$(1)-tt$(n), each from its
-' character s (0 or 1: all of it), in peek(sareg) (6)
-	&"{f6}&{comma}15{comma}8 Widest of tt$(){f6:2}":b$="world"
-	tt$(1)="plain":tt$(2)="{lt. red}red{white} and white":tt$(3)="hi {pound}$b!":tt$(4)="keykeykeyk the shown part"
-	for i=1 to 4:a$=tt$(i):l=len(a$):&"{pound}!i) "+a$+"{f6}   len {pound}!l{f6}":next
-	&,15,8,0,4:w=peek({sym:sareg}):lp=1:&"{f6}&{comma}15{comma}8{comma}0{comma}4{colon} widest {pound}!w (expect 25{colon} item 4; item 2 is 13{comma} not its len 15; item 3 is 9{comma} b$ counted){f6}"
-	&,15,8,12,4:w=peek({sym:sareg}):lp=1:&"&{comma}15{comma}8{comma}12{comma}4{colon} widest {pound}!w (expect 14{colon} from character 12{comma} item 4's {quotation}the shown part{quotation}){f6}"
-	&,15,8,0,0:w=peek({sym:sareg}):&"&{comma}15{comma}8{comma}0{comma}0{colon} {pound}!w (expect 0){f6}":return
-
-{:6850} ' 73: the MCI tab
-' {pound}{back arrow}nn pads with spaces to column nn. When the modem gets
-' output (local 0: a caller, and a console logon), the column counted is
-' the caller's (modclm, up to modclmn - 1, which the ML keeps at ll%); at
-' the idle screen (local 1) the screen's. So a caller at 80 columns on a
-' 40-column console gets tabs past 39
-	l=peek(53248):k=peek({sym:modclmn}):b%=ll%:&"{f6}MCI Tab ({pound}{pound}{back arrow}nn){f6:2}local {pound}!l{comma} ll% {pound}%b{comma} modclmn {pound}!k{f6}"
-	z=ll%:if l then z=peek({sym:rmargin})+1
-	lp=1:&"Columns counted to {pound}!z{colon} an x at 10{comma} 30{comma} 50 and 70 (past the last column{comma} nothing){colon}{f6}":gosub {:sub.128_ruler}
-	for i=10 to 70 step 20:a$=right$("0"+mid$(str$(i),2),2):&"{pound}{back arrow}"+a$+"x"+mid$(str$(i),2)+"{f6}":next:return
-
-{:6900} ' 74: sub.columns
-' im=1:gosub 432: tt$(1)-tt$(n) in 1-4 columns for ll%, down then across;
-' x 1 numbers them; s is where each item's shown text starts
-' a sample list (plain assignments: built with C64List 4.04, this module
-' has BASIC 2's keywords only, so no do/loop or instr)
-	&"{f6}sub.columns{colon} a List in Columns{f6:2}":tt$(1)="Punter":tt$(2)="Image 1.3 Punter":tt$(3)="Xmodem"
-	tt$(4)="Xmodem/CRC":tt$(5)="Ymodem":tt$(6)="Zmodem":tt$(7)="Kermit":tt$(8)="Copier":tt$(9)="Relaxed Punter"
-	tt$(10)="Relaxed Xmodem":tt$(11)="1K Xmodem":tt$(12)="Turbo":tt$(13)="Raw":tt$(14)="Ascii":n=14
-	z=ll%:b%=ll%:poke 53252,2:p$="Width (Return{colon} ll% {pound}%b)":&,1,0,0:w=val(an$):if w<20 or w>80 then w=z
-	&"Numbered{question} ":gosub 96:x=a:s=.
-	&"{f6}{pound}!n items{comma} ll% {pound}!w{colon}{f6}":ll%=w
-	im=1:gosub 432
-	ll%=z:b%=ll%:&"{f6}(ll% back to {pound}%b){f6}":return
-
-{:6950} ' 75: ak$ follows ll%
-' ak$ ({pound}vj in & output) is rebuilt by the ML (akfix) between
-' statements whenever ll% is 3-80 and len(ak$) differs: no module builds it
-	&"{f6}ak$ Follows ll%{f6}":z=ll%
-	for i=1 to 4:ll%=val(mid$("30406080",i*2-1,2)):a=len(ak$):b%=ll%:&"{f6}ll% {pound}%b{comma} len(ak$) {pound}!a{colon}{f6}{pound}vj":next
-	ll%=z:a=len(ak$):b%=ll%:&"{f6}ll% back to {pound}%b{comma} len(ak$) {pound}!a{f6}":return
-
-{:sub.128_ruler}
-' a ruler z columns wide: the last digit of each column's number, every
-' tenth reversed
-	lp=0:a$="":for i=1 to z:a$=a$+right$(str$(i),1):next:&a$+"{f6}":return
+' the handler: in a sub-module, i/test calls 0, 20, 40 or 60 (calls 0-19,
+' 20-39, 40-59, 60-75; 11/20/2026: they didn't all fit in this one), at line
+' 4100 + 100 * (an - the first). im 72 loads it (only when it isn't the one
+' loaded already: p1$) and runs its line 4000, which jumps to a% (&,66). A
+' handler returning with g9 set (&,15's 7 and 8) has that option run next
+	g=20*int(an/20):if g>60 then g=60
+	a%=4100+100*(an-g):a$="test calls"+str$(g):if db then:&"[i/{pound}$a] a%{equal}{pound}%a{f6}"
+	g9=.:gosub 72:if g9 then an=g9:goto {:dispatch}
+	goto {:prompt}
 
 {nice:10}
 {:sub.setup}
@@ -863,20 +254,10 @@
 	fs$="{pound}#2{pound}# {pound}%n) "
 ' current line number to correctly calculate gosub targets regardless of where code gets moved to:
 	def fn cl(x)=peek({sym:curlin})+256*peek({sym:curlin}+1)
-' line variable
-' 3000 pr$
-' 4000 p1$
-' 60000 p2$
-' in e.errlog (im line 4024)
-' since this module spans 3000-4000, define pr$ and p1$ as the same
-	pr$="i."+"test calls":p1$=pr$
+' p1$: the i/test calls sub-module loaded (im 73 loads one when it differs;
+' e.errlog names it for an error at 4000 or above)
 	cm$="Test & Calls"+"":gosub 9
 	return
-
-{nice:10}
-{:sub.load_module}
-' TODO: possibly load sub-modules with more functions
-	rem sub.load_module
 
 {nice:10}
 {:quit}

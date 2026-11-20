@@ -1,0 +1,145 @@
+{uses:..\3_0-preface.lbl}
+' i/test calls 20: i.test calls' handlers for & calls 20-39 (11/20/2026: split
+' out of i.test calls, which had run out of room for a demo of each call).
+' i.test calls' dispatch sets a% to the handler, line 4100 + 100 * (the call
+' - 20), and loads this through im 72 (only when it isn't the one already
+' loaded); line 4000 jumps there (&,66). A handler returns to the dispatch.
+' i.test calls' subroutines, at fixed lines there:
+'   3004  sub.input_range (l, h, m, q: an, e9)
+'   3010  sub.out_of_range
+'   3012  sub.todo
+' g9 set on return: the dispatch runs that option next
+{alpha:alt}
+{crunch:on}
+{include:..\quoters.lbl}
+{include:"..\asm\equates.asm"}
+{assign:3004	=3004	}
+{assign:3010	=3010	}
+{assign:3012	=3012	}
+
+{:4000}
+{step:1}
+	&,66
+
+{:4100} ' &,20: Read From Interface Table
+	gosub 3012:return
+
+{:4200} ' &,21: Write to Interface Table
+	gosub 3012:return
+
+{:4300} ' &,22: Wait x Tenths of a Second
+	gosub 3012:return
+
+' test code from image bbs 2.0:
+' https://github.com/Pinacolada64/ImageBBS/blob/5b564adb919f49e7644c303e7c21e8b75fd192f0/v2/core/jack/i_UD.lbl#L93-L97
+
+' 10 x=11:print"auto-logoff. press space to abort"
+' 20 x=x-1:printx;:ford=1to1000:next:geta$:ifa$<>" "thenon-(x>1)goto20:goto40
+' 30 print"aborted":end
+' 40 print"auto-logoff"
+
+{:4400} ' &,23: xgetin
+	&"{pound}$f{colon}{f6:2}"
+
+{:amp_23_start}
+	&"(Simulated) Auto-Logoff in ten seconds.{f6:2}Press Space to abort{colon}{f6}":i=11
+{:23_loop}
+' NOTE: using &,4 gives inconsistent results, and never the PetSCII value of the typed character
+	i=i-1:&"{f6}{pound}!i":&,22,10:&,4:c=peek({sym:sareg}):&" c{equal}{pound}!c{comma} rc{equal}"+str$(rc)
+	if c<>32 then on -(i>1) goto {:23_loop}:&"Timed out.{f6}":goto {:23_again}
+' 92: ">>> Canceled!"
+	gosub 92
+{:23_again}
+' 96: "[Yes]"
+	&"Again [Y/n]{question}{colon} ":gosub 96:on a goto {:amp_23_start}:return
+
+{:4500} ' &,24: xchrout1
+	gosub 3012:return
+
+{:4600} ' &,25: Sound
+' &,25,<sound>,<repeat> (source/swap2.s, sound; repeats in irqhn.s)
+' <sound> = 0-3: beep, ding, higher ding, CCGMS gong; 255: stop repeating
+' <repeat> = 0: play once; 1-254: play it repeat+1 times; 255: forever
+' While a sound repeats, another &,25 (except 255) is ignored. Sound 0 is
+' silent if lightbar flag 27 (local beeps disabled) is on.
+	l=peek(53252):&,52,27,3:if a% then:&"{f6}Lightbar 27 (beeps disabled) is on{colon} sound 0 is silent.{f6}"
+{:amp_25_menu}
+	&"{f6}0-3) Play sound 0-3 once (&{comma}25{comma}x{comma}0){f6}R) Repeat a sound{f6}"
+	&"F) Forever (&{comma}25{comma}x{comma}255){f6}S) Stop (&{comma}25{comma}255){f6}Q) Quit{f6}"
+	poke 53252,1:pl=1:p$="Sound":&,1,0,0:pl=.:if an$="" or an$="Q" or tr%<1 then:&,25,255:poke 53252,l:return
+	if an$="S" then:&,25,255:goto {:amp_25_menu}
+	if an$>="0" and an$<="3" then s=val(an$):&,25,s,0:goto {:amp_25_menu}
+	if an$<>"R" and an$<>"F" then {:amp_25_menu}
+	r=255:o$=an$:poke 53252,1:p$="Which sound (0-3)":&,1,0,0:s=val(an$):if an$<"0" or an$>"3" then {:amp_25_menu}
+	if o$="R" then poke 53252,3:p$="Repeat (1-254)":&,1,0,0:r=val(an$):if r<1 or r>254 then {:amp_25_menu}
+	&,25,s,r:if r<255 then:&"{f6}&{comma}25{comma}{pound}!s{comma}{pound}!r{colon} plays {pound}!r more time(s) after the first.{f6}":goto {:amp_25_menu}
+	&"{f6}&{comma}25{comma}{pound}!s{comma}255{colon} repeating. Another &{comma}25 is ignored now{colon}{f6}"
+	poke 53252,1:p$="Return plays sound 1":&,1,0,0:&,25,1,0
+	p$="Return stops it (&{comma}25{comma}255)":&,1,0,0:&,25,255:goto {:amp_25_menu}
+
+{:4700} ' &,26: ecschk (find record by flags and name)
+' &,26,size,count,mask,array%(element),s$
+' a%=first record (1-count) whose flag word (bytes 2-3) shares a bit
+' with mask, and whose name (bytes 6-13, chr$(0)-padded) matches s$; 0=none
+' zt%(7,2): each record zt%(0-7,r) is 8 integers (16 bytes)
+' flags in zt%(1,r), name from zt%(3,r); search starts at record 1
+	if zt=0 then dim zt%(7,2):zt=1
+	zt%(1,1)=1:&,60,0,8,zt%(3,1),"FOO"
+	zt%(1,2)=2:&,60,0,8,zt%(3,2),"BAR"
+	&"&{comma}26 Find Record by Flags and Name{f6:2}"
+	&,26,16,2,2,zt%(0,1),"BAR":&"mask 2{comma} BAR{colon}      {pound}%a (expect 2){f6}"
+	&,26,16,2,1,zt%(0,1),"BAR":&"mask 1{comma} BAR{colon}      {pound}%a (expect 0){f6}"
+	&,26,16,2,3,zt%(0,1),"FOO":&"mask 3{comma} FOO{colon}      {pound}%a (expect 1){f6}"
+	&,26,16,2,3,zt%(0,1),"":&"mask 3{comma} empty{colon}    {pound}%a (expect 0){f6}"
+	&,26,16,2,0,zt%(0,1),"BAR":&"mask 0{comma} BAR{colon}      {pound}%a (expect 0){f6}"
+' only 8 characters are compared:
+	&,26,16,2,3,zt%(0,1),"BARxxxxxZ":&"mask 3{comma} BARxxxxxZ{colon}{pound}%a (expect 0){f6}"
+	&,60,0,8,zt%(3,2),"BARxxxxx"
+	&,26,16,2,3,zt%(0,1),"BARxxxxxZ":&"mask 3{comma} BARxxxxxZ{colon}{pound}%a (expect 2){f6}"
+' bit 15: stored as -32768, passed in mask as 32768:
+	zt%(1,2)=-32768:&,26,16,2,32768,zt%(0,1),"BARxxxxx"
+	&"mask 32768{colon}       {pound}%a (expect 2){f6}"
+	return
+
+{:4800} ' &,27: array pointer save
+' TODO: protect against &,27,1 (erases working variables for BBS)
+	gosub 3012:return
+
+{:4900} ' &,28: array pointer restore
+	gosub 3012:return
+
+{:5000} ' &,29: usevar
+	gosub 3012:return
+
+{:5100} ' &,30: putvar
+	gosub 3012:return
+
+{:5200} ' &,31: zero
+	gosub 3012:return
+
+{:5300} ' &,32: minusone
+	gosub 3012:return
+
+{:5400} ' &,33: getarr
+	gosub 3012:return
+
+{:5500} ' &,34: putarr
+	gosub 3012:return
+
+{:5600} ' &,35: getln
+	gosub 3012:return
+
+{:5700} ' &,36: putln
+	gosub 3012:return
+
+{:5800} ' &,37: trapon
+	gosub 3012:return
+
+{:5900} ' &,38: trapoff
+	gosub 3012:return
+
+{:6000} ' &,39: prtln
+	gosub 3012:return
+
+{nice:10}
+	rem "i/test calls 20"
