@@ -462,11 +462,16 @@ tz11:
 	jsr btoa
 	rts
 
+; 11/20/2026: x doubled for the table's words (the asl's result was
+; dropped), and x past the table out of range (bcc: x 0 was, and 1 and up
+; read the bytes after the table as an address); a% from varbuf, which
+; putvar stores (tay put the byte nowhere)
 read_interface_byte:
 	txa
 	asl
+	tax
 	cpx #interface_byte_table_end - interface_byte_table
-	bcc interface_byte_out_of_range
+	bcs interface_byte_out_of_range
 
 	lda interface_byte_table,x
 	sta read_interface_byte_load+1
@@ -476,7 +481,10 @@ read_interface_byte_load:
 	lda $ffff
 	cpy #0
 	bne read_interface_byte_done
-	tay
+	pha
+	jsr <@zero
+	pla
+	sta varbuf+1
 	ldx #var_a_integer
 	jsr <@putvar
 read_interface_byte_done:
@@ -489,8 +497,9 @@ interface_byte_out_of_range:
 write_interface_byte:
 	txa
 	asl
+	tax
 	cpx #interface_byte_table_end - interface_byte_table
-	bcc interface_byte_out_of_range
+	bcs interface_byte_out_of_range
 
 	lda interface_byte_table,x
 	sta write_interface_byte_load+1
