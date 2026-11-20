@@ -126,16 +126,16 @@ convtbl:
 	byte <convan0,<convstr
 	byte <convstr,<convstr
 	byte <convstr,<newdate
-	byte <strscan
+	byte <strscan,<center	; 11/20/2026: 7, center.asm
 convtbh:
 	byte >convan0,>convstr
 	byte >convstr,>convstr
 	byte >convstr,>newdate
-	byte >strscan
+	byte >strscan,>center
 
 ;  manipluate an$
 convan:
-	cpx #7
+	cpx #8
 	bcs cjmp
 	lda convtbl,x
 	sta cjmp+1

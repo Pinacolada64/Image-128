@@ -267,6 +267,45 @@ the statement after the `&`); `&,66,0` is a GOTO. The line must be under
   of text that callers see. `tests/standin/escq.bas` and `escq80.bas`
   try both.
 
+### Centering: `&,15,7`
+
+`&,15,7` puts the MCI tab (`{pound}{back arrow}nn`) to column
+`(width - visible) / 2` in front of a string (11/20/2026, `asm/center.asm`):
+
+| Call | Centers | For |
+|---|---|---|
+| `&,15,7` | `a$` | `ll%` |
+| `&,15,7,w` | `a$` | `w` columns (0: `ll%`) |
+| `&,15,7,w,s$` | `s$`, any string variable | `w` (0: `ll%`) |
+
+`&` reads two numbers after the command (7 and `w`), so a variable comes
+third: `&,15,7,0,b$`. A tab already at the string's start is replaced,
+so it can be centered again for another width. A number variable is left
+as it is; with no `ll%` yet (0) nothing changes.
+
+The visible length is what the string prints. Colors, reverse and the
+other control characters ($00-$1f, $80-$9f, and Image's return, $8b)
+count nothing, but Image's encoded punctuation (`{comma}`, `{colon}`,
+`{quotation}`, `{asterisk}`, `{question}`, `{equal}`, `{uparrow}`: $85-$8a,
+$8c) one each, as it prints. MCI commands count what they print: `{pound}$x`
+and `{pound}vX` the variable's length, `{pound}%x` the integer's digits
+and sign (at least the width of an earlier `{pound}#n` in the same
+string), `{pound}o` 19, `{pound}h` back its number, `{pound}a` (a compare)
+nothing up to the next `{pound}`, the rest nothing. `{pound}!x`, a
+floating point number, counts nothing. Two `{pound}`s print one.
+
+```
+b$="Good "+x$+", "+an$:&,15,7,0,b$:&"{f6}"+b$
+```
+
+The MCI tab itself (`mtab`, `asm/center_lo.asm`) counts columns on the
+caller's line when the modem gets output (`local` 0, a console login
+too): `modclm`, up to `modclmn - 1`, which the ML keeps at `ll%`. At the
+idle screen (`local` 1) it is the screen's (`scnpos`, up to `rmargin`).
+It used the screen's always, so on a 40-column console a tab past column
+39 did nothing for an 80-column caller. `tests/standin/center.bas` tries
+both.
+
 ## Today in History files: `today.<Mon>` and `s.today/hist`
 
 `i/lo/today` (the maker, `modules/i_lo_today.lbl`) reads this month's

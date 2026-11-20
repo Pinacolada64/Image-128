@@ -99,6 +99,14 @@ hcd24:
 wedge_pages = (* - wedge_exec_address) / 256
 
 ;;;
+;;; $3581-$35ff: the rest of center.asm (&,15,7, the MCI tab)
+;;;
+
+	orig $3581
+{include:"center_lo.asm"}
+	addrcheck glue
+
+;;;
 ;;; glue: $3600-$3fff
 ;;;
 
@@ -108,6 +116,8 @@ wedge_pages = (* - wedge_exec_address) / 256
 {include:"trace.asm"}
 ; the status line's indicators: shared, for the IRQ and the NMI
 {include:"status.asm"}
+
+{include:"center.asm"}
 	addrcheck $4000
 
 ;;;
