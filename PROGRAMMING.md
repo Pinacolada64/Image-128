@@ -298,6 +298,16 @@ floating point number, counts nothing. Two `{pound}`s print one.
 b$="Good "+x$+", "+an$:&,15,7,0,b$:&"{f6}"+b$
 ```
 
+`&,15,8,s,n` gives the widest visible width among `tt$(1)` to `tt$(n)`,
+each from its character `s` (0 or 1: all of it), counted as `&,15,7`
+counts. BASIC reads the result as `peek(6)` (`sareg`; an `&` routine's
+`.a`). `n` 0, or no `tt$()`, gives 0. `sub.columns` uses it for its
+column width:
+
+```
+&,15,8,s,n:w=peek({sym:sareg})
+```
+
 The MCI tab itself (`mtab`, `asm/center_lo.asm`) counts columns on the
 caller's line when the modem gets output (`local` 0, a console login
 too): `modclm`, up to `modclmn - 1`, which the ML keeps at `ll%`. At the
