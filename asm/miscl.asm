@@ -215,7 +215,8 @@ ecsc1:
 	lda #0
 	cpy index
 	bcs ecsc2
-	lda ($22),y
+	lda (index_24),y	; c64: ($22),y. 11/20/2026: evalstr leaves the string's
+			; address at $24 on the 128; ($22) never matched
 ecsc2:
 	sta buf2,y
 	iny
