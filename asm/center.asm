@@ -15,7 +15,8 @@
 ;
 ; The visible length is what the string prints:
 ; - characters $20-$7f and $a0-$ff count one each, $00-$1f and $80-$9f
-;   (colors, reverse, Image's tokens such as its return, $8b) none;
+;   (colors, reverse, Image's return, $8b) none, but Image's encoded
+;   punctuation ($85-$8a, $8c: {comma} {colon} and the rest) one each;
 ; - MCI commands (pound, the command, its argument) count what they print:
 ;     $x, vX    the variable's length (cstr, comv)
 ;     %x        the integer's digits and sign, at least the field width an
@@ -81,10 +82,26 @@ cscan:
 	bcs cdone
 	jsr cch
 	cmp #$5c	; pound: an MCI command
-	beq cmci
+	bne cscan0
+	jmp cmci	; past a branch's reach
+cscan0:
+; 11/20/2026: Image's encoded punctuation ($85-$8a, $8c: quoters.lbl's
+; {comma} {colon} {quotation} {asterisk} {question} {equal} {uparrow}) prints
+; as a character, one each; $8b, its return, nothing. They had counted as
+; control characters ($80-$9f), so i.test calls' "Hello{comma} ..." came out
+; one column off
+	cmp #$85
+	bcc cscan1
+	cmp #$8d
+	bcs cscan1
+	cmp #$8b
+	beq cnext
+	bne cscan2	; always
+cscan1:
 	and #$7f
 	cmp #$20
 	bcc cnext	; a control character
+cscan2:
 	jsr cvis1
 cnext:
 	iny
