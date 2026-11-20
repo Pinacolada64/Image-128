@@ -18,6 +18,7 @@ They're petcat source (BASIC 7.0), not C64List: `chr$(92)` for `£`, no
 |---|---|
 | `scroll.bas` | scrolling, and wrapping a long line at the screen's width |
 | `mask.bas` | the screen mask on and off (`&,18`), console text scrolling and wrapping underneath |
+| `center.bas` | `&,15,7` (`center.asm`): strings centered for `ll%`, an explicit width and another variable, with colors and MCI commands (`{pound}$`, `{pound}%` with `{pound}#`, `{pound}v`, `{pound}o`, two pounds, a pound before a non-command, `{pound}a`), centered twice, too wide, no `ll%`, a number variable; and the MCI tab at the screen's column (`local` 1) and the caller's (`local` 0, the Loc checkmark on so `carchk` lets output through without a carrier: `ll%` 80 reaches column 50, `ll%` 40 doesn't). Lists failures, then "done 0 failed" |
 | `status-right.bas` | `&,69` on the 80-column status area's right half, with the mask off and on |
 | `lightbar.bas` | the lightbar's labels and default checkmarks, loaded as `im` loads them; the f-keys move the highlight |
 | `gosub.bas` | `&,66,1` (a GOSUB from the ML) 50 times: the frame on BASIC 7's stack, the CPU stack left clean; then one to a missing line, caught by BASIC 7's `trap` and `resume next` |

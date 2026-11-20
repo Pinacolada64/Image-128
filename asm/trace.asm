@@ -186,31 +186,13 @@ oldprg:
 ; place in lloff; 0 until then (before boot's setptrs), and akfix does nothing.
 ; ll% is read through akll1/akll2's operands, set each time, not $fb/$fc.
 ; Ends with trace0's old jmp vdcstat.
+; 11/20/2026: also modclmn (the caller's width, which outmdm's wrap and the
+; MCI tab use) is kept at ll%: BASIC poked it beside some ll% changes only
 akfix:
-	lda lloff
-	ora lloff+1
-	beq akfix9	; ll% not found yet
-	clc
-	lda vartab
-	adc lloff
-	sta akll1+1
-	sta akll2+1
-	lda vartab+1
-	adc lloff+1
-	sta akll1+2
-	sta akll2+2
-	ldx #0
-akll1:
-	lda $ffff,x	; ll%'s high byte (bank 1: cfg_ml sees it)
-	bne akfix9	; over 255
-	inx
-akll2:
-	lda $ffff,x	; ll%'s low byte: the width
-	cmp #3
-	bcc akfix9	; 0 before a logon, or too narrow for " ", a midline and the return
-	cmp #81
-	bcs akfix9
+	jsr llget
+	bcs akfix9	; ll% not found yet, or not 3-80
 	sta akw
+	sta modclmn
 	ldx #var_ak_string
 	jsr usevar	; varbuf: ak$'s descriptor (its length first)
 	lda varbuf
@@ -235,6 +217,39 @@ akfix2:
 	jsr putvar	; ak$ is it now; the old one is garbage
 akfix9:
 	jmp vdcstat
+
+; llget: ll% in .a, carry clear when it is 3-80 (akfix; center.asm's
+; &,15,7). Carry set: not found yet (lloff 0, before boot's setptrs), over
+; 255, or out of range
+llget:
+	lda lloff
+	ora lloff+1
+	beq llget9
+	clc
+	lda vartab
+	adc lloff
+	sta akll1+1
+	sta akll2+1
+	lda vartab+1
+	adc lloff+1
+	sta akll1+2
+	sta akll2+2
+	ldx #0
+akll1:
+	lda $ffff,x	; ll%'s high byte (bank 1: cfg_ml sees it)
+	bne llget9	; over 255
+	inx
+akll2:
+	lda $ffff,x	; ll%'s low byte: the width
+	cmp #3
+	bcc llget9	; 0 before a logon, or too narrow for " ", a midline and the return
+	cmp #81
+	bcs llget9
+	clc
+	rts
+llget9:
+	sec
+	rts
 
 lloff:
 	word 0	; ll%'s place: varpnt - vartab (setptrs)
