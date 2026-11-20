@@ -260,6 +260,26 @@ still reaches its label (a `$ff` offset is the giveaway).
   `.a .x .y` and `$ff00` and switched to the ROMs; a handler ends with
   `jmp $ff33`. Image's IRQ runs in `cfg_ml` from `irq_far`, chained
   ahead of the KERNAL's.
+- **Code under I/O** (11/20/2026): bank 0's RAM at `$d000`-`$dfff`, under
+  the I/O chips, holds `ml.io`: `&,15,7`, `&,15,8` and their counting
+  (`center.asm`, `widest.asm`, `widest2.asm`; 725 bytes, the rest free).
+  - **Running it:** it runs in `cfg_io` (`$7f`), `cfg_ml` with RAM in
+    place of I/O. The shared top 16K makes that RAM bank 0's, and bank 1's
+    variables show as in `cfg_ml`. Each entry is reached by a `farcall`
+    stub that stays in ordinary RAM (`center_lo.asm`'s `center` and
+    `widest`). ROM calls go through romtab's stubs as anywhere, and
+    interrupts are safe (the KERNAL's entries save `$ff00` and switch to
+    `cfg_rom`).
+  - **What can't go there:** anything touching I/O: output, `local`
+    (`$d000` is the VIC there), the VDC. So the MCI tab's `mtab` stays in
+    `center_lo.asm`.
+  - **Loading:** `boot 128` loads `ml.io` with the rest (bank 0's load
+    writes the RAM under I/O). `split-ml.py` cuts it from `ml.prg`, and
+    `build.sh` writes it.
+  - **Checking it's free:** a console session with the area filled with
+    `$5a` left all 4096 bytes alone. After the stand-in test and two console
+    logons only `center.asm`'s own variables and self-modified operands had
+    changed.
 - **The VDC:** an interrupt can't touch it (the editor selects a
   register, then writes it), so the 80-column status lines are copied
   from the VIC screen by the main line (`vdcstat`).

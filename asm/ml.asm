@@ -68,10 +68,6 @@ hcd24:
 	jmp draw_status_line0
 	jmp rs_txwin0	; rs_txwin, $19a2
 	jmp rs_rxwin0	; rs_rxwin, $19a5
-; 11/20/2026: $19cc-$19ff, free after visfrom: &,15,8's entry
-	orig $19cc
-{include:"widest.asm"}
-	addrcheck jmptbl
 
 
 ;;;
@@ -103,7 +99,7 @@ hcd24:
 wedge_pages = (* - wedge_exec_address) / 256
 
 ;;;
-;;; $3581-$35ff: the rest of center.asm (&,15,7, the MCI tab)
+;;; $3581-$35ff: center_lo.asm (the MCI tab; &,15,7 and &,15,8's stubs)
 ;;;
 
 	orig $3581
@@ -121,7 +117,6 @@ wedge_pages = (* - wedge_exec_address) / 256
 ; the status line's indicators: shared, for the IRQ and the NMI
 {include:"status.asm"}
 
-{include:"center.asm"}
 	addrcheck $4000
 
 ;;;
@@ -220,9 +215,20 @@ swap3_pages = (* - swap3_load_address) / 256
 
 {include:"varbl.asm"}
 
-{include:"widest2.asm"}
 
 	addrcheck resident_lo_end
+
+;;;
+;;; $d000-$dfff: bank 0's RAM under I/O (11/20/2026), run through farcall
+;;; in cfg_io: &,15,7, &,15,8 and their counting. Nothing there may touch
+;;; I/O (output, local). ml.io loads it (boot.asm; split-ml.py)
+;;;
+
+	orig $d000
+{include:"center.asm"}
+{include:"widest.asm"}
+{include:"widest2.asm"}
+	addrcheck $e000
 
 	orig resident_hi
 

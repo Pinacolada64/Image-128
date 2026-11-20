@@ -45,6 +45,10 @@ trace exec c0f5 if @io:$d500 == $7e
 The configuration register reads back as `@io:$d500` or `@cpu:$ff00`;
 `@io:$ff00` reads `$ff`, so a condition on that never matches.
 
+The code under I/O (`ml.io`, `$d000`-`$dfff`) runs with `$ff00` = `$7f`
+(`cfg_io`): use `== $7f` for a checkpoint there, and `bank ram` to read
+it (`bank io` shows the I/O chips).
+
 ## See what led to a BRK
 
 A BRK in 128 mode drops into the KERNAL's own monitor, so VICE's CPU

@@ -165,7 +165,7 @@ if [ $mode = ml ]; then
 	[ -f "$build/image128.d81" ] || { echo "build.sh: no build/image128.d81: run asm/build.sh first" >&2; exit 1; }
 	# each file by name: delete it (if it's there), then write it
 	mlfiles=("boot 128.prg:boot 128" ml.buf:ml.buf ml.low:ml.low ml.mod:ml.mod
-		ml.res1:ml.res1 ml.res2:ml.res2 ml.rs232.prg:ml.rs232)
+		ml.res1:ml.res1 ml.res2:ml.res2 ml.io:ml.io ml.rs232.prg:ml.rs232)
 	for ((i = 1; i < ${#ovlwrites[@]}; i += 3)); do
 		mlfiles+=("$(basename "${ovlwrites[i]}"):${ovlwrites[i+1]}")
 	done
@@ -199,7 +199,7 @@ rm -f image128.d64 image128.d71 image128.d81
 c1541 -format "image bbs 128,ib" d81 image128.d81 \
 	-write "boot 128.prg" "boot 128" \
 	-write ml.buf ml.buf -write ml.low ml.low -write ml.mod ml.mod \
-	-write ml.res1 ml.res1 -write ml.res2 ml.res2 \
+	-write ml.res1 ml.res1 -write ml.res2 ml.res2 -write ml.io ml.io \
 	-write ml.rs232.prg ml.rs232 \
 	-write "im 128.prg" "im 128" \
 	-write "$repo/disk/e.lightbar.prg" e.lightbar \

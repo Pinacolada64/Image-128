@@ -37,7 +37,9 @@ $9000-$bfff	swapped-out modules: editor $9000, gc $a000, ecs $a400,
 
 bank 0 (and every bank: shared)
 $c000-$cfff	romtab.asm, then resident ML (strio ... varbl)
-$d000-$dfff	I/O
+$d000-$dfff	I/O; under it, bank 0 RAM: ml.io at $d000 (11/20/2026), run in
+		cfg_io ($7f) through farcall: &,15,7, &,15,8 (center.asm,
+		widest*.asm); $d2d5-$dfff free
 $e000-$feff	resident ML (irqhn ... calls, ex-c64 $cb00-$cdff code)
 $ff00-$ffff	MMU registers, KERNAL interrupt code in RAM
 

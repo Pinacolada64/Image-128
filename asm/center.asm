@@ -1,7 +1,8 @@
 ; center.asm -- &,15,7, a string centered for the caller's width, and the
-; MCI tab's body (11/20/2026). In the shared bottom 16K after status.asm
-; ($c000-$cfff, strio.asm and mcicm.asm, has no room); cdigits and mtab are
-; in center_lo.asm, at $3581 below glue, as this didn't fit below $4000.
+; counting it shares with &,15,8 (11/20/2026). Under I/O at $d000-$dfff,
+; bank 0's RAM there, run in cfg_io through farcall: center_lo.asm's center
+; stub calls centeri. Nothing here may touch I/O. mtab, the MCI tab's body,
+; is in center_lo.asm ($3581).
 ;
 ; &,15,7          centers a$ for ll%
 ; &,15,7,w        centers a$ for w columns (0: ll%)
@@ -31,7 +32,7 @@
 ;   two pounds print one; a pound before a character that isn't a
 ;   command prints itself, and the character counts as usual.
 
-center:
+centeri:
 	sty cnw		; w: 0 for ll%
 	jsr chrgot
 	cmp #comma
@@ -377,3 +378,47 @@ ctmp:
 	byte 0
 cy:
 	byte 0	; .y while a variable is read
+
+; the width cnum prints for the integer in varbuf (high), varbuf+1 (low):
+; its digits, a minus sign, at least cdig
+cdigits:
+	lda #0
+	sta ctmp	; the sign's width
+	lda varbuf
+	bpl cdg1
+	inc ctmp	; the minus sign
+	lda #0
+	sec
+	sbc varbuf+1
+	sta varbuf+1
+	lda #0
+	sbc varbuf
+	sta varbuf
+cdg1:
+	ldx #0
+cdg2:
+	cpx #4
+	beq cdg3
+	lda varbuf+1
+	cmp ctenl,x
+	lda varbuf
+	sbc ctenh,x
+	bcc cdg3	; under 10, 100, 1000, 10000
+	inx
+	bne cdg2
+cdg3:
+	inx		; the digits
+	txa
+	clc
+	adc ctmp
+	cmp cdig
+	bcs cdg4
+	lda cdig
+cdg4:
+	rts
+ctenl:
+	byte <10,<100,<1000,<10000
+ctenh:
+	byte >10,>100,>1000,>10000
+
+

@@ -1,51 +1,20 @@
-; center_lo.asm -- the rest of center.asm (11/20/2026): cdigits (&,15,7's
-; integer width) and mtab (the MCI tab's body), at $3581-$35ff, the 127
-; bytes free between the screen save buffers (tempcol, to $3580) and glue
-; ($3600): the shared area below $4000 had no room for all of center.asm.
-; ml.low (split-ml.py: wedgemem to $4000) loads it.
+; center_lo.asm -- at $3581-$35ff, the bytes free between the screen save
+; buffers (tempcol, to $3580) and glue ($3600); ml.low loads it.
+; 11/20/2026: center (&,15,7) and widest (&,15,8) here are farcall stubs:
+; their code is under I/O at $d000 (center.asm, widest*.asm, ml.io), run in
+; cfg_io. mtab stays here: it reads local (I/O) and prints.
 
-; the width cnum prints for the integer in varbuf (high), varbuf+1 (low):
-; its digits, a minus sign, at least cdig
-cdigits:
-	lda #0
-	sta ctmp	; the sign's width (center.asm's ctmp: free here)
-	lda varbuf
-	bpl cdg1
-	inc ctmp	; the minus sign
-	lda #0
-	sec
-	sbc varbuf+1
-	sta varbuf+1
-	lda #0
-	sbc varbuf
-	sta varbuf
-cdg1:
-	ldx #0
-cdg2:
-	cpx #4
-	beq cdg3
-	lda varbuf+1
-	cmp ctenl,x
-	lda varbuf
-	sbc ctenh,x
-	bcc cdg3	; under 10, 100, 1000, 10000
-	inx
-	bne cdg2
-cdg3:
-	inx		; the digits
-	txa
-	clc
-	adc ctmp
-	cmp cdig
-	bcs cdg4
-	lda cdig
-cdg4:
+center:
+	jsr farcall
+	byte cfg_io
+	word centeri
 	rts
-ctenl:
-	byte <10,<100,<1000,<10000
-ctenh:
-	byte >10,>100,>1000,>10000
 
+widest:
+	jsr farcall
+	byte cfg_io
+	word widesti
+	rts
 
 ; ********************************
 ; *  mtab: the MCI tab           *
@@ -67,12 +36,12 @@ mtab:
 	eor #$ff	; mval - the column: the spaces, counted once (output's
 	sec		; word wrap holds characters back, so the caller's column
 	adc mval	; doesn't move with each one)
-	sta ctmp	; center.asm's ctmp, free outside &,15,7
+	sta mtabn
 mtab1:
 	lda #' '
 	sta $fe
 	jsr output
-	dec ctmp
+	dec mtabn
 	bne mtab1
 mtab9:
 	rts
@@ -87,3 +56,5 @@ mtabc1:
 	ldy rmargin
 	lda scnpos
 	rts
+mtabn:
+	byte 0	; the spaces left

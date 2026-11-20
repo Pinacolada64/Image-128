@@ -5,12 +5,11 @@
 ; as &,15,7 counts it (center.asm's cmeas): control characters nothing,
 ; MCI commands what they print. n 0, or no tt$(): 0.
 ;
-; Its pieces, where there was room: this entry at $19cc-$19ff (after
-; visfrom), the loop (widest2.asm) at the end of $c000-$cfff, cmeas and
-; cdesc in the shared area (center.asm), arrfind in miscl.asm. wst and wn
-; are bytes after anfix ($0af5, $0af6).
+; Under I/O at $d000 with center.asm (cmeas, cdesc) and widest2.asm, run in
+; cfg_io: center_lo.asm's widest stub calls widesti. arrfind is miscl.asm's;
+; wst and wn are bytes after anfix ($0af5, $0af6).
 
-widest:
+widesti:
 	sty wst		; s
 	jsr chkcom
 	jsr getbytc	; .x: n
