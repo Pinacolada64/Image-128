@@ -58,27 +58,35 @@ cent3:
 	sta cnw
 	jsr cdesc	; slen, and the text's address in cget's and ccopy's operands
 	lda #0
-	sta vis
-	sta cdig
 	sta coff
-	ldy #0
+	tay
 ; a tab at the start, from an earlier &,15,7: skipped, and replaced
 	lda slen
 	cmp #4
-	bcc cscan
+	bcc cent4
 	jsr cch
 	cmp #$5c	; pound
-	bne cscan
+	bne cent4
 	iny
 	jsr cch
 	ldy #0
 	cmp #$5f	; back arrow
-	bne cscan
+	bne cent4
 	ldy #4
 	sty coff
+cent4:
+	jsr cmeas	; vis: the text's visible length from .y
+	jmp cdone
+
+; cmeas: the visible length (vis) of the text cdesc set up, from its
+; character .y (11/20/2026: a subroutine, for &,15,8 too: widest.asm)
+cmeas:
+	lda #0
+	sta vis
+	sta cdig
 cscan:
 	cpy slen
-	bcs cdone
+	bcs cmeas9
 	jsr cch
 	cmp #$5c	; pound: an MCI command
 	beq cmci
@@ -89,6 +97,8 @@ cscan:
 cnext:
 	iny
 	jmp cscan
+cmeas9:
+	rts
 
 ; the width: (w - visible) / 2, at most column 79
 cdone:
@@ -179,7 +189,7 @@ cbad:			; not a command: the pound prints, then this character
 	jmp cscan
 clast:
 	jsr cvis1
-	jmp cdone
+	jmp cmeas9
 c2pnd:
 	jsr cvis1
 	jmp cnext
@@ -201,7 +211,7 @@ cva:
 	iny
 	cpy slen
 	bcc cva1
-	jmp cdone	; out of a branch's reach
+	jmp cmeas9	; out of a branch's reach
 cva1:
 	jsr cch
 	cmp #$5c

@@ -1,5 +1,5 @@
 1 rem &,15,7: a string centered for ll% (center.asm), and the mci tab
-2 rem (\_nn: mtab, center_lo.asm). failed checks are listed at the end
+2 rem (\_nn: mtab, center_lo.asm), and &,15,8 (widest.asm). failed checks are listed at the end
 3 rem (for &,15,7: the column wanted and what it put in front), then "done"
 4 rem and the count. \ is the pound, _ the back arrow (petcat)
 10 sys 7171:poke 2794,0:poke 2787,1:poke 53252,60:poke 56328,0
@@ -37,6 +37,16 @@
 160 ll%=40
 170 poke 53248,0:a$=chr$(13)+"\_50x":&:m=peek(6272):poke 53248,1
 175 if m<>1 then f=f+1:f$=f$+" tab50-caller40"+str$(m)
-180 print chr$(147);"failed:";f$:print "done";f;"failed":end
+200 rem &,15,8,s,n: the widest of tt$(1)-tt$(n) from character s, in peek(6)
+205 dim tt$(10):b$="world"
+210 tt$(1)="ab":tt$(2)=chr$(5)+"hello"+chr$(146):tt$(3)="xyz":&,15,8,0,3:w=peek(6):e=5:x$="widest colors":gosub 950
+220 tt$(1)="12345678901abc":tt$(2)="12345678901abcdefg":&,15,8,12,2:w=peek(6):e=7:x$="widest from 12":gosub 950
+230 tt$(1)="n\$b!":&,15,8,0,1:w=peek(6):e=7:x$="widest mci":gosub 950
+240 &,15,8,0,0:w=peek(6):e=0:x$="widest n 0":gosub 950
+250 &,11,0:&,15,8,0,3:w=peek(6):e=0:x$="widest after &,11":gosub 950
+260 if tt$(2)<>"" then f=f+1:f$=f$+" &,11-cleared"
+290 print chr$(147);"failed:";f$:print "done";f;"failed":end
 900 if left$(a$,2)="\_" and mid$(a$,3,2)=e$ then return
 910 f=f+1:f$=f$+" "+x$+"(want "+e$+" got "+mid$(a$,3,2)+")":return
+950 if w<>e then f=f+1:f$=f$+" "+x$+"(want"+str$(e)+" got"+str$(w)+")"
+960 return

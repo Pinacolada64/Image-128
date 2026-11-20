@@ -519,8 +519,21 @@ arrays2:
 ; 128: was in the struct module (struct.asm); resident since it grew
 ; past the module's 6 pages with clrstr
 arrclr:
+	jsr arrfind
+	bcc arrclr1
+	rts		; not there (clrar7 is past a branch's reach now)
+arrclr1:
+	cpx #5		; 128: tt$() to nn$(), the string arrays:
+	bcs clrar4
+	jsr clrstr	; their strings garbage first
+	jmp clrar4
+
+; arrfind: the array .x names (arrays1/arrays2's numbering: 0 tt$()...):
+; varpnt its element 0, 20/21 its elements' bytes; carry set if it isn't
+; there. 11/20/2026: out of arrclr, for &,15,8 (widest.asm) too
+arrfind:
 	cpx #12
-	bcs clrar7
+	bcs arrf9
 	lda arytab	; 47
 	sta varpnt	; 71
 	lda arytab+1	; 48
@@ -553,7 +566,7 @@ clrar1:
 	bne clrar2
 	lda varpnt+1	; 72
 	cmp strend+1	; 50
-	beq clrar7
+	beq arrf9
 clrar2:
 	jmp clrar0
 clrar3:
@@ -571,9 +584,12 @@ clrar3:
 	lda 21
 	sbc #0
 	sta 21
-	cpx #5		; 128: tt$() to nn$(), the string arrays:
-	bcs clrar4
-	jsr clrstr	; their strings garbage first
+	clc
+	rts
+arrf9:
+	lda #0		; 0 in .a: &,15,8's result when there's no tt$()
+	sec
+	rts
 clrar4:
 	ldy #0
 	tya
