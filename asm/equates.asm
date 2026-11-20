@@ -1121,6 +1121,7 @@ var_kp_integer	= 38
 var_c3_string	= 39
 var_mp_string	= 48
 var_mn_integer	= 49
+var_ak_string	= 14	; ak$, the separator line (trace.asm's akfix keeps it ll% long)
 
 ; indices and bit masks for chktbl
 flag_sys_addr	= chktbl + 0

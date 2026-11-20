@@ -103,7 +103,9 @@
 60601 ifan$="{question}"thengosub60610:goto60600
 60602 x=int(val(an$)):iftr%<1thenreturn
 60604 ifx<22orx>80then:&"{f6}Must Be Between 22 And 80.{f6}":goto60600
-60606 ll%=x:a$="":fora=1toll%-2:a$=a$+"{$c0}":next:ak$=" "+a$+"{f6}":return
+' 11/19/2026: ak$ follows ll% by itself now (the ML's akfix, trace.asm)
+' between statements
+60606 ll%=x:return
 ' the ruler: 80 columns, every 10th its tens digit reversed, with no word
 ' wrap (lp=0), so the caller's screen wraps it where the screen ends
 60610 lp=0:&"{f6}":forx=1to8:&"123456789{rvrs on}"+mid$(str$(x),2)+"{rvrs off}":next

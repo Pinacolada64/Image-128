@@ -168,3 +168,75 @@ oldmem:
 	word 0
 oldprg:
 	word 0
+
+; ********************************
+; *  akfix: ak$ follows ll%       *
+; ********************************
+; 11/19/2026 (user's idea, modules/TODO.md): ak$, the separator line (pound-vj in & output:
+; a space, ll%-2 midlines, Image's return ($8b), ll% characters in all), was
+; built by BASIC loops (i.lo 3594, i/lo.on 4102, sub.param1 60606) that each
+; place changing ll% had to remember, and some didn't: an 80-column logon's
+; "PRIME TIME" lines kept the width ll% had at i/lo.on 4102. Now, between
+; statements (from trace0, after anfix's strfix, where makeroom's garbage
+; collection can't upset anything), when ll% is 3-80 and ak$ isn't that
+; long, ak$ is rebuilt here, as strfix builds a string: makeroom, fill it,
+; putvar. ak$'s own length is the check, not a remembered width, so an ak$
+; BASIC set some other way (im 3062 at boot, from sw) is put right too.
+; ll% has no index in vars (varbl.asm is full): setptrs (intro.asm) puts its
+; place in lloff; 0 until then (before boot's setptrs), and akfix does nothing.
+; ll% is read through akll1/akll2's operands, set each time, not $fb/$fc.
+; Ends with trace0's old jmp vdcstat.
+akfix:
+	lda lloff
+	ora lloff+1
+	beq akfix9	; ll% not found yet
+	clc
+	lda vartab
+	adc lloff
+	sta akll1+1
+	sta akll2+1
+	lda vartab+1
+	adc lloff+1
+	sta akll1+2
+	sta akll2+2
+	ldx #0
+akll1:
+	lda $ffff,x	; ll%'s high byte (bank 1: cfg_ml sees it)
+	bne akfix9	; over 255
+	inx
+akll2:
+	lda $ffff,x	; ll%'s low byte: the width
+	cmp #3
+	bcc akfix9	; 0 before a logon, or too narrow for " ", a midline and the return
+	cmp #81
+	bcs akfix9
+	sta akw
+	ldx #var_ak_string
+	jsr usevar	; varbuf: ak$'s descriptor (its length first)
+	lda varbuf
+	cmp akw
+	beq akfix9	; ll% wide already
+	lda akw
+	jsr makeroom	; .a bytes, marked garbage until putvar: varbuf
+	ldy akw
+	dey
+	lda #$8b	; Image's return (quoters.lbl's f6), last
+	sta (varbuf+1),y
+	lda #$c0	; the midlines
+akfix1:
+	dey
+	beq akfix2
+	sta (varbuf+1),y
+	bne akfix1	; always: .y isn't 0
+akfix2:
+	lda #$20	; a space, first
+	sta (varbuf+1),y
+	ldx #var_ak_string
+	jsr putvar	; ak$ is it now; the old one is garbage
+akfix9:
+	jmp vdcstat
+
+lloff:
+	word 0	; ll%'s place: varpnt - vartab (setptrs)
+akw:
+	byte 0	; the width being built

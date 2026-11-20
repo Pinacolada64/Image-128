@@ -465,6 +465,20 @@ setp1:
 	sta vars+1,y
 	dec tmp1
 	bpl setp1
+; 11/19/2026: and ll%'s place, for trace.asm's akfix (ak$ kept ll% wide).
+; Not in vars: varbl.asm's $c000-$cfff is full. im DIMs ll% before this
+; (line 3028) and before its &,27,1 mark, so its place doesn't move
+	lda #$cc	; "ll%": L and L, both with bit 7 set (an integer)
+	sta varnam
+	sta varnam+1
+	jsr findvar1
+	sec
+	lda varpnt
+	sbc vartab
+	sta lloff
+	lda varpnt+1
+	sbc vartab+1
+	sta lloff+1
 	rts
 
 date2:
