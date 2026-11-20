@@ -284,8 +284,10 @@ so it can be centered again for another width. A number variable is left
 as it is; with no `ll%` yet (0) nothing changes.
 
 The visible length is what the string prints. Colors, reverse and the
-other control characters ($00-$1f, $80-$9f, Image's tokens such as its
-return) count nothing. MCI commands count what they print: `{pound}$x`
+other control characters ($00-$1f, $80-$9f, and Image's return, $8b)
+count nothing, but Image's encoded punctuation (`{comma}`, `{colon}`,
+`{quotation}`, `{asterisk}`, `{question}`, `{equal}`, `{uparrow}`: $85-$8a,
+$8c) one each, as it prints. MCI commands count what they print: `{pound}$x`
 and `{pound}vX` the variable's length, `{pound}%x` the integer's digits
 and sign (at least the width of an earlier `{pound}#n` in the same
 string), `{pound}o` 19, `{pound}h` back its number, `{pound}a` (a compare)
