@@ -13,6 +13,7 @@
 50 a$="\o-":&,15,7:x$="pound-o":e$="10":gosub 900
 55 a$="a\\b":&,15,7:x$="two pounds":e$="18":gosub 900
 60 a$="\9x":&,15,7:x$="not mci":e$="18":gosub 900
+62 a$="a"+chr$(133)+"b"+chr$(139):&,15,7:x$="encoded comma":e$="18":gosub 900
 65 a$="\a1xx\yz":&,15,7:x$="compare":e$="19":gosub 900
 70 a$="hello":&,15,7,80:x$="width 80":e$="37":gosub 900
 75 c$="hello":&,15,7,0,c$:a$=c$:x$="c$":e$="17":gosub 900
