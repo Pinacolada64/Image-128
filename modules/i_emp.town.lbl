@@ -59,7 +59,7 @@
 {:sub.sell}
 	an$="":&"{f6}{cyan}Sell how many {yellow}[{pound}$k={pound}%a}]{lt. green}: {pound}i1":if tr%<1 then {:_8}
 ' if Return pressed, set default:
-	if an$="" then an$=str$(a%):&"{pound}{back arrow}10({pound}v7 chosen.){f6}"
+	if an$="" then an$=mid$(str$(a%),2):&"{pound}{back arrow}10({pound}v7 chosen.){f6}"
 	gosub {$33}015:if an>a% then:&"{lt. red}{pound}{back arrow}10You don't have that many!{f6}":goto {:sub.sell}
 ' input value of zero can still be caught after returning
 	return
@@ -77,32 +77,32 @@
 	if an>a% then gosub {:sub.show_number}:goto {:_32}
 	f%(5)=f%(5)-an:pn=pn+(wb*an):gosub {:msg.sold} ' &"{f6}{lt. green}SOLD!!"
 {:_40}
-	&"{f6}{lt. green}You have "+str$(f%(4))+" foundries."
+	&"{f6}{lt. green}You have ":x=f%(4):gosub {$33}010:&" foundries."
 	if f%(4)<1 then gosub {:sub.none}:goto {:_52}
 	wb=int((f%(4)/2)+2000)
 {:_44}
-	&"{f6}{white}The Barbarians will buy your foundries{f6}for "+str$(wb)+" dollars each.":gosub {:sub.sell}:s4=val(an$):if s4<1 then {:_52}
-	if s4>f%(4)then:&"{f6}You only have "+str$(f%(4))+" foundries.":goto {:_44}
+	&"{f6}{white}The Barbarians will buy your foundries{f6}for ":x=wb:gosub {$33}010:&" dollars each.":gosub {:sub.sell}:s4=val(an$):if s4<1 then {:_52}
+	if s4>f%(4)then:&"{f6}You only have ":x=f%(4):gosub {$33}010:&" foundries.":goto {:_44}
 	f%(4)=f%(4)-s4:pn=pn+(wb*s4):gosub {:msg.sold} ' &"{f6}{lt. green}SOLD!!"
 {:_52}
-	&"{f6}{lt. green}You have "+str$(f%(3))+" mills."
+	&"{f6}{lt. green}You have ":x=f%(3):gosub {$33}010:&" mills."
 	if f%(3)<1 then gosub {:sub.none}:goto {:town_64}
 	wb=int((f%(3)/2)+500)
 {:_56}
-	&"{f6}{white}The Barbarians will buy your mills for{f6}"+str$(wb)+" dollars each.":gosub {:sub.sell}:s3=val(an$):if s3<1 then {:town_64}
-	if s3>f%(3)then:&"{f6}You only have "+str$(f%(3))+" mills.":goto {:_56}
+	&"{f6}{white}The Barbarians will buy your mills for{f6} ":x=wb:gosub {$33}010:&" dollars each.":gosub {:sub.sell}:s3=val(an$):if s3<1 then {:town_64}
+	if s3>f%(3)then:&"{f6}You only have ":x=f%(3):gosub {$33}010:&" mills.":goto {:_56}
 	f%(3)=f%(3)-s3::pn=pn+(wb*s3):gosub {:msg.sold} ' &"{f6}{lt. green}SOLD!!{f6}"
 {:town_64}
-	&"{f6}{lt. green}You have "+str$(f%(2))+" markets."
+	&"{f6}{lt. green}You have ":x=f%(2):gosub {$33}010:&" markets."
 	if f%(2)<1 then gosub {:sub.none}:goto {:_190}
 	wb=int((f%(2)/2)+250)
 {:_68}
-	&"{f6}{white}The Barbarians will buy your markets{f6}for"+str$(wb)+" dollars each.":gosub {:sub.sell}:s2=val(an$):if s2<1 then {:_190}
-	if s2>f%(2)then:&"{f6}You only have "+str$(f%(2))+" markets.":goto {:_68}
+	&"{f6}{white}The Barbarians will buy your markets{f6}for ":x=wb:gosub {$33}010:&" dollars each.":gosub {:sub.sell}:s2=val(an$):if s2<1 then {:_190}
+	if s2>f%(2)then:&"{f6}You only have ":x=f%(2):gosub {$33}010:&" markets.":goto {:_68}
 	f%(2)=f%(2)-s2:pn=pn+(wb*s2):gosub {:msg.sold} ' &"{f6}{lt. green}SOLD!{f6}"
 	goto {:_190}
 {:_76}
-	&"{f6:2}Tax Rate:"+str$(tr)+"%{f6:2}{cyan}Enter new tax rate:{lt. blue}-->{lt. green}{pound}i1"
+	&"{f6:2}Tax Rate: ":x=tr:gosub {$33}010:&"%{f6:2}{cyan}Enter new tax rate:{lt. blue}-->{lt. green}{pound}i1"
 	if tr%<1 then {:_8}
 	x=int(val(an$)):if an$=""or x<1 then {:_2}
 	if x>50 then:&"{f6:2}{white}Maximum of 50%!{lt. blue}{f6}":goto {:_76}
@@ -111,19 +111,19 @@
 	gosub {:_174}
 	if pn>10000 or la>15000 then {:_160}
 {:_88}
-	og=int(3*rnd(0)+2):&"{f6:2}{lt. blue}Odds:"+str$(og)+" to 1"
+	og=int(3*rnd(0)+2):&"{f6:2}{lt. blue}Odds: ":x=og:gosub {$33}010:&" to 1"
 	if sf<1000 then gosub {:_186}
-	&"{f6}{white}You have"+str$(pn)+" dollars.{f6}"
+	&"{f6}{white}You have ":x=pn:gosub {$33}010:&" dollars.{f6}"
 	&"{f6}{cyan}Bet how many? (No Limit) {lt. blue}-->{lt. green}{pound}i1":if tr%<1 then {:_8}
 	x=val(an$):if x<1 or x>pn then return
 {:_96}
-	&"{f6:2}{lt. blue}Pick a number from 1 to"+str$(og+1)+":{pound}i1":if tr%<1 then {:_8}
+	a%=og+1:&"{f6:2}{lt. blue}Pick a number from 1 to {pound}%a:{pound}i1":if tr%<1 then {:_8}
 	if a$="" then return
 	a=val(an$):if a<1 or a>og+1 then {:_96}
 	b=int(rnd(.)*(og+1)+1):on-(a=b)goto {:_104}:pn=pn+x:sf=sf-10
 	&"{f6}{white}Close Enough!{f6}{pound}q1":goto {:_170}
 {:_104}
-	pn=pn+(x*og):sf=sf-50:&"{f6:2}{cyan}You win"+str$(x*og)+" dollars!":goto {:_170}
+	pn=pn+(x*og):sf=sf-50:&"{f6:2}{cyan}You win ":x=x*og:gosub {$33}010:&" dollars!":goto {:_170}
 {:_106}
 	&"{clear}{f6:2}{lt. blue}{rvrs on}: Shockers' Slaves :{rvrs off}{f6:2}"
 	if sf<1000 and la>10000 and pn>85000 then {:_112}
@@ -155,14 +155,14 @@
 	&"{cyan}    [Y] {lt. green}Your Status{f6:2}"
 	&"{cyan}    [Q] {lt. green}Return to the Empire{f6}":return
 {:_142}
-	&"{f6}{lt. green}You have "+str$(sf)+" serfs."
+	&"{f6}{lt. green}You have ":x=sf:gosub {$33}010:&" serfs."
 ' 128: la/sf as it is ((la/nb)/(sf/nb) divided by zero with no nobles), and
 ' 25 with no serfs
 	wb=25:if sf then wb=int(la/sf):if wb<25 then wb=25
 {:_146}
-	lp=1:&"{f6}{white}The Barbarians will buy your serfs for "+str$(wb)+" dollars each. "
+lp=1:&"{f6}{white}The Barbarians will buy your serfs for ":x=wb:gosub {$33}010:lp=1:&" dollars each. "
 	gosub {:sub.sell}:ss=val(an$):if ss<1 then return
-	if ss>sf then:&"{f6}You only have "+str$(sf)+" serfs.":goto {:_146}
+	if ss>sf then:&"{f6}You only have ":x=sf:gosub {$33}010:&" serfs.":goto {:_146}
 	sf=sf-ss:pn=pn+(wb*ss):&"{f6}{lt. green}SOLD!!":return
 {:_154}
 	&"{f6:2}Wanna sell some of your serfs (Y/N): ":gosub 94:if a=. then return
@@ -187,15 +187,15 @@
 	lp=1:&"{f6:2}{white}{pound}S1Ha! Ha! Ha! Ha! Ha!{pound}s0 I think you had better check your stats."
 	return
 {:_190}
-	&"{f6}{lt. green}Your palace is "+str$((f%(1))*10)+"% complete."
+	&"{f6}{lt. green}Your palace is ":x=(f%(1))*10:gosub {$33}010:&"% complete."
 '	if f%(1)<1 then gosub {:sub.none}:return
 	if f%(1)<1 then {:sub.none}
 	wb=int(((f%(1)/2.5)*(f%(1)*10000))/(f%(1)*3))
 {:_196}
 ' The barbarians will buy a palace for
-	lp=1:&"{f6}{white}The Barbarians will buy a Palace for"+str$(wb)+" dollars. "
+lp=1:&"{f6}{white}The Barbarians will buy a Palace for ":x=wb:gosub {$33}010:lp=1:&" dollars. "
 	gosub {:_204}:s1=val(an$):if s1<1 then return
-	if s1>f%(1)then:&"{f6}You only have "+str$(f%(1))+" Palace(s).":goto {:_196}
+	if s1>f%(1)then:&"{f6}You only have ":x=f%(1):gosub {$33}010:&" Palace(s).":goto {:_196}
 	f%(1)=f%(1)-s1::pn=pn+(wb*s1):&"{f6}{lt. green}SOLD!!{f6}":return
 {:_204}
 	&"{f6:2}{white}Enter 1 for 10%, 2 for 20%, etc...":goto {:sub.sell}
@@ -235,7 +235,7 @@
 	&"see if any of your warriors are eligible for promotion{f6}"
 	&"to the status of Noble.{f6:2}"
 	lp=1:&"{pound}w2Well, after checking all of your "
-	&"warriors, I have found that"+str$(wb)+" of{f6}"
+	&"warriors, I have found that ":x=wb:gosub {$33}010:&" of{f6}"
 	&"them are eligible.{f6}"
 	&"{f6:2}{lt. green}Do you wish them promoted? (Y/N) >> ":gosub 94
 	if a then wa=wa-wb:nb=nb+wb:lp=1:&"{f6:2}OK, all have been promoted! We hope they serve you well."
@@ -262,7 +262,7 @@
 	wb=int(nb*20-wa):if wb>(sf/2)then {:_290}
 '	if wb<1 then {:_290}
 	&"{clear}{f6:2}{lt. blue}{rvrs on}: Warrior Training :{rvrs off}{pound}q1{f6}"
-	&"{f6}{white}You have"+str$(wb)+" serfs that meet the requirement to be trained"
+	&"{f6}{white}You have ":x=wb:gosub {$33}010:&" serfs that meet the requirement to be trained"
 	&" as warriors.{f6:2}Training cost is one acre per serf.{f6}"
 	&"{f6}{lt. green}Do you want them trained (Y/N) >> ":gosub 94
 	if a then sf=sf-wb:la=la-wb:wa=wa+wb:&"{f6:2}{pound}w2{yellow}Ok, all serfs have been trained.{f6}{pound}q1"
@@ -287,19 +287,19 @@
 	&"{clear}{f6:2}{lt. green}{rvrs on}: Utopia's Auction :{rvrs off}{pound}q1{f6:2}"
 	if wz>2 then {:_415}
 	wz=wz+1:wb=fn r((250-100)+100)
-	lp=1:&"{green}I'll auction off my serfs to you for {white}"+str$(wb)+" {green}dollars each. "
+lp=1:&"{green}I'll auction off my serfs to you for {white}":x=wb:gosub {$33}010:lp=1:&" {green}dollars each. "
 {:_406}
 	&"{f6:2}{yellow}Buy how many?{white} {pound}i1":if tr%<1 then {:_8}
 '	if val(an$)<1 then return
 	x=int(val(an$)):if an$=""or x<1 then return
-	if pn<(wb*x)then:&"{f6:2}{red}You only have {white}"+str$(pn)+" {red}dollars!":goto {:_406}
+	if pn<(wb*x)then:&"{f6:2}{red}You only have {white}":x=pn:gosub {$33}010:&" {red}dollars!":goto {:_406}
 	pn=pn-(wb*x):sf=sf+x:&"{f6:2}{yellow}Sold!{pound}w1":return
 {:_415}
 	lp=1:&"{red}Utopia hates greed and calls the town guards to boot you out!":goto {:_8}
 {:_420}
 	lp=1:&"{blue}{clear}{f6:2}  Train Warriors{f6:2}  This is where you buy the necessary "
 	lp=1:&"materials and trainers for your men{f6}to have a high training rating, "
-	&"boosting their abilities in combat.{f6:2}{white}You have"+str$(z9)+" training units."
+	&"boosting their abilities in combat.{f6:2}{white}You have ":x=z9:gosub {$33}010:&" training units."
 	x=z9*5000
 	&"{f6}Do you want to train ($":gosub {$33}010:& ")? ":gosub 94:if a=. then:&"Maybe later.{f6}":return
 {:_430}
@@ -317,7 +317,7 @@
 '	if val(an$)<1 then return
 	if val(an$)>cr then:&"{f6:2}Get REAL!  You don't have that many credits!{f6:2}":return
 	cr=int(cr-val(an$)):pn=pn+(mp*val(an$))
-	&"{f6:2}{lt. green}You now have{white}"+str$(pn)+" {lt. green}dollars!{f6:2}":return
+	&"{f6:2}{lt. green}You now have{white} ":x=pn:gosub {$33}010:&" {lt. green}dollars!{f6:2}":return
 
 {number:4199}
 	rem +.emp6.town

@@ -60,9 +60,9 @@
 	&"{f6} Taxes:     $":x=tg:gosub {$33}010
 '	:lp=1:gosub {:sub.any_key}
 	&"{f6:2}{lt. green}PAYABLES{white}"
-	&"{f6:2} Soldiers Pay:"+str$(wa*(ff+2))+"{f6} Palace Rent :"
+	&"{f6:2} Soldiers Pay: ":x=wa*(ff+2):gosub {$33}010:&"{f6} Palace Rent : "
 ' 128: the rent /40, as in the payables' total
-	&str$(int(tr*f%(1)*10/40))+"{f6} Nobles Gifts:"+str$(xx)
+	x=int(tr*f%(1)*10/40):gosub {$33}010:&"{f6} Nobles Gifts: ":x=xx:gosub {$33}010
 	lp=1:gosub {$33}020 ':gosub {:_298}
 {:_298}
 	tz=0
@@ -109,8 +109,8 @@
 	b=int(val(an$)):if b<1 then {:_280}
 ' 128: b*p, the price (x is the money by now: it was last shown with x=pn)
 	if b*p>pn then {:_270}
-	if wa+b>(f%(4)+1)*100 then:&"{f6}You only have"+str$(f%(4))+" foundries!{f6}":goto {:_270}
-	if wa+b>nb*20 then:&"{f6}You only have"+str$(nb)+" nobles!{f6}":goto {:_270}
+	if wa+b>(f%(4)+1)*100 then:&"{f6}You only have ":x=f%(4):gosub {$33}010:&" foundries!{f6}":goto {:_270}
+	if wa+b>nb*20 then:&"{f6}You only have ":x=nb:gosub {$33}010:&" nobles!{f6}":goto {:_270}
 	wa=int(wa+b):pn=int(pn-(b*p))
 {:_280}
 ' increment turns taken:
@@ -135,12 +135,16 @@
 {:_320}
 ' subroutine
 ' fixme: can c% display over 5 digits?
-	if py<1 and wa>500 then a%=wa/5:wa=wa-a%:&"{f6}{lt. blue}{pound}%a soldiers desert your army.{f6}"
+' 128: floats, not a% (most 32,767: ?illegal quantity past it)
+' (x is this routine's flag, on the next line: a float with MCI here)
+	if py<1 and wa>500 then a=int(wa/5):wa=wa-a:&"{f6}{lt. blue}{pound}!a soldiers desert your army.{f6}"
 	if x<1 and nb>67 then a%=nb/5:nb=nb-a%:&"{f6}{lt. blue}{pound}%a of your nobles defect.{f6}":return
 	if f%(5)>400 then a%=f%(5)/1.1:f%(5)=f%(5)-a%:&"{f6}{lt. green}Your kingdom cannot support this many{f6}shipyards! {pound}%a are closed.{f6}"
-	if pn>1e6 then a%=pn/1.5:pn=pn-a%:&"{f6}{lt. blue}You pay {lt. green}${pound}%f {lt. blue}to the monks for this{f6}year's provisions for your subjects' survival.{f6}"
+' 128: x, as a% would always overflow here (1.2 printed {pound}%f, never set)
+	if pn>1e6 then x=int(pn/1.5):pn=pn-x:&"{f6}{lt. blue}You pay {lt. green}$":gosub {$33}010:&" {lt. blue}to the monks for this{f6}year's provisions for your subjects' survival.{f6}"
 {:_340}
-	if la>2500000 then a%=la/2.5:la=la-a%:lp=1:&"{f6}{red}You donate {pound}%a acres of land for the monestary."
+' 128: x, as a% would always overflow here
+	if la>2500000 then x=int(la/2.5):la=la-x:&"{f6}{red}You donate ":gosub {$33}010:lp=1:&" acres of land for the monastery."
 {:_346}
 	if f%(4)>400 then a%=f%(4)/3:f%(4)=f%(4)-a%:&"{f6:2}{rvrs on}{lt. green}MAJOR EXPLOSION!!!{rvrs off}{f6}{pound}%a foundries are {pound}p4destroyed!{pound}p0{f6:2}"
 {:_354}

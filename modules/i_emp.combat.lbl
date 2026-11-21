@@ -16,7 +16,7 @@
 
 {:sub.total_acres}
 ' pina added this
-	&"{green}You now have {lt. green}":x=la:gosub {$33}010:& "{green} acres.{f6}":return
+	lp=1:&"{green}You now have{lt. green} ":x=la:gosub {$33}010:& "{green} acres.{f6}":return
 
 {:combat_start}
 {nice:10}
@@ -36,7 +36,7 @@
 	if ez=. then:&"{f6}{white}"+en$+" has no land!{f6}":goto {:combat_start}
 	if ew=. then:&"{f6}{white}"+en$+" has no soldiers!{f6}":goto {:combat_start}
 
-	&"{lt. green}{f6}The Enemy {lt. blue}-->{white}"+en$+"{lt. blue}<--{f6}{white}Land{lt. blue}-->{lt. green}"+str$(ez)
+	&"{lt. green}{f6}The Enemy {lt. blue}-->{white}"+en$+"{lt. blue}<--{f6}{white}Land{lt. blue}-->{lt. green} ":x=ez:gosub {$33}010
 ' New: call IM routine here:
 	&"{lt. blue}{f6:2}":gosub 93:if a=. then {:combat_start}
 '	&"{lt. blue}{f6:2}Are you sure?{white} ":gosub 1902:if an$<>"Y"then {:combat_start}
@@ -100,13 +100,13 @@
 	&"Your ":x=wa:gosub {$33}010:& " remaining soldiers managed to capture":z9=z9+1:if z9>100 then z9=100
 	lt=abs(int(wa*.7+200+rnd(1)*300+rnd(1)*200+ez*.01)):if lt>ez then lt=ez
 {:_98}
-	x=lt:gosub {$33}010:& " acres... ":if wa then ew=int(en*20/2+rnd(1)*(en*20/2))
+	x=lt:gosub {$33}010:lp=1:& " acres... ":if wa then ew=int(en*20/2+rnd(1)*(en*20/2))
 	if bn=1 then gosub {:_705}:bn=.
 {:_100}
 	ez=int(ez-lt):la=int(la+lt):gosub {:sub.total_acres}
 {:_102}
 	if ez<1 then:&"{f6:2}{lt. green}You also killed "+en$+"!{f6}":w$="empty"+r$+"0":goto {:_170}
-	&"{f6:2}"+en$+" has"+str$(ez)+" acres left.":ew=int(ew):goto {:combat_164}
+	&"{f6:2}"+en$+" has ":x=ez:gosub {$33}010:&" acres left.":ew=int(ew):goto {:combat_164}
 {:_106}
 ' Your forces were defeated, but you
 ' managed to seize ...
@@ -122,7 +122,7 @@
 	&"{f6}You destroyed one of their palaces!{f6}":sl=fn r((wa*.5))+1
 	e1=e1+(e1>.):en=en+(en>.):if ew>en*20 then ew=en*20
 {:_120}
-	&"{f6}{lt. green}--> You lost"+str$(sl)+" soldiers in the process..."
+	&"{f6}{lt. green}--> You lost ":x=sl:gosub {$33}010:&" soldiers in the process..."
 {:_122}
 	wa=wa-sl:goto {:_34}
 {:_124}
@@ -140,7 +140,7 @@
 	nb=nb+1:en=en-1:sl=fn r(wa*.4)+1:goto {:_120}
 {:combat_156}
 	&"{f6}{lt. blue}Guards appear and halt your attempts!{f6}":sl=fn r(wa*.3)+2
-	&"{f6:2}{white}-->{lt. blue}The guards kill"+str$(sl)+" of your men!{f6}":goto {:_122}
+	&"{f6:2}{white}-->{lt. blue}The guards kill ":x=sl:gosub {$33}010:&" of your men!{f6}":goto {:_122}
 {:_160}
 	ae=.:if wa<1 then:&"{f6:2}{red}You have no soldiers!":ae=1:wa=.
 	return
@@ -221,7 +221,7 @@
 {:_618}
 	yc=yc-1
 {:_620}
-	&"{pound}{back arrow}09"+str$(yc)+"{pound}{back arrow}24"+str$(e7)+"{f6}":goto {:_612}
+	&"{pound}{back arrow}09 ":x=yc:gosub {$33}010:&"{pound}{back arrow}24 ":x=e7:gosub {$33}010:&"{f6}":goto {:_612}
 {:_622}
 '	on -(yc<1) goto {:_624} ew=ew-(yc*fn r(7)):return
 '{:_624}
@@ -235,7 +235,7 @@
 	e7=fn r(yc/2)+yc:goto {:_60}
 {:combat_700}
 ' yours & enemy's army's soldiers:
-	&"{white}   "+str$(wa)+"{pound}{back arrow}17"+str$(ew)+"{f6}":return
+	&"{white}   ":x=wa:gosub {$33}010:&"{pound}{back arrow}17 ":x=ew:gosub {$33}010:&"{f6}":return
 {:_705}
 	&"{f6:2}On your new land you find:{f6}":j=1
 	x=fn r(e5/ 6):&"{f6}Shipyards: ":gosub {$33}010:f%(5)=f%(5)+x:e5=e5-x

@@ -87,7 +87,7 @@
 'Tourney  9: Win  1 Shipyard and 100 acres
 	f%(5)=f%(5)+1
 {:shipyard}
-	&"(You now have"+str$(f%(5))+"shipyards.)":return
+	&"(You now have ":x=f%(5):gosub {$33}010:&" shipyards.)":return
 
 	&"(You lost your last ":x=abs(f%(5)):gosub {$33}010:&" shipyard.){f6}":goto {:tourney1}
 	

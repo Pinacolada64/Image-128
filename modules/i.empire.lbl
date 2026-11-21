@@ -27,8 +27,9 @@
 {:sub.comma_value}
 ' this is pinacolada's sorcery, blame him :/
 ' uses z$ a j l x y
+' 128: prints a - for a negative x (1.2 dropped it)
 	z$=mid$(str$(x),2,9):l=len(z$):a=l:if j then:& left$("           ",9-l+abs(l<4)+abs(l<7))
-	if l<4 then:&"{pound}$z":return
+	&left$("-",-(x<.)):if l<4 then:&"{pound}$z":return
 {:_2852}
 	a=a-3:if a>3 then {:_2852}
 	& left$(z$,a):for y=a+1 to l step 3:if a<>l then:&","
@@ -208,7 +209,9 @@
 ' tw=1 from i/emp.startturn's menu (T): the town, loaded from here, then
 ' the menu again (1.2 loaded the town from inside startturn, which it
 ' replaced, so its return had nowhere to go)
-	tw=.:a$="startturn":gosub {:sub.load_lmp}:on -(tr%<1 or tw=2)-2*(tw=3)-3*(tw=4) goto {:save_stats_quit},{:_420},{:quit_game}:if tw then a$="town":gosub {:sub.load_lmp}:goto {:start_turn}
+' 128: j=. too ({:sub.comma_value}'s right-justify, which the player list can
+' leave on: "Rats eat       4,230 bushels")
+	tw=.:j=.:a$="startturn":gosub {:sub.load_lmp}:on -(tr%<1 or tw=2)-2*(tw=3)-3*(tw=4) goto {:save_stats_quit},{:_420},{:quit_game}:if tw then a$="town":gosub {:sub.load_lmp}:goto {:start_turn}
 
 	a$="trading":gosub {:sub.load_lmp}:if tr%<1 then {:save_stats_quit}	
 
