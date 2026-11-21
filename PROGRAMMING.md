@@ -263,9 +263,41 @@ the statement after the `&`); `&,66,0` is a GOTO. The line must be under
 
   Put the cursor first with `&,70,column,row`. `im` 3414 clears under the
   boot frame this way (`&,70,0,6:&"{$1b}@"`). Only on the console: a
-  caller's terminal doesn't know the 128's Esc codes, so leave them out
-  of text that callers see. `tests/standin/escq.bas` and `escq80.bas`
+  caller's terminal doesn't know the 128's Esc codes unless the user
+  flag C128 Esc Codes ([`uf$` position 5](#the-callers-terminal-settings-uf))
+  is on, so leave them out of text that other callers see. `tests/standin/escq.bas` and `escq80.bas`
   try both.
+
+## The caller's terminal settings: `uf$`
+
+`uf$` holds a caller's terminal settings, one digit each, then their time
+zone. `sub.misc` reads it from the user's record (60034) and writes it
+back (60014); `im` 377 reads position `b` into `a`
+(`a=val(mid$(uf$,b,1))`) and 378 sets it from `a`. Most are set in the
+Terminal Parameters menu (`sub.param1`, EP).
+
+| Position | Holds | EP option |
+|---|---|---|
+| 1 | Linefeeds: 1 on (always on for an ASCII caller) | 5, Line Feeds |
+| 2 | The More prompt: 0 off, 1 on, 2 messages only (flag 34) | 8, "More?" Prompt |
+| 3 | Cursor menus: 1 on (flag 44) | 9, Cursor Menus |
+| 4 | The editor: 0 the line editor, 1 `++ visual` (`sub.editor`; an ASCII or ANSI caller always gets the line editor) | 10, Text Editor |
+| 5 | C128 Esc Codes: 1 on (see below) | 11, C128 Esc Codes |
+| 6-16 | The time zone, 11 characters (see "A time zone: `s.timezones`") | |
+
+An older record's `uf$` shorter than 5 characters gets `1000` after its
+first digit: More on, the others off.
+
+**C128 Esc Codes** (position 5) says the caller's terminal is a
+Commodore 128 in 128 mode whose screen editor carries out the 128's Esc
+codes (Esc I, Esc D, Esc Q and the rest), as the console does. EP's
+option 11 turns it on only in Commodore translation (an ASCII or ANSI
+terminal would show the letter after the Esc), and only after a test: it
+prints three lines, sends Esc D on the second, and asks whether line 2
+went. Off needs no test. `sub.editor` gives it to `++ visual` (`vesc`,
+7174), whose Esc I and Esc D then insert and delete lines on the caller's
+screen with the same codes instead of drawing the rows again.
+`tools/ep11_test.py` tries option 11 on a running BBS.
 
 ## Today in History files: `today.<Mon>` and `s.today/hist`
 
