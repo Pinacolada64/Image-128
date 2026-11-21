@@ -463,8 +463,8 @@ tz11:
 	rts
 
 ; 11/20/2026: x doubled for the table's words (the asl's result was
-; dropped), and x past the table out of range (bcc: x 0 was, and 1 and up
-; read the bytes after the table as an address); a% from varbuf, which
+; dropped), and x past the table out of range (bcc: x 0 and 1 were, and 2
+; and up read the bytes after the table as an address); a% from varbuf, which
 ; putvar stores (tay put the byte nowhere)
 read_interface_byte:
 	txa
