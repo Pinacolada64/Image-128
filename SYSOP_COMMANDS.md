@@ -249,6 +249,109 @@ The new user application (`i/lo.new`) asks "Are You An IMAGE BBS
 Owner?", and writes the new caller's record (or `n`); it creates
 `e.sysop` if it isn't there.
 
+## `LTK`: Lt. Kernal Chat
+
+A chat room for a BBS on a multiplexed Lt. Kernal hard drive, where up to
+16 computers (stations) share one drive. Callers at different stations
+talk to each other, and the sysop can come in at any station. It's a proof
+of concept (11/2026).
+
+### What it needs
+
+- The Lt. Kernal at device 8, with LU 10 (where the chat file goes; every
+  station sees LU 10's user 0). Image finds the Lt. Kernal by itself at
+  boot.
+- `++ chatmode` and `i.ltk chat` on the system disk. `asm/build.sh` puts
+  both on `build/image128.d81`.
+- The `LTK` entry in the Extended Command Set. The `e.ecs.main` the build
+  writes has it (any access group may use it). A BBS set up before
+  11/14/2026 keeps its own `e.ecs.main`: add it with `IM`, then the ECS
+  editor: command `LTK` (a long command), module `ltk chat`, and the
+  access groups who may use it.
+
+The first time anyone uses it, it makes `chatfile` on LU 10 (34 blocks).
+
+### Running it
+
+Type `LTK` at the main prompt. It tells you your station (the Lt.
+Kernal's port number), lists who else is online, and offers a menu:
+
+```
+Lt. Kernal Chat: you're at station 1.
+
+Online:
+Port 00: IMAGE SYSOP (chat room)
+
+C)hat, T)ranscript, W)ho, Q)uit:
+```
+
+| Key | Does |
+|---|---|
+| `C` | enters the chat room |
+| `T` | shows the transcript, oldest first; a key stops it |
+| `W` | lists who's online again |
+| `Q` | back to the main prompt |
+
+"Online" means logged on: a station shows as online, with its caller's
+handle, from their logon until they log off (however they leave: `/G`,
+the carrier dropping, their time running out), whether or not they've
+typed `LTK`. "(chat room)" after a name means they're in the room; "with
+SysOp" means the sysop is in the room at that station. A station that
+crashed with a caller on stays listed until it boots again.
+
+### In the chat room
+
+```
+Here: IMAGE SYSOP
+
+* In the chat room. /x leaves.
+* TEST ACCOUNT joined
+IMAGE SYSOP: hello from zero
+TEST ACCOUNT: hi from one
+```
+
+- Type a line and press Return to send it (78 characters at most; Delete
+  works). It shows at every station in the room as `handle: text`.
+- `/x` and Return leaves the room, back to the menu.
+- Others coming and going show as `* handle joined`, `* handle left`, and
+  `* handle timed out` (a station that stops answering for about 100
+  seconds).
+- A new line from another station shows within about half a second; a
+  station coming into the room is seen within about 8 seconds.
+- Up to 15 stations can be in the room at once. Past that: "The chat room
+  is full."
+
+### The sysop
+
+At any station where a caller is in the room, turn `Cht` on (the
+lightbar) to join: the room sees `* SysOp joined`, and while `Cht` is on
+the keyboard at that station is the sysop's, and lines go out as
+`SysOp: text`. Turn `Cht` off to leave (`* SysOp left`). A caller on the
+modem at that station stays in the room and keeps typing on their own
+line meanwhile.
+
+### The transcript
+
+Everything said in the room, joins and leaves too, goes into the
+transcript: the last 8K or so (16 blocks of `chatfile`, the oldest
+dropped as it fills). It's written by one station only (the
+lowest-numbered one in the room), under the Lt. Kernal's lock 0 (`&,13`,
+PROGRAMMING.md), so two stations never write it at once. When that station
+leaves, the next one takes over; a line can be lost or written twice at
+that moment.
+
+### Messages
+
+| Message | Means |
+|---|---|
+| Sorry, the chat module isn't on the system disk. | `++ chatmode` is missing |
+| This BBS has no Lt. Kernal hard drive. | no Lt. Kernal found at boot |
+| The chat file isn't ready (error _n_): tell the SysOp. | 2: no room on LU 10 for `chatfile`; 3: no LU 10; 6: `chatfile` is an old, smaller one: scratch it (LU 10, user 0) and the next `LTK` makes a new one |
+| The chat room is full. | 15 stations are in it already |
+
+`LTK` also leaves at once when the caller's time is up or their carrier
+drops.
+
 ## The idle screen
 
 What the BBS shows while nobody is connected (`i/lo.idle`). `?` lists
@@ -267,15 +370,39 @@ before `System Idle` comes back:
 ### `T`: carrier detect (DCD)
 
 The modem tells the BBS a caller is connected with its DCD (carrier
-detect) line. Some modems, and tcpser run with `-I`, give it the other
-way round, so Image can invert it: the lightbar's `DCD` checkmark, left
-side ("Invert DCD Signal", flag 58). With the wrong setting, the check
-mark at the right of the status line ("Carrier Present", flag 59) shows
-while nobody is connected, and the BBS takes a call that isn't there.
+detect) line. Two lightbar checks, both on the page with `Dcd` and `Dsr`,
+decide how the SwiftLink driver (`rs232_swift.asm`, `setcarr`) reads it:
 
-`T` turns the inversion on or off, waits a moment for the BBS to read
-the carrier again, and says which setting it's on and whether it's
-right:
+| Check | Flag | Means |
+|---|---|---|
+| `Dsr`, left | 60 (`$3c`) | which 6551 status bit is the carrier: on = DSR (bit 6), off = DCD (bit 5) |
+| `Dcd`, left | 58 (`$3a`) | invert the carrier ("Invert DCD Signal"): on = inverted |
+| `Dcd`, right | 59 (`$3b`) | "Carrier Present": shown by the BBS, not a setting |
+
+(`Dsr`'s right check, flag 61, turns the status line's RX/TX windows on;
+it has nothing to do with the carrier. The user port driver,
+`rs232_user.asm`, reads the carrier from the user port and ignores
+`Dsr`; `Dcd`'s inversion, done in the IRQ, applies to both drivers.)
+
+**In VICE (`start-image-128.sh`), Dsr on, Dcd off, and tcpser without
+`-I`.** A SwiftLink cartridge wires the modem's DCD to the 6551's DSR
+pin, and VICE does the same for the C64 and C128 (`aciacore.c`): the
+carrier tcpser sends shows in status bit 6, and bit 5 never changes.
+With `Dsr` off the BBS reads that unchanging bit 5, and no setting of
+`Dcd` gives a working carrier: not inverted, it sees a caller all the
+time; inverted, it never sees one. The second is the easy one to miss.
+The idle screen looks right, the BBS even answers a call (tcpser rings,
+the BBS sends `ATA`), but the caller gets only `AT` and no logon prompt,
+and the BBS goes back to idle (11/18/2026, the Lt. Kernal system). tcpser's
+`-I` (invert DCD) isn't needed: with `Dsr` on, the carrier comes through
+the right way round.
+
+On real hardware, set `Dsr` the way the cartridge is wired (a SwiftLink:
+on), then use `Dcd` for a modem that gives its DCD the other way round.
+
+`T` turns the `Dcd` inversion on or off (not `Dsr`), waits a moment for
+the BBS to read the carrier again, and says which setting it's on and
+whether it's right:
 
 | Message | Means |
 |---|---|
@@ -287,19 +414,125 @@ right:
 "OK" and "Wrong" are judged by the idle screen itself: nobody is
 connected there, so a carrier means the setting is the wrong way round.
 Pressing `T` while a call is coming in can give `Wrong` when the setting
-is right; press it again when the line is quiet. With tcpser run by
-`start-image-128.sh` (`-I`), the right setting is `DCD Inverted`.
+is right; press it again when the line is quiet. Set `Dsr` first: with
+it off in VICE, `T` says `DCD Inverted: OK`, but only because the bit it
+reads never changes, and no call gets through. With `Dsr` on, the right
+answer in VICE is `DCD Normal: OK`.
 
-The setting is the lightbar checkmark itself, so it can be changed there
-too. Until 10/28/2026 the ML put it back off every few moments (the
-`mxor_compat` bug, `PORTING_NOTES.md`), so it couldn't be left on.
+The settings are the lightbar checkmarks themselves, so they can be
+changed there too. Until 10/28/2026 the ML put `Dcd` back off every few
+moments (the `mxor_compat` bug, `PORTING_NOTES.md`), so it couldn't be
+left on.
 
-**To keep it:** `T` changes the setting only until the BBS restarts,
-which sets the lightbar's checks from `e.lightdefs` (`im 128` line
-3250). Once `T` says `OK`, set the `DCD` left checkmark the same way in
-`IM`: **H** Lightbar/Alarms, **A** Lightbar Defs, then save; `i/IM.lightbar`
-offers to make the saved table active. (Modem Config has no carrier
-setting: its flag 9 is DTR, the BBS's own line to the modem.)
+**To keep them:** `T` and the lightbar change the checks only until the
+BBS restarts, which sets them from `e.lightdefs` (`im 128` line 3250).
+Once a call gets through, set the `Dsr` and `Dcd` left checkmarks the
+same way in `IM`: **H** Lightbar/Alarms, **A** Lightbar Defs, then save;
+`i/IM.lightbar` offers to make the saved table active. (Modem Config has
+no carrier setting: its flag 9 is DTR, the BBS's own line to the modem,
+and flag 11 picks the driver, User Port or SwiftLink.)
+
+## `IM`: Configuration Editor
+
+The BBS's settings, in one module (`i.IM`) and the `i/IM.*` modules it
+loads for each part.
+
+### Running it
+
+- Type `IM` at the main prompt (a maintenance command in the Extended
+  Command Set, `e.ecs.main`; who may use it is set in that entry).
+- Or press `I` (IM Configurator) at the idle screen: the local sysop, no
+  login. `Q` then goes back to the idle screen.
+
+Each menu is a lightbar menu: press an item's letter, or move to it and
+press Return. Every submenu's last item goes back to the main menu.
+
+### The main menu
+
+| Key | Item | What it does | Module |
+|---|---|---|---|
+| `A` | Macros Editor | the macros (`e.macros`) | `i/IM.macros` |
+| `B` | Command Set | the Extended Command Set: the main prompt's commands, the modules they run and who may use them | `i/IM.ecs` |
+| `C` | Payroll Editor | the users paid credits at AutoMaint, each an ID and an amount (`u.payroll`) | `i.IM` |
+| `D` | Module Editors | a menu: `A` Login Mods, `B` AutoMaint Mods, `C` Wall Ads, `D` Quicklist | `i/IM.logon` |
+| `E` | Access Groups | the access groups' names and what each may do | `i/IM.access` |
+| `F` | File Lists | the lists of files the BBS shows | `i/IM.filelist` |
+| `G` | Function Keys | what the function keys type (`e.fkeys`) | `i/IM.macros` |
+| `H` | Lightbar/Alarms | the lightbar's checkmarks, labels and alarms: below | `i/IM.lightbar` |
+| `I` | Misc. Features | the settings below | `i/IM.misc` |
+| `J` | Modem Config | the modem's profile (`nimodem.dat`) | `i/IM.modem` |
+| `K` | Set Time | sets the clock: from the clock source chosen (CMD, Lt. Kernal, DS12C887, Ultimate, TeensyROM, or the last AutoMaint date), by hand, or chooses another source | `sub.clocks` |
+| `L` | System Drives | each of Image's six drives (System, E-Mail, Etcetera, Directory, Module, User): its device and drive (or Lt. Kernal LU), e.data records 52-57 | `i.IM` |
+| `M` | Netmail Config | a menu: local info, modem specs, calling hours, `nm.create`, connections, the forward list, Netwall/Grf | `i/IM.netmail` |
+| `N` | Base Editors | System Maintenance's editors | `i.SM` (if it's on the Module drive) |
+| `Q` | Quit | back to the main prompt, or the idle screen | |
+
+### `I`: Misc. Features
+
+Each line shows the setting as it is; choose it to change it. Most are
+e.data records, written as soon as they're changed; Return at a prompt
+keeps what's there.
+
+| Key | Item | Setting |
+|---|---|---|
+| `A` | Lt. Kernal Device | the Lt. Kernal's device number: 7-32, or 0 for none (e.data 38) |
+| `B` | Autoweed Cutoff | months without a call before AutoMaint weeds an account: 0-48 (39) |
+| `C` | Default Color | the text colour, 1-15, from a list (40) |
+| `D` | Printer Address | the printer's secondary address (41) |
+| `E` | Printer Linefeeds | whether the printer gets a linefeed after each Return (42) |
+| `F` | Password Masks | the characters shown in place of a password as it's typed (43) |
+| `G` | Time Zone | the system's time zone, from a list; with DST, its alarms are set too (Daylight saving time, below) |
+| `H` | DST Rules | when DST starts and ends: below |
+| `I` | Main Prompt | the main prompt's text (`bd.data`, on the boot disk) |
+| `J` | BBS Name | (47) |
+| `K` | System ID | two characters (51) |
+| `L` | New User Credits | the credits a new account starts with: 1-65000 (58) |
+| `M` | Prime Time | below |
+| `N` | Chat Messages | the messages shown as the sysop enters and leaves chat (48, 49) |
+| `O` | Main Menu | back to `IM`'s menu |
+
+### Misc. Features `M`: Prime Time
+
+Prime Time is the busy part of the day, when each call is kept short so
+more callers get on. In it, a caller's time is cut to the Prime Time
+minutes when they log on ("Please Note: It is now PRIME TIME."), the
+idle screen shows `*PRIMETIME*`, and the status line `PRIME`.
+
+The Misc. Features line shows it as the minutes and the hours: `Not Set`,
+or `60, 12P-11P`. Choosing it shows:
+
+```
+1> Minutes/Call: 60
+2> Start Time  : 12PM
+3> End Time    : 11PM
+```
+
+| Key | Sets |
+|---|---|
+| `1` | Minutes/Call, 0-999: the time each call gets in Prime Time. 0 is no Prime Time |
+| `2` | Start Time: the hour it starts |
+| `3` | End Time: the hour it ends |
+| Return | leaves ("Changes Saved.") |
+
+Each change is saved as it's made (e.data record 20). Type an hour as
+12-hour, `A` or `P` after it (`12A` is midnight, `12P` noon, `4P` 4:00
+PM), or as a 24-hour number without either (`16`); only 0-23 are taken.
+
+Prime Time runs from the start of the Start hour **until** the End hour:
+`12P` to `11P` is noon to 11:00 PM. An End Time earlier in the day than
+the Start Time runs past midnight: `12P` to `12A` is noon until midnight,
+`10P` to `2A` is 10:00 PM to 2:00 AM. The same Start and End Time is no
+Prime Time. (`im 128` line 84.)
+
+The lightbar's `Tsr` right checkmark ("Prime Time Enabled", flag 7)
+turns Prime Time the other way while it's set: on outside the hours, off
+in them (30 minutes a call, if Minutes/Call is 0).
+
+Until 11/15/2026 the screen showed noon as `12AM` and midnight as `0AM`,
+and a typed `12P` was stored as 24, which never matched; the Misc.
+Features line showed the setting as the module last loaded it. Until
+11/17/2026 Prime Time couldn't run past midnight: an End Time earlier
+than the Start Time never turned it on.
 
 ## `IM` H: Lightbar/Alarms
 
@@ -461,21 +694,40 @@ sees the right time all year, and the zone's name follows (`PST`, `PDT`).
 A caller whose zone was chosen before this is asked to choose again, once.
 
 **Clocks.** A CMD or DS12C887 clock is set too when the BBS's clock moves.
-A clock the BBS can't set (Lt. Kernal, Ultimate, TeensyROM) is taken to
+A clock the BBS can't set (Lt. Kernal, TeensyROM) is taken to
 keep standard time: the BBS adds the hour when it reads one on daylight
-time.
+time. The Ultimate is kept on standard time too: when the BBS sets it
+(`K`, Set Time, after setting the clock by hand), it takes the hour off.
 
 ### `IM` Misc. Features `H`: DST Rules
 
+From `IM`'s main menu: `I` (Misc. Features), then `H`.
+
 The rules say when DST starts and ends; each zone names its rule by letter.
-The list shows each rule in words, with this year's dates:
+The screen starts with the system's zone and where its clock stands, then
+lists each rule in words, with this year's dates (`*` marks the system's):
 
 ```
-1) U US and Canada (since 2007)
+DST Rules: MST/MDT, rule U
+Clock: MDT, daylight; set back: not yet
+
+1) U US and Canada (since 2007) *
    Starts Mar 2nd Sun, 2:00 AM
    Ends   Nov 1st Sun, 2:00 AM
    2026: Mar 8 to Nov 1
 ```
+
+`Clock` says whether the BBS has its clock on daylight time (the zone's
+daylight name) or standard time, and whether the set-back at the end of DST
+has been done: after the clock goes back, `set back: done` until it goes
+forward again when DST next starts, so the hour that comes twice isn't set
+back twice. (In the north that's from autumn to spring; for Australia and
+New Zealand, whose DST ends in April, from April to the spring in October
+or September.) They're e.data record 46's flags (PROGRAMMING.md).
+
+If `Clock` is wrong (the clock was set by hand across a change, say), set
+the flags right with `F`, then check with `C`: with the flags right, `C`
+moves the clock to match the rule if it needs it.
 
 | Key | Does |
 |---|---|
@@ -483,6 +735,8 @@ The list shows each rule in words, with this year's dates:
 | `A` | add a rule, starting from the US one |
 | `D` | delete a rule, after saying how many time zones use it (they'd have no DST) |
 | `S` | save; if the BBS's zone has a rule, its DST and alarms are set again by the rule as saved |
+| `F` | the flags by hand: is the clock on daylight time, and (on standard time) has it been set back this year. Only the flags: the clock isn't moved (use `K`, Set Time, for that, or `C`) |
+| `C` | check the clock by the rule now, as the DST alarm does: if it's on the wrong side, it's moved an hour forward or back (and a CMD or DS12C887 clock with it), and the flags with it |
 | `Q` | back (offering to save changes) |
 
 A local end time is asked and shown as the clock reads it then, on daylight

@@ -267,6 +267,91 @@ the statement after the `&`); `&,66,0` is a GOTO. The line must be under
   of text that callers see. `tests/standin/escq.bas` and `escq80.bas`
   try both.
 
+### Centering: `&,15,7`
+
+`&,15,7` puts the MCI tab (`{pound}{back arrow}nn`) to column
+`(width - visible) / 2` in front of a string (11/20/2026, `asm/center.asm`):
+
+| Call | Centers | For |
+|---|---|---|
+| `&,15,7` | `a$` | `ll%` |
+| `&,15,7,w` | `a$` | `w` columns (0: `ll%`) |
+| `&,15,7,w,s$` | `s$`, any string variable | `w` (0: `ll%`) |
+
+`&` reads two numbers after the command (7 and `w`), so a variable comes
+third: `&,15,7,0,b$`. A tab already at the string's start is replaced,
+so it can be centered again for another width. A number variable is left
+as it is; with no `ll%` yet (0) nothing changes.
+
+The visible length is what the string prints. Colors, reverse and the
+other control characters ($00-$1f, $80-$9f, and Image's return, $8b)
+count nothing, but Image's encoded punctuation (`{comma}`, `{colon}`,
+`{quotation}`, `{asterisk}`, `{question}`, `{equal}`, `{uparrow}`: $85-$8a,
+$8c) one each, as it prints. MCI commands count what they print: `{pound}$x`
+and `{pound}vX` the variable's length, `{pound}%x` the integer's digits
+and sign (at least the width of an earlier `{pound}#n` in the same
+string), `{pound}o` 19, `{pound}h` back its number, `{pound}a` (a compare)
+nothing up to the next `{pound}`, the rest nothing. `{pound}!x`, a
+floating point number, counts nothing. Two `{pound}`s print one.
+
+```
+b$="Good "+x$+", "+an$:&,15,7,0,b$:&"{f6}"+b$
+```
+
+`&,15,8,s,n` gives the widest visible width among `tt$(1)` to `tt$(n)`,
+each from its character `s` (0 or 1: all of it), counted as `&,15,7`
+counts. BASIC reads the result as `peek(6)` (`sareg`; an `&` routine's
+`.a`). `n` 0, or no `tt$()`, gives 0. `sub.columns` uses it for its
+column width:
+
+```
+&,15,8,s,n:w=peek({sym:sareg})
+```
+
+The MCI tab itself (`mtab`, `asm/center_lo.asm`) counts columns on the
+caller's line when the modem gets output (`local` 0, a console login
+too): `modclm`, up to `modclmn - 1`, which the ML keeps at `ll%`. At the
+idle screen (`local` 1) it is the screen's (`scnpos`, up to `rmargin`).
+It used the screen's always, so on a 40-column console a tab past column
+39 did nothing for an 80-column caller. `tests/standin/center.bas` tries
+both.
+
+## Lists in columns: `sub.columns`
+
+`sub.columns` (11/20/2026) prints `tt$(1)` to `tt$(n)` in as many columns as
+fit the caller's width, 1 to 4, down the first column and then the next.
+A module calls it through `im` 432: `im=1:gosub 432` (from another sub
+module too: `im` 75 loads that one again afterwards).
+
+| Variable | Meaning |
+|---|---|
+| `n` | the number of items |
+| `x` | 1: each numbered, `nn) ` (right-aligned); 0: not |
+| `s` | where each item's shown text starts (0 or 1: all of it) |
+
+`s` lets a caller keep a key in front of the shown text. `sub.info`'s time
+zones keep the 11-character zone, and `sub.param1`'s protocols show from
+10.
+
+The columns: `(ll% + 1) / (number + widest item + 2)`, kept within 1-4 and
+no more than `n`, each `ll% / columns` wide. The MCI tab starts each one
+but the first. The widest item comes from `&,15,8`, which counts as
+`&,15,7` does: control characters (colors, reverse) nothing, and MCI
+commands what they print. So items can carry colors and MCI.
+
+A long list pauses at the More prompt (flag 34). On the console the More
+prompt doesn't run, so `sub.columns` pauses itself with `<Hit any key>`
+whenever the editor window (`sctop` to `scbot`) is nearly full. "The
+console" is `local` (`peek(53248)`, at the idle screen and in setup) or
+the Loc checkmark (flag 4, a sysop logged on at the console, where `local`
+is 0). Output stopped (`rc`) stops the list. It uses `a`, `a%`, `c7`-`c9`,
+`d9`, `h9`, `i`, `j`, `k9`, `r9` and `w9`, and leaves `n`, `x`, `s` and
+`tt$()` as they were.
+
+```
+61002 &"{f6}Available Protocols{colon}{f6:2}":n=x:x=1:s=10:im=1:gosub432:x=n
+```
+
 ## Today in History files: `today.<Mon>` and `s.today/hist`
 
 `i/lo/today` (the maker, `modules/i_lo_today.lbl`) reads this month's
@@ -411,9 +496,12 @@ AM UTC), `A` south-eastern Australia, `N` New Zealand.
 ### The BBS's state: `e.data` records 45 and 46
 
 Record 45 is the BBS's zone (above). Record 46 is `1,` when the clock is on
-daylight time (`0,` when not), then a copy of the zone's rule line, so the
-check needn't read `s.dstrules` each time. A different letter, or no copy,
-makes the next check read the rule and take the clock as right.
+daylight time (`0,` when not), then `1,` once the autumn's set-back has been
+done (`0,` until then), then the first 19 characters of the zone's rule line
+(the letter and the dates; the record is 31 long), so the check needn't read
+`s.dstrules` each time: `1,0,U03210200L11110100L`. A different letter, or no
+copy, makes the next check read the rule and take the clock as right. A
+record from before the set-back flag (`1,U0321...`) is read as `0`.
 
 ### `sub.clocks`: entries 12-15
 
@@ -424,10 +512,17 @@ makes the next check read the rule and take the clock as right.
 | 14 | the caller's zone by their rule: `uzoneh` and the name shown (`PST` or `PDT`) | `i/lo.on` at login |
 | 15 | the alarms that set checkmark 64 at the minutes the rule changes the clock, on its change weekdays; old ones (checkmark 64) taken out first; `e.alarms` saved | `i/su.config`, 13 |
 
-The check uses the rule's start and end in standard time, so the autumn's
-hour that happens twice is never set back twice. Clocks `sub.clocks` can't
-write (Lt. Kernal, Ultimate, TeensyROM) are taken to keep standard time:
-reading one adds the hour while record 46 says `1`.
+The check uses the rule's start and end in standard time. The autumn's hour
+that happens twice is set back once only: setting the clock back sets the
+set-back flag, and while it's set a check that finds the flag for daylight
+time on records standard time without moving the clock (else the 2:00 alarm
+set it back every time the clock came round to 2:00 again). Setting the clock
+forward clears it, and so does 13 when it finds daylight time. Clocks `sub.clocks` can't
+write (Lt. Kernal, TeensyROM) are taken to keep standard time:
+reading one adds the hour while record 46 says `1`. So is the Ultimate, which
+`sub.clocks` can write (`im=16`, or `im=9` when record 37 names it, with the
+Command Interface's `SET_TIME`, `$27`): it writes standard time, taking the
+hour off while record 46 says `1`, so a DST change doesn't need to write it.
 
 ## The sysop information file: `e.sysop`
 
@@ -621,6 +716,154 @@ A NetSub (a sub-board shared through the network) is defined in the file
   the 128's keeps a 121st byte for it (11/05/2026). A file saved by the
   release (or the C64) hasn't that byte, so it loads as it always did,
   with `a%(60)`'s low byte 0.
+
+## `++ chatmode`: chat between Lt. Kernal stations
+
+A proof of concept (11/12/2026): on a multiplexed Lt. Kernal hard drive,
+where up to 16 computers (stations, the host adapter's ports 0-15) share
+one drive, callers at different stations chat in one room, and the sysop
+comes in at any station by turning `Cht` on (and leaves by turning it
+off). `modules/i.ltk chat.lbl` runs it from the main prompt: the ECS
+command `LTK` (`e.ecs.main`; how to use it is in SYSOP_COMMANDS.md,
+"`LTK`: Lt. Kernal Chat"). The source is `asm/chatmode.asm`, whose header
+has the details; `asm/build.sh` writes it to the disk as `++ chatmode`
+with the other overlays (since 11/14/2026), and Image's own Lt. Kernal
+code (`use_ltk`, intro.asm) is on.
+
+`LTK` is a long ECS entry (32 bytes, `asm/ecs.asm` has the layout): flag
+`$c0` (active, used, a module, long), access `$ff $03` (all groups), the
+command at bytes 3-9, the module's name (without `i.`) at 10-23. The
+command's letters must be stored shifted, `$c1`-`$da` (`LTK` is
+`cc d4 cb`), as im compares them; the module's name isn't (`ltk chat` is
+`4c 54 4b 20 43 48 41 54`). Written unshifted, the command is never
+matched ("Unknown Command").
+
+A sent line's text is read through `cmpptr` (`$fc`/`$fd`), which the
+whole BBS changes behind the overlay's back (in 80 columns, with im's IRQ
+running; the stand-ins don't show it): `cmwrmine` and `cmkey6` set it
+again from the line's buffer (`cmlnptr`) right before reading the text
+(11/14/2026; it sent the right length with the wrong bytes before).
+
+| Call | Does |
+|---|---|
+| `&,16` | shows the transcript, oldest first, until a key |
+| `&,16,2` | lists the other stations online: `Port nn: handle`, `(chat room)`, `with SysOp` |
+| `&,16,3` | the chat room, as `a$`, until `/x`, or the caller's carrier or time runs out |
+| `&,16,4,s` | this station's state: 0 offline, 1 online; `a$` the handle |
+
+The results are at `peek({sym:protostart}+3)` on: `+3` 0 fine, 1 carrier
+or time, 2 no room for the file on LU 10, 3 no LU 10 (or the new file not
+found), 4 no Lt. Kernal, 5 the room is full (15 stations), 6 an old
+`chatfile`; `+4` the transcript's blocks shown; `+5` this station's port;
+`+6` the other stations online; `+7` of those, in the room.
+
+- **The file:** `chatfile` on LU 10, user 0 (where every port sees it),
+  34 contiguous blocks: the header; a block for each port; the
+  transcript's position; the transcript, a ring of 16 blocks (8K).
+- **One writer per block.** The Lt. Kernal's notes call two ports writing
+  at once "usually fatal", so a station writes only its own block (its
+  state, handle, a tick, and its last 5 lines, numbered), and the others
+  read it; the transcript is written by the lowest-numbered station in the
+  room only. When that one leaves, the next takes over; a line can be lost
+  or written twice then. Its writes are under `&,13`'s lock 0 (below), so
+  two stations that both think they're the writer at a handover write one
+  after the other.
+- **The chat:** a line is sent on Return. About twice a second the overlay
+  reads the blocks of the stations in the room, and one other in turn (a
+  station coming in is seen within 8 seconds), and prints what's new. A
+  station whose tick stops for about 100 seconds is shown as timed out.
+- **Online** means logged on (11/14/2026): `i.lo` calls `&,16,4,1` with
+  `na$` at logon (3118, normal and Instant Login alike) and `&,16,4,0` on
+  the way back to idle (3230: after every logoff, and at boot, which
+  clears a station a crash left online), through its lines 3236-3239.
+  They load `++ chatmode` at protostart (the idle screen loads `++ clock`
+  again itself, and nothing in the logon calls `&,16` before loading its
+  own). Only with a Lt. Kernal configured: when `lk%`, its device number
+  from `e.data` record 38, is 0 they return at once and `++ chatmode`
+  isn't loaded, and `i.ltk chat` says so the same way (its line 3001).
+  Otherwise `gosub 28` loads it and reads the drive's status (`im` 29 ends
+  `goto 5`), so `e%` is the load's error (e.g. no `++ chatmode` on the
+  disk) and they return. Don't add a `gosub 5` after it: the status has
+  been read, and a second read gives `00, OK`. (11/19/2026: `lq%`, which
+  was to stop the overlay loading again, is gone. It was set after `im`
+  3168's `&,27,1` mark, so every `&,28,1` (`im` 300, 302) dropped it, and
+  without a Lt. Kernal the overlay was loaded at every boot, logon and
+  logoff.)
+  `i.ltk chat` sets it online again (not offline) when the caller quits.
+  An online station's tick isn't watched: only stations in the room time
+  out.
+
+`tests/standin/chatmode.bas` (one station) and `tests/standin/chat2.bas`
+(two x128s on one emulated Lt. Kernal, ports 0 and 1) try it:
+`tools/ltk_chatmode.py`, `tools/ltk_chat2.py`.
+
+## `&,13`: locks between Lt. Kernal stations
+
+On a multiplexed Lt. Kernal hard drive, the stations (up to 16 computers,
+the host adapter's ports 0-15) share one drive, and two writing the same
+file at once can wreck it. `&,13` is Image's lock between them (`arbit`,
+miscl.asm, from Image 2.0; the 128's since 11/12/2026):
+
+| Call | Does |
+|---|---|
+| `&,13,1,n` | takes lock `n` (0-15), waiting while another station has it (a reverse `L` on the status line meanwhile); taken twice, it must be given back twice |
+| `&,13,2,n` | gives it back |
+
+Take the lock, do the writes, give it back. Without a Lt. Kernal (or its
+`lockfile`) both do nothing, so a module can call them on any system.
+
+A lock is only a number the stations agree on: it doesn't know about
+files, and a station that writes without taking it isn't stopped. Pick one
+lock for each file (or set of files written together) that more than one
+station writes, and have every module that writes it take that lock.
+
+| Lock | Used by | For |
+|---|---|---|
+| 0 | `++ chatmode` | the transcript in `chatfile` (only the room's writer takes it) |
+| 1-15 | | free |
+
+From BASIC, around writes to a shared file:
+
+```
+3100 &,13,1,1:dr=3:a$="e.idle 1,s,a":gosub 4:print#2,d1$","b$:close 2:&,13,2,1
+```
+
+From ML (as `++ chatmode` does): `ldx #1` (take; `#2` give back),
+`ldy #lock`, `lda #13`, `jsr usetbl1`.
+
+- **It waits as long as it takes.** There's no time limit and no way out:
+  the station shows a reverse `L` at column 31 of the status line (row 24,
+  copied to the VDC in 80 columns too) until the lock is free, and the
+  caller sees nothing happen. So hold a lock only for the writes
+  themselves: never across a prompt, a key, or a modem transfer.
+- **Taking it again is fine:** a station that holds a lock gets it again
+  at once, and the count goes up; it's free once the count is back to 0
+  (as many gives as takes). Giving back a lock the station doesn't hold
+  does nothing, and so does a lock past 15 or any call but 1 and 2.
+- **A station that crashes holding a lock** keeps it until it boots
+  again: `lockinit` frees that station's locks then (the owner is the
+  port). Until it does, the others wait on that lock. There's no command
+  to free it from another station yet.
+
+- **The lockfile:** `lockfile` on LU 10, user 0, 17 contiguous blocks:
+  its header, then a block for each lock: the owner (its port + `$80`; 0
+  for none) and how many times it has taken it. `lockinit` (intro.asm, at
+  `im`'s `sys 7171`) finds it, or makes it (2.0 only found it), and frees
+  every lock in a new one, and in any case the locks this station held
+  before a crash or a reset.
+- **Taking one:** read its block; free (or already this station's): write
+  this station's and the count, wait (up to ~65 ms, CIA 1's timer B), read
+  it again, and start over if another station wrote in between.
+- **On the 128:** the Lt. Kernal's routines (BNKOUT, BNKIN, DRIVER) are
+  in its own ROM and RAM, where Image's ML can't call them from its
+  configuration, so the block reads and writes are in glue.asm
+  (`ltkblock`, `ltklkblk`, the shared 16K), with `$ff00` set as W. J.
+  Brier's LK Mini-Mon (a C-128 program) sets it. The Lt. Kernal is found
+  as the C64 found it, by the `jsr` its KERNAL has at `$ffd2` (read with
+  the ROMs in), once, at boot.
+
+`tests/standin/lock.bas` (`tools/ltk_lock.py`) tries it on two x128s
+sharing VICE's emulated Lt. Kernal.
 
 ## VIC screen cells to the VDC: `&,72`
 

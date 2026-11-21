@@ -129,6 +129,11 @@
 			; so the ML at $c000, the screen, Image's tables and
 			; glue.asm all stay visible, and the C64 code's
 			; "lda (pointer),y" on variables and strings just works
+	cfg_io	= $7f	; 11/20/2026: cfg_ml with RAM, not I/O, at $d000-$dfff; the
+			; shared top 16K makes it bank 0's RAM, where the code
+			; ml.io loads runs (&,15,7, &,15,8: center.asm, widest*.asm)
+			; through farcall. Bank 1's variables are seen as in
+			; cfg_ml; nothing there may touch I/O
 	cfg_bank0= $3f	; bank 0 all RAM, no I/O: to read BASIC program text
 	cfg_charrom= $01 ; bank 0 with the ROMs, and the character ROM at $d000
 			; in place of I/O (editor.asm's big letters read it)
@@ -417,6 +422,9 @@
 	; leave it there), and trace0 copies it into a string of its own before
 	; the next statement. BASIC 7's x$=an$ copies only the descriptor
 	anfix	= $0af4	; 2804
+	; 11/20/2026: &,15,8 (widest.asm): s (the start index) and the items left
+	wst	= $0af5	; 2805
+	wn	= $0af6	; 2806
 	keychk	= $033c	; 128 only: KEYCHK, the editor's vector for each decoded key
 			; on its way into the buffer (.a: the key; default $c6ad)
 
@@ -642,7 +650,36 @@
 	viscmd	= $199e	; 1 byte: ++ visual's dot command letter (11/08/2026):
 			; it exits with .x=4 and the letter here; the line
 			; editor's entry4 (&,54,3) runs it
-; $199f-$19ff: free
+; 11/16/2026: the status line's indicators (asm/status.asm): .a = index,
+; .x = 0 off / non-zero on; keeps .a .x .y. Safe from the IRQ and NMI.
+	draw_status_line = $199f ; 3 bytes: jmp draw_status_line0
+	stat_abt = 0	; output aborted (/, space, Ctrl-C)	40: A, column 30
+	stat_pau = 1	; output paused (Ctrl-S)		40: P, column 30
+	stat_dsk = 2	; load/save, SwiftLink interrupts off	40: L, column 30
+	stat_gc  = 3	; garbage collection			40: G, column 31
+	stat_swp = 4	; page swap				40: S, column 31
+	stat_lck = 5	; waiting for a Lt. Kernal lock		40: L, column 31
+	stat_ovr = 6	; receive overrun (on until logoff)	40: O, column 29
+	stat_flo = 7	; flow control: RTS dropped		40: F, column 32
+	stat_int = 8	; 6551 interrupts off			40: I, column 32 (with F)
+	stat_car = 9	; carrier present			40: check, column 39
+	stat_count = 10	; (80 columns: label idx at row 24, column 40+4*idx)
+; row 23's receive and transmit windows (status.asm), for both RS-232
+; drivers: the byte in ptr1 scrolled in; .a .y lost, .x kept. Main line.
+	rs_txwin = $19a2 ; 3 bytes: jmp rs_txwin0 (columns 29-38)
+	rs_rxwin = $19a5 ; 3 bytes: jmp rs_rxwin0 (columns 1-10)
+; the last module the wedge loaded (openroom), for 80 columns' row 21
+	modnew	= $19a8	; 1: a new name (status.asm's r80_mod clears it)
+	modlen	= $19a9	; its length, 0-16
+	modname	= $19aa	; 16 bytes ($19aa-$19b9), PETSCII
+; &,9's 16-character window (swap2.asm btmvar) in 80 columns: row 22's
+; columns 64-79, which the VIC hasn't got; status.asm's r80_btm copies it
+	btmwin	= $19ba	; 16 bytes ($19ba-$19c9), screen codes
+	btmnew	= $19ca	; non-zero: btmwin changed
+	visfrom	= $19cb	; 1 byte (11/11/2026): 1 while sub.editor runs a dot command
+			; from ++ visual (its .H help then goes back to it); was $199f,
+			; which draw_status_line took (11/18/2026)
+; $19cc-$19ff: free
 
 ; $1a00-$1bff: $1ff / 511 bytes. room for IRQ/& jump tables?
 
@@ -920,6 +957,8 @@
 	; (assembled apart): copies 8 bytes of the character ROM to charbuf8
 	charrom8		= $3780
 	charbuf8		= charrom8 + 40
+	ltkon			= charbuf8 + 8	; 11/13/2026: 1 if there's a Lt. Kernal (lockinit), glue.asm
+	ltklu			= ltkon + 1	; the LU logged in at boot (lockinit; im 3077)
 	romtab			= $c000	; romtab.asm, then the resident ML:
 	resident_lo_end		= $d000	;   $c000-$cfff
 	resident_hi		= $e000	;   and $e000-$feff ($ff00-: MMU, and the
@@ -1090,6 +1129,7 @@ var_kp_integer	= 38
 var_c3_string	= 39
 var_mp_string	= 48
 var_mn_integer	= 49
+var_ak_string	= 14	; ak$, the separator line (trace.asm's akfix keeps it ll% long)
 
 ; indices and bit masks for chktbl
 flag_sys_addr	= chktbl + 0
@@ -1141,8 +1181,8 @@ flag_unv_l_mask	= %01000000	; 22 No immediate U/D credits
 flag_unv_r_mask	= %10000000	; 23 Allow auto-logoff
 
 flag_trc_addr	= chktbl + 3
-flag_trc_l_mask	= %00000001	; 24 On-screen trace enable
-flag_trc_r_mask	= %00000010	; 25 Undefined
+flag_trc_l_mask	= %00000001	; 24 On-screen trace enable (the mask's L=: shdlr.asm trace4)
+flag_trc_r_mask	= %00000010	; 25 Time: Reset Clock (alarm At1 sets it; i/lo.idle 4209 re-reads the clock, clears it)
 
 flag_bel_addr	= chktbl + 3
 flag_bel_l_mask	= %00000100	; 26 Local bells enabled
@@ -1190,9 +1230,10 @@ flag_h2e_r_mask	= %10000000	; 47 Undefined
 
 ; lightbar positions $3e-$6e are undefined
 
-flag_h38_addr	= chktbl + 7 	; Trb
+flag_h38_addr	= chktbl + 7 	; Dbg
 flag_h38_l_mask	= %00000001	; 56 ($38) On: Do not display BASIC variables
-flag_h38_r_mask	= %00000010	; 57 ($39) On: Enable VIC-II border color change on error
+flag_h38_r_mask	= %00000010	; 57 ($39) On: Border Color on Event: the VIC-II border
+			; changes on an error (red), a new user, feedback (im 23)
 
 flag_dcd_addr	= chktbl + 7 	; DCD
 flag_dcd_l_mask	= %00000100	; 58 ($3a) invert DCD: off=normal, on=inverted
@@ -1206,6 +1247,10 @@ flag_mhz_addr	= chktbl + 7 	; mHz (128; the lightbar's label, 11/05/2026)
 flag_mhz_l_mask	= %01000000	; 62 ($3e) 128: on = the CPU at 2 MHz ($d030 bit 0;
 			; setup.asm's speed_update sets it from the speed)
 flag_mhz_r_mask	= %10000000	; 63 ($3f) Undefined
+flag_prg_addr	= chktbl + 6	; Prg (page 4, label 1; was Em3; here, not in order, 11/16/2026)
+flag_prg_l_mask	= %00000001	; 48 ($30) Image 1.3 emulator: im 309 loads im.emul13
+flag_prg_r_mask	= %00000010	; 49 ($31) 40 columns: the mask's row 23 shows P= V=
+			; rather than V= L= (trace.asm; STATUS_LINE.md)
 
 ; editor input flags: &,1,x,y
 ; x:

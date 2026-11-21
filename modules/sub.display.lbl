@@ -65,9 +65,9 @@
 	&,69,00,21,"Area",$8f:gosub {:60350}:&,69,27,21,"User",$8f:gosub {:60352}
 {endif}
 
-	&,69,00,22,"C=00000 N=000           *Image BBS v3.0*",$81
+	&,69,00,22,"C=00000 N=000           ",$81:gosub {:mask_22}
 	goto {:mask_bottom}
-'	&,69,0,23,"R           M=00000  L=00000           T",$81
+'	&,69,0,23,"R           V=00000  L=00000           T",$81
 '	&,69,1,23,"          ",3:&,69,29,23,"          ",3
 '	gosub {:60300}:return
 
@@ -103,9 +103,13 @@
 	&,69,00,20,"Mail",$8f:gosub {:60350}:&,69,27,20,"Baud",$8f:gosub {:60352}
 	&,69,00,21,"Area",$8f:gosub {:60350}:&,69,27,21,"User",$8f:gosub {:60352}
 {endif}
-	&,69,00,22,"C=00000 N=000 I=000 A=0 *Image BBS v3.0*",$81
+	&,69,00,22,"C=00000 N=000 I=000 A=0 ",$81:gosub {:mask_22}
 {:mask_bottom}
-	&,69,00,23,"R           M=00000  L=00000           T",$81
+' 80 columns (11/16/2026): row 23's VIC half is R and the receive window,
+' 38 wide; the ML draws its right half (the transmit window, T) and the
+' numbers (rows 21-22: status.asm's r80_*)
+	if sw=80 then:&,69,00,23,"R{space:39}",$81:&,69,01,23,"{space:38}",3:gosub {:sub.prime_time}:return
+	&,69,00,23,"R           V=00000  L=00000           T",$81
 	&,69,01,23,"          ",3:&,69,29,23,"          ",3
 	gosub {:sub.prime_time}:return
 
@@ -169,29 +173,36 @@
 	gosub 84:&,52,7,3:if a% then pt%=1-pt%:if p1%<1 then p1%=30
 	b%=val(mid$(fl$,18,2)):b%=b%-101*(b%=.)
 	a$="PRIME":c=$87:if pt%=. then a$="     ":c=$8c
-'	for y=1 to 5:&,69,39,y+16,mid$("PRIME",y,1),$87:next:return
-'{:60306}
-'	for y=1 to 5:&,69,39,y+16,mid$("     ",y,1),$8c:next:return
-	for y=1 to 5:&,69,39,y+16,mid$(a$,y,1),c:next:return
+' 11/17/2026: down the screen's right edge, rows 17-21: column 39 in 40
+' columns, 79 in 80 (sw-1; it was 39 in both, the middle of the 80-column
+' screen). i/lo.idle and i/lo.on draw it there too
+	for y=1 to 5:&,69,sw-1,y+16,mid$(a$,y,1),c:next:return
 
 	rem sub.display (c)nissa 2020-05-19 lh, 2024-06-06 pinacolada
 
 {nice:100}
 ' 10/27/2026: in 80 columns, system stats on the status area's right half,
-' rows 17-21 from column 41 (the left half's PRIME flag is column 39): errors
-' since the daily reset and since setup (st(39), st(40): im 4035), free
-' string space (fretop - strend, bank 1) and free stack (usr(0), as im's 209
-' shows it), and row 24's bar on to column 79. Only a$ and l, which this
+' rows 17-18 from column 41 to 78 (PRIME is down column 79): errors
+' since the daily reset and since setup (st(39), st(40): im 4035) and free
+' stack (usr(0), as im's 209 shows it), labels reversed light gray and
+' values plain gray (11/16/2026; free string space went: row 22's V= shows
+' it all the time). Row 19 (Buf), row 22's P= V= L= M= and row 24's
+' bar on to column 79 are the ML's (status.asm; vdcrinit). Only a$ and l, which this
 ' module uses anyway, so callers keep
 ' their variables. Drawn whenever the status area is drawn
 {:sub.system_box}
-	a$=" Errors today/total: "+mid$(str$(st(39)),2)+"/"+mid$(str$(st(40)),2):l=17:gosub {:system_line}
-	a$=" String space free:  "+mid$(str$(peek({sym:fretop})+256*peek({sym:fretop}+1)-peek({sym:strend})-256*peek({sym:strend}+1)),2):gosub {:system_line}
-	a$=" Stack free:         "+mid$(str$(usr(0)),2):gosub {:system_line}
-	a$="":gosub {:system_line}:gosub {:system_line}
-' the bottom line (row 24, tdisp) on to column 79: reversed spaces in the
-' reverse and color of its column 1 (the date), as the left half shows it
-	&,69,40,24,"{space:40}",(peek({sym:tdisp}+1) and 128)+(peek(55296+961) and 15):return
-' a$ on row l, padded to 38 columns
-{:system_line}
-	&,69,41,l,left$(a$+"{space:38}",38),$8c:l=l+1:return
+	l=17:&,69,41,l,"Errors",$8f:a$=mid$(str$(st(39)),2)+"/"+mid$(str$(st(40)),2):gosub {:system_val}
+	&,69,41,l,"Stack ",$8f:a$=mid$(str$(usr(0)),2):gosub {:system_val}
+' row 19 is the ML's (Buf: status.asm); 20 and 21 blank
+	&,69,41,20,"{space:38}",12:&,69,41,21,"{space:38}",12:return
+' a$, a value, after row l's label: plain gray, padded to column 78
+{:system_val}
+	&,69,47,l,left$(" "+a$+"{space:31}",32),12:l=l+1:return
+
+' row 22's columns 24-39: 40 columns, "Image BBS 128" (was "*Image BBS
+' v3.0*", user 11/16/2026); 80 columns, P= and V=,
+' which trace80 (status.asm) fills in, seeing the dashes (the version and
+' L= are in row 22's right half there)
+{:mask_22}
+	if sw=80 then:&,69,24,22,"P=----- V=----- ",$81:return
+	&,69,24,22,"   Image BBS 128",$81:return

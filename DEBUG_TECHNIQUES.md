@@ -45,6 +45,10 @@ trace exec c0f5 if @io:$d500 == $7e
 The configuration register reads back as `@io:$d500` or `@cpu:$ff00`;
 `@io:$ff00` reads `$ff`, so a condition on that never matches.
 
+The code under I/O (`ml.io`, `$d000`-`$dfff`) runs with `$ff00` = `$7f`
+(`cfg_io`): use `== $7f` for a checkpoint there, and `bank ram` to read
+it (`bank io` shows the I/O chips).
+
 ## See what led to a BRK
 
 A BRK in 128 mode drops into the KERNAL's own monitor, so VICE's CPU
@@ -147,6 +151,13 @@ for no clear reason, check the assembled branch: find its bytes in the
 built part (`build/ml.res2` etc., which start with the load address) or
 in a `-lst:` disassembly, and compare the target with `ml.sym`. Use
 `bxx skip / jmp target` for anything that might be far.
+
+`tools/branchcheck.py` looks for the sign in every assembled part
+(`asm/ml.prg`, `*.bin`, `*.prg`): a branch opcode followed by `$ff`, a
+branch to its own operand. Data can look the same, so it lists each hit
+with the nearest label; three are known data (its docstring). It found
+two in `center.asm` on 11/20/2026 (`&,15,7`'s early return, and `cva`),
+both from code that grew past 128 bytes.
 
 Found 2026-10-20: swapscn's `bmi vdcmask` stopped reaching vdcmask once
 vdcrinit and vdcrcopy went in between, and the mask toggle silently

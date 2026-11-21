@@ -108,7 +108,9 @@
 80 a$=z$:z$=mid$(p1$,3):gosub 72:a$=z$:dr=5:if lc<>1 then 77:else return
 82 for i=1 to 4:&,11,i:next
 83 &,11,.:return
-84 a=int(mn%/60):pt%=-(a>=p2% and a<p3%)*sgn(p1%):return
+' Prime Time (pt%) from the hour: from p2% until p3%; an end earlier than the
+' start runs past midnight (11/17/2026: 10P-2A, or 12P-12A, never came on)
+84 a=int(mn%/60):pt%=-((a>=p2% and a<p3%) or ((a>=p2% or a<p3%) and p3%<p2%))*sgn(p1%):return
 ' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
 85 &"{f6}Would You Like To Leave Feedback{question} ":gosub 93:if a=. then return:else dr=3:gosub 61
 86 x=2:if bf<35 then 390:else im=1:goto 444
@@ -242,6 +244,8 @@
 429 a$="comm2":goto 74
 430 a$="param1":goto 74
 431 a$="param2":goto 74
+' 11/20/2026: sub.columns, a list in 1-4 columns for ll% (im=1)
+432 a$="columns":goto 74
 436 a$="menus":goto 74
 437 a$="sysdos":goto 74
 438 a$="stats":goto 74
@@ -424,6 +428,11 @@
 3075 &,69,0,1,"im 128 revision{colon} "+{usedef:__BuildDate}+" "+{usedef:__BuildTime},3
 ' a$="NTSC":if peek(678) then a$="PAL"
 3076 a$="NTSC":if peek({sym:ntscpal})=255 then a$="PAL"
+' 11/13/2026: booted from a Lt. Kernal, the boot disk is the LU logged in
+' then (setup's lockinit, in the sys 3074 made: ltkon, ltklu), not "0:",
+' which is LU 0 there. The boot device is the Lt. Kernal if it answers m-r
+' with its status line (as sub.sysdos finds it: it has no m-r)
+3077 if peek({sym:ltkon}) then open 15,dv%,15,"m-r"+chr$(187)+chr$(229)+chr$(16):get#15,a$,a$,a$:close 15:if a$="," then d1%=dv%:d2%=peek({sym:ltklu}):dr$=mid$(str$(d2%),2)+":":bd$=dr$
 3078 gosub 3400:z3$=a$+" System Detected.":gosub 3404
 ' 3080 &,18,.:poke 53248,1:am$="1"+"0001018600":dv%=z%
 3080 &,18,.:poke {sym:local},1:am$="1"+"0001018600":dv%=z%
@@ -500,7 +509,11 @@
 ' clock (CMD, DS12C887, Ultimate, TeensyROM, the last AutoMaint date), where
 ' 3348-3366 knew only CMD and Lt. Kernal. "Clock Set." on the same line (3405).
 ' Manual (y%=0), or no clock read: from the date im was built, as before (3170)
-3155 if y% then z3$="Setting Clock...":gosub 3404:im=10:a$="clocks":gosub 74:if e%=. then z2$=left$(" "+z3$+" Clock Set."+s$,36):gosub 3405:goto 3158
+' 11/16/2026: d1$=z$, the time just read: 3153 left d1$ the build's date and
+' time (the IRQ keeps d1str, not d1$, up to date until the ML's logoff points
+' d1$ at it), and the DST check at 3158 (sub.clocks im=12) read that: on
+' daylight time it moved the clock by the build's date, not the clock's
+3155 if y% then z3$="Setting Clock...":gosub 3404:im=10:a$="clocks":gosub 74:if e%=. then d1$=z$:z2$=left$(" "+z3$+" Clock Set."+s$,36):gosub 3405:goto 3158
 3156 z$={usedef:imdate}:gosub 3170
 ' 10/20/2026: ptrlinm and usrlin (c64 970, 971): on the 128, 970 ($03ca)
 ' is in the routines BASIC 7 keeps in RAM, and poking it stopped the
@@ -578,7 +591,10 @@
 ' 3240 f$="i/setup 128":close 15:open 1,dv%,1,f$:s=ds:close15:ifsthen:&"{f6}Cannot find {quotation}{pound}$f{quotation}. Halting.{pound}w5":goto 4048
 ' ds=63: file exists
 ' the setup module (Image BBS 3.0's, ported): i/su.config
-3240 f$="i/su.config":close 15:rename (f$) to (f$):if ds<>63 then:&"{f6}Cannot find {quotation}{pound}$f{quotation}. Halting.{pound}w5":goto 4048
+' 11/13/2026: found by opening it on the boot disk (bd$), not BASIC 7's
+' "rename (f$) to (f$)" (63: it's there), which says drive 0: on a Lt. Kernal
+' that's LU 0, not the LU Image booted from (im 3077)
+3240 f$="i/su.config":close 15:open 15,dv%,15:close 1:open 1,dv%,2,bd$+f$+",p,r":input#15,e1:close 1:close 15:if e1 then:&"{f6}Cannot find {quotation}{pound}$f{quotation}. Halting.{pound}w5":goto 4048
 3242 new 4000:load f$,dv%:gosub 4000:return
 
 ' gosub from 3158

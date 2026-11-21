@@ -40,10 +40,12 @@ for p in "$MODEM_PORT" "$TELNET_PORT"; do
 	port_in_use "$p" && die "port $p is already in use (is another tcpser running?)"
 done
 
-# -I would invert DCD: through VICE's SwiftLink the BBS otherwise sees a
-# carrier when nobody is connected (ImageBBS3's start-image-bbs.sh uses it).
-# Left off for now: instead, the lightbar's Invert DCD (flag 58, T at the
-# idle screen) is set so the carrier check is off with no caller
+# No -I (invert DCD): VICE's SwiftLink, as a real one, puts the modem's DCD
+# on the 6551's DSR bit, and it comes through the right way round. Set the
+# lightbar's Dsr left check on (flag 60: carrier from DSR) and Dcd left off
+# (flag 58: no inversion). With Dsr off the BBS reads bit 5, which never
+# changes, and answers calls without seeing the caller (11/18/2026;
+# SYSOP_COMMANDS.md, "T: carrier detect")
 "$TCPSER" -s "$BAUD" -v "127.0.0.1:$MODEM_PORT" -p "$TELNET_PORT" \
 	-l "$TCPSER_LOG_LEVEL" ${TCPSER_TRACE:+-t "$TCPSER_TRACE"} -L "$LOG" &
 TCPSER_PID=$!

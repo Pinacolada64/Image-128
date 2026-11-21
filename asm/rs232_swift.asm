@@ -72,10 +72,9 @@ upper_flow_control_threshold = 120
 ; when there are less than this many bytes in the input buffer, enable rx
 lower_flow_control_threshold = 100
 
-overrun_indicator = tdisp + 29
-loading_indicator = tdisp + 30
-flow_control_indicator = tdisp + 32
-interrupt_disabled_indicator = tdisp + 33
+; the status line's indicators: draw_status_line (status.asm), with
+; stat_ovr, stat_dsk, stat_flo and stat_int (11/16/2026; they were stores
+; to tdisp+29, 30, 32 and 33)
 
 first:
 
@@ -304,8 +303,8 @@ rxint_buffer_overrun:
 
 	lda #comrts0
 	sta shcomm
-	lda #$cf ; reverse uppercase O
-	sta overrun_indicator
+	lda #stat_ovr	; (on until logoff)
+	jsr ind_on
 
 	rts
 
@@ -322,8 +321,8 @@ rxint_no_receive:
 rsint_stop_flow:
 	lda #comrts0
 	sta shcomm
-	lda #$c6 ; reverse capital F
-	sta flow_control_indicator
+	lda #stat_flo
+	jsr ind_on
 
 rxint_done:
 	rts
@@ -333,8 +332,8 @@ rxint_done:
 disabl:
 	php
 	pha
-	lda #$c9 ; reverse capital I
-	sta interrupt_disabled_indicator
+	lda #stat_int
+	jsr ind_on
 	lda #comint_none
 	sta m6551_command
 	pla
@@ -346,8 +345,8 @@ disabl:
 inable:
 	php
 	pha
-	lda #$a0 ; reverse space
-	sta interrupt_disabled_indicator
+	lda #stat_int
+	jsr ind_off
 	lda shcomm
 	sta m6551_command
 	pla
@@ -363,26 +362,8 @@ rsout_entry:
 	sta ptr1	; c64: $9e
 	sty $97
 
-; update on-screen buffers
+	jsr rs_txwin	; row 23's transmit window (status.asm)
 
-	ldy scnmode
-	bne rsout_skip_screen
-
-	lda flag_dsr_addr
-	and #flag_dsr_r_mask
-	beq rsout_skip_screen
-
-	ldy #0
-outdisp:
-	lda sdisp+30,y
-	sta sdisp+29,y
-	iny
-	cpy #9
-	bcc outdisp
-	lda ptr1	; c64: $9e
-	sta sdisp+38
-
-rsout_skip_screen:
 	lda #comint_none
 	sta m6551_command
 
@@ -485,26 +466,8 @@ rsget_entry:
 rsget_no_wrap:
 	sty ridbs
 
-; update on screen buffers
+	jsr rs_rxwin	; row 23's receive window (status.asm)
 
-	ldy scnmode
-	bne rsget_skip_screen
-
-	lda flag_dsr_addr
-	and #flag_dsr_r_mask
-	beq rsget_skip_screen
-
-	ldy #0
-inpdisp:
-	lda sdisp+2,y
-	sta sdisp+1,y
-	iny
-	cpy #9
-	bcc inpdisp
-	lda ptr1	; c64: $9e
-	sta sdisp+10
-
-rsget_skip_screen:
 	lda ridbe
 	sec
 	sbc ridbs
@@ -516,8 +479,8 @@ rsget_enable_rx_int:
 	lda #comint_rx
 	sta shcomm
 	sta m6551_command
-	lda #$a0 ; reverse space
-	sta flow_control_indicator
+	lda #stat_flo
+	jsr ind_off
 
 rsget_got_char:
 	clc
@@ -584,28 +547,52 @@ nchrin:
 nload:
 	jsr disabl
 	pha
-	lda #$cc ; reverse uppercase L
-	sta loading_indicator
+	lda #stat_dsk
+	jsr ind_on
 	pla
 	jsr oldload
 	pha
-	lda #$a0 ; reverse space
-	sta loading_indicator
+	lda #stat_dsk
+	jsr ind_off
 	pla
 	jmp inable
 
 nsave:
 	jsr disabl
 	pha
-	lda #$cc ; reverse uppercase L
-	sta loading_indicator
+	lda #stat_dsk
+	jsr ind_on
 	pla
 	jsr oldsave
 	pha
-	lda #$a0 ; reverse space
-	sta loading_indicator
+	lda #stat_dsk
+	jsr ind_off
 	pla
 	jmp inable
+
+; the status line's indicator .a on or off (draw_status_line), keeping
+; .x; .a is lost. Only the stack, as the NMI calls them too.
+ind_on:
+	pha
+	txa
+	pha
+	tsx
+	lda $0102,x	; the indicator
+	ldx #1
+	bne ind1
+ind_off:
+	pha
+	txa
+	pha
+	tsx
+	lda $0102,x
+	ldx #0
+ind1:
+	jsr draw_status_line
+	pla
+	tax
+	pla
+	rts
 
 last:
 

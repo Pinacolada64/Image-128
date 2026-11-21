@@ -3,7 +3,8 @@
 ; place; "sys 7171" in im (c64: sys 49155) calls setup.
 
 devnum = 186
-{undef:use_ltk}	; Lt. Kernal emulation is not ready for VICE 128
+{def:use_ltk}	; the Lt. Kernal's locks (lockinit, &,13); VICE 3.8 emulates it on
+		; the 128 (11/12/2026)
 
 ; intro is a proto
 	jmp intro
@@ -246,11 +247,10 @@ screen_addresses_loop:
 	cpx #25
 	bne screen_addresses_loop
 
-	lda chrout	; $ffd2
-	cmp #$20
-	bne setup1
+; the Lt. Kernal: lockinit looks for it itself (c64: "lda $ffd2 / cmp #$20"
+; here; on the 128 chrout is a romtab stub, which starts with a jsr too)
 {ifdef:use_ltk}
-	jsr lockinit	; TODO: once LtK emulation comes out for vice 128...
+	jsr lockinit
 {endif}
 
 setup1:
@@ -268,9 +268,18 @@ setup1:
 	sta inchat
 	jsr iosetup
 	jsr setptrs
+	jsr stat_init	; the status line's indicators off, cells blank
 	jsr setirq
 	jsr trapoff
 	jsr setscrn
+; 80 columns: the status line (row 24) on to column 79 -- vdcrinit makes
+; that part of vdcright reverse spaces, vdcrcopy puts it on the screen
+	bit mode
+	bpl setup2
+	lda #24
+	sta vdcm_row
+	jsr vdcrcopy
+setup2:
 	ldx #3
 	jsr comq	; set mci color default?
 	jsr startmsg
@@ -456,6 +465,20 @@ setp1:
 	sta vars+1,y
 	dec tmp1
 	bpl setp1
+; 11/19/2026: and ll%'s place, for trace.asm's akfix (ak$ kept ll% wide).
+; Not in vars: varbl.asm's $c000-$cfff is full. im DIMs ll% before this
+; (line 3028) and before its &,27,1 mark, so its place doesn't move
+	lda #$cc	; "ll%": L and L, both with bit 7 set (an integer)
+	sta varnam
+	sta varnam+1
+	jsr findvar1
+	sec
+	lda varpnt
+	sbc vartab
+	sta lloff
+	lda varpnt+1
+	sbc vartab+1
+	sta lloff+1
 	rts
 
 date2:
@@ -640,42 +663,142 @@ screentb:
 	word $400+960,$d800+960
 
 {ifdef:use_ltk}
+; 11/12/2026, 128: the Lt. Kernal hard drive, for &,13's locks between the
+; stations of a multiplexed one (miscl.asm's arbit). Called from setup, in
+; cfg_ml; it runs here, at protostart (the shared 16K), so it can switch to
+; cfg_rom for the Lt. Kernal's calls, which are in its KERNAL ROM (and
+; DRIVER, through glue.asm's ltkblock).
+; - Is there one: its KERNAL has a jsr at $ffd2 (CHROUT's entry; the 128's
+;   own has jmp ($0326)), read with the ROMs in
+; - this station's port (GETPRT, the host adapter's DIP switches) + $80:
+;   ltkport, a lock's owner byte; ltkon 1 and the LU logged in (Image
+;   booted from it, if it booted from the Lt. Kernal): ltklu (11/13/2026).
+;   Its device number isn't kept: hdrnum ($802c, ltk_dos_addresses.asm)
+;   held $92 here; im 3077 asks the boot device instead
+; - "lockfile" on LU 10, user 0 (every port's), found, or made: lk_locks
+;   blocks and its header, contiguous (type 5), catalogued, then found
+;   again (as LK Mini-Mon does; PSV1N5A.TXT, ~/Documents/c64/ltkernal); its
+;   header block to ltkbase, ltkflag 1. c64: only found (nothing made it)
+; - its locks: all free if it's new (its blocks held whatever was on the
+;   disk); else the ones this station held, from before a crash or a reset
 lockinit:
+	jsr rsdisab
+	lda #cfg_rom
+	sta mmucr
+	lda #0
+	sta ltkflag
+	sta lknew
+	sta ltkon
+	sta ltklu
+	lda $ffd2
+	cmp #$20
+; 11/13/2026: beq/jmp, not "bne lockin9": lockin9 is more than 127 bytes on,
+; and C64List 4.04 assembled the bne without an error as $d0 $ff (into its
+; own operand), so a 128 without a Lt. Kernal ran on into the Lt. Kernal's
+; calls as if it had one
+	beq lockin1
+	jmp lockin9
+lockin1:
 	jsr ltk_bnkout
-	lda ltk_activu
+	jsr ltk_getprt
+	and #$0f
+	ora #$80
+	sta ltkport
+	inc ltkon	; there's one; and the LU logged in now, at boot:
+	lda ltk_activl	; Image's boot disk if it booted from the Lt. Kernal
+	sta ltklu	; (im 3077: bd$, dr$)
+	lda ltk_activu	; the logged LU and user, put back after
 	pha
 	lda ltk_activl
 	pha
 	lda #10
 	jsr ltk_setlun
+	bcs lockin8
 	lda #0
 	sta ltk_activu
+	jsr lkfind
+	bcc lockin5
+	sta lkidx	; not there: make it
+	stx lkidx+1
+	sty lkidx+2
 	jsr ltk_clrhdr
-	ldy #0
-lockinit_loop1:
-	lda lockname,y
-	beq lockint1
-	sta filnam,y
-	iny
-	bne lockinit_loop1
-lockint1:
-	jsr ltk_fnfile
-	bcs lkerror
-	lda blmilo+1
-	sta blkl_load+1
+	jsr lkname
+	lda #5		; contiguous sequential data
+	sta filtyp
+	lda #0		; its blocks, high byte first: the header and
+	sta nbinfl	; the locks
+	lda #lk_locks+1
+	sta nbinfl+1
+	jsr ltk_alcont
+	bcs lockin8
+	lda lkidx	; into the catalog (the mini-sub takes the first
+	pha		; value from the stack)
+	lda #$24
+	ldx lkidx+1
+	ldy lkidx+2
+	jsr ltk_mnsext
+	jsr lkfind
+	bcs lockin8
+	inc lknew
+lockin5:
+	lda blmilo+1	; its header block (high byte first)
+	sta ltkbase
 	lda blmilo+0
-	sta blkh_load+1
-	jsr ltk_getprt
-	ora #$80
-	sta port_load+1
-lkerror:
+	sta ltkbase+1
+	inc ltkflag
+lockin8:
 	pla
 	jsr ltk_setlun
 	pla
 	sta ltk_activu
 	jsr ltk_bankin
+lockin9:
+	lda #cfg_ml
+	sta mmucr
 	cli
+	jsr rsinabl
+	lda ltkflag
+	beq lockin12
+	ldy #lk_locks-1	; the locks: free
+lockin10:
+	sty ltklock
+	clc
+	jsr ltklkblk
+	ldy lknew
+	bne lockin11
+	cmp ltkport	; this station's (from before)?
+	bne lockin12a
+lockin11:
+	lda #0
+	tax
+	sec
+	jsr ltklkblk
+lockin12a:
+	ldy ltklock
+	dey
+	bpl lockin10
+lockin12:
 	rts
+
+; (banked out) find the lockfile: carry clear if it's there
+lkfind:
+	jsr ltk_clrhdr
+	jsr lkname
+	jmp ltk_fnfile
+lkname:
+	ldy #0
+lkname1:
+	lda lockname,y
+	beq lkname2
+	sta filnam,y
+	iny
+	bne lkname1
+lkname2:
+	rts
+lknew:
+	byte 0
+lkidx:
+	byte 0,0,0
 
 lockname:
 	ascii "lockfile"
