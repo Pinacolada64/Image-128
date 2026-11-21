@@ -11,7 +11,7 @@
 	rem adapted from "empire deluxe" on centipede 128
 
 ' TODO: check for horse
-	&"{f6:2}{lt. blue}Your Noble mounts his mighty steed and{pound}$laims his lance...{f6}":goto {:combat_140}
+	lp=1:&"{f6:2}{lt. blue}Your Noble mounts his mighty steed and aims his lance...":goto {:combat_140}
 {:_126}
 	if en*2<nb then {:combat_132}
 	if en<2 then:&"{f6}Your opponent has no nobles.{f6}":return
@@ -25,12 +25,12 @@
 '	&"to the ground. He gets up and swears{f6}loyalty to you!{f6}":ff=1:nj=1
 	goto {:random_outcome}
 {:_136}
-	nb=nb-1:en=en+1:&"{f6}{lt. blue}Your opponent's lance pierces armor.{pound}$l"
+	nb=nb-1:en=en+1:lp=1:&"{f6}{lt. blue}Your opponent's lance pierces armor. "
 	&"Your noble, badly injured, joins your{f6}opponent's army!{f6}":nj=0:return ' goto {:_36}
 {:combat_140}
 ' Not enough serfs attend. The Joust
 ' is cancelled!
-	if sf<900 then:&"{f6:2}{lt. blue}Not enough serfs attend. The Joust{pound}$lis cancelled!{f6:2}":return
+	if sf<900 then:lp=1:&"{f6:2}{lt. blue}Not enough serfs attend. The Joust is cancelled!{f6}":return
 '	goto {:_126}
 
 	if nb=0 then:&"You haven't a noble to challenge anyone with!":return

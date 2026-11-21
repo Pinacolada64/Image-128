@@ -75,7 +75,7 @@
 '	gosub 1001:&,2,2:g3=x:on-(a$="empty") goto {:_14}:x=x+1:on -(x<25) goto {:_10}:close 2
 	x=x+1:gosub 1:&,2,2:if a$="empty" then {:_14}
 	if x<25 then {:_10}
-	close 2:if e9=. then:&"{f6}{green}Sorry, all Empires are being ruled.{pound}$l{cyan}Try again next call.{f6:2}":tw=4:return
+	close 2:if e9=. then:lp=1:&"{f6}{green}Sorry, all Empires are being ruled. {cyan}Try again next call.{f6}":tw=4:return
 	tw=3:return
 {:_14}
 ' set up new player:

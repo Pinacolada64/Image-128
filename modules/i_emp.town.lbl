@@ -128,15 +128,15 @@
 	&"{clear}{f6:2}{lt. blue}{rvrs on}: Shockers' Slaves :{rvrs off}{f6:2}"
 	if sf<1000 and la>10000 and pn>85000 then {:_112}
 ' Sorry, xxxxxxxxxx, you're not bad
-	&"{f6}{cyan}Sorry, {pound}v2, you're not bad{pound}$lenough off to need any slaves yet.{f6}":goto {:_154}
+	lp=1:&"{f6}{cyan}Sorry, {pound}v2, you're not bad enough off to need any slaves yet.":goto {:_154}
 {:_112}
 ' It will cost you $75,000 for 2,500
 ' slaves to be added to your population.
 ' Do you wish to buy them for your
 ' survival (Y/N): 
-	&"{f6}{white}It will cost you {yellow}$75,000{white} for 2,500{pound}$lslaves to be added to your population:{f6:2}
+	lp=1:&"{f6}{white}It will cost you {yellow}$75,000{white} for 2,500 slaves to be added to your population:{f6}
 
-	&"Do you wish to buy them for your{pound}$lsurvival (Y/N): {lt. green}":pl=1:gosub 94:if a=. then return
+	lp=1:&"Do you wish to buy them for your survival (Y/N): {lt. green} ":pl=1:gosub 94:if a=. then return
 	sf=sf+2500:pn=pn-75000:&"{f6}{yellow}Good choice. {lt. blue}Survival is assured!{pound}w2"
 ' more laughter:
 	&" For now, anyway. {pound}s1HA! HA! HA!{pound}s0{f6}":return
@@ -160,7 +160,7 @@
 ' 25 with no serfs
 	wb=25:if sf then wb=int(la/sf):if wb<25 then wb=25
 {:_146}
-	&"{f6}{white}The Barbarians will buy your serfs{pound}$lfor "+str$(wb)+" dollars each."
+	lp=1:&"{f6}{white}The Barbarians will buy your serfs for "+str$(wb)+" dollars each. "
 	gosub {:sub.sell}:ss=val(an$):if ss<1 then return
 	if ss>sf then:&"{f6}You only have "+str$(sf)+" serfs.":goto {:_146}
 	sf=sf-ss:pn=pn+(wb*ss):&"{f6}{lt. green}SOLD!!":return
@@ -168,23 +168,23 @@
 	&"{f6:2}Wanna sell some of your serfs (Y/N): ":gosub 94:if a=. then return
 	goto {:_142}
 {:_160}
-	&"{f6:2}{yellow}So sorry, {pound}v2, I just checked{pound}$land I have plenty of souls. Maybe we{f6}can make a deal some other time.{pound}q1{f6}":return
+	lp=1:&"{f6:2}{yellow}So sorry, {pound}v2, I just checked and I have plenty of souls. Maybe we{f6}can make a deal some other time.{pound}q1":return
 {:_164}
-	&"{f6:2}{yellow}Well, it would seem that I have{pound}$l"
+	lp=1:&"{f6:2}{yellow}Well, it would seem that I have "
 	&"collected enough souls from you, so{f6}"
 	&"begone with you! For now anyway. {pound}w2{pound}S1Ha! Ha! Ha! Ha! Ha!{pound}s0{pound}q1{f6}":return
 {:_170}
 	on -(pn<50000)-2*(pn>50000) goto {:_88},{:_164} ' :goto {:_170}
 {:_174}
 	&"{f6:2}{red}{rvrs on} LUCIFER'S DEN {rvrs off}{pound}q1{f6:2}Where gambling is no sin.{f6:2}"
-	&"{f6:2}{yellow}I will let you play for{pound}$lthe price of a few souls!{pound}n3{pound}q1"
+	lp=1:&"{f6:2}{yellow}I will let you play for the price of a few souls!{pound}n3{pound}q1 "
 	&"{f6:2}{cyan}Will you agree to this? [Y/N] >>":gosub 94
 '	if an$<>"Y"then {:_184}
 '	return
 	if a=. then:&"{f6:2}{lt. green}Maybe some other time then.{f6}":return
 {:_186}
 ' laughter repeated:
-	&"{f6:2}{white}{pound}S1Ha! Ha! Ha! Ha! Ha!{pound}s0 I think you{pound}$lhad better check your stats.{f6}"
+	lp=1:&"{f6:2}{white}{pound}S1Ha! Ha! Ha! Ha! Ha!{pound}s0 I think you had better check your stats."
 	return
 {:_190}
 	&"{f6}{lt. green}Your palace is "+str$((f%(1))*10)+"% complete."
@@ -193,8 +193,8 @@
 	wb=int(((f%(1)/2.5)*(f%(1)*10000))/(f%(1)*3))
 {:_196}
 ' The barbarians will buy a palace for
-	&"{f6}{white}The Barbarians will buy a Palace for{pound}$l"+str$(wb)
-	&" dollars.":gosub {:_204}:s1=val(an$):if s1<1 then return
+	lp=1:&"{f6}{white}The Barbarians will buy a Palace for"+str$(wb)+" dollars. "
+	gosub {:_204}:s1=val(an$):if s1<1 then return
 	if s1>f%(1)then:&"{f6}You only have "+str$(f%(1))+" Palace(s).":goto {:_196}
 	f%(1)=f%(1)-s1::pn=pn+(wb*s1):&"{f6}{lt. green}SOLD!!{f6}":return
 {:_204}
@@ -231,18 +231,18 @@
 {:_231}
 	wb=fn r(4)-1:if wb<1 then {:_254}
 	&"{clear}{f6:2}{lt. green}{rvrs on}: Warrior Promotions :{rvrs off}{pound}q0{f6}"
-	&"{f6}{yellow}Good day, I take it that you are here to{pound}$l"
+	lp=1:&"{f6}{yellow}Good day, I take it that you are here to "
 	&"see if any of your warriors are eligible for promotion{f6}"
 	&"to the status of Noble.{f6:2}"
-	&"{pound}w2Well, after checking all of your{pound}$l"
+	lp=1:&"{pound}w2Well, after checking all of your "
 	&"warriors, I have found that"+str$(wb)+" of{f6}"
 	&"them are eligible.{f6}"
 	&"{f6:2}{lt. green}Do you wish them promoted? (Y/N) >> ":gosub 94
-	if a then wa=wa-wb:nb=nb+wb:&"{f6:2}OK, all have been promoted! We hope{pound}$lthey serve you well.{f6}"
+	if a then wa=wa-wb:nb=nb+wb:lp=1:&"{f6:2}OK, all have been promoted! We hope they serve you well."
 	return
 
 {:_254}
-	&"{f6:2}{white}None of your warriors are eligible for{pound}$lpromotion to Noble right now.{f6}{pound}q0":return
+	lp=1:&"{f6:2}{white}None of your warriors are eligible for promotion to Noble right now.{f6}{pound}q0 ":return
 
 {:_262}
 ' Nice try, but we keep our promotion
@@ -250,8 +250,8 @@
 ' your eligible warriors have already
 ' been promoted! Just wait until King
 ' George hears about this!
-	&"{f6:2}{red}Nice try, but we keep our promotion{pound}$lrecords up to date, and they show that{f6}"
-	&"your eligible warriors have already{pound}$lbeen promoted! Just wait until King{f6}"
+	lp=1:&"{f6:2}{red}Nice try, but we keep our promotion records up to date, and they show that"
+	lp=1:&"your eligible warriors have already been promoted! Just wait until King"
 	&"George hears about this!{f6:2}{pound}q1":wa=wa-20:la=la-500:sf=sf-100
 '	nb=nb-1:if nb<1 then nb=0
 	nb=nb+(nb>1)
@@ -287,7 +287,7 @@
 	&"{clear}{f6:2}{lt. green}{rvrs on}: Utopia's Auction :{rvrs off}{pound}q1{f6:2}"
 	if wz>2 then {:_415}
 	wz=wz+1:wb=fn r((250-100)+100)
-	&"{green}I'll auction off my serfs to you for{pound}$l{white}"+str$(wb)+" {green}dollars each."
+	lp=1:&"{green}I'll auction off my serfs to you for {white}"+str$(wb)+" {green}dollars each. "
 {:_406}
 	&"{f6:2}{yellow}Buy how many?{white} {pound}i1":if tr%<1 then {:_8}
 '	if val(an$)<1 then return
@@ -295,10 +295,10 @@
 	if pn<(wb*x)then:&"{f6:2}{red}You only have {white}"+str$(pn)+" {red}dollars!":goto {:_406}
 	pn=pn-(wb*x):sf=sf+x:&"{f6:2}{yellow}Sold!{pound}w1":return
 {:_415}
-	&"{red}Utopia hates greed and calls the town{pound}$lguards to boot you out!{f6}":goto {:_8}
+	lp=1:&"{red}Utopia hates greed and calls the town guards to boot you out!":goto {:_8}
 {:_420}
-	&"{blue}{clear}{f6:2}  Train Warriors{f6:2}  This is where you buy the necessary{pound}$l"
-	&"materials and trainers for your men{f6}to have a high training rating,{pound}$l"
+	lp=1:&"{blue}{clear}{f6:2}  Train Warriors{f6:2}  This is where you buy the necessary "
+	lp=1:&"materials and trainers for your men{f6}to have a high training rating, "
 	&"boosting their abilities in combat.{f6:2}{white}You have"+str$(z9)+" training units."
 	x=z9*5000
 	&"{f6}Do you want to train ($":gosub {$33}010:& ")? ":gosub 94:if a=. then:&"Maybe later.{f6}":return

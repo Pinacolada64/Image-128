@@ -20,7 +20,7 @@
 
 {:combat_start}
 {nice:10}
-	&"{f6:2}{white}(0=Nobody  ?=List  Y=Your Stats{pound}$l  L=Lord Randall){f6}{cyan}Attack whom? >> {lt. blue}{pound}i1"
+	lp=1:&"{f6:2}{white}(0=Nobody  ?=List  Y=Your Stats  L=Lord Randall){f6}{cyan}Attack whom? >> {lt. blue} ":&"{pound}i1"
 	bn=0:if tr%<1 then {$33}030
 	if an$="0"or an$=""then:&"{f6}{red}No attack!{f6}":goto {:_182}
 	if an$="L"then {:_625}
@@ -51,7 +51,7 @@
 ' into the cassette buffer): those past it can be attacked again
 	if peek({sym:emp6mem}+2)<{sym:emp6max} then poke {sym:emp6mem}+2,peek({sym:emp6mem}+2)+1:poke {sym:emp6mem}+2+peek({sym:emp6mem}+2),x
 {:_30}
-	if g1=g3 then:&"{f6:2}{lt. red}Attack YOURSELF?{pound}$l{red}Bad mistake!{f6}{lt. blue}"
+	if g1=g3 then:lp=1:&"{f6:2}{lt. red}Attack YOURSELF? {red}Bad mistake!{f6}{lt. blue} "
 	la=la-fn r(la/2):goto {:_182}
 {:_34}
 	if af=1 or wa<1 then:&"{f6:2}{yellow}Your army is immobilized!":goto {:_182}
@@ -72,14 +72,14 @@
 ' attack you have been given xxxxx
 ' acres of land!
 	lt=int(ez/15):la=int(la+lt):ez=int(ez-lt)
-	&"{f6}{green}He returns with good news! To avoid{pound}$l"
+	lp=1:&"{f6}{green}He returns with good news! To avoid "
 	&"attack, you have been given {lt. green}":x=lt:gosub {$33}010
 	&"{f6}{green}acres of land!{f6:2}"
 	gosub {:sub.total_acres}:ff=1:sd=1:goto {:_102}
 {:_52}
 ' The enemy BEHEADS your diplomat and
 ' tosses his corpse into the moat!
-	f%(6)=f%(6)-1:&"{f6}{orange}"+en$+" {rvrs on}{red}BEHEADS{rvrs off} {orange}your Diplomat, and{pound}$ltosses his corpse into the moat!{f6}":sd=0:goto {:_36}
+	f%(6)=f%(6)-1:lp=1:&"{f6}{orange}"+en$+" {rvrs on}{red}BEHEADS{rvrs off} {orange}your Diplomat, and tosses his corpse into the moat!":sd=0:goto {:_36}
 
 {:_60}
 	gosub {:_160}:on ae goto {:_34}:gosub {:_610}:a=(wa+la)/(ew+ez)
@@ -110,7 +110,7 @@
 {:_106}
 ' Your forces were defeated, but you
 ' managed to seize ...
-	bn=.:&"{f6:2}{lt. green}Your forces were defeated, but you{pound}$lmanaged to seize "
+	bn=.:lp=1:&"{f6:2}{lt. green}Your forces were defeated, but you managed to seize "
 	z9=z9-1:if z9<-25 then z9=-25
 	lt=abs(sr-ew):lt=abs(int(lt*rnd(1)*4)+100):if en$="RANDALL"then lt=10
 	goto {:_98}
@@ -159,8 +159,8 @@
 	goto {:_180}
 {:combat_176}
 	&"{f6}{lt. blue}Your army seizes ":x=eg:gosub {$33}010
-	& " bushels of{pound}$lgrain and $":x=ep:gosub {$33}010
-	&".{f6}":x=ef:gosub {$33}010:& " of "+en$+"'s serfs declare{pound}$lloyalty to you.{f6}"
+	lp=1:& " bushels of grain and ":&"$":x=ep:gosub {$33}010
+	&".{f6}":x=ef:gosub {$33}010:lp=1:& " of "+en$+"'s serfs declare loyalty to you."
 {:_180}
 	gosub {$33}035
 {:_182}
@@ -229,7 +229,7 @@
 	if yc>1 then wa=wa-(e7*fn r(7)):return
 	ew=ew-(yc*fn r(7)):return
 {:_625}
-	&"{clear}{purple}{f6:2}Lord Randall is furious at you! Watch{pound}$lout!{f6:2}"
+	lp=1:&"{clear}{purple}{f6:2}Lord Randall is furious at you! Watch out!{f6}"
 	z8=1:ez=fn r(50000)+100000:ew=fn r(wa/2)+wa:en=100
 	en$="RANDALL":ef=10000:e1=10:e2=1000:e3=1000:e4=1000:e5=1000:og=30
 	e7=fn r(yc/2)+yc:goto {:_60}

@@ -72,7 +72,7 @@
 	&"{f6:2}{purple}Heading to the town...":tw=1:return
 
 {:_90}
-	&"{f6:2}{red}The other rulers unite their forces{pound}$lagainst you for hogging the game!{pound}w3":tw=4:return
+	lp=1:&"{f6:2}{red}The other rulers unite their forces against you for hogging the game!{pound}w3 ":tw=4:return
 {:_92}
 	&"{f6:2}{white}Fight News -->{f6:2}":a$="e.empnews6":dr=3:gosub 14:&"{cyan}--> More updates later.{f6}":return
 

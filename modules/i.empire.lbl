@@ -69,7 +69,7 @@
 {nice:5}
 {:quit_game}
 ' quit game:
-	gosub {:sub.rank}:&"{f6}{lt. green}Goodbye, {pound}v8{pound}v2...{pound}$l{cyan}Play again soon!"
+	gosub {:sub.rank}:lp=1:&"{f6}{lt. green}Goodbye, {pound}v8{pound}v2... {cyan}Play again soon! "
 {:quit_game_2}
 	close 2:close 15:goto 300
 
@@ -189,6 +189,9 @@
 ' this will format things roughly for 40/80 columns, just &"{pound}$l"
 ' at the end of every 2nd line of text you think will spill over into
 ' 80 columns
+' 128: nothing prints l$ ({pound}$l) now: the text word-wraps (lp=1:&) to the
+' caller's width. The line stays, so the lines after keep their numbers
+' (emp6-includes.lbl)
 	l$=mid$("{f6} ",ll%/40)
 
 ' wall-writer and new player creation moved to +.emp6.startup

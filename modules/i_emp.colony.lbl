@@ -25,7 +25,7 @@
 	&"{f6}{lt. red}You only have ":return
 
 {:colony_start}
-	&"{f6}{green}King George wishes you a safe and{pound}$lprosperous trip to your ":gosub {:msg.colony}
+	lp=1:&"{f6}{green}King George wishes you a safe and prosperous trip to your ":gosub {:msg.colony}
 	&".{f6}Don't let him down!{f6:2}{purple}Load your ship..."
 	in$(1)="Grain":in$(2)="Serf":in$(3)="Noble":in$(4)="Navigator":x8=0
 {:_25}
@@ -55,9 +55,9 @@
 	y7=25000-yg:goto {:_101}
 {:_85}
 ' fixme: gosub msg.you_only_have
-	if bn>yc*50 then:&"{f6:2}{yellow}You may only take on a maximum of{white}"+str$(yc*50)+"{pound}$l{yellow}serfs on your"+str$(yc)+" ships!":goto {:_40}
+	if bn>yc*50 then:lp=1:&"{f6:2}{yellow}You may only take on a maximum of{white}"+str$(yc*50)+" {yellow}serfs on your"+str$(yc)+" ships! ":goto {:_40}
 
-	if bn+ys>(i8+1)*100 then gosub {:msg.you_only_have}:&+str$((i8+1)*100)+" {yellow}serfs{pound}$lin your"+str$(i8)+" ":gosub {:msg.colony}:&"!":goto {:_40}
+	if bn+ys>(i8+1)*100 then gosub {:msg.you_only_have}:lp=1:&+str$((i8+1)*100)+" {yellow}serfs in your"+str$(i8)+" ":gosub {:msg.colony}:&"!":goto {:_40}
 
 	if bn>sf then gosub {:msg.you_only_have}:& str$(sf)
 	if bn<=sf then gosub {:msg.you_now_have}:sf=sf-bn:ys=ys+bn:& str$(ys)
@@ -82,20 +82,20 @@
 	if x>(yg+ys)*5 then x=int(yg+ys)*5
 	if x+yg>1e5 then x=1e5-yg
 	&"{f6:2}{green}":gosub {:msg.colony}:&" produce{pound}$z {white}"+str$(x)+" {green}bushels of grain.":yg=yg+x
-	&"{f6:2}{blue}Exports brought back to your empire can{pound}$lbe converted to cash."
+	lp=1:&"{f6:2}{blue}Exports brought back to your empire can be converted to cash. "
 {:_128}
 	&"{f6:2}{green}You have{white}"+str$(ye)+" {green}tons of exports.{f6:2}{lt. blue}[A]cquire [S]ell [C]ontinue [Y] Colony stats -=> {pound}i1"
 	on-(an$="A")-(an$="S")*2-(an$="C")*3 goto {:_137},{:_153},{:_174}
 	on-(an$="Y")gosub {:sub.colony_stats}:goto {:_128}
 {:_137}
-	&"{f6:2}{yellow}Convert grain to exports{pound}$l(1 ton: 2,000 bushels){f6}":gosub {:_522}:if tr%<1 then {$33}030
+	lp=1:&"{f6:2}{yellow}Convert grain to exports (1 ton: 2,000 bushels)":gosub {:_522}:if tr%<1 then {$33}030
 	bl=val(an$):if bl<1 then {:_128}
 	if yg<(bl*2000)then gosub {:msg.you_only_have}:&str$(yg)+"tons!":goto {:_137}
 	yg=yg-(bl*2000):ye=ye+bl:&"{f6}{green}Converted!":goto {:_128}
 {:_153}
 	&"{f6:2}{green}Convert Exports To Grain."
 	y7=1e5-yg:&"{f6:2}Max Conversion Allowed:"+str$(y7)+" Bushels."
-	&"{pound}$l1 Ton Yields 1,000 Bushels.":gosub {:_522}:if tr%<1 then {$33}030
+	lp=1:&" 1 Ton Yields 1,000 Bushels. ":gosub {:_522}:if tr%<1 then {$33}030
 	bl=val(an$):if bl<1 then {:_128}
 	if bl*1000>y7 then:&"{f6:2}{white}You Cannot Convert That Many!":goto {:_128}
 	if bl>ye then gosub {:msg.you_only_have}:&str$(ye)+" tons!":goto {:_153}
@@ -113,7 +113,7 @@
 	if yc<bl*5 then gosub {:msg.you_only_have}:&str$(yc)+" ships!":goto {:_186}
 	yc=yc-bl*5:i8=i8+bl:&"{white}Ships dismantled!":goto {:_174}
 {:_201}
-	&"{f6:2}{cyan}":gosub {:msg.colony}:&" abandoned will{pound}$lproduce {white}2{cyan} ships."
+	&"{f6:2}{cyan}":gosub {:msg.colony}:lp=1:&" abandoned will produce {white}2{cyan} ships. "
 	&"{f6:2}{purple}":gosub {:msg.colony}:&" To Abandon => {white}{pound}i1":if tr%<1 then {$33}030 ':return - necessary?
 	bl=val(an$):if bl<1 then {:_174}
 	if bl>i8 then gosub {:msg.you_only_have}:&str$(i8)+" ":gosub {:msg.colony}:&"!":goto {:_201}
@@ -140,7 +140,7 @@
 	if yg<1 then yg=.:yc=1
 	y7=fn r(200):ar=(i8+1)*y7:y7=fn r(10):if y7>4 then {:_273}
 	&"{f6:2}{cyan}Indian peace offering! You receive{white}"+str$(ar)
-	&"{pound}$l{cyan}bushels Of grain!":yg=yg+int(ar):goto {:_295}
+	lp=1:&" {cyan}bushels Of grain! ":yg=yg+int(ar):goto {:_295}
 {:_273}
 	&"{f6:2}{red}Indians {green}want{white}"+str$(ar)+" {green}bushels...":ga=ar
 	&"{f6}{gray2}Give how many? {white}{pound}i1":if tr%<1 then {$33}030
@@ -186,10 +186,10 @@
 {:_343}
 ' fixme: can leeches actually do that?
 ' Leeches bore holes in your ships! Water crashes in... you try to plug holes!
-	&"{f6:2}{red}Leeches bore holes in your ships!{pound}$l{blue}Water crashes in... You try to plug holes!":goto {:colony_328}
+	lp=1:&"{f6:2}{red}Leeches bore holes in your ships! {blue}Water crashes in... You try to plug holes! ":goto {:colony_328}
 {:colony_351}
 	&"{f6:2}{pound}p1{purple}Oh no! {pound}p0A mutiny occurs in your fleet!"
-	if yw=>yc then:&"{pound}$l{lt. red}But your noble(s) fight back!":goto {:_387}
+	if yw=>yc then:lp=1:&" {lt. red}But your noble(s) fight back! ":goto {:_387}
 	y7=yc-yw
 {:lose_ships}
 	yc=yc-y7:&"{f6:2}{lt. green}Ships Lost >{white}"+str$(y7):if za=0 and y7>1 then ye=fn r(ye)
@@ -202,10 +202,10 @@
 {:_372}
 	if yc then:&"{f6}{gray2}You arrive at the ":gosub {:msg.colony}:&"...":goto {:colony_110}
 	z$="s":y$=""
-	&"{f6:2}{cyan}You find yourself all alone in the {blue}deep{pound}$lblue sea... {cyan}without a ship!"
+	lp=1:&"{f6:2}{cyan}You find yourself all alone in the {blue}deep blue sea... {cyan}without a ship! "
 '	&"{f6}{green}You head back towards your empire..."
 {:_390}
-	y7=.:if yc<1 then:&"{f6:2}{cyan}You arrive... by {lt. blue}{pound}p1swimming{pound}p0!{pound}$l{white}King George grunts at your skill!":goto {:_998}
+	y7=.:if yc<1 then:lp=1:&"{f6:2}{cyan}You arrive... by {lt. blue}{pound}p1swimming{pound}p0! {white}King George grunts at your skill! ":goto {:_998}
 ' ships arrive / ship arrives
 	y$="s":z$="":if yc>1 then y$="":z$="s"
 	&"{f6:2}{green}Ship{pound}$y arrive{pound}$z...{f6:2}Unloading ship{pound}$y at empire docks..."
@@ -253,7 +253,7 @@
 {:_468}
 	&"{f6:2}{cyan}Ships may carry {white}2 {cyan}tons of exports each.":bl=yc*2
 {:_471}
-	&"{f6}{cyan}Your{white}"+STR$(yc)+" {cyan}ships can carry a total of{pound}$l"
+	lp=1:&"{f6}{cyan}Your{white}"+STR$(yc)+" {cyan}ships can carry a total of "
 ' Your xxxxx ships can carry a total of
 '  xxxxx tons back.
 {:_474}
@@ -292,15 +292,15 @@
 {:_543}
 	&"{f6:2}{yellow}You may only take on a max of{white}"+STR$(yc*50)
 {:_546}
-	&"{pound}$l{yellow}serfs on your"+STR$(yc)+" ships!":GOTO 40
+	lp=1:&" {yellow}serfs on your"+STR$(yc)+" ships! ":GOTO 40
 
 {:_549}
 	&"{f6:2}{yellow}You may only have{white}"+STR$((i8+1)*100)+" {yellow}serfs"
 {:_552}
-	&"{pound}$lin your"+STR$(i8)+" colony(s)!":GOTO {:_40}
+	lp=1:&" in your"+STR$(i8)+" colony(s)! ":GOTO {:_40}
 
 {:_561}
-	&"{f6:2}{cyan}Indian peace offering! You receive{white}"+STR$(ar)+"{pound}$l{cyan}bushels of grain!"
+	lp=1:&"{f6:2}{cyan}Indian peace offering! You receive{white}"+STR$(ar)+" {cyan}bushels of grain! "
 {:_567}
 	yg=yg+int(ar):return
 
