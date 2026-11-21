@@ -224,7 +224,8 @@
 ' not ready yet:
 '	a$="quests":gosub {:sub.load_lmp}:if tr%<1 then {:save_stats_quit}
 
-	a$="endturn":gosub {:sub.load_lmp}:if tr%<1 then {:save_stats_quit}
+' 128: tw=2 from i/emp.endturn: not playing again
+	a$="endturn":gosub {:sub.load_lmp}:on -(tr%<1 or tw=2) goto {:save_stats_quit}
 
 	goto {:start_turn}
 
