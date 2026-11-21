@@ -49,29 +49,42 @@
 ' a$="e.emp6.wall,s,a":dr=3:gosub 1011:if e% then a$="e.emp6.wall,s,w":gosub 1011
 ' 1027 dr=3:a$="e."+b$+",s,"+a$:goto 1011
 ' so, open for append - if error, fall back to writing a new file:
-	b$="emp6.wall":a$="a":gosub 36:if e% then b$="w":gosub 36
+' 128: if e% then a$="w" (1.2: b$="w", so a new wall was opened as "e.w")
+	b$="emp6.wall":a$="a":gosub 36:if e% then a$="w":gosub 36
 	print# 2,na$r$d1$r$an$
 {:_646}
 	close 2:close 15:&"{pound}q0"
 {:_648}
 	x=rnd(-ti):x=.:poke 53252,6:&"{f6:2}{purple}Checking to see if you're alive....":gosub {$33}025:if e%=. then {:_6}
 	on -(e9>.) goto {$33}124:&"Sorry, Empire 6.0 isn't set up yet.":goto {$33}046
+' 128: the searches as two ifs: 1.2's on -(a$=na$)-2*(x<25) was 3 when the
+' record matched before record 25, and on...goto fell through (to "Aha! A new
+' victim!" for a player who has one, and past a free record below)
 {:_6}
-	x=x+1:gosub 1:&,2,2:on -(a$=na$)-2*(x<25) goto {:found_player},{:_6}:&"{f6:2}{red}Aha! A new victim!{f6}":x=.
+	x=x+1:gosub 1:&,2,2:if a$=na$ then {:found_player}
+	if x<25 then {:_6}
+	&"{f6:2}{red}Aha! A new victim!{f6}":x=.
 {:_10}
 '	gosub 1001:&,2,2:g3=x:on-(a$="empty") goto {:_14}:x=x+1:on -(x<25) goto {:_10}:close 2
-	x=x+1:gosub 1:&,2,2:on -(a$="empty")-2*(x<25) goto {:_14},{:_10}
+	x=x+1:gosub 1:&,2,2:if a$="empty" then {:_14}
+	if x<25 then {:_10}
 	close 2:if e9=. then:&"{f6}{green}Sorry, all Empires are being ruled.{pound}$l{cyan}Try again next call.{f6:2}":goto {$33}045
 	goto {$33}124
 {:_14}
 ' set up new player:
 	a=fn r(300)+2000:w$=na$+r$+"5000"+r$+"20"+r$+str$(a)+r$+"2"
 	w$=w$+r$+"10000"+r$+"15"+r$+"1000"+r$+"0"+r$+"0"+r$+"0"+r$+"0"+r$+"0"+r$+"0"
-	w$=w$+r$+"0"+r$+"0"+r$+"1":x=g3:gosub 1:print# 2,w$:&"{f6:2}{lt. blue}OK, all set..." ':gosub 1001:&,2,2
+' 128: g3=x, the empty record {:_10} found (1.2: x=g3, g3 not yet set, so
+' record 0: the 128's record# refuses it, ?illegal quantity; the line
+' commented out above {:_10}'s had g3=x)
+	w$=w$+r$+"0"+r$+"0"+r$+"1":g3=x:gosub 1:print# 2,w$:&"{f6:2}{lt. blue}OK, all set..." ':gosub 1001:&,2,2
 
 {:found_player}
 ' return to +.empire6
-	g3=x:return
+' 128: and load the player's stats (i.EMPIRE's {:sub.load_your_stats}, 3040:
+' g3=x, then the record): nothing called it, so a turn started with them all
+' 0 (1.2 too). A new player comes here too, after his record is written
+	gosub {$33}040:return
 {number:4197}
 	rem fixes by pinacolada - 8/Sep/2012 12:03
 	rem and more on 12/Aug/2014 10:47

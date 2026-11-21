@@ -6,6 +6,9 @@
 ' emp6-includes.lbl
 {alpha:alt}
 {uses:..\3_0-preface.lbl}
+' C64 addresses in peek/poke are the 128's, as {sym:...} names from
+' asm/equates.asm: 899-901 (the cassette buffer) are emp6mem's
+{include:"..\asm\equates.asm"}
 {number:4000}
 	rem "i/EMP.town" {usedef:__BuildDate} {usedef:__BuildTime}
 ' get credit exchange status:
@@ -152,7 +155,9 @@
 	&"{cyan}    [Q] {lt. green}Return to the Empire{f6}":return
 {:_142}
 	&"{f6}{lt. green}You have "+str$(sf)+" serfs."
-	wb=int((la/nb)/(sf/nb)):if wb<25 then wb=25
+' 128: la/sf as it is ((la/nb)/(sf/nb) divided by zero with no nobles), and
+' 25 with no serfs
+	wb=25:if sf then wb=int(la/sf):if wb<25 then wb=25
 {:_146}
 	&"{f6}{white}The Barbarians will buy your serfs{pound}$lfor "+str$(wb)+" dollars each."
 	gosub {:sub.sell}:ss=val(an$):if ss<1 then return
@@ -215,11 +220,11 @@
 '	return
 
 {:_258}
-'	if peek(899)>2 then {:_262}
+'	if peek({sym:emp6mem})>2 then {:_262}
 '	kk=kk+1:if kk>1 then {:_262}
 '	goto {:_231}
 
-	if peek(899)>2 then {:_262}
+	if peek({sym:emp6mem})>2 then {:_262}
 	kk=kk+1:if kk>1 then {:_262}
 '	goto {:_231}
 {:_231}

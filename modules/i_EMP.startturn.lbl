@@ -6,6 +6,9 @@
 ' emp6-includes.lbl
 {alpha:alt}
 {uses:..\3_0-preface.lbl}
+' C64 addresses in peek/poke are the 128's, as {sym:...} names from
+' asm/equates.asm: 899-901 (the cassette buffer) are emp6mem's
+{include:"..\asm\equates.asm"}
 {number:4000}
 	rem "i/EMP.startturn" {usedef:__BuildDate} {usedef:__BuildTime}
 	goto {:begin}
@@ -24,19 +27,19 @@
 	return
 
 {:begin}	
-	if g3=peek(900) and peek(899)>4 and e9<1 then {:_90}
-	if g3<>peek(900) then poke 900,g3:poke 901,.:poke 899,.
+	if g3=peek({sym:emp6mem}+1) and peek({sym:emp6mem})>4 and e9<1 then {:_90}
+	if g3<>peek({sym:emp6mem}+1) then poke {sym:emp6mem}+1,g3:poke {sym:emp6mem}+2,.:poke {sym:emp6mem},.
 {:_402}
 	tz=0:i1=f%(1):i2=f%(2):i3=f%(3):i4=f%(4):i5=f%(5):i6=f%(6)
-	if i2>9 and i6>0 and i3>5 and i4>1 and i5>1 and i1>2 and(la/sf>5.1)and nb>15 and sf>3000 then tz=1
-	if i2>15 and i3>9 and i6>2 and i4>6 and i5>4 and i1>6 and(la/sf>10.5)and sf>3500 and nb>30 then tz=2
+	if i2>9 and i6>0 and i3>5 and i4>1 and i5>1 and i1>2 and(la>5.1*sf)and nb>15 and sf>3000 then tz=1
+	if i2>15 and i3>9 and i6>2 and i4>6 and i5>4 and i1>6 and(la>10.5*sf)and sf>3500 and nb>30 then tz=2
 {:_650}
 	gosub {$33}092:if mp=0 and la>ln then gosub {$33}121
 '	a$="e.emp6 config,s,r":dr=3:gosub 1011
 '	input# 2,ln$:input# 2,mp$:ln=val(ln$):mp=val(mp$)
 '	close 2:close 15
 	
-	if i2>23 and i3>9 and i6>2 and i4>13 and i5>11 and i1>9 and(la/sf>23.4)and sf>5499 and b>62 then gosub {$33}121
+	if i2>23 and i3>9 and i6>2 and i4>13 and i5>11 and i1>9 and(la>23.4*sf)and sf>5499 and b>62 then gosub {$33}121
 	gosub {$33}115:ty=tz:return
 '	on -(tz=3) gosub {:_700}:on -(bn=1) goto {:_41}:ff=.:vg=.:if z8=. or z8=2 then {:town}
 

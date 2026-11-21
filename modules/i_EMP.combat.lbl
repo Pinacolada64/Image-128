@@ -6,6 +6,9 @@
 ' emp6-includes.lbl
 {alpha:alt}
 {uses:..\3_0-preface.lbl}
+' C64 addresses in peek/poke are the 128's, as {sym:...} names from
+' asm/equates.asm: 899-901 (the cassette buffer) are emp6mem's
+{include:"..\asm\equates.asm"}
 {number:4000}
 	rem "i/EMP.combat" {usedef:__BuildDate} {usedef:__BuildTime}
 ' moved jousting option to +.emp6.tourney
@@ -38,13 +41,15 @@
 	&"{lt. blue}{f6:2}":gosub 93:if a=. then {:combat_start}
 '	&"{lt. blue}{f6:2}Are you sure?{white} ":gosub 1902:if an$<>"Y"then {:combat_start}
 	if ez>200000 and (la-50000)>ez then {:_625}
-	i=1:if peek(901)=. then {:_28}
+	i=1:if peek({sym:emp6mem}+2)=. then {:_28}
 {:_24}
-	a=peek(901+i):on-(a=x)goto {:_26}:i=i+1:on-(i>peek(901))goto {:_28}:goto {:_24}
+	a=peek({sym:emp6mem}+2+i):on-(a=x)goto {:_26}:i=i+1:on-(i>peek({sym:emp6mem}+2))goto {:_28}:goto {:_24}
 {:_26}
 	&"{f6}{yellow}{pound}s1You already did!{pound}s0{pound}w1{lt. blue} Try someone else!{f6}":goto {:combat_start}
 {:_28}
-	poke 901,peek(901)+1:poke 901+peek(901),x ':goto {:_30}
+' 128: the list stops at emp6max (17 bytes free at emp6mem; c64: unbounded,
+' into the cassette buffer): those past it can be attacked again
+	if peek({sym:emp6mem}+2)<{sym:emp6max} then poke {sym:emp6mem}+2,peek({sym:emp6mem}+2)+1:poke {sym:emp6mem}+2+peek({sym:emp6mem}+2),x
 {:_30}
 	if g1=g3 then:&"{f6:2}{lt. red}Attack YOURSELF?{pound}$l{red}Bad mistake!{f6}{lt. blue}"
 	la=la-fn r(la/2):goto {:_182}

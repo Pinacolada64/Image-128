@@ -107,10 +107,13 @@
 ' Give them how many?
 ' (Return=50000): []
 	pq=sf*5+1:&"{f6}{lt. green}Your people require"+str$(pq)+" bushels.{f6}"
-	if gr<pq then pq=gr:gosub {:sub.so_many_bushels}
-	&"{f6}{cyan}Give them how many?{pound}$l({pound}$k="+str$(pq)+"){lt. blue}: ":if tr%<1 then {$33}030
+' 128: dq, the default offered: pq stays what they need (1.2 lowered pq to
+' the grain there was, so the report, gp/pq, saw a short ration as a full one
+' and divided by zero with no grain)
+	dq=pq:if gr<dq then dq=gr:gosub {:sub.so_many_bushels}
+	&"{f6}{cyan}Give them how many?{pound}$l({pound}$k="+str$(dq)+"){lt. blue}: ":if tr%<1 then {$33}030
 ' theoretically, return sets this value:
-	if an$="" then an$=str$(pq):&"{f6}(Giving {pound}v7 bushels.){f6}"
+	if an$="" then an$=str$(dq):&"{f6}(Giving {pound}v7 bushels.){f6}"
 	gp=int(val(an$)):if gp<. then {:_220}
 ' new: subroutined message
 	if gr<=. then gp=.:ga=.:goto {:no_grain}
@@ -125,11 +128,12 @@
 	ar=wa*10+1:&"{f6:2}{lt. green}Your army requires"+str$(ar)+" bushels.{f6}"
 ' new: if you have fewer bushels, adjust accordingly:
 ' wish: buy option here?
-	if gr<ar then ar=gr:gosub {:sub.so_many_bushels}
-	&"{f6}{cyan}Give them how many?{pound}$l({pound}$k="+str$(ar)+"){lt. blue}: {pound}i1"
+' 128: dq, as for the people: ar stays what the army needs (report: ga/ar)
+	dq=ar:if gr<dq then dq=gr:gosub {:sub.so_many_bushels}
+	&"{f6}{cyan}Give them how many?{pound}$l({pound}$k="+str$(dq)+"){lt. blue}: {pound}i1"
 	if tr%<1 then {$33}030
 ' theoretically, return sets this value:
-	if an$="" then an$=str$(ar):&"{f6}(Giving {pound}v7 bushels.){f6}"
+	if an$="" then an$=str$(dq):&"{f6}(Giving {pound}v7 bushels.){f6}"
 	ga=int(val(an$)):if ga<. then {:_228}
 	if gr<=. then ga=.:goto {:no_grain}
 	if ga>gr then gosub {:sub.so_many_bushels}:goto {:_228}

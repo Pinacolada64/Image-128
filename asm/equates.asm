@@ -368,6 +368,13 @@
 	k_nofile = $f682	; c64: $f701. return "file not open"
 
 ; 2670-2687 / $0A6E-$0A7F: Unused [128 OS] (17 bytes)
+	; 11/20/2026: Empire 6 (i/EMP.*), kept from one game to the next
+	; during a call (c64: 899-915, the cassette buffer; on the 128 899-901
+	; are CHRGET's, $0380-, so the pokes crashed BASIC): +0 the turns
+	; played, +1 the player (g3) they're for, +2 how many players he has
+	; attacked, +3 on: their numbers (up to 14: emp6max)
+	emp6mem	= $0a6e	; 2670-2686
+	emp6max	= 14
 
 	ntscpal = $0a03	; c64: $02a6, c128: 255=pal, 1=ntsc
 
