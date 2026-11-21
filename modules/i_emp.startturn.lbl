@@ -39,15 +39,20 @@
 '	input# 2,ln$:input# 2,mp$:ln=val(ln$):mp=val(mp$)
 '	close 2:close 15
 	
-	if i2>23 and i3>9 and i6>2 and i4>13 and i5>11 and i1>9 and(la>23.4*sf)and sf>5499 and b>62 then gosub {$33}121
-	gosub {$33}115:ty=tz:return
+' 128: nb>62, nobles, as the ranks above (1.2: b, a scratch variable)
+	if i2>23 and i3>9 and i6>2 and i4>13 and i5>11 and i1>9 and(la>23.4*sf)and sf>5499 and nb>62 then gosub {$33}121
+' 128: then the menu (1.2 returned here: the menu, and Quit, never came)
+	gosub {$33}115:ty=tz:goto {:main_prompt}
 '	on -(tz=3) gosub {:_700}:on -(bn=1) goto {:_41}:ff=.:vg=.:if z8=. or z8=2 then {:town}
 
 {:main_prompt}
 	z8=.:ff=.:vg=.:gosub {$33}115:&"{f6:2}{lt. green}Your command, {gray1}{pound}v8{lt. blue}{pound}v2?{lt. green}>>{lt. blue}{pound}i1":if tr%<1 then {$33}030
 	gosub {$33}070
 ' q)uit, c)ontinue / p)lay, t)own
-	on -(an$="Q")-2*(an$="C" or an$="P")-3*(an$="T") goto {$33}030,{:_110},{:town}
+' 128: Q returns with tw=2: i.empire quits (goto 3030 from here left the
+' gosubs that ran this module on the stack)
+	if an$="Q" then tw=2:return
+	on -(an$="C" or an$="P")-2*(an$="T") goto {:_110},{:town}
 '	on -(an$="T")-2*(an$="M") goto {:_38},{:_108},{:_420}
 ' o)ther rulers, n)ews, i)nstructions, ? (help)
 	on -(an$="O")-2*(an$="N")-3*(an$="I")-4*(an$="{f2}") gosub {$33}050,{:_92},{:_104},{:sub.main_menu}
@@ -60,7 +65,9 @@
 	&"{f6:2}Go to town? ":gosub 94:if a=. then {:main_prompt}
 {:_108}
 ' load mini-module:
-	&"{f6:2}{purple}Heading to the town...":a$="town":gosub {$33}005:goto {:main_prompt}
+' 128: tw=1 and back to i.empire, which loads the town (a module can't load
+' another: it would replace this one under its own gosub)
+	&"{f6:2}{purple}Heading to the town...":tw=1:return
 
 {:_90}
 	&"{f6:2}{red}The other rulers unite their forces{pound}$lagainst you for hogging the game!{pound}w3":goto {$33}045

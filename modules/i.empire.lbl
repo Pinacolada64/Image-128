@@ -112,7 +112,9 @@
 	' TODO: tz=2: goto {:sub.rank}
 	d2$="KING ":tz=2:return
 {:_486}
-	if la<ln then return
+' 128: or ln=. (no land target: e.emp6 config not written yet), else every
+' ruler with land was an Emperor
+	if la<ln or ln=. then return
 	' TODO: tz=3: goto {:sub.rank}
 	d2$="EMPEROR ":tz=3:return
 
@@ -193,7 +195,12 @@
 	a$="startup":gosub {:sub.load_lmp}:if tr%<1 then {:save_stats_quit}
 	
 {:start_turn}
-	a$="startturn":gosub {:sub.load_lmp}:if tr%<1 then {:save_stats_quit}	
+' 128: tw=2 from i/emp.startturn's menu (Q): quit from here, its gosub
+' returned (from the module, goto 3030 left it on the stack: 4 bytes a game)
+' tw=1 from i/emp.startturn's menu (T): the town, loaded from here, then
+' the menu again (1.2 loaded the town from inside startturn, which it
+' replaced, so its return had nowhere to go)
+	tw=.:a$="startturn":gosub {:sub.load_lmp}:on -(tr%<1 or tw=2) goto {:save_stats_quit}:if tw then a$="town":gosub {:sub.load_lmp}:goto {:start_turn}
 
 	a$="trading":gosub {:sub.load_lmp}:if tr%<1 then {:save_stats_quit}	
 
@@ -233,7 +240,9 @@
 {:_414}
 	d2$="KING ":tz=2:return
 {:_416}
-	if la<ln then return
+' 128: or ln=. (no land target: e.emp6 config not written yet), else every
+' ruler with land was an Emperor
+	if la<ln or ln=. then return
 	d2$="EMPEROR ":tz=3:return
 
 {:_420}
