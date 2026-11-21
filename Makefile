@@ -18,6 +18,9 @@
 # - tools/pdf-preamble.tex: Latin Modern with a Symbola fallback, for the
 #   characters it lacks (arrows, check marks, box drawing), and light
 #   striping on table rows.
+# - docs/images/*.svg: made into vector PDFs in build/docs/images/ with
+#   tools/svg2pdf.rb (the prawn-svg gem), which tools/svg-to-pdf.lua puts in
+#   place of the SVGs (lualatex can't read SVG).
 
 DOCS := PORTING_NOTES.md PROGRAMMING.md DEBUG_TECHNIQUES.md DATA_FILES.md \
 	BASIC_VARIABLES.md SYSOP_COMMANDS.md STATUS_LINE.md editor.md \
@@ -28,14 +31,22 @@ PREAMBLE := tools/pdf-preamble.tex
 
 PANDOC := pandoc
 PANDOC_FLAGS := -f markdown-tex_math_dollars -t pdf --pdf-engine=lualatex \
-	-V geometry:margin=1in -V colorlinks=true --toc -H $(PREAMBLE)
+	-V geometry:margin=1in -V colorlinks=true --toc -H $(PREAMBLE) \
+	--lua-filter tools/svg-to-pdf.lua
 
 # docs/x.md goes to build/docs/x.pdf, not build/docs/docs/x.pdf
 PDFS := $(patsubst %.md,$(OUT)/%.pdf,$(patsubst docs/%,%,$(DOCS)))
+FIGS := $(patsubst docs/images/%.svg,$(OUT)/images/%.pdf,$(wildcard docs/images/*.svg))
 
 .PHONY: docs clean-docs
 
 docs: $(PDFS)
+
+$(PDFS): $(FIGS)
+
+$(OUT)/images/%.pdf: docs/images/%.svg tools/svg2pdf.rb
+	@mkdir -p $(dir $@)
+	ruby tools/svg2pdf.rb $< $@
 
 $(OUT)/%.pdf: %.md $(PREAMBLE)
 	@mkdir -p $(dir $@)
@@ -48,4 +59,4 @@ $(OUT)/%.pdf: docs/%.md $(PREAMBLE)
 	$(PANDOC) $< $(PANDOC_FLAGS) -o $@
 
 clean-docs:
-	rm -f $(PDFS)
+	rm -f $(PDFS) $(FIGS)
