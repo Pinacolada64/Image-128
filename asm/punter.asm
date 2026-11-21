@@ -1,10 +1,48 @@
-{alpha:alt}	; .encoding "petscii_mixed"
+; punter.asm -- "++ punter": Punter (C1), Relaxed Punter and Image 1.3
+; Punter (no file type block), for the U/D sections (sub.protos: a$=
+; "punter":gosub 28, then &,16,4,f with s.m.protos' column 7):
+;
+; &,16      (0) send the open disk file #2      &,16,1  receive into #2
+; &,16,2    multi-send an$ ("name,t"; "" ends), or with flag bit 2 set
+;           an$ as a name block
+; &,16,3    multi-receive into an$ ("" the end), or with flag bit 2 set a
+;           name block
+; &,16,4,f  the flag byte: bit 1 relaxed timing; bit 2 set: no file type
+;           block before a single file (Image 1.3 Punter), and the name
+;           as a block in &,16,2/3 (the code calls it flag_filetype, but
+;           the type block goes when it's clear: trantype, rectype)
+; &,16,5    a% = the flag byte;  &,16,255  a% = 0, the protocol number
+; Returns a% the good blocks, b% the bad, rc the bytes (multi: rc 1 ok).
+;
+; Ported on 2026-11-20 from the 3.0 release's (C64 values in comments), as
+; ++ net (asm/net.asm, Punter's relative) and ++ xmodem were:
+; - runs at protostart ($1c00; c64 $c000), where &,7,dv%,2 loads it
+; - in 80 columns each call runs at 2 MHz, as ++ net's, then the screen
+;   blanker's speed again
+; - the block pointer is bufptr ($66/$67; c64 $64/$65, FAC1, which the
+;   128's varbuf overlaps); the two block buffers are still in the
+;   40-column screen ($0400, $0500), as on the C64 and in ++ net
+; - the shift flags are shflag ($d3; c64 $028d); carrier is carrst's bit 7
+;   (c64: flag_dcd_addr)
+; - the modem read straight from the driver (getmdm, as ++ net), and
+;   written with the driver's rsout (c64: chkout 131, chrout, clrchn): the
+;   driver's clrchn turns its receiving off and on, and a code the other
+;   side sent at once was lost (found with ++ xmodem)
+; - irqcount works as on the C64: newirq (ml.asm) does Image's IRQ work
+;   once in irqcount frames, 11 during a transfer
+; - 1<<code written as the bits' values (C64List has no shift operator)
+; - the screen: no colour RAM writes; in 80 columns rows 14 and 15 (the
+;   clock and the counters) come from the VDC first and each changed cell
+;   goes back (&,72); the clock is drawn when its seconds change (c64: on
+;   every byte read)
+; - rc packed here, not with the C64 BASIC ROM's $bc4f
 
-version = "9107098721"
-
+{alpha:alt}	; c64: KickAss's petscii_mixed: capitals $c1-$da, lowercase $41-$5a
 {include:"equates.asm"}
 
-* = protostart ; "punter.prg"
+bufptr	= varbuf+3	; the block pointer ($66/$67; c64 $64/$65)
+
+	orig protostart	; c64: $c000
 
 ; modem file number
 mfile = 131
@@ -43,6 +81,13 @@ ddd = 7
 mjz = 8
 okm = 9
 
+; each code's bit in accept's pattern (c64 source: 1<<code)
+b_goo = 2
+b_bad = 4
+b_ack = 8
+b_snb = 16
+b_syn = 32
+
 pbuf1= $400
 pbuf2= $500
 
@@ -58,6 +103,8 @@ display_state = pbuf3 + 30
 
 ; start of the screen line with the good/bad counts
 pbuf0= $658
+pbufrow	= 15	; 128: its row (&,72)
+clkrow	= 14	; 128: pbuf3's
 
 ; index of the good count display
 gcount = 11
@@ -89,8 +136,29 @@ header_block_number_msb = 6
 
 header_size = 7
 
+; 128: in 80 columns at 2 MHz, as ++ net's entry
+entry:
+	bit mode
+	bpl dispatch	; 40 columns: 1 MHz, as on the C64
+	lda $d030
+	ora #1
+	sta $d030
+	jsr dispatch
+	pha
+	lda blnkflag
+	and #1
+	sta speed
+	lda $d030
+	and #$fe
+	ora speed
+	sta $d030
+	pla
+	rts
+speed:
+	byte 0
+
 ; start - jump table
-ml:
+dispatch:
 	lda defflag
 	and #2
 	inx
@@ -116,7 +184,7 @@ flag_relaxed =  %00000001 ; use relaxed timing
 flag_filetype = %00000010 ; accept/send file type for single file transfers
 
 versiond:
-	ascii version
+	ascii "9107098721"
 
 ; code accept timing
 t1:
@@ -185,18 +253,15 @@ multiup:
 	jsr sendcode
 	ldx #5
 	jsr tenwait
-	ldx #mfile
-	jsr chkout
-	ldy #0
+	ldy #0		; 128: rsout (c64: chkout 131 ... clrchn)
 multiup1:
 	lda (varbuf+1),y
-	jsr chrout
+	jsr rsout
 	iny
 	cpy varbuf
 	bcc multiup1
 	lda #13
-	jsr chrout
-	jsr clrchn
+	jsr rsout
 multiup3:
 	jsr getnumx
 	bcs multiup3
@@ -293,15 +358,14 @@ exit0:
 
 ; if the commodore key is pressed, abort the transfer
 
-	lda $28d
-	cmp #2
+	lda shflag	; c64: $28d
+	cmp #COMMODORE_KEY
 	beq exit_cleanup
 
 ; if carrier is lost, abort the transfer
 
-	lda flag_dcd_addr
-	and #flag_dcd_r_mask
-	beq exit_cleanup
+	lda carrst	; c64: flag_dcd_addr; 128: bit 7, carrier
+	bpl exit_cleanup
 
 	rts
 
@@ -309,15 +373,14 @@ exit:
 
 ; if the commodore key is pressed, abort the transfer
 
-	lda $28d
-	cmp #2
+	lda shflag	; c64: $28d
+	cmp #COMMODORE_KEY
 	beq exit_cleanup
 
 ; if carrier is lost, abort the transfer
 
-	lda flag_dcd_addr
-	and #flag_dcd_r_mask
-	bne ext2
+	lda carrst	; c64: flag_dcd_addr
+	bmi ext2
 
 ; exit and abort the transfer
 
@@ -367,32 +430,36 @@ xfer1:
 	sta varbuf
 	ldx #var_b_integer
 	jsr putvar
+; 128: rc from bytes (24 bits), as BASIC packs a float (c64: $bc4f): the
+; exponent, then the mantissa from its top bit, which (positive) is
+; cleared
+	lda bytes+2
+	sta varbuf+1
+	lda bytes+1
+	sta varbuf+2
 	lda bytes
-	ldx bytes+1
-	ldy bytes+2
-	sta $64
-	stx $63
-	sty $62
-	ldx #0
-	stx $0d
-	ldx #$98
-	lda $62
-	eor #$ff
-	rol
-	lda r6510
-	pha
-	lda #r6510_normal
-	sta r6510
+	sta varbuf+3
 	lda #0
-	sta $65
-	; TODO get a label for this
-	jsr $bc4f
-	pla
-	sta r6510
-	lda $66
-	ora #$7f
-	and $62
-	sta $62
+	sta varbuf+4
+	sta varbuf
+	lda varbuf+1
+	ora varbuf+2
+	ora varbuf+3
+	beq xfer1b	; 0: exponent 0
+	ldx #$98	; 2^24
+xfer1a:
+	lda varbuf+1
+	bmi xfer1c
+	asl varbuf+3
+	rol varbuf+2
+	rol varbuf+1
+	dex
+	bne xfer1a
+xfer1c:
+	stx varbuf
+	and #$7f
+	sta varbuf+1
+xfer1b:
 	ldx #var_rc_float
 	jmp putvar
 
@@ -522,24 +589,24 @@ char3:
 	ascii "odkbn"
 	byte ensh, ascii_ctrl_d, 0, 13
 
+; a code's three characters, then a tenth of a second
+; 128: with the driver's rsout (c64: chkout 131 ... clrchn)
 sendcode:
-	txa
-	pha
-	ldx #mfile
-	jsr chkout
-	pla
-	tax
+	stx sendx
 	lda char1,x
 	jsr chrdly
+	ldx sendx
 	lda char2,x
 	jsr chrdly
+	ldx sendx
 	lda char3,x
 	jsr chrdly
-	jsr clrchn
 	ldx #1
 	jmp tenwait
+sendx:
+	byte 0
 chrdly:
-	jsr chrout
+	jsr rsout
 	lda #10
 	sec
 chrdly1:
@@ -606,7 +673,7 @@ rch2:
 
 ; wait for ack
 
-	lda #1<<ack
+	lda #b_ack
 	jsr accept
 	beq rch3
 
@@ -644,7 +711,7 @@ rch4:
 rch5:
 	rts
 rch6:
-	lda #1<<syn
+	lda #b_syn
 	jsr accept
 	bne rch3
 
@@ -654,7 +721,7 @@ rch7:
 	ldx #syn
 	jsr sendcode
 
-	lda #1<<snb
+	lda #b_snb
 	jsr accept
 	beq rch8
 
@@ -672,7 +739,7 @@ trh1:
 	ldx #goo
 	jsr sendcode
 trh2:
-	lda #(1<<goo) | (1<<bad) | (1<<snb)
+	lda #b_goo+b_bad+b_snb
 	jsr accept
 	bne trh1
 	lda #$00
@@ -688,7 +755,7 @@ trh2:
 trh3:
 	jsr thisbuf
 	ldy #6
-	lda ($64),y
+	lda (bufptr),y
 	cmp #$ff
 	bne trh4
 	lda #1
@@ -709,30 +776,27 @@ trh6:
 	jsr prtdash
 	ldx #ack
 	jsr sendcode
-	lda #1<<snb
+	lda #b_snb
 	jsr accept
 	bne trh5
 	jsr thisbuf
 	ldy #4
-	lda ($64),y
+	lda (bufptr),y
 	sta bufcount
 	jsr altbuf
-	ldx #mfile
-	jsr chkout
-	ldy #0
+	ldy #0		; 128: rsout (c64: chkout 131 ... clrchn)
 trh7:
-	lda ($64),y
-	jsr chrout
+	lda (bufptr),y
+	jsr rsout
 	iny
 	cpy bufcount
 	bne trh7
-	jsr clrchn
 	lda #0
 	rts
 trh8:
 	ldx #ack
 	jsr sendcode
-	lda #1<<snb
+	lda #b_snb
 	jsr accept
 	bne trh8
 	lda #10
@@ -740,7 +804,7 @@ trh8:
 trh9:
 	ldx #syn
 	jsr sendcode
-	lda #1<<syn
+	lda #b_syn
 	jsr accept
 	beq trha
 	dec bufcount
@@ -768,14 +832,42 @@ recmodem:
 rcm1:
 	lda #$00
 	sta jiffy
+; 128, 11/20/2026: with 8 or more waiting, a byte straight from the
+; driver's buffer (rsibuf, a ring of 128 in both drivers), without rsget's
+; receive window; with fewer, rsget, which also turns the SwiftLink's
+; receiving back on (flow control) under 100; getnumx (carrier, C=, the
+; clock) only when it's empty. Each byte through getnumx was too slow for
+; a block at 19200 in 40 columns (1 MHz): the buffer reached 120, the
+; driver stopped taking bytes, and blocks went bad (as ++ xmodem's)
 rcm2:
+	ldy ridbs
+	cpy ridbe
+	beq rcm2s
+	lda ridbe
+	sec
+	sbc ridbs
+	and #127
+	cmp #8
+	bcc rcm2r
+	lda rsibuf,y
+	iny
+	bpl rcm2w
+	ldy #0
+rcm2w:
+	sty ridbs
+	jmp rcm2g
+rcm2r:
+	jsr rsget
+	jmp rcm2g
+rcm2s:
 	jsr getnumx
 
 	lda $96
 	bne recmodem_no_byte_received
 
-	ldy recmodem_index
 	lda $0200
+rcm2g:
+	ldy recmodem_index
 	sta pbuf1,y
 
 	cpy #3
@@ -835,17 +927,17 @@ dummyblk:
 	lda blocknum
 	clc
 	adc #$01
-	sta ($64),y
+	sta (bufptr),y
 	iny
 	lda blocknum+1
 	adc #$00
-	sta ($64),y
+	sta (bufptr),y
 	ldx #dfile
 	jsr chkin
 	ldy #$07
 dum1:
 	jsr chrin
-	sta ($64),y
+	sta (bufptr),y
 	jsr commbyte
 	iny
 	jsr readst
@@ -861,7 +953,7 @@ dum2:
 	ldy #5
 	iny
 	lda #$ff
-	sta ($64),y
+	sta (bufptr),y
 	jmp dum3
 dummybl1:
 	pha
@@ -871,12 +963,12 @@ dum3:
 	jsr dod2
 	jsr reset
 	ldy #$04
-	lda ($64),y
+	lda (bufptr),y
 	sta bufcount
 	jsr altbuf
 	pla
 	ldy #$04
-	sta ($64),y
+	sta (bufptr),y
 	jsr checksum
 	rts
 
@@ -885,15 +977,15 @@ thisbuf:
 	bne thisbuf1
 thisbuf0:
 	lda #<pbuf1
-	sta $64
+	sta bufptr
 	lda #>pbuf1
-	sta $65
+	sta bufptr+1
 	rts
 thisbuf1:
 	lda #<pbuf2
-	sta $64
+	sta bufptr
 	lda #>pbuf2
-	sta $65
+	sta bufptr+1
 	rts
 
 altbuf:
@@ -911,13 +1003,13 @@ checksum:
 chk1:
 	lda check1
 	clc
-	adc ($64),y
+	adc (bufptr),y
 	sta check1
 	bcc chk2
 	inc check1+1
 chk2:
 	lda check1+2
-	eor ($64),y
+	eor (bufptr),y
 	sta check1+2
 	lda check1+3
 	rol
@@ -928,16 +1020,16 @@ chk2:
 	bne chk1
 	ldy #0
 	lda check1
-	sta ($64),y
+	sta (bufptr),y
 	iny
 	lda check1+1
-	sta ($64),y
+	sta (bufptr),y
 	iny
 	lda check1+2
-	sta ($64),y
+	sta (bufptr),y
 	iny
 	lda check1+3
-	sta ($64),y
+	sta (bufptr),y
 	rts
 
 transmit:
@@ -954,13 +1046,13 @@ transmit:
 	jsr altbuf
 	ldy #4
 	lda #7
-	sta ($64),y
+	sta (bufptr),y
 	jsr thisbuf
 	ldy #5
 	lda #0
-	sta ($64),y
+	sta (bufptr),y
 	iny
-	sta ($64),y ;6
+	sta (bufptr),y ;6
 tra1:
 	jsr tranhand
 	beq tra1
@@ -1118,16 +1210,16 @@ trt0:
 	jsr altbuf
 	ldy #4
 	lda #8
-	sta ($64),y ;4
+	sta (bufptr),y ;4
 	jsr thisbuf
 	ldy #5
 	lda #$ff
-	sta ($64),y ;5
+	sta (bufptr),y ;5
 	iny
-	sta ($64),y ;6
+	sta (bufptr),y ;6
 	lda filetyp
 	iny
-	sta ($64),y ;7
+	sta (bufptr),y ;7
 	lda #1
 	sta specmode
 trt1:
@@ -1188,14 +1280,13 @@ screen:
 	inx
 	inx
 	stx stack
-	ldy #0
-scr2:
-	lda #3
-	sta pbuf1+$d400,y
-	lda #7
-	sta pbuf2+$d400,y
-	iny
-	bne scr2
+			; c64: the buffers' colour RAM, cyan and yellow
+	ldx #pbufrow+64	; 128: rows 15 and 14 from the VDC (80 columns)
+	jsr vdcrow
+	ldx #clkrow+64
+	jsr vdcrow
+	lda #$ff
+	sta lastsec
 	jsr nobytes
 	jsr startclk
 	jmp setup
@@ -1262,9 +1353,27 @@ getln:
 putln:
 	lda #36
 	jmp usetbl1
+; 128, as ++ net's: the driver directly, rather than &,4 through usetbl1
+; (c64: lda #4 / jmp usetbl1); 7 bits only in ASCII translation, which
+; setup turns off
 getmdm:
-	lda #4
-	jmp usetbl1
+	jsr rsinabl
+	sec
+	jsr rsget
+	bcs getmdm6
+	pha
+	lda flag_asc_addr
+	and #flag_asc_l_mask
+	beq getmdm1
+	pla
+	and #$7f
+	pha
+getmdm1:
+	pla
+	rts
+getmdm6:
+	lda #0
+	rts
 usevar:
 	lda #29
 	jmp usetbl1
@@ -1323,11 +1432,39 @@ counter:
 	bne counter1
 	lda #'0'
 	sta pbuf0,x
+	jsr showcell	; 128: each digit changed, on the VDC too
 	dex
 	dey
 	bne counter
-counter1:
 	rts
+counter1:
+	jmp showcell	; c64: rts
+
+; 128: the cell at pbuf0+.x to the VDC (&,72; nothing in 40 columns).
+; Keeps .a .x .y
+showcell:
+	pha
+	txa
+	pha
+	tya
+	pha
+	txa
+	tay
+	ldx #pbufrow
+	jsr vdccell
+	pla
+	tay
+	pla
+	tax
+	pla
+	rts
+; &,72: .x a row (+64: VDC to VIC), or .x the row and .y the column of
+; one cell (VIC to VDC)
+vdcrow:
+	ldy #0
+vdccell:
+	lda #72
+	jmp usetbl1
 
 recname:
 	lda #$00
@@ -1390,16 +1527,16 @@ tranname:
 	jsr altbuf
 	ldy #4
 	lda #7+18
-	sta ($64),y
+	sta (bufptr),y
 	jsr thisbuf
 	ldy #5
 	lda #$ff
-	sta ($64),y
+	sta (bufptr),y
 	iny
-	sta ($64),y
-	lda $64
+	sta (bufptr),y
+	lda bufptr
 	pha
-	lda $65
+	lda bufptr+1
 	pha
 	ldx #var_an_string
 	jsr usevar
@@ -1415,16 +1552,16 @@ trn1:
 trn2:
 	sty index
 	pla
-	sta $65
+	sta bufptr+1
 	pla
-	sta $64
+	sta bufptr
 	ldx #0
 	ldy #7
 trn3:
 	cpy index
 	beq trn4
 	lda buffer,x
-	sta ($64),y
+	sta (bufptr),y
 	iny
 	inx
 	bne trn3
@@ -1432,7 +1569,7 @@ trn4:
 	cpx #18
 	beq trn5
 	lda #0
-	sta ($64),y
+	sta (bufptr),y
 	inx
 	iny
 	bne trn4
@@ -1454,8 +1591,18 @@ startcl1:
 	bpl startcl1
 	rts
 
+; 128: only when its seconds have changed (c64: on every byte read), and
+; its 8 cells to the VDC. Reading the seconds alone doesn't latch the
+; clock; reading the hours does, until the tenths are. Keeps .a .x .y
 displclk:
 	pha
+	lda $dd09
+	cmp lastsec
+	bne displcl0
+	pla
+	rts
+displcl0:
+	sta lastsec
 	txa
 	pha
 	tya
@@ -1480,12 +1627,26 @@ displcl1:
 	jmp displcl1
 displcl2:
 	lda $dd08
+	ldx #tcount	; 128: its 8 cells to the VDC
+displcl5:
+	txa
+	tay
+	pha
+	ldx #clkrow
+	jsr vdccell
+	pla
+	tax
+	inx
+	cpx #tcount+8
+	bcc displcl5
 	pla
 	tay
 	pla
 	tax
 	pla
 	rts
+lastsec:
+	byte 0
 displcl3:
 	ora #$30
 displcl4:
