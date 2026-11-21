@@ -1,0 +1,184 @@
+{number:800}
+{step:1}
+	{uses:.\includes.lbl}
+	rem +.emp6.maint
+	goto {:start}
+
+{step:2}
+{:sub.check_for_duplicate}
+' FIXME
+' returns ok=id# if duplicate name [dt$(1)] found in playerlog, 0=no duplicate
+	&"Checking for duplicate profile {f5}"+nn$+"{f5}...":ok=.
+' skip player's profile (g3) so false match not triggered:
+	for x=1 to 24:&".":if x=g3 then {:cfd}
+	gosub 1001:&,2,2:if a$=dt$(1) then ok=x:&"{f6}Duplicate at #"+str(x):x=24
+{:cfd}
+	next:return
+
+{:sub.empty_record}
+' create empty player record
+	w$="empty"+r$:for x=1 to 15:w$=w$+"0"+r$:next:return
+
+{nice:10}
+{:start}
+	&"{clear}{cyan} Empire 6 Maintenance{f6}{pound}vj"
+'	&" {pound}k1Call Utopia ][ 702-735-6787 24 Hours{pound}k0"
+	&"{purple}Options:{white}{f6:2}"
+	&"(C)onfig Auto-Reset & Credit/Money Exchange{f6}"
+	&"(E)dit Player's Profile{f6}"
+	&"(L)ist Players{f6}"
+'	&"(P)lay Empire{f6}"
+	&"(R)eset Empire{f6}"
+	&"(S)cratch News{f6:2}"
+	&"(Q)uit to Empire{f6:2}"
+{:prompt}
+	&"{lt. red}Choice? {pound}i1":if tr%<1 then 1811
+	on-(an$="E")-2*(an$="R")-3*(an$="S")-4*(an$="C") goto {:edit_profile}, {:reset_empire}, {:scratch_news}, {:config}
+	if an$="Q" then return ' returns back to main module
+	if an$="L" then gosub {:sub.other_rulers}
+	goto {:prompt}
+
+{:edit_profile}
+' edit profile
+	x=.:kk=.:gosub {:sub.open_playerlog}:gosub 1012
+
+{:532}
+' ----+----+----+----+----+----+----+----+
+' "^" adds player.
+' Handle or ID# searches for that player.
+	&"{f6}{f5}{^}{f5} adds player.{f6}Handle or ID# searches for that player.{f6:2}"
+	&"Player's name/ID? {pound}i0":on -(an$="")-2*(tr%<1) goto {:start}, 1811
+	gosub {:sub.str_to_int}:if an then {:edit_by_number}
+' TODO: search for empty slot: should g3=0, nn$="^"?
+{:536}
+' search for nn$ in player log:
+	nn$=an$:&"Searching...":ok=.
+	for x=1 to 24:gosub 1001:&".":&,2,2:if a$=nn$ then ok=x:x=24
+	next:if ok then {:550}
+
+	&"{f6}Player not found.{pound}w2":goto {:start}
+
+{:edit_by_number}
+' search by player number
+	if an<1 and an>24 then:&"Out of range.{pound}w2":goto {:532}
+	&,2,2:if a$="empty" then:&"This player has been deleted.{pound}w2":goto {:edit_profile}
+
+{:550}
+' g3=player #
+	g3=x:for j=1 to 16:input# 2,dt$(j):next
+
+{:profile}
+	a%=g3:n$=nn$:if n$="empty" then n$="(Deleted)"
+	&"{clear} Profile of #{pound}%a":if kk then:&" (Modified)"
+	&"{f6:2} 0) Name     : {pound}$n"
+	&"{f6} 1) Land     : "+dt$(1)
+	&"{f6} 2) Soldiers : "+dt$(2)
+	&"{f6} 3) Serfs    : "+dt$(3)
+	&"{f6} 4) Nobles   : "+dt$(4)
+	&"{f6} 5) Grain    : "+dt$(5)
+	&"{f6} 6) Tax Rate : "+dt$(6)
+	&"{f6} 7) Dollars  : "+dt$(7)
+	&"{f6} 8) Palace   : "+dt$(8)
+	&"{f6} 9) Markets  : "+dt$(9)
+	&"{f6}10) Mills    : "+dt$(10)
+	&"{f6}11) Foundries: "+dt$(11)
+	&"{f6}12) Shipyards: "+dt$(12)
+	&"{f6}13) Diplomats: "+dt$(13)
+	&"{f6}14) Ships    : "+dt$(14)
+	&"{f6}15) Colonies : "+dt$(15)
+	&"{f6}16) Training : "+dt$(16)
+{:585}
+' kk=modified flag
+	&"{f6:2}Edit which #? {pound}i1":gosub {:sub.str_to_int}:on -(tr%<1)-2*(an<1 and an>16) goto 1811, {:profile}:if an$="" and kk=0 then {:start}
+' improving editor a bit:
+	if an$="" then:&"{f6}Save changes? ":gosub {:sub.yes_no}:on -(tr%<1)-2*(a=.)-3*(a=1) goto 1811, {:start}, {:716}
+	if an>16 then {:585}
+' edit name:
+	if an=. then {:change_name}
+'	kk=1:&"{f6}Enter new value for "+an$+":":gosub 1006:on tr%<1 goto 1811:dt$(r)=an$:goto {:profile}
+' new: see previous value
+' new: only set kk if value actually changed:
+
+' w$=na$:p$="handle":&,1,32:if an$<>"" then na$=an$
+
+	w$=dt$(an):p$="Value":&,1,32:on tr%+1 goto 1811:if an$<>"" then dt$(r)=an$:kk=1
+	goto {:profile}
+
+{:change_name}
+' fix modification status, check for duplicate player name:
+' ----+----+----+----+----+----+----+----+
+' "^" deletes player.
+' Player ID# or name is accepted.
+	&"{f6}{f5}{up arrow}{f5} deletes player.{f6}Player ID# or name is accepted.{f6:2}"
+	w$=nn$:p$="Name":&,1,32:on tr%+1 goto 1811
+	if an$<>"{up arrow}" then {:edit_name}
+	&"Delete this player? ":a=.:gosub 1902
+	if a then gosub {:sub.empty_record}:x=g3:gosub 1001:print# 2,w$
+	goto {:profile}
+
+{:edit_name}
+	if an$<>w$ then gosub {:sub.check_for_duplicate}:if ok=. then nn$=an$:kk=1
+	goto {:profile}
+
+{:config}
+	&"{clear}{f6:2}Set both to {f5}No{f5} to disable auto-reset."
+' new: change to yes/no
+	&"{f6:2}Reset on Emperor status? ":gosub 1902:if tr%<1 then 1811
+	mp$=str$(a):if a=. then ln$="0":goto {:config_2}
+	&"{f6}How many acres? {pound}i1":gosub {:sub.str_to_int}:if tr%<1 then 1811
+' TODO: range checking: if an=0...?
+	ln$=str$(an)
+
+{:config_2}
+' new: change inputting "0" or "1" to "yes/no" prompts
+	&"{f6:2}Allow BBS credit/money exchange? ":gosub 1902:if tr%<1 then 1811
+	en$=str$(a):if a=. then nn$="0":goto {:config_4}
+{:config_3}
+	&"{f6}How much money per BBS credit (1-100)? {pound}i1":gosub {:sub.str_to_int}:on -(an<1 or an>100) goto {:config_3}:nn$=an$
+{:config_4}
+' ln$ - auto-reset acres requirement:
+'	0=disabled
+'	x=# of acres
+' mp$ - auto-reset if emperor:
+'	0=no, 1=yes
+' en$ - credit/money exchange enabled:
+'	0=no, 1=yes
+' nn$ - if credit/money exchange enabled:
+'	1-100: credits per dollar
+
+	a$="e.emp6 config":dr=3:gosub 1023
+	print# 2,ln$+r$+mp$+r$+en$+r$+nn$
+	close 2:close 15:goto {:start}
+
+{:716}
+' write player account:
+' g3=player number
+'	c$=chr$(13): r$ is defined in IM already
+	w$=nn$+r$+dt$(1)+r$+dt$(2)+r$+dt$(3)+r$+dt$(4)
+	w$=w$+r$+dt$(5)+r$+dt$(6)+r$+dt$(7)+r$+dt$(8)+r$+dt$(9)
+	w$=w$+r$+dt$(10)+r$+dt$(11)+r$+dt$(12)+r$+dt$(13)+r$+dt$(14)+r$+dt$(15)
+	w$=w$+r$+dt$(16)
+	x=1:gosub {:sub.open_playerlog}:x=g3:gosub 1001:print# 2,w$:goto {:start}
+
+' List Players is now in +.Empire6
+'{:724}
+'	&"{clear}(Space=abort){f6}Players/Acres{f6:2}":x=1:gosub {:sub.open_playerlog}:x=1
+'{:725}
+'	gosub 1001:input# 2,c$,b$:if c$="empty"then {:727}
+'	&"{f6}#"+right$(" "+str$(x),2)+" "+c$+"/"+b$+"{f6}"
+'{:727}
+'	mw=1:a$="":&:if rc then&"{f6}(Aborted.){f6}":x=25
+'	x=x+1:on-(x<24)goto {:725}:close 2:&"{f6}Hit a Key.{pound}g1":goto {:start}
+
+{:reset_empire}
+	&"{f6:2}{yellow}Reset Empire, ":gosub 1901:on -(tr%<1)-2*(a=.) goto 1811, {:start}
+' FIXME: if e%=62 (file not found) then offer to start new game, don't just quit
+	gosub {:sub.open_playerlog}:if e% then:&:goto {:start}
+	&"Resetting Empire... ":gosub {:sub.empty_record}
+	for x=1 to 24:x%=x:&"{pound}#3{pound}%x":gosub 1001
+	print# 2,w$:&"{pound}h3":next:&"Done.":goto {:start}
+{:scratch_news}
+	dr=3:a$="e.empnews6":gosub 1023:close 2:goto {:start}
+
+{number:999}
+	rem empire 6 maintenance module - mercilessly hacked by pinacolada

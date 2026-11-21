@@ -1,0 +1,55 @@
+' ----------line label assignments-----------------
+{assign:1=1}
+{assign:sub.load_lmp=5}
+{assign:sub.comma_value=10}
+{assign:2852=12}
+{assign:sub.str_to_int=15}
+{assign:sub.any_key=20}
+{assign:sub.open_playerlog=25}
+{assign:save_stats_quit=30}
+{assign:sub.save_your_stats=35}
+{assign:sub.load_your_stats=40}
+{assign:quit_game=45}
+{assign:quit_game_2=46}
+{assign:sub.other_rulers=50}
+{assign:58=54}
+{assign:64=57}
+{assign:sub.rank=60}
+{assign:sub.rank_2=64}
+{assign:484=65}
+{assign:486=66}
+{assign:sub.request_your_status=70}
+{assign:sub.your_status=71}
+{assign:sub.log_event=90}
+{assign:sub.read_config=92}
+{assign:init=100}
+{assign:start_turn=106}
+{assign:351=108}
+{assign:352=109}
+{assign:353=111}
+{assign:sub.title=115}
+{assign:412=119}
+{assign:414=120}
+{assign:416=121}
+{assign:420=123}
+{assign:422=124}
+{assign:700=125}
+
+' Image BBS line numbers
+{assign:1001=1001}
+{assign:1012=1012}
+{assign:1023=1023}
+{assign:1027=1027}
+{assign:1811=1811}
+{assign:sub.yes_no=1902}
+
+' encoded characters represented by function keys
+' (in quoted strings and disk files/filenames):
+{quoter:comma	=133} ' f1 ,
+{quoter:question=137} ' f2 ?
+{quoter:colon	=134} ' f3 :
+{quoter:equal	=138} ' f4 =
+{quoter:quote	=135} ' f5 "
+{quoter:return	=139} ' f6 [K]
+{quoter:asterisk=136} ' f7 *
+{quoter:uparrow	=140} ' f8 ^
