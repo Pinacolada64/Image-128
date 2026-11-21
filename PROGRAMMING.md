@@ -238,6 +238,52 @@ A pointer into the arrays is only good until the next new variable.
 
 The abort key (`rc`) stops it between characters, elements and arrays.
 
+## Saving and restoring the variable pointers: `&,27` and `&,28`
+
+`&,27[,level]` saves where BASIC's arrays start and end as a numbered
+level (0-7; left out, 0; only `level AND 7` counts). `&,28[,level]` puts
+them back, which drops every simple variable and array made since: a
+module DIMs its arrays after an `&,27` and gets their memory back with the
+`&,28`. Same routine as Image 3.0's (`asm/wedge.asm` `arraysv0`, and
+`asm/arrays.asm` for `&,28`), and the same addresses.
+
+A level is two numbers, not a copy of the arrays: `a`, `arytab` -
+`vartab`, and `s`, `strend` - `vartab`, 4 bytes at `$13d0` + 4 × level
+(bank 0). Offsets, not addresses, so a level still fits when a module of
+another length loads and the variables move.
+
+![BASIC's pointers, the offsets a and s, and the 8 levels from $13d0](docs/images/amp27-save-table.svg)
+
+`&,28` sets `strend` = `vartab` + `s` and `arytab` = `vartab` + `a`, then
+moves the saved arrays down to the new `arytab`, over the simple variables
+made since (each one moved the arrays up 7 bytes). On the 128 it also
+marks the dropped variables' and dropped string arrays' strings as
+garbage and re-links the moved string arrays' strings (BASIC 7's
+back-links; `arrmark`, `arrmarka`, `arrlink`): see `tests/standin/arrayrs.bas`.
+
+- **Levels 4-6 write over `daysofm`** (`$13e0`-`$13eb`, the days in each
+  month, used by the time zone date change): only `$13d0`-`$13df` is set
+  aside (`arryptrs`, 16 bytes, levels 0-3). Level 7 lands on `emptym2`,
+  4 spare bytes. Image uses 0 (`im` 304), 1 (boot; the main prompt and the
+  error trap restore it), 2 (`i/MM.load`), 3 (idle screen, `i/IM.modem`)
+  and 7 (`sub.menus`): use 2 and 3 in modules.
+- Make every simple variable you still need after the `&,28` before the
+  `&,27`: one first used in between is dropped (using it again makes a
+  new one, 0 or `""`).
+- A level hides nothing: BASIC finds an array anywhere from `arytab` to
+  `strend`. So `&,27,3:dim tt$(10):&,27,4:dim tt$(10)` does **not** give
+  two `tt$()` arrays: the second DIM is `?redim'd array`, and after
+  `&,28,4` both levels see the one `tt$()` (and in `im`, `tt$()` is
+  already DIMmed: any `dim tt$()` is that error).
+- Levels nest: `&,27,3`, DIMs, `&,27,4`, DIMs, `&,28,4` drops the second
+  set, `&,28,3` the first.
+
+![&,27,3, dim tt$(10), &,27,4, n9=9, dim tt$(10) again, &,28,4, &,28,3, step by step](docs/images/amp27-levels-example.svg)
+
+`tests/standin/arrays27.bas` runs those steps and checks each, and which
+levels change `daysofm` (Image 3.0's `i.test arrays` does the same as a
+module). The diagrams come from Image 3.0's `tools/amp27-diagrams.py`.
+
 ## GOSUB and GOTO from the ML: `&,66`
 
 `a%=<line>:&,66,1` is a GOSUB to line `a%` (its RETURN comes back to

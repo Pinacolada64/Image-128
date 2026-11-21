@@ -475,7 +475,7 @@
 ;
 	chktbl	= $1300 ; $10 bytes (8 lightbar positions*2 checks per page, 8 pages=128 bits)
 	bartbl	= $1310 ; $c0 / 192 bytes
-	arryptrs= $13d0 ; $10 bytes: FIXME: levels 1-8 with &,27,x?
+	arryptrs= $13d0 ; $10 bytes: &,27/&,28 levels 0-3, 4 each (4-6 land on daysofm, 7 on emptym2)
 	daysofm	= $13e0 ; $0c bytes: Days of months
 	emptym2	= $13ec ; $04 bytes
 	sndtbl	= $13f0 ; $60 bytes
