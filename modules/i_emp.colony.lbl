@@ -276,14 +276,18 @@
 {:_522}
 	&"{f6:2}{purple}Convert (Tons) => {white}{pound}i1":RETURN
 {:_525}
-	&"{f6:2}{purple}":gosub {:msg.colony}:&"{pound}$z to build => {white}{pound}i1":ON tr%<1 GOTO {$33}030:RETURN
+' 128: on -(tr%<1): true is -1, and on -1 goto is ?illegal quantity
+	&"{f6:2}{purple}":gosub {:msg.colony}:&"{pound}$z to build => {white}{pound}i1":on -(tr%<1) goto {$33}030:return
 {:_528}
-	&"{f6:2}{purple}":gosub {:msg.colony}:&"{pound}$z to abandon => {white}{pound}i1":ON tr%<1 GOTO {$33}030:RETURN
+	&"{f6:2}{purple}":gosub {:msg.colony}:&"{pound}$z to abandon => {white}{pound}i1":on -(tr%<1) goto {$33}030:return
 
 {:_540}
 	&"{f6:2}{lt. blue}[B]each [M]ake [C]ontinue -=> "
 {:_541}
-	&"{pound}g1":on tr+1 goto {$33}030:if an$<>"B" or an$<>"M" or an$<>"Q" then {:_541}:& "{pound}v7{f6}":a$=an$:return ' pina added this
+' 128: tr%, the time left (1.2: tr, the tax rate: at 0% the game ended), and
+' B, M or C, as the prompt offers, with and (1.2's or was always true, so no
+' key ever got through)
+	&"{pound}g1":on tr%+1 goto {$33}030:if an$<>"B" and an$<>"M" and an$<>"C" then {:_541}:& "{pound}v7{f6}":a$=an$:return ' pina added this
 
 {:_543}
 	&"{f6:2}{yellow}You may only take on a max of{white}"+STR$(yc*50)

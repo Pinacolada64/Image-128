@@ -58,7 +58,9 @@
 	on -(an$="O")-2*(an$="N")-3*(an$="I")-4*(an$="{f2}") gosub {$33}050,{:_92},{:_104},{:sub.main_menu}
 ' new: r)eset empire is in m)aintenance now
 ' e9: maintenance flag
-	if e9 then if an$="M" then {$33}123 'a$="maint":gosub {:sub.load_lmp}
+' 128: tw and back to i.empire, which goes on from there (a goto into it from
+' here left the gosubs that ran this module on the stack: Stack Free fell)
+	if e9 then if an$="M" then tw=3:return
 	goto {:main_prompt}
 
 {:town}
@@ -70,7 +72,7 @@
 	&"{f6:2}{purple}Heading to the town...":tw=1:return
 
 {:_90}
-	&"{f6:2}{red}The other rulers unite their forces{pound}$lagainst you for hogging the game!{pound}w3":goto {$33}045
+	&"{f6:2}{red}The other rulers unite their forces{pound}$lagainst you for hogging the game!{pound}w3":tw=4:return
 {:_92}
 	&"{f6:2}{white}Fight News -->{f6:2}":a$="e.empnews6":dr=3:gosub 14:&"{cyan}--> More updates later.{f6}":return
 

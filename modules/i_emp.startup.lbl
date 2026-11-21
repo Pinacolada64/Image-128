@@ -60,7 +60,10 @@
 	close 2:close 15:&"{pound}q0"
 {:_648}
 	x=rnd(-ti):x=.:poke 53252,6:&"{f6:2}{purple}Checking to see if you're alive....":gosub {$33}025:if e%=. then {:_6}
-	on -(e9>.) goto {$33}124:&"Sorry, Empire 6.0 isn't set up yet.":goto {$33}046
+' 128: tw and back to i.empire, which goes on from there (a goto into it from
+' here left the gosubs that ran this module on the stack: Stack Free fell)
+	if e9>. then tw=3:return
+	&"Sorry, Empire 6.0 isn't set up yet.":tw=5:return
 ' 128: the searches as two ifs: 1.2's on -(a$=na$)-2*(x<25) was 3 when the
 ' record matched before record 25, and on...goto fell through (to "Aha! A new
 ' victim!" for a player who has one, and past a free record below)
@@ -72,8 +75,8 @@
 '	gosub 1001:&,2,2:g3=x:on-(a$="empty") goto {:_14}:x=x+1:on -(x<25) goto {:_10}:close 2
 	x=x+1:gosub 1:&,2,2:if a$="empty" then {:_14}
 	if x<25 then {:_10}
-	close 2:if e9=. then:&"{f6}{green}Sorry, all Empires are being ruled.{pound}$l{cyan}Try again next call.{f6:2}":goto {$33}045
-	goto {$33}124
+	close 2:if e9=. then:&"{f6}{green}Sorry, all Empires are being ruled.{pound}$l{cyan}Try again next call.{f6:2}":tw=4:return
+	tw=3:return
 {:_14}
 ' set up new player:
 	a=fn r(300)+2000:w$=na$+r$+"5000"+r$+"20"+r$+str$(a)+r$+"2"

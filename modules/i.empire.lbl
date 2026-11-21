@@ -193,15 +193,19 @@
 
 ' wall-writer and new player creation moved to +.emp6.startup
 {:_startup}
-	a$="startup":gosub {:sub.load_lmp}:if tr%<1 then {:save_stats_quit}
+' 128: tw from i/emp.startup: 3 maintenance (the sysop, no player yet),
+' 4 quit (all Empires ruled), 5 quit, no goodbye (not set up)
+	a$="startup":gosub {:sub.load_lmp}:on -(tr%<1)-2*(tw=3)-3*(tw=4)-4*(tw=5) goto {:save_stats_quit},{:_422},{:quit_game},{:quit_game_2}
 	
 {:start_turn}
+' 128: tw=3 from i/emp.startturn's menu (M): maintenance from here, and tw=4
+' (hogging the game) quit with a goodbye, as Q below.
 ' 128: tw=2 from i/emp.startturn's menu (Q): quit from here, its gosub
 ' returned (from the module, goto 3030 left it on the stack: 4 bytes a game)
 ' tw=1 from i/emp.startturn's menu (T): the town, loaded from here, then
 ' the menu again (1.2 loaded the town from inside startturn, which it
 ' replaced, so its return had nowhere to go)
-	tw=.:a$="startturn":gosub {:sub.load_lmp}:on -(tr%<1 or tw=2) goto {:save_stats_quit}:if tw then a$="town":gosub {:sub.load_lmp}:goto {:start_turn}
+	tw=.:a$="startturn":gosub {:sub.load_lmp}:on -(tr%<1 or tw=2)-2*(tw=3)-3*(tw=4) goto {:save_stats_quit},{:_420},{:quit_game}:if tw then a$="town":gosub {:sub.load_lmp}:goto {:start_turn}
 
 	a$="trading":gosub {:sub.load_lmp}:if tr%<1 then {:save_stats_quit}	
 
