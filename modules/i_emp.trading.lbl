@@ -20,8 +20,8 @@
 	gosub {:sub.you_only_have}:& str$(gr)+" bushels!":return
 
 {:sub.price_adjust}
-	if f%(1)=0 then in(4)=50000:b$="50000":return
-	in(4)=100000:b$="100000":return
+	if f%(1)=0 then in(4)=50000:b$="50,000":return
+	in(4)=100000:b$="100,000":return
 
 {:begin}
 ' fixme: couldn't d2$ be swapped with ty/tz =(something)?
@@ -182,7 +182,7 @@
 ' {:_256}
 '	tp=bb+pi-pd-dn:zn$="gained":iftp<0thenzn$="lost"
 	tp=bb+pi-pd-dn:z$="{lt. green}gained":if tp<. then z$="{lt. red}lost"
-	&"{f6:2}{cyan}Your empire {pound}$z ":x=abs(tp):gosub {$33}010:& "{cyan}citizens.":sf=sf+tp
+	&"{f6:2}{cyan}Your empire {pound}$z ":x=abs(tp):gosub {$33}010:& " {cyan}citizens.":sf=sf+tp
 	sf=sf*abs(sf>.):&"{f6}{cyan}New population: {white}":x=sf:gosub {$33}010:& "{cyan}."
 '	af=.:if ga<ar then af=1
 	af=abs(ga<ar):if af then:&"{f6:2}{lt. blue}Your army is immobilized this year!"
@@ -216,7 +216,9 @@
 	gosub {$33}015:in=an:gosub {$33}070:if an$="{f2}" then gosub {:sub.invest_menu}
 ' 128: two ifs: 1.2's on -(an$="0" or an$="")-2*(an<1 or an>9) was 3 for
 ' "0" (both true), and fell through to buying
-	if an$="0" or an$="" then {$33}108
+' 128: return: i.empire's next line is 3108, where the goto went (it left
+' this module's gosub on the stack: Stack Free 4 less a turn)
+	if an$="0" or an$="" then return
 	if an<1 or an>9 then {:_296}
 
 {:_306}
