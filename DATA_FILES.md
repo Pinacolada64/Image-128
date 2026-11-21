@@ -167,17 +167,18 @@ Column 7's bits:
 | Bit | `++ punter` (`asm/punter.asm`) | `++ xmodem` (`asm/xmodem.asm`) |
 |---|---|---|
 | 1 | `flag_relaxed`: relaxed timing | relaxed timing |
-| 2 | `flag_filetype`: send and take the file type in a single-file transfer (Image 1.3 Punter) | 1K blocks (STX) when sending, instead of 128 bytes (SOH); 1K blocks are taken in either case |
+| 2 | `flag_filetype`, though it works the other way: set, no file type block before a single file (Image 1.3 Punter), and `&,16,2`/`&,16,3` send and take the name as a block instead of multi-Punter's; clear, the type block goes first (`trantype`, `rectype`) | 1K blocks (STX) when sending, instead of 128 bytes (SOH); 1K blocks are taken in either case |
 
-So `punter00` is Punter, `punter10` Relaxed Punter, `punter20` Image 1.3
-Punter (with the file type), `xmodem01` Xmodem/CRC, `xmodem11` Relaxed
-Xmodem/CRC.
+So `punter00` is Punter (with its file type block), `punter10` Relaxed
+Punter, `punter20` Image 1.3 Punter (without it), `xmodem01` Xmodem/CRC,
+`xmodem11` Relaxed Xmodem/CRC. `++ punter` is built since 11/20/2026
+(`asm/punter.asm`; `tools/punterpair.py` tries all three between two
+x128s).
 
 No line offers Xmodem-1K (`xmodem21`): on the C64 a 1K block's buffer, at
 the end of `++ xmodem` (`$c686`), would run to `$ca85`, past the protocol
-area's end (`$ca80`), and the 128 has no `++ xmodem` yet (neither it nor
-`++ punter` is in `asm/build.sh`'s overlays; `xmodem.asm` doesn't
-assemble).
+area's end (`$ca80`), and the 128 has no `++ xmodem` yet (it isn't in
+`asm/build.sh`'s overlays; `xmodem.asm` doesn't assemble).
 
 At the console `sub.param1` adds `copier00 Copier` to the list (61206, with
 `b%=1`, `pr=2`), which loads `++ copier`. `pr` is -1 once a protocol is
