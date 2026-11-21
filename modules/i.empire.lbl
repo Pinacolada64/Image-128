@@ -192,6 +192,7 @@
 	l$=mid$("{f6} ",ll%/40)
 
 ' wall-writer and new player creation moved to +.emp6.startup
+{:_startup}
 	a$="startup":gosub {:sub.load_lmp}:if tr%<1 then {:save_stats_quit}
 	
 {:start_turn}
@@ -249,7 +250,12 @@
 ' load maintenance module:
 	&"{f6:2}{cyan}Saving your stats...":gosub {:sub.save_your_stats}
 {:_422}
-	&"{f6}{white}Loading Empire Maintenance...":a$="maint":gosub {:sub.load_lmp}:goto {:start_turn}
+' 128: after maintenance, the player's stats from his record again (it may
+' have changed them: Edit Profile, Reset; 1.2 went on with the old ones and
+' saved them over it), or with no player yet (g3 0: startup sent the sysop
+' here) startup again, to find or make one (1.2 started a turn without).
+' gm keeps g3, the player, which i/emp.maint uses for the one it edits
+	&"{f6}{white}Loading Empire Maintenance...":a$="maint":gm=g3:gosub {:sub.load_lmp}:g3=gm:on -(g3=.) goto {:_startup}:gosub {:sub.open_playerlog}:x=g3:gosub {:sub.load_your_stats}:goto {:start_turn}
 
 
 {:_700}

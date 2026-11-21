@@ -63,14 +63,21 @@
 ' search for nn$ in player log:
 	nn$=an$:&"Searching...":ok=.
 	for x=1 to 24:gosub 1:&".":&,2,2:if a$=nn$ then ok=x:x=24
-	next:if ok then {:_550}
+' 128: x=ok, its record again, and past the name (the loop left x 25 and the
+' file at record 24)
+	next:if ok then x=ok:gosub 1:&,2,2:goto {:_550}
 
 	&"{f6}Player not found.{pound}w2":goto {:start}
 
 {:edit_by_number}
 ' search by player number
-	if an<1 and an>24 then:&"Out of range.{pound}w2":goto {:_532}
-	&,2,2:if a$="empty" then:&"This player has been deleted.{pound}w2":goto {:edit_profile}
+' 128: x=an, its record, and its name in nn$ (1.2 read the next line of
+' whatever record the file was at, x stayed 0 and nn$ the last name searched
+' for, so the save went to record 0 under that name); an>24 (1.2: an<1 and
+' an>24, never true; an is at least 1 here)
+	if an>24 then:&"Out of range.{pound}w2":goto {:_532}
+	x=an:gosub 1:&,2,2:if a$="empty" then:&"This player has been deleted.{pound}w2":goto {:edit_profile}
+	nn$=a$
 
 {:_550}
 ' g3=player #
@@ -99,13 +106,14 @@
 {:_585}
 ' kk=modified flag
 	&"{f6:2}Edit which #? {pound}i1":gosub {$33}015:if tr%<1 then 300
-' 128: ifs (and an<1 or an>16: 1.2's "and" was never true)
+' 128: no range check here: 0 is the name ({:change_name} below) and above 16
+' has its own line ({:_585}); 1.2's on -(tr%<1)-2*(an<1 and an>16) only
+' ever went on time-out
 	if an$="" and kk=0 then {:start}
-	if an<1 or an>16 then {:profile}
 ' improving editor a bit:
-	if an$="" then:&"{f6}Save changes? ":gosub 94:if tr%<1 then 300
-' 128: ifs, not on -(a)-2*(b): with both true it's 3, and on...goto falls through
-	on a+1 goto {:start}, {:_716}
+' 128: Save changes? only for an$="" (all on its if's line), and on a+1 for
+' 1.2's on -(tr%<1)-2*(a=.)-3*(a=1), which time-out made 3 or 4
+	if an$="" then:&"{f6}Save changes? ":gosub 94:on -(tr%<1) goto 300:on a+1 goto {:start}, {:_716}
 	if an>16 then {:_585}
 ' edit name:
 	if an=. then {:change_name}
@@ -115,7 +123,9 @@
 
 ' w$=na$:p$="handle":&,1,32:if an$<>"" then na$=an$
 
-	w$=dt$(an):p$="Value":&,1,32:on tr%+1 goto 300:if an$<>"" then dt$(r)=an$:kk=1
+' 128: dt$(an), the field chosen (1.2: dt$(r), r never set: dt$(0), so
+' no edit was kept)
+	w$=dt$(an):p$="Value":&,1,32:on tr%+1 goto 300:if an$<>"" then dt$(an)=an$:kk=1
 	goto {:profile}
 
 {:change_name}
