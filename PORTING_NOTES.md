@@ -425,6 +425,31 @@ still reaches its label (a `$ff` offset is the giveaway).
 
 ## Xmodem-1K: a possibility for the 128 (11/10/2026)
 
+**Done 11/20/2026** (branch xmodem-1k): `++ xmodem` is built
+(`asm/xmodem.asm`; its header lists what changed from the C64's), and
+`disk/s.m.protos.seq` offers `xmodem21 Xmodem-1K`. Code, the 1K buffer
+and the CRC tables end at `$2984`, below `protobuf`; `asm/build.sh`
+checks. `tools/xmodem_test.py` (with `tests/standin/xmodem.bas`) tries it
+against lrzsz in 40 and 80 columns at 19200: sending 1K to `rx -c`,
+falling back to 128-byte blocks for `rx` (checksums), receiving 1K from
+`sx -k`, receiving with checksums, and plain Xmodem/CRC; every file
+byte for byte, no block sent twice. What it took, beyond the plan below:
+
+- Three bugs the C64's has too: receiving with checksums compared the
+  check byte with the CRC (every block refused); a 1K block's second to
+  eighth pieces went astray (the byte index wasn't reset); a block sent
+  again was taken for one too many (the repeat test was +1, not -1).
+- 40 columns (1 MHz) at 19200: a 1K block overran the driver's 128-byte
+  buffer, which stops taking bytes at 120 (RTS; over ip232 the bytes are
+  lost). So the CRC goes by table (512 bytes after `xbuf`, made at setup),
+  and a block's bytes come straight from the buffer while 8 or more wait.
+- Sending through the driver's `rsout`, not `chkout`/`chrout`/`clrchn`:
+  the driver's `clrchn` turns receiving off and on, and a byte the other
+  side sent at once after an ACK was lost.
+
+Not tried yet: a whole BBS session (U/D section, `i/MM.ud-download`), a
+real SwiftLink with RTS/CTS, SyncTERM, the user port driver.
+
 `++ xmodem` (`asm/xmodem.asm`, from the C64 release) already has 1K blocks,
 but no `s.m.protos` line asks for them (DATA_FILES.md, "Transfer
 protocols"), and on the C64 they don't fit. On the 128 they would.
