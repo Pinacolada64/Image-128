@@ -26,7 +26,10 @@
 {:begin}
 ' fixme: couldn't d2$ be swapped with ty/tz =(something)?
 	&"{f6:2}{lt. blue}It is a new year...{pound}w3{lt. green}{f6:2}":ff=.:a%=fn r(6):if d2$="EMPEROR "then a%=fn r(4)
-	if a%=1 then:&"Poor weather. No rain. Locusts migrate."
+' 128: wc, the year's weather (1 poor - 6 fantastic), which the prices use
+' (wc*3+12, 6/wc, 1/wc ...): 1.2 kept it in a% only, so wc was 0 (6/wc:
+' ?division by zero; "FIXME: find where wc is defined"). Empire 5.1's name
+	wc=a%:if a%=1 then:&"Poor weather. No rain. Locusts migrate."
 	if a%=2 then:&"Early frosts. Arid conditions."
 	if a%=3 then:&"Flash floods. Too much rain."
 	if a%=4 then:&"Average weather. Good year."
@@ -111,7 +114,9 @@
 ' the grain there was, so the report, gp/pq, saw a short ration as a full one
 ' and divided by zero with no grain)
 	dq=pq:if gr<dq then dq=gr:gosub {:sub.so_many_bushels}
-	&"{f6}{cyan}Give them how many?{pound}$l({pound}$k="+str$(dq)+"){lt. blue}: ":if tr%<1 then {$33}030
+' 128: {pound}i1, the input (1.2 asked, but went on with an$ as it was: the
+' menu's "C", 0 bushels; the army's prompt has it)
+	&"{f6}{cyan}Give them how many?{pound}$l({pound}$k="+str$(dq)+"){lt. blue}: {pound}i1":if tr%<1 then {$33}030
 ' theoretically, return sets this value:
 	if an$="" then an$=str$(dq):&"{f6}(Giving {pound}v7 bushels.){f6}"
 	gp=int(val(an$)):if gp<. then {:_220}
@@ -200,8 +205,13 @@
 	in$(9)="Ship":in(1)=10:in(2)=1000:in(3)=2000:gosub {:sub.price_adjust}:in(5)=7000:in(6)=8000:in(7)=25000:in(8)=50000:in(9)=5000
 {:_296}
 	&"{f6:2}{cyan}Which investment?{pound}$l(0=None  ?=List  Y=Your Stats){f6}{lt. green}>>{lt. blue}{pound}i1":if tr%<1 then {$33}030
-	gosub {$33}015:gosub {$33}070:if an$="{f2}" then gosub {:sub.invest_menu}
-	on -(an$="0" or an$="")-2*(an<1 or an>9) goto {$33}108,{:_296}
+' 128: in=an, the investment chosen (1.2 never set in: 0, so in$(0) "",
+' in(0) $0, and on in goto fell through to soldiers: anything bought free soldiers)
+	gosub {$33}015:in=an:gosub {$33}070:if an$="{f2}" then gosub {:sub.invest_menu}
+' 128: two ifs: 1.2's on -(an$="0" or an$="")-2*(an<1 or an>9) was 3 for
+' "0" (both true), and fell through to buying
+	if an$="0" or an$="" then {$33}108
+	if an<1 or an>9 then {:_296}
 
 {:_306}
 	&"{f6:2}{lt. blue}Investment: {red}"+in$(in)+".{f6}{lt. blue}Buy how many? {lt. green}{pound}i1":if tr%<1 then {$33}030

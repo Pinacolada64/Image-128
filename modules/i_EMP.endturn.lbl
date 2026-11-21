@@ -98,7 +98,10 @@
 	&"{f6}{white}You have $":x=pn:gosub {$33}010:&".{f6}"
 {:_270}
 	&"{f6:2}{cyan}Buy how many? {lt. blue}{pound}i1":if tr%<1 then {:_280}
-	b=int(val(an$)):on -(b<1)-(b*x>pn)*2 goto {:_280},{:_270}
+' 128: ifs, not on -(a)-2*(b): with both true it's 3, and on...goto falls through
+' (b<1 and b*x>pn with money below 0)
+	b=int(val(an$)):if b<1 then {:_280}
+	if b*x>pn then {:_270}
 	if wa+b>(f%(4)+1)*100 then:&"{f6}You only have"+str$(f%(4))+" foundries!{f6}":goto {:_270}
 	if wa+b>nb*20 then:&"{f6}You only have"+str$(nb)+" nobles!{f6}":goto {:_270}
 	wa=int(wa+b):pn=int(pn-(b*x))

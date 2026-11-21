@@ -29,11 +29,14 @@
 	&".{f6}Don't let him down!{f6:2}{purple}Load your ship..."
 	in$(1)="Grain":in$(2)="Serf":in$(3)="Noble":in$(4)="Navigator":x8=0
 {:_25}
-	&"{f6:2}{lt. green}Manifest:{f6}[0=continue, ?=list, Y=Colony stats] -=>{white}{pound}i1":an$="":in=0:if tr%<1 then {$33}030
+	&"{f6:2}{lt. green}Manifest:{f6}[0=continue, ?=list, Y=Colony stats] -=>{white}{pound}i1":in=0:if tr%<1 then {$33}030
 ' ? hit
 	if an$="{f2}" then x=1:gosub {:sub.ship_menu}:goto {:_25}
 	a%=val(an$):if an$="0"then {:_107}
 	on -(an$="Y") gosub {:sub.colony_stats}:if a%<1 or a%>4 then {:_25}
+' 128: in=a%, the cargo chosen, for in$(in) below; and an$ is kept after
+' {pound}i1 above (1.2 cleared it there, so no answer, not even 0, was seen)
+	in=a%
 {:_40}
 	&"{f6:2}{yellow}Load Ship: {white}"+in$(in)+"{f6:2}{lt. green}Take how many? "
 	if a%=2 then {:_50}

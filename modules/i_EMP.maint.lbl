@@ -54,7 +54,9 @@
 ' "^" adds player.
 ' Handle or ID# searches for that player.
 	&"{f6}{f5}{^}{f5} adds player.{f6}Handle or ID# searches for that player.{f6:2}"
-	&"Player's name/ID? {pound}i0":on -(an$="")-2*(tr%<1) goto {:start}, 300
+	&"Player's name/ID? {pound}i0":if tr%<1 then 300
+' 128: ifs, not on -(a)-2*(b): with both true it's 3, and on...goto falls through
+	if an$="" then {:start}
 	gosub {$33}015:if an then {:edit_by_number}
 ' TODO: search for empty slot: should g3=0, nn$="^"?
 {:_536}
@@ -96,9 +98,14 @@
 	&"{f6}16) Training : "+dt$(16)
 {:_585}
 ' kk=modified flag
-	&"{f6:2}Edit which #? {pound}i1":gosub {$33}015:on -(tr%<1)-2*(an<1 and an>16) goto 300, {:profile}:if an$="" and kk=0 then {:start}
+	&"{f6:2}Edit which #? {pound}i1":gosub {$33}015:if tr%<1 then 300
+' 128: ifs (and an<1 or an>16: 1.2's "and" was never true)
+	if an$="" and kk=0 then {:start}
+	if an<1 or an>16 then {:profile}
 ' improving editor a bit:
-	if an$="" then:&"{f6}Save changes? ":gosub 94:on -(tr%<1)-2*(a=.)-3*(a=1) goto 300, {:start}, {:_716}
+	if an$="" then:&"{f6}Save changes? ":gosub 94:if tr%<1 then 300
+' 128: ifs, not on -(a)-2*(b): with both true it's 3, and on...goto falls through
+	on a+1 goto {:start}, {:_716}
 	if an>16 then {:_585}
 ' edit name:
 	if an=. then {:change_name}
@@ -178,7 +185,9 @@
 '	x=x+1:on-(x<24)goto {:_725}:close 2:&"{f6}Hit a Key.{pound}g1":goto {:start}
 
 {:reset_empire}
-	&"{f6:2}{yellow}Reset Empire, ":gosub 93:on -(tr%<1)-2*(a=.) goto 300, {:start}
+	&"{f6:2}{yellow}Reset Empire, ":gosub 93:if tr%<1 then 300
+' 128: ifs, not on -(a)-2*(b): with both true it's 3, and on...goto falls through
+	if a=. then {:start}
 ' FIXME: if e%=62 (file not found) then offer to start new game, don't just quit
 	gosub {$33}025:if e% then:&:goto {:start}
 	&"Resetting Empire... ":gosub {:sub.empty_record}

@@ -21,7 +21,8 @@
 ' FIXED: save stats if carrier dropped!
 	&"{f6:2}{cyan}Town Command{lt. blue} -->{lt. green} {pound}i1":if tr%<1 then {:_8}
 	on -(an$="R")-2*(an$="L")-3*(an$="S")-4*(an$="T")-5*(an$="X") gosub {:_26},{:_84},{:_106},{:_76},{:_420}
-	on -(an$="Y")-2*(an$="P")*3-(an$="W")*4-(an$="U") gosub {$33}071,{:_258},{:_270},{:_400}
+' 128: Y 1, P 2, W 3, U 4 (1.2: -2*(P)*3-(W)*4-(U): P 6, W 4, U 1 as Y)
+	on -(an$="Y")-2*(an$="P")-3*(an$="W")-4*(an$="U") gosub {$33}071,{:_258},{:_270},{:_400}
 	on -(an$="{f2}")-2*(an$="C" and ln=1) gosub {:sub.town_menu},{:_500}
 	if an$<>"Q" then {:_2}
 {:_8}

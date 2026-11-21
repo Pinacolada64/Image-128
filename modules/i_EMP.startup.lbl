@@ -17,7 +17,9 @@
 ' moved empire wall here:
 {:_604}
 	sh=.:&"{pound}q0{clear}{f6:2}{yellow}Read Empire wall?: ":gosub 94
-	on -(tr%<1)-2*(a=.) goto 300,{:_648}
+' 128: ifs, not on -(a)-2*(b): with both true it's 3, and on...goto falls through
+	if tr%<1 then 300
+	if a=. then {:_648}
 	b%=.:z$="":m$="{space:40}":a=ll%/2-14
 	if a>.then z$=left$(m$,a)
 ' fixme: why not modify ak$ instead of defining a$?
@@ -43,7 +45,9 @@
 '	if mid$(fl$,4,1)="0" then {:_646}
 	a=4:gosub 11:if a=. then {:_646}
 	&"{f6:2}{yellow}Add your words of wisdom?: ":gosub 94
-	on -(tr%<1)-2*(a=.) goto 300,{:_646}
+' 128: ifs, not on -(a)-2*(b): with both true it's 3, and on...goto falls through
+	if tr%<1 then 300
+	if a=. then {:_646}
 	poke 53252,76:&"{f6}{orange}Go ahead and write{lt. blue}{f6}:{pound}i0":if an$="" or tr%<1 then {:_646}
 ' there is an "append or write" routine in IM (sort of):
 ' a$="e.emp6.wall,s,a":dr=3:gosub 1011:if e% then a$="e.emp6.wall,s,w":gosub 1011
