@@ -1,6 +1,6 @@
-' i/EMP.town: a module of Empire 6.0 (i.EMPIRE), from the Image 1.2
+' i/emp.town: a module of Empire 6.0 (i.empire), from the Image 1.2
 ' version's +.emp6.town (games/empire6/plus_emp6_town.lbl)
-' Jumps to i.EMPIRE's lines are written {$33}nnn (the line 3nnn, its first
+' Jumps to i.empire's lines are written {$33}nnn (the line 3nnn, its first
 ' digit a raw byte), which C64List 4.04 leaves as it is: it can't name a line
 ' outside the file, as 3.03 could (1.2's {uses:includes.lbl}). Their names:
 ' emp6-includes.lbl
@@ -10,7 +10,7 @@
 ' asm/equates.asm: 899-901 (the cassette buffer) are emp6mem's
 {include:"..\asm\equates.asm"}
 {number:4000}
-	rem "i/EMP.town" {usedef:__BuildDate} {usedef:__BuildTime}
+	rem "i/emp.town" {usedef:__BuildDate} {usedef:__BuildTime}
 ' get credit exchange status:
 	kk=. ' :a$="e.emp6 config":dr=3:gosub 1011:input# 2,a$,a$,ln$,mp$:close 2:close 15
 	' ln=val(ln$):mp=val(mp$)

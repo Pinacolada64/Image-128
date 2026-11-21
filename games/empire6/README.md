@@ -17,5 +17,5 @@ as the starting point for the Image 128 port (branch `empire`).
 - `changelog.txt`: what changed from Empire 5.1, and what's still to do;
   `variables.txt`: the game's variables.
 
-The Image 128 modules made from these are in `modules/` (`i.EMPIRE`,
-`i/EMP.*`).
+The Image 128 modules made from these are in `modules/` (`i.empire`,
+`i/emp.*`).

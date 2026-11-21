@@ -1,6 +1,6 @@
-' i/EMP.quests: a module of Empire 6.0 (i.EMPIRE), from the Image 1.2
+' i/emp.quests: a module of Empire 6.0 (i.empire), from the Image 1.2
 ' version's +.emp6.quests (games/empire6/plus_emp6_quests.lbl)
-' Jumps to i.EMPIRE's lines are written {$33}nnn (the line 3nnn, its first
+' Jumps to i.empire's lines are written {$33}nnn (the line 3nnn, its first
 ' digit a raw byte), which C64List 4.04 leaves as it is: it can't name a line
 ' outside the file, as 3.03 could (1.2's {uses:includes.lbl}). Their names:
 ' emp6-includes.lbl

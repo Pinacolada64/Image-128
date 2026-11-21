@@ -1,5 +1,5 @@
-' i.EMPIRE: Empire 6.0, the resident part (lines 3000-3999); its
-' modules are i/EMP.<name> (4000 on), loaded and run by {:sub.load_lmp}.
+' i.empire: Empire 6.0, the resident part (lines 3000-3999); its
+' modules are i/emp.<name> (4000 on), loaded and run by {:sub.load_lmp}.
 ' Ported from the Image 1.2 version (games/empire6/Empire6.lbl, "+.empire
 ' 6"): see games/empire6/README.md and modules/TODO.md.
 {alpha:alt}
@@ -12,16 +12,16 @@
 '	* displaying other players
 '	* press a key
 {:_1}
-	rem "i.EMPIRE" {usedef:__BuildDate} {usedef:__BuildTime}
+	rem "i.empire" {usedef:__BuildDate} {usedef:__BuildTime}
 	goto {:init}
 	
 {nice:5}
 {:sub.load_lmp}
-' run the module i/EMP.<a$> as a subroutine: im's line 72 loads it from the
+' run the module i/emp.<a$> as a subroutine: im's line 72 loads it from the
 ' Plus-File drive (unless it's in memory: p1$), shows its name on the status
 ' line, and goes to 4000; the module ends with RETURN.
 ' 1.2: "+.emp6."+a$, loaded with &,7,dv%,1 and run with gosub 801
-	a$="EMP."+a$:gosub 72:return
+	a$="emp."+a$:gosub 72:return
 
 {nice:5}
 {:sub.comma_value}
@@ -176,7 +176,7 @@
 	a=3:gosub 11:e9=a+zz
 
 ' enable error trapping: &,37:
-' dim dt$(16): i/EMP.maint's dt$(1)-dt$(16): 1.2's im DIMmed dt$(61); 3.0's
+' dim dt$(16): i/emp.maint's dt$(1)-dt$(16): 1.2's im DIMmed dt$(61); 3.0's
 ' doesn't (the 1.2 arrays come only with its 1.x emulation). Dropped with
 ' the module's other arrays at the main prompt (&,28,1), so DIMmed again next
 ' time. On this line, not one of its own: the lines after keep their numbers

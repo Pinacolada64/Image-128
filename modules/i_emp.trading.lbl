@@ -1,13 +1,13 @@
-' i/EMP.trading: a module of Empire 6.0 (i.EMPIRE), from the Image 1.2
+' i/emp.trading: a module of Empire 6.0 (i.empire), from the Image 1.2
 ' version's +.emp6.trading (games/empire6/plus_emp6_trading.lbl)
-' Jumps to i.EMPIRE's lines are written {$33}nnn (the line 3nnn, its first
+' Jumps to i.empire's lines are written {$33}nnn (the line 3nnn, its first
 ' digit a raw byte), which C64List 4.04 leaves as it is: it can't name a line
 ' outside the file, as 3.03 could (1.2's {uses:includes.lbl}). Their names:
 ' emp6-includes.lbl
 {alpha:alt}
 {uses:..\3_0-preface.lbl}
 {number:4000}
-	rem "i/EMP.trading" {usedef:__BuildDate} {usedef:__BuildTime}
+	rem "i/emp.trading" {usedef:__BuildDate} {usedef:__BuildTime}
 	goto {:begin}
 
 {:sub.you_only_have}
@@ -38,9 +38,13 @@
 	&"{f6}":on fn r(12) goto {:continue_turn}, {:_132}, {:_152}, {:_156}, {:_140}, {:_148}:goto {:continue_turn}
 {:_132}
 	&"{f6:3}{rvrs on}{red} P L A G U E ! ! ! {pound}$l{gray1}Black Death has struck!{white}{f6:2}"
-	a%=fn r(sf/4):sf=sf-a%:&"{pound}%a serfs died.{f6}"
-	a%=fn r(wa/2):wa=wa-a%:&"{pound}%a soldiers died.{f6}"
-	a%=fn r(nb/3):nb=nb-a%:&"{pound}%a nobles died.{f6}":goto {:continue_turn}
+' 128: no more die than there are (fn r() is at least 1: with none, -1)
+	a%=fn r(sf/4):if a%>sf then a%=sf
+	sf=sf-a%:&"{pound}%a serfs died.{f6}"
+	a%=fn r(wa/2):if a%>wa then a%=wa
+	wa=wa-a%:&"{pound}%a soldiers died.{f6}"
+	a%=fn r(nb/3):if a%>nb then a%=nb
+	nb=nb-a%:&"{pound}%a nobles died.{f6}":goto {:continue_turn}
 {:_140}
 	&"{f6:3}{rvrs on}{red}Mount Apocalypse has erupted!{rvrs off}{pound}$l Lava wipes out:{lt. blue}{f6}"
 	a%=fn r(f%(2)/3):f%(2)=f%(2)-a%:&"{pound}%a markets.{f6}"
@@ -53,7 +57,9 @@
 	&"{pound}%a shipyards are under{pound}$lwater!{f6:2}":goto {:continue_turn}
 {:_152}
 ' Eeek! Rats eat xxx,xxx,xxx bushels of grain.
-	x=fn r(gr/3):gr=gr-x:&"{f6:3}Eeek! {green}Rats eat ":gosub {$33}010
+' 128: no more than there is (fn r() is at least 1: with no grain, -1)
+	x=fn r(gr/3):if x>gr then x=gr
+	gr=gr-x:&"{f6:3}Eeek! {green}Rats eat ":gosub {$33}010
 	&" bushels of grain.{f6:2}":goto {:continue_turn}
 {:_156}
 ' FIXME: correct message if last palace destroyed:

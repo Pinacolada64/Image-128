@@ -1,6 +1,6 @@
-' i/EMP.startup: a module of Empire 6.0 (i.EMPIRE), from the Image 1.2
+' i/emp.startup: a module of Empire 6.0 (i.empire), from the Image 1.2
 ' version's +.emp6.startup (games/empire6/plus_emp6_startup.lbl)
-' Jumps to i.EMPIRE's lines are written {$33}nnn (the line 3nnn, its first
+' Jumps to i.empire's lines are written {$33}nnn (the line 3nnn, its first
 ' digit a raw byte), which C64List 4.04 leaves as it is: it can't name a line
 ' outside the file, as 3.03 could (1.2's {uses:includes.lbl}). Their names:
 ' emp6-includes.lbl
@@ -9,7 +9,7 @@
 {quoter:$20=space}
 
 {number:4000}
-	rem "i/EMP.startup" {usedef:__BuildDate} {usedef:__BuildTime}
+	rem "i/emp.startup" {usedef:__BuildDate} {usedef:__BuildTime}
 
 ' unabortable file read on lfn#3:
 	z8=.:a$="s.Honour,s,r":dr=1:gosub 4:if e%=. then:&,3,2
@@ -85,7 +85,7 @@
 
 {:found_player}
 ' return to +.empire6
-' 128: and load the player's stats (i.EMPIRE's {:sub.load_your_stats}, 3040:
+' 128: and load the player's stats (i.empire's {:sub.load_your_stats}, 3040:
 ' g3=x, then the record): nothing called it, so a turn started with them all
 ' 0 (1.2 too). A new player comes here too, after his record is written
 	gosub {$33}040:return

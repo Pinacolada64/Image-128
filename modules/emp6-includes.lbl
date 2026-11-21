@@ -1,4 +1,4 @@
-' emp6-includes.lbl: i.EMPIRE's line labels for its modules (i/EMP.*), as a
+' emp6-includes.lbl: i.empire's line labels for its modules (i/emp.*), as a
 ' table: nothing includes it (C64List 4.04 can't name a line in another
 ' file), so the modules jump to these lines as {$33}nnn.
 ' each is its Image 1.2 number plus 3000 (games/empire6/includes.lbl).
