@@ -22,43 +22,82 @@
 	&,66
 
 {:4100} ' &,40: forcegc
-	gosub 3012:return
+' &,40: BASIC's strings collected (the reverse G on the status line
+' meanwhile). Free: fretop ($35) - strend ($33)
+	&"{f6}&{comma}40 forcegc{f6:2}":z$="":for i=1 to 50:z$=z$+"xy":next:z$=""
+	a=peek(53)+256*peek(54)-peek(51)-256*peek(52):&,40:b=peek(53)+256*peek(54)-peek(51)-256*peek(52)
+	&"Free{colon} {pound}!a bytes; after &{comma}40{colon} {pound}!b (50 strings' garbage collected){f6}":return
 
 {:4200} ' &,41: setbaud
-	gosub 3012:return
+' &,41,n: the modem's speed, 300 * 2^n (0-6); 128 and up: DTR from bit 0
+	&"{f6}&{comma}41 setbaud{f6:2}":lp=1:&"&{comma}41{comma}n sets the modem's speed{colon} 300 times 2^n (0 300{comma} 2 1200 ... 6 19200); 128 and up set DTR from bit 0 (128 hangs up). "
+	&"Not called here{colon} sub.modem sets it.{f6}":return
 
 {:4300} ' &,42: ecs commands
-	gosub 3012:return
+' &,42: an$ checked against the ECS definitions (a%, b$, a$, b% back);
+' &,42,2: the definitions into tt$(), a% the count; 4 and 5 load and save
+	&"{f6}&{comma}42 ECS Commands{f6:2}":lp=1:&"&{comma}42 checks an$ against the ECS definitions; &{comma}42{comma}2 copies them into tt$() with a% the count{colon}{f6}"
+	&,42,2:n=a%:&"{pound}%a definitions (each{colon} two bytes of flags{comma} then the command and its file){colon}{f6}":for i=1 to n:&mid$(tt$(i),3)+"{f6}":if rc then i=n
+	next:return
 
 {:4400} ' &,43: chatchk
-	gosub 3012:return
+' &,43: peek(6) nonzero when the Cht checkmark (flag 8, the left check) is
+' on: a chat request. Set a moment, then put back
+	&"{f6}&{comma}43 chatchk{f6:2}":&,43:x=peek({sym:sareg}):&,52,8,3:o=a%:&,52,8,1:&,43:y=peek({sym:sareg}):&,52,8,o
+	&"&{comma}43{colon} {pound}!x; with the Cht checkmark on{colon} {pound}!y (expect nonzero){f6}":return
 
 {:4500} ' &,44: trace
-	gosub 3012:return
+' &,44: the console mask's P=, V= and L= redrawn, and ak$ rebuilt for ll%
+	&"{f6}&{comma}44 trace{f6:2}":&,44:lp=1:&"&{comma}44 redraws P{equal}{comma} V{equal} and L{equal} on the console's mask and rebuilds ak$ for ll% (the wedge does both between statements anyway).{f6}":return
 
 {:4600} ' &,45: prtvar
-	gosub 3012:return
+' &,45,v: string variable v printed (as &,9 numbers them: 0 an$, 1 a$, 2
+' b$, 4 d1$, 36 co$...); &,46,v with MCI on. A number variable prints
+' garbage
+	&"{f6}&{comma}45/&{comma}46 prtvar{f6:2}":b$="world":a$="hello {pound}$b"
+	&"&{comma}45{comma}1 (a$){colon} ":&,45,1:&"{f6}&{comma}46{comma}1{colon}      ":&,46,1:&"{f6}&{comma}45{comma}4 (d1$){colon} ":&,45,4:&"{f6}":return
 
 {:4700} ' &,46: prtvar0
-	gosub 3012:return
+' with &,45
+	goto {:4600}
 
 {:4800} ' &,47: carchk
-	gosub 3012:return
+' &,47: peek(6) 0 (at the console, or the carrier there), 1 (the carrier
+' lost), 2 (the time used up)
+	&"{f6}&{comma}47 carchk{f6:2}":&,47:x=peek({sym:sareg}):lp=1:&"&{comma}47{colon} {pound}!x (0{colon} the console{comma} or the carrier there; 1 the carrier lost; 2 the time used up){f6}":return
 
 {:4900} ' &,48: getkbd
-	gosub 3012:return
+' &,48: the console's next key in peek(6), 0 for none
+	&"{f6}&{comma}48 getkbd{f6:2}":&"The console's keys for 5 seconds{colon}{f6}"
+	for i=1 to 50:&,22,1:&,48:c=peek({sym:sareg}):if c then:&"{pound}!c "
+	next:&"{f6}":return
 
 {:5000} ' &,49: getmod
-	gosub 3012:return
+' &,49: the modem's next byte in peek(6) (translated in Asc mode), 0 for
+' none
+	&"{f6}&{comma}49 getmod{f6:2}":&"The modem's bytes for 5 seconds{colon}{f6}"
+	for i=1 to 50:&,22,1:&,49:c=peek({sym:sareg}):if c then:&"{pound}!c "
+	next:&"{f6}(At the console{comma} only what the modem itself says{comma} if anything.){f6}":return
 
 {:5100} ' &,50: outscn
-	gosub 3012:return
+' poke 254,c:&,50: c on the console's screen only
+	&"{f6}&{comma}50 outscn{f6:2}":&"poke 254{comma}c{colon}&{comma}50 puts c on the console only{colon}{f6}":a$="(the console only)"
+	for i=1 to len(a$):poke 254,asc(mid$(a$,i,1)):&,50:next:poke 254,13:&,50:return
 
 {:5200} ' &,51: outmod
-	gosub 3012:return
+' poke 254,c:&,51: c to the modem only. Not at the console, where the modem
+' would take it for a command
+	&"{f6}&{comma}51 outmod{f6:2}":&"poke 254{comma}c{colon}&{comma}51 sends c to the modem only.{f6}":&,52,4,3:if peek(53248) or a% then:&"(At the console{colon} not sent.){f6}":return
+	a$="(the modem only)":for i=1 to len(a$):poke 254,asc(mid$(a$,i,1)):&,51:next:poke 254,13:&,51:&"{f6}(Sent.){f6}":return
 
 {:5300} ' &,52: lightbar interface
-	gosub 3012:return
+' &,52,f,op: flag f (0-127; the lightbar's first page 0-31, position p's
+' checks 2p and 2p+1): op 0 clear, 1 set, 2 toggle, 3 into a%, 4 the
+' lightbar to f, 5 its bit in peek(6). Read here (op 3): * on
+	&"{f6}&{comma}52 Lightbar{f6:2}":lp=1:&"&{comma}52{comma}f{comma}op{colon} op 0 clears flag f{comma} 1 sets it{comma} 2 toggles it{comma} 3 reads it into a%. The first page's (* on){colon}{f6}"
+	q$="SysAcsLocTsrChtNewPrtU/DAscAnsExpUnvTrcBelNetMac"
+	for i=0 to 15:&,52,i*2,3:x=a%:&,52,i*2+1,3:&mid$(" *",x+1,1)+mid$(q$,i*3+1,3)+mid$(" *",a%+1,1)+"  ":if (i and 3)=3 then:&"{f6}"
+	next:return
 
 {:5400} ' &,53: logoff, also see &,53,a
 ' &,53[,idle]: stores idle in curdsp ($12e4, 4836): 0 = idle timer off,
@@ -80,16 +119,28 @@
 	&,53,q:x=peek({sym:curdsp}):&"Restored{colon}       curdsp{equal}{pound}!x{f6}":return
 
 {:5500} ' &,54: text editor interface
-	gosub 3012:return
+' &,54,e: the message editor on tt$() (e 0 new text, 1-3 back into it);
+' peek(7): how it was left. It needs sub.editor's setup
+	&"{f6}&{comma}54 Text Editor{f6:2}":lp=1:&"&{comma}54{comma}e runs the message editor on tt$() (e 0 new text{comma} 1-3 back into it); peek(7) is how it was left (0 aborted{comma} 1 saved...). "
+	lp=1:&"It needs sub.editor's setup{comma} so modules use sub.editor{comma} not &{comma}54. Not called here.{f6}":return
 
 {:5600} ' &,55: output
-	gosub 3012:return
+' poke 254,c:&,55: c through Image's output, then a key checked (peek(6)):
+' / or space abort, Ctrl-S pauses, as for & output
+	&"{f6}&{comma}55 output{f6:2}":a$="poke 254{comma}c{colon}&{comma}55 outputs c{comma} then checks for a key"
+	for i=1 to len(a$):poke 254,asc(mid$(a$,i,1)):&,55:next:poke 254,13:&,55:return
 
 {:5700} ' &,56: chatmode
-	gosub 3012:return
+' &,56: chat mode, the keyboard and modem relayed while the Cht checkmark
+' (flag 8) is on; with it off, back at once. Off here, then put back
+	&"{f6}&{comma}56 chatmode{f6:2}":lp=1:&"&{comma}56 is chat mode{colon} the keyboard and the modem relayed until the Cht checkmark is off. With it off{colon}{f6}"
+	&,52,8,3:o=a%:&,52,8,0:&,56:&,52,8,o:&"{f6}(Back at once.){f6}":return
 
 {:5800} ' &,57: relread
-	gosub 3012:return
+' &,57,lfn: &,3 for a REL file's record (positioned first), to a line
+' starting with ^ or the record's end: e.data's (im 33, 10)
+	&"{f6}&{comma}57 relread{f6:2}":t=50:gosub {:sub.which_record}:if e9 then return
+	gosub 33:x=a:gosub 10:&,57,2:close 2:return
 
 {nice:10}
 {:sub.which_record}
@@ -99,10 +150,16 @@
 	return
 
 {:5900} ' &,58: setalarm
-	gosub 3012:return
+' &,58,h,m: CIA #1's time of day alarm (h as in d1$: 81-92 PM). Nothing on
+' the 128 uses it: CIA #1's interrupts are off
+	&"{f6}&{comma}58 setalarm{f6:2}":lp=1:&"&{comma}58{comma}h{comma}m sets CIA #1's time of day alarm. Nothing on the 128 uses it (CIA #1's interrupts are off){colon} not called here.{f6}":return
 
 {:6000} ' &,59: farerr
-	gosub 3012:return
+' &,59,n: BASIC error n raised: Image's error trap (im 2000) logs it and
+' starts im again. Only when asked
+	&"{f6}&{comma}59 farerr{f6:2}":lp=1:&"&{comma}59{comma}n raises BASIC error n. Image's error trap takes it{colon} it's logged (e.errlog){comma} and im starts again. "
+	&"Raise ?syntax error (11){question} (Y/N) ":gosub 7:if a$<>"Y" then:&"No{f6}":return
+	&"Yes{f6}":&,59,11
 
 {nice:10}
 	rem "i/test calls 40"

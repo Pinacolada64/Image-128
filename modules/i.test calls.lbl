@@ -1,7 +1,8 @@
 {uses:..\3_0-preface.lbl}
 ' i.test calls: Image's & calls, a page of ten at a time, with a test or a
-' demo of each one done so far (11/20/2026: ported from ImageBBS3's
-' core/tests, where most are still TODO). Page 8 adds the Image 128
+' demo of each one (11/20/2026: ported from ImageBBS3's core/tests, where
+' most were TODO; the rest written for the 128, in the i/test calls 0, 20,
+' 40 and 60 sub-modules, which have their notes). Page 8 adds the Image 128
 ' functions: 71 &,15,7 (centering), 72 &,15,8 (the widest of tt$()), 73 the
 ' MCI tab, 74 sub.columns, 75 ak$ following ll%.
 ' Run it as a module: R at the main prompt, class 3 (an i.* module, as in
@@ -153,9 +154,16 @@
 	&"&{comma}41 setbaud{f6}":return
 	&"&{comma}42 ECS Commands{f6}":return
 	&"&{comma}43 chatchk"+m$+"{f6}":return
+	&"&{comma}44 trace{f6}":return
+	&"&{comma}45 prtvar{f6}":return
+	&"&{comma}46 prtvar0{f6}":return
+	&"&{comma}47 carchk{f6}":return
+	&"&{comma}48 getkbd{f6}":return
+	&"&{comma}49 getmod{f6}":return
 {number:3112}
 {:display_page_5}
-	for n=0 to 3:n%=n+40:&fs$:gosub {:header_page_5}:next:return
+' 11/20/2026: 44-49 too (44 went to line 3105, which wasn't there)
+	for n=0 to 9:n%=n+40:&fs$:gosub {:header_page_5}:next:return
 
 {:header_page_6}
 {number:3120}

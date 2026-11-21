@@ -22,10 +22,18 @@
 	&,66
 
 {:4100} ' &,60: structs
-	gosub 3012:return
+' &,60,0,bytes,arr%(f,r),s$: s$ into the array (0s after it); &,60,1,...,v$:
+' back into v$; 2 and 3 load and save the array (a file); 14 and 15 a
+' variable's 5 bytes; others go to &,68. More in 3.0's "i.test structs"
+	&"{f6}&{comma}60 structs{f6:2}":if zs=. then dim zs%(7):zs=1
+	&,60,0,8,zs%(0),"Image":&,60,1,8,zs%(0),q$:a%=zs%(0):b%=zs%(1)
+	&"&{comma}60{comma}0{comma}8{comma}zs%(0){comma}{quotation}Image{quotation}{colon} zs%(0) {pound}%a{comma} zs%(1) {pound}%b{f6}&{comma}60{comma}1{comma}8{comma}zs%(0){comma}q${colon} {quotation}{pound}$q{quotation} (expect Image){f6}":return
 
 {:4200} ' &,61: poscrsr
-	gosub 3012:return
+' &,61,col,row: the console's cursor moved (the screen only): x's printed
+' there, then the cursor put back (tblx 235, pntr)
+	&"{f6}&{comma}61 poscrsr{f6:2}":&"x at columns 30-32{comma} rows 1-3 (the console only){f6}":r=peek(235):c=peek({sym:pntr})
+	for i=1 to 3:&,61,29+i,i:print "x";:next:&,61,c,r:return
 
 {:4300} ' &,62: set time
 ' &,62,hour,minute: hour as in d1$: 12, 1-11 = AM; 92, 81-91 = PM
@@ -59,50 +67,40 @@
 	return
 
 {:4400} ' &,63: inline1
-	gosub 3012:return
+' &,63: input as &,1 did last (its flags, line length and case)
+	&"{f6}&{comma}63 inline1{f6:2}":l=peek(53252):poke 53252,20:p$="Type something":&,1,0,0:&"{f6}&{comma}1{colon} an${equal}{quotation}{pound}v7{quotation}{f6}"
+	&"Again with &{comma}63 (as &{comma}1 did){colon} ":&,63:&"{f6}&{comma}63{colon} an${equal}{quotation}{pound}v7{quotation}{f6}":poke 53252,l:return
 
 {:4500} ' &,64: convstr
-	gosub 3012:return
+' &,64,x changes an$: 1 names (each word capitalized; an apostrophe doesn't
+' start one), 2 Image's encoded , : * ? = back, 3 $ , * ? : = ; to -, 4
+' chkspcl. &,15,1-4 are the same. an$ from an expression: in BASIC's
+' strings, not the program
+	&"{f6}&{comma}64 convstr{f6:2}":an$="the o'MALLEY'S bar"+"":x=1:gosub {:sub.convstr}
+	an$="a{comma}b{colon}c{asterisk}d"+"":c=asc(mid$(an$,2,1)):x=2:gosub {:sub.convstr}:d=asc(mid$(an$,2,1)):&"(its second character {pound}!c{comma} then {pound}!d){f6}"
+	an$="a$1,2*3?4:5=6;7"+"":x=3:gosub {:sub.convstr}:return
+{:sub.convstr}
+	&"&{comma}64{comma}{pound}!x{colon} {quotation}{pound}v7{quotation} to ":&,64,x:&"{quotation}{pound}v7{quotation}{f6}":return
 
-{:4600} ' &,65: convert
-{:sub.convert}
-' assumptions:
-' define an$
-
-' &,65,0: convnam (check for ' in string, lowercase character afterwards?)
-' - test: an$="O'MALLEY'S BAR" (two apostrophes) -> "O'malley's Bar" (really should be "O'Malley's" but I picked an edge case on purpose)
-' - result: an$="" (?)
-' - &,65,0,"string" returns "?type mismatch error"
-
-' &,65,1: disk data
-' &,65,2: special characters to Image-encoded function keys, and
-' &,65,3: check special characters.
-' print an$
-{:display_header_convert}
-	&"Convert names{f6}":return
-	&"Convert disk data ({question}){f6}":return
-	lp=1:&"Convert special characters to Image-encoded function keys{f6}":return
-	&"Check string for special characters ({question}){f6}":return
-{:header_convert_input}
-	lp=1:&"Input search string [currently {f5}"+sf$+"{f5}]{f6}":return
-{:header_convert_reset}
-	&"Reset defaults{f6}":return
-{:display_page_convert}
-	for n=0 to 3:n%=n:&sf$:gosub {:display_header_convert}:next:&"{f6}I) ":gosub {:header_convert_input}:&"R) ":gosub {:header_convert_reset}
-{:convert_reset}
-' sf$="search for". quote and return excluded for display reasons:
-	sf$="{f1}{f3}{f7}{f2}{f4}{f8}"
-
-{:convert_prompt}
-	m=1:l=.:h=3:gosub 3004:on -(a$="I")-2*(a$="R") goto {:convert_input},{:convert_reset}
-	a%=6450+20*an:&,66
-
-{:convert_input}
-	gosub 3012:return
+{:4600} ' &,65: convdate
+' &,65: the date in Image's datebuf (11 digits) as text in date1, for the
+' ML (&,15 puts an$ there and uses it). From BASIC: &,15
+	&"{f6}&{comma}65 convdate{f6:2}":lp=1:&"&{comma}65 turns the date in Image's datebuf into text (date1); &{comma}15 does it for an${colon}{f6}"
+	an$=d1$+"":&"&{comma}15 on d1$ ({quotation}{pound}v7{quotation}){colon} ":&,15:&"{quotation}{pound}v7{quotation}{f6}":return
 
 {:4700} ' &,66: calculated goto
-	' &,66,1: calculated gosub
-	gosub 3012:return
+' a%=line:&,66 goes there (goto); &,66,1 calls it (gosub), back to the
+' statement after the &
+	&"{f6}&{comma}66 Calculated goto/gosub{f6:2}":lp=1:&"a%{equal}line{colon}&{comma}66 goes to line a%; &{comma}66{comma}1 calls it (gosub). Three gosubs{comma} then a goto{colon}{f6}"
+	for i=1 to 3:a%=4780+i:&,66,1:next
+	a%=4790:&,66
+	&"(not here){f6}":return
+{:4781}
+	&"&{comma}66{comma}1 with a% 4781{f6}":return
+	&"&{comma}66{comma}1 with a% 4782{f6}":return
+	&"&{comma}66{comma}1 with a% 4783{f6}":return
+{:4790}
+	&"&{comma}66 with a% 4790{comma} whose return ends this{f6}":return
 
 {:4800} ' &,67: copyright
 {:sub.copyright}
@@ -110,13 +108,23 @@
 	&,67:return
 
 {:4900} ' &,68: struct
-	gosub 3012:return
+' &,68,f,...: the struct module's other functions (f 4-13): 4 putdate, 5
+' getdate, 6 doscan, 7 sort, 8 scannums, 9 scansum, 10 cpystruc, 11
+' scanstr, 12 gamescan, 13 textread; f outside 4-13 jumps to garbage
+	&"{f6}&{comma}68 struct{f6:2}":if zs=. then dim zs%(7):zs=1
+	&,68,4,0,zs%(4),d1$:&,68,5,0,zs%(4),q$:lp=1:&"&{comma}68{comma}4 packs d1$ ({quotation}"+d1$+"{quotation}) into zs%(4); &{comma}68{comma}5 gives back {quotation}{pound}$q{quotation} (expect the same){f6}":return
 
 {:5000} ' &,69: display string on console
-	gosub 3012:return
+' &,69,col,row,s$,color: s$ straight onto the console's screen (rows 1-24;
+' color bit 7 reverse; row 0 draws nothing), until it's drawn over
+	&"{f6}&{comma}69 Display on the Console{f6:2}":&"At the console's top{comma} yellow{comma} then reversed (the console only){f6}"
+	&,69,20,1,"&,69,20,1,..,7",7:&,69,20,2,"&,69,20,2,..,$87",$87:return
 
 {:5100} ' &,70: position terminal cursor
-	gosub 3012:return
+' &,70,col,row: the caller's cursor home, then down and right (cursor keys,
+' in PETSCII or ANSI; nothing in plain ASCII): after a clear screen here
+	&"{f6}&{comma}70 Position Terminal Cursor{f6:2}A key{colon} the screen is cleared{comma} then text at (10{comma}3) and (30{comma}6). {pound}g1":&"{clear}"
+	&,70,10,3:&"(10{comma}3)":&,70,30,6:&"(30{comma}6)":&,70,0,9:&"{f6}":return
 
 ' ********************************
 ' *  Image 128 (11/20/2026)      *

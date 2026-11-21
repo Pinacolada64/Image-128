@@ -22,13 +22,25 @@
 	&,66
 
 {:4100} ' &,20: Read From Interface Table
-	gosub 3012:return
+' &,20,x,y: byte x of the interface table (0: the line length, llen) into
+' a% (y 0) or peek(6) (y 1). 11/20/2026: on the 128 the jump table sends
+' it to the copyright notice (swap3's +12, not +15), so these fail
+	&"{f6}&{comma}20 Read from Interface Table{f6:2}":l=peek(53252):a%=-1
+	&,20,0,0:&"{f6}&{comma}20{comma}0{comma}0{colon} a%{equal}{pound}%a (expect {pound}!l{comma} the line length){f6}"
+	&,20,0,1:x=peek({sym:sareg}):&"&{comma}20{comma}0{comma}1{colon} peek(6){equal}{pound}!x (expect {pound}!l){f6}":return
 
 {:4200} ' &,21: Write to Interface Table
-	gosub 3012:return
+' &,21,x,y: byte x of the interface table (0: the line length) set to y.
+' 11/20/2026: on the 128 its range test is backwards (0 does nothing, 2 and
+' up write past the table), so only 0 here
+	&"{f6}&{comma}21 Write to Interface Table{f6:2}":l=peek(53252)
+	&,21,0,33:x=peek(53252):poke 53252,l:&"&{comma}21{comma}0{comma}33{colon} the line length {pound}!x (expect 33); put back to {pound}!l{f6}":return
 
 {:4300} ' &,22: Wait x Tenths of a Second
-	gosub 3012:return
+' &,22,x: a wait of x tenths of a second
+	&"{f6}&{comma}22 Wait x Tenths of a Second{f6:2}"
+	for i=5 to 1 step -1:&"{pound}!i ":&,22,5:next:&"{f6}(&{comma}22{comma}5 between them{colon} half a second){f6}"
+	t=ti:&,22,20:t=ti-t:&"&{comma}22{comma}20{colon} {pound}!t jiffies (60 a second{colon} expect about 120){f6}":return
 
 ' test code from image bbs 2.0:
 ' https://github.com/Pinacolada64/ImageBBS/blob/5b564adb919f49e7644c303e7c21e8b75fd192f0/v2/core/jack/i_UD.lbl#L93-L97
@@ -54,7 +66,10 @@
 	&"Again [Y/n]{question}{colon} ":gosub 96:on a goto {:amp_23_start}:return
 
 {:4500} ' &,24: xchrout1
-	gosub 3012:return
+' poke 254,c:&,24: c through Image's output (screen, modem, printer), as
+' the ML outputs a character
+	&"{f6}&{comma}24 xchrout1{f6:2}":&"poke 254{comma}c{colon}&{comma}24 for each character{colon}{f6}":a$="Image's output"
+	for i=1 to len(a$):poke 254,asc(mid$(a$,i,1)):&,24:next:poke 254,13:&,24:return
 
 {:4600} ' &,25: Sound
 ' &,25,<sound>,<repeat> (source/swap2.s, sound; repeats in irqhn.s)
@@ -102,44 +117,73 @@
 	return
 
 {:4800} ' &,27: array pointer save
-' TODO: protect against &,27,1 (erases working variables for BBS)
-	gosub 3012:return
+' &,27,n marks the variables and arrays as they are now; &,28,n drops every
+' one made since. Levels 0-3 (4-7 write past arryptrs), all in use: 1 is
+' im's own (made at boot), 3 i/lo.idle's: 3 here. v and w exist first
+	&"{f6}&{comma}27/&{comma}28 Save/Restore Variables{f6:2}":lp=1:&"&{comma}27{comma}n marks the variables and arrays as they are; &{comma}28{comma}n drops every one made since (levels 0-3{colon} 3 here). "
+	&"The bytes they take{colon}{f6}":v=.:w=.:&"Before{colon}         ":gosub {:sub.vars}
+	&,27,3:dim zq%(99):zq=1:&"zq and zq%() made{colon} ":gosub {:sub.vars}
+	&,28,3:&"After &{comma}28{comma}3{colon}  ":gosub {:sub.vars}:return
+{:sub.vars}
+' BASIC 7's pointers: vartab ($2f), arytab ($31), strend ($33)
+	v=peek(49)+256*peek(50)-peek(47)-256*peek(48):w=peek(51)+256*peek(52)-peek(49)-256*peek(50):&"variables {pound}!v{comma} arrays {pound}!w{f6}":return
 
 {:4900} ' &,28: array pointer restore
-	gosub 3012:return
+' with &,27
+	goto {:4800}
 
 {:5000} ' &,29: usevar
-	gosub 3012:return
+' &,29,v: variable v (as &,9 numbers them: 0 an$, 1 a$...) into the FAC
+	&"{f6}&{comma}29 usevar{f6:2}&{comma}29{comma}v puts variable v (numbered as for &{comma}9) in the FAC.{f6}":&,29,1:goto {:sub.ml_only}
+{:sub.ml_only}
+	lp=1:&"(For the ML{colon} & ends by copying a${comma} an${comma} b$ and w$ into BASIC's strings{comma} which uses the FAC{comma} so BASIC sees nothing of it.){f6}":return
+{:sub.not_called}
+	lp=1:&"(Not called here{colon} from BASIC the FAC holds what parsing the & left{comma} and that would be stored.){f6}":return
 
 {:5100} ' &,30: putvar
-	gosub 3012:return
+' &,30,v: the FAC into variable v
+	&"{f6}&{comma}30 putvar{f6:2}&{comma}30{comma}v puts the FAC into variable v.{f6}":goto {:sub.not_called}
 
 {:5200} ' &,31: zero
-	gosub 3012:return
+' &,31: the FAC set to 0
+	&"{f6}&{comma}31 zero{f6:2}&{comma}31 sets the FAC to 0.{f6}":&,31:goto {:sub.ml_only}
 
 {:5300} ' &,32: minusone
-	gosub 3012:return
+' &,32: the FAC set to $81 00 00 00 00 (meant as -1)
+	&"{f6}&{comma}32 minusone{f6:2}&{comma}32 sets the FAC to $81 00 00 00 00.{f6}":&,32:goto {:sub.ml_only}
 
 {:5400} ' &,33: getarr
-	gosub 3012:return
+' &,33,x: tt$(x)'s descriptor into the FAC (tt$() the first array, as im's)
+	&"{f6}&{comma}33 getarr{f6:2}&{comma}33{comma}x puts tt$(x) in the FAC.{f6}":&,33,1:goto {:sub.ml_only}
 
 {:5500} ' &,34: putarr
-	gosub 3012:return
+' &,34,x: the FAC into tt$(x)
+	&"{f6}&{comma}34 putarr{f6:2}&{comma}34{comma}x puts the FAC into tt$(x).{f6}":goto {:sub.not_called}
 
 {:5600} ' &,35: getln
-	gosub 3012:return
+' &,35,x: tt$(x) (up to 80 characters) into Image's line buffer, its length
+' in peek(53263); &,36,x: the buffer into tt$(x)
+	&"{f6}&{comma}35/&{comma}36 getln/putln{f6:2}":tt$(1)="Copied by &{comma}35 and &{comma}36":tt$(2)=""
+	&,35,1:l=peek(53263):&,36,2:&"&{comma}35{comma}1{colon} tt$(1) into the buffer ({pound}!l characters){f6}&{comma}36{comma}2{colon} the buffer into tt$(2){colon} {quotation}"+tt$(2)+"{quotation}{f6}":return
 
 {:5700} ' &,36: putln
-	gosub 3012:return
+' with &,35
+	goto {:5600}
 
 {:5800} ' &,37: trapon
-	gosub 3012:return
+' &,38 puts BASIC's error vector (IERROR, $0300) back; &,37 Image's (its
+' error trap, im 2000). Both here, and the vector each time
+	&"{f6}&{comma}37/&{comma}38 trapon/trapoff{f6:2}":e=peek(768)+256*peek(769):&,38:f=peek(768)+256*peek(769):&,37:k=peek(768)+256*peek(769)
+	lp=1:&"The error vector ($0300){colon} {pound}!e; after &{comma}38 {pound}!f (BASIC's{comma} 19775); after &{comma}37 {pound}!k (Image's again){f6}":return
 
 {:5900} ' &,38: trapoff
-	gosub 3012:return
+' with &,37
+	goto {:5800}
 
 {:6000} ' &,39: prtln
-	gosub 3012:return
+' &,39,x: tt$(x) through Image's output (lp=1: word-wrapped)
+	&"{f6}&{comma}39 prtln{f6:2}":tt$(1)="tt$(1){comma} printed by &{comma}39{comma}1 with lp=1 first{comma} so it's word-wrapped as & output is when a line is too long for the screen.{f6}"
+	lp=1:&,39,1:return
 
 {nice:10}
 	rem "i/test calls 20"

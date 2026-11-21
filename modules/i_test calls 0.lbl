@@ -22,7 +22,14 @@
 	&,66
 
 {:4100} ' &,0: output a$
-	gosub 3012:return
+' & alone or &,0 prints a$ through Image's output (MCI, the abort keys,
+' word wrap with lp=1); &"..." prints a string expression instead
+	&"{f6}&{comma}0 Output a${f6:2}":b$="world"
+	a$="&{comma}0 prints a${f6}":&,0
+	a$="So does & alone.{f6}":&
+	a$="MCI in it{colon} hello {pound}$b ({pound}{pound}$b){f6}":&
+	lp=1:a$="lp=1 first word-wraps it{comma} so a line too long for the screen{comma} like this one{comma} breaks between two words and not in the middle of one.{f6}":&
+	return
 
 {:4200} ' &,1,x,y: input an$
 ' &,1,x,y: x = editor flags, y = password flags (source/swap1.s, inline)
@@ -94,34 +101,76 @@
 	x=x+b:goto {:amp_1_flags}
 
 {:4300} ' &,2: dskin
-	gosub 3012:return
+' &,2,lfn: a line of file lfn (to a return, at most 80 characters) into a$;
+' past the end a$ is "^" and st 64. &,2,lfn,n: n bytes, as they are
+	&"{f6}&{comma}2 Disk File Input{f6:2}":gosub {:sub.tmp_make}:gosub {:sub.tmp_open}:if e% then {:sub.tmp_gone}
+	for i=1 to 5:&,2,2:s=st:&"&{comma}2{comma}2{colon} a${equal}{quotation}{pound}$a{quotation}{comma} st {pound}!s{f6}":next
+	close 2:gosub {:sub.tmp_open}:&,2,2,9:&"&{comma}2{comma}2{comma}9{colon} a${equal}{quotation}{pound}$a{quotation} (9 bytes){f6}"
+	goto {:sub.tmp_gone}
+
+{:sub.tmp_make}
+' e.tc.tmp on drive 3 (the e.* files'): tt$(1)-tt$(4), written by &,14 as
+' im 39 writes a file. e%: the drive's error
+	tt$(1)="The first line":tt$(2)="The second":tt$(3)="The third":tt$(4)="The last line"
+	dr=3:a$="e.tc.tmp":gosub 18:gosub 5:if e% then:&a$:close 2:return
+	&,14,2,4:close 2:return
+{:sub.tmp_open}
+' e.tc.tmp opened to read, as file 2
+	dr=3:a$="e.tc.tmp,s,r":gosub 4:gosub 5:if e% then:&a$
+	return
+{:sub.tmp_gone}
+' closed and scratched
+	close 2:dr=3:a$="e.tc.tmp":gosub 19:return
 
 {:4400} ' &,3: readfile
-	gosub 3012:return
+' &,3,lfn: file lfn printed a line at a time, to its end or an abort (as im
+' 14 shows an s.* file); &,3,lfn,speed: a character at a time, slowly
+	&"{f6}&{comma}3 Read File from Disk{f6:2}":gosub {:sub.tmp_make}:gosub {:sub.tmp_open}:if e% then {:sub.tmp_gone}
+	&"&{comma}3{comma}2{colon}{f6}":&,3,2:close 2:gosub {:sub.tmp_open}
+	&"{f6}&{comma}3{comma}2{comma}30{colon}{f6}":&,3,2,30:goto {:sub.tmp_gone}
 
 {:4500} ' &,4: frommodem
-	gosub 3012:return
+' &,4: a byte from the modem into peek(6), 0 when none has come
+	&"{f6}&{comma}4 Get Byte from Modem{f6:2}":lp=1:&"&{comma}4 reads a byte from the modem into peek(6){comma} 0 when none has come. Each one for 5 seconds{colon}{f6}"
+	for i=1 to 50:&,22,1:&,4:c=peek({sym:sareg}):if c then:&"{pound}!c "
+	next:&"{f6}(At the console{comma} only what the modem itself says{comma} if anything.){f6}":return
 
 {:4600} ' &,5: Get Version
 	&,5
 {:amp_5_show}
 ' call for &,19 also
 ' returns:
-' lp: major.minor (3.1; Image 1.3: 1.3)
-' a%: revision (0; Image 1.3: 1)
-' a$: the git commit the ML was built from, 8 characters (Image 1.3: the
-'     date, "12/29/91  1:18p"); shows "Image BBS 64 v3.1.0: f9850df0"
-	v=lp:&"Image BBS 128 v{pound}!v.{pound}%a{colon} "+a$+"{f6}"
+' lp: major.minor (Image 1.3: 1.3; 3.1)
+' a%: revision (Image 1.3: 1; 3.1: 0; 128: not set)
+' a$: Image 1.3: the date, "12/29/91  1:18p"; 3.1: the git commit; 128: the
+'     ML's build date and time
+' 11/20/2026, 128: lp is the version (1.0), a$ the ML's build date and
+' time; a% isn't set
+	v=lp:&"Image BBS 128 v"+mid$(str$(v),2)+"{comma} the ML built "+a$+"{f6}"
 	return
 
 {:4700} ' &,6: password
-	gosub 3012:return
+' &,6: a password into an$, each key shown as the mask character; &,6,2:
+' nothing shown. Both leave the line length (53252) at 15: put back here
+	&"{f6}&{comma}6 Password Input{f6:2}":l=peek(53252):q$=chr$(peek({sym:mask}))
+	&"Password (each key a {pound}$q){colon} ":&,6:&"{f6}an${equal}{quotation}{pound}v7{quotation}{f6}"
+	&"Password (&{comma}6{comma}2{colon} nothing shown){colon} ":&,6,2:&"{f6}an${equal}{quotation}{pound}v7{quotation}{f6}":poke 53252,l:return
 
 {:4800} ' &,7: loadfile
-	gosub 3012:return
+' &,7,dev,seg: the file named in a$ loaded into the ML's segment seg: 2 a ++
+' overlay, 7 print modes, 8 the lightbar's labels, 9 alarms, 10 and 11
+' translate tables, 12 net alarms (0-6: a BASIC module, over this one). The
+' lightbar's labels loaded again, as im 3110 does
+	&"{f6}&{comma}7 Load File{f6:2}":lp=1:&"&{comma}7{comma}dev{comma}seg loads a$ into segment seg{colon} 2 a ++ overlay{comma} 7 print modes{comma} 8 the lightbar's labels{comma} "
+	lp=1:&"9 alarms{comma} 10/11 translate tables{comma} 12 net alarms (0-6{colon} a BASIC module). The lightbar's labels again{colon}{f6}"
+	dr=3:gosub 3:a$=dr$+"e.lightbar":&"&{comma}7{comma}"+mid$(str$(dv%),2)+"{comma}8 ({pound}$a)":&,7,dv%,8:gosub 5:&a$:return
 
 {:4900} ' &,8: dskdir
-	gosub 3012:return
+' &,8,lfn,0: a directory (file lfn, opened to "$") printed, its load address
+' skipped; &,8,lfn,1: its next line in a$ (the load address read first)
+	&"{f6}&{comma}8 Disk Directory{f6:2}":dr=5:gosub 2:close 2
+	&"&{comma}8{comma}2{comma}1{comma} twice{colon}{f6}":open 2,dv%,0,"$"+dr$+"i?test*":get#2,b$,b$:&,8,2,1:&a$+"{f6}":&,8,2,1:&a$+"{f6}":close 2
+	&"{f6}&{comma}8{comma}2{comma}0{colon}{f6}":open 2,dv%,0,"$"+dr$+"i?test*":&,8,2,0:close 2:return
 
 {:5000} ' &,9: btmvar
 ' enumerate variables that can be displayed, from &,9,x table:
@@ -174,34 +223,50 @@
 	&,10:return
 
 {:5200} ' &,11: Clear Array
-' TODO: Protect against clearing reserved arrays
-	gosub 3012:return
+' &,11,n: array n emptied: 0 tt$(), 1 bb$(), 2 dt$(), 3 ed$(), 4 nn$(),
+' 5 a%(), 6 c%(), 7 d%(), 8 e%(), 9 f%(), 10 ac%(), 11 so%(). Most are im's
+' own: only tt$() here
+	&"{f6}&{comma}11 Clear Array{f6:2}":lp=1:&"&{comma}11{comma}n empties array n{colon} 0 tt$(){comma} 1 bb$(){comma} 2 dt$(){comma} 3 ed$(){comma} 4 nn$(){comma} 5 a%(){comma} "
+	lp=1:&"6 c%(){comma} 7 d%(){comma} 8 e%(){comma} 9 f%(){comma} 10 ac%(){comma} 11 so%(). Most are im's own{colon} tt$() here.{f6}"
+	tt$(1)="one":tt$(2)="two":tt$(3)="three":&"Before{colon}       ":gosub {:sub.tt3}:&,11,0:&"After &{comma}11{comma}0{colon}":gosub {:sub.tt3}:return
+{:sub.tt3}
+	for i=1 to 3:&" tt$({pound}!i){equal}{quotation}"+tt$(i)+"{quotation}":next:&"{f6}":return
 
 {:5300} ' &,12: New User
-	gosub 3012:return
+' &,12,lfn: &,3 without the abort keys (it shows the new user files)
+	&"{f6}&{comma}12 New User (Read File{comma} No Abort){f6:2}":lp=1:&"&{comma}12{comma}lfn is &{comma}3 that can't be stopped{colon} for the new user files.{f6}"
+	gosub {:sub.tmp_make}:gosub {:sub.tmp_open}:if e% then {:sub.tmp_gone}
+	&,12,2:goto {:sub.tmp_gone}
 
 {:5400} ' &,13: arbit
-	if lk%=. then:&"No Lt.Kernal HD configured.{f6}"
-	gosub 3012:return
+' &,13,1,n: the Lt. Kernal's lock n (0-15) taken, waiting while another
+' station has it; &,13,2,n: given back. Without one, both do nothing
+	&"{f6}&{comma}13 arbit{f6:2}":lp=1:&"&{comma}13{comma}1{comma}n takes the Lt. Kernal's lock n (0-15){comma} waiting while another station has it; &{comma}13{comma}2{comma}n gives it back.{f6}"
+	if lk%=. then:&"(No Lt. Kernal here{colon} both do nothing.){f6}"
+	&,13,1,1:&"&{comma}13{comma}1{comma}1{colon} lock 1 taken{f6}":&,13,2,1:&"&{comma}13{comma}2{comma}1{colon} given back{f6}":return
 
 {:5500} ' &,14: Dump Array
-	gosub 3012:return
+' &,14,lfn,n: tt$(1)-tt$(n) written to file lfn, a return after each:
+' to the screen (device 3), then to e.tc.tmp, which &,3 shows
+	&"{f6}&{comma}14 Dump Array{f6:2}":lp=1:&"&{comma}14{comma}lfn{comma}n writes tt$(1)-tt$(n) to file lfn{colon} the screen (device 3) first{comma} the console only{colon}{f6}"
+	gosub {:sub.tmp_make}:open 3,3:&,14,3,4:close 3
+	gosub {:sub.tmp_open}:if e% then {:sub.tmp_gone}
+	&"{f6}...then a file (e.tc.tmp){comma} shown with &{comma}3{colon}{f6}":&,3,2:goto {:sub.tmp_gone}
 
 {:5600} ' &,15: convan
 	&"{f6}"
 	&"&{comma}15   Convert Date{f6}"
-	&"&{comma}15{comma}1 Title Case{f6}"
-	&"&{comma}15{comma}2 Decode Function Keys{f6}"
-' they both point to same call
-	&"&{comma}15{comma}3 {pound}$i{f6}"
-	&"&{comma}15{comma}4 (points to &{comma}15{comma}3){f6}"
+	&"&{comma}15{comma}1 Names (Title Case){f6}"
+	&"&{comma}15{comma}2 Decode Image's Encoded Characters{f6}"
+	&"&{comma}15{comma}3 $ {comma} * {question} {colon} {equal} ; to -{f6}"
+	&"&{comma}15{comma}4 chkspcl{f6}"
 	&"&{comma}15{comma}5 newdate {pound}$i{f6}"
 	&"&{comma}15{comma}6 Scan string...{f6}"
 	&"&{comma}15{comma}7 Center a string (128){f6}"
 	&"&{comma}15{comma}8 Widest of tt$() (128){f6}"
 {:amp_15_prompt}
 	l=0:h=8:q=1:m=1:gosub 3004:on q goto {:5600}:if m then return
-	on an+1 gosub 3012, 3012, 3012, 3012, 3012, {:15_5}, {:15_6}, {:amp_15_7}, {:amp_15_8}:if g9 then return
+	on an+1 gosub {:15_0}, {:15_x}, {:15_x}, {:15_x}, {:15_x}, {:15_5}, {:15_6}, {:amp_15_7}, {:amp_15_8}:if g9 then return
 	goto {:amp_15_prompt}
 {:amp_15_7}
 ' 7 and 8 are demos 71 and 72, in i/test calls 60: this returns with g9
@@ -209,6 +274,13 @@
 	g9=71:return
 {:amp_15_8}
 	g9=72:return
+
+{:15_0}
+' &,15: an$'s 11-digit date (as d1$ has it) as text, 20 characters
+	an$=d1$+"":&"{f6}&{comma}15 on d1$ ({quotation}{pound}v7{quotation}){colon} ":&,15:&"{quotation}{pound}v7{quotation}{f6}":return
+{:15_x}
+' &,15,1-4 are &,64,1-4 (calls.asm's convstr): option 64 shows them
+	g9=64:return
 
 {:15_5}' &,15,5: newdate
 ' Drops the weekday digit, leaving a sortable 10-digit "yymmddhhmm";
@@ -240,30 +312,50 @@
 	&"4) Input scan string/split char{f6:2}"
 {:15_6_prompt}
 	l=1:h=4:m=1:q=1:gosub 3004
-	v$="an$={quotation}Hello world{quotation}:&,15,6,":on an gosub {:sub.15_6_scan_string_chr}, {:sub.15_6_scan_string_asc}, 3012, 3012
+	v$="an$={quotation}Hello world{quotation}:&,15,6,":on an gosub {:sub.15_6_scan_string_chr}, {:sub.15_6_scan_string_asc}, {:sub.15_6_instr}, {:sub.15_6_input}
 ' q="?" entered, m="M"main menu:
-	on -(m=1) -2* (q=1) goto {:15_6}, {:15_6_quit}:goto {:15_6_prompt}
+	on -(m=1) -2* (q=1) goto {:15_6_quit}, {:15_6}:goto {:15_6_prompt}
 {:sub.15_6_scan_string_chr}
 ' an$="Hello world":&,15,6,32
 	&"{pound}$v32{f6}":an$="Hello world":&,15,6,32:gosub {:sub.15_6_results}:return
 {:sub.15_6_scan_string_asc}
 ' an$="Hello world":&,15,6,asc(" ")
 	&"{pound}$vasc({quotation} {quotation}){f6}":an$="Hello world":&,15,6,asc(" "):gosub {:sub.15_6_results}:return
+{:sub.15_6_instr}
+' instr: where a character first comes in an$, a$'s length + 1 (a$ is the
+' part before it)
+	&"{pound}$vasc({quotation}w{quotation}){colon}k{equal}len(a$)+1{f6}":an$="Hello world":&,15,6,asc("w"):k=len(a$)+1:&"k{equal}{pound}!k (expect 7){f6}":return
+{:sub.15_6_input}
+	l=peek(53252):poke 53252,30:p$="String":&,1,0,0:z$=an$:poke 53252,1:p$="Split at":&,1,0,0:poke 53252,l:if an$="" then return
+	c=asc(an$):an$=z$:&,15,6,c:gosub {:sub.15_6_results}:return
 {:sub.15_6_results}
 ' returns a$="Hello", an$="world":
 	&"a${equal}{quotation}{pound}$a{quotation}{comma} an${equal}{quotation}{pound}v7{quotation}{f6:2}":return
 
 {:15_6_quit}
-	&,28,2:return
+' 11/20/2026: was &,28,2:return, which dropped every variable made since
+' level 2's mark (i/lo.instant's, if anyone's): nothing to restore here
+	return
 
 {:5700} ' &,16: sys49152
-	gosub 3012:return
+' &,16 and &,17: the ++ overlay last loaded (&,7,dv%,2: at $1c00, $1c03),
+' which reads its own arguments. ++ netsub's &,16,255: its version in a%
+	&"{f6}&{comma}16 The ++ Overlay{f6:2}":lp=1:&"&{comma}16 and &{comma}17 run the ++ overlay last loaded (at $1c00 and $1c03){comma} which reads its own arguments. "
+	lp=1:&"++ netsub's &{comma}16{comma}255 puts its version in a%{colon}{f6}"
+	a$="netsub":gosub 28:if e% then:&a$:return
+	a%=-1:&,16,255:&"&{comma}16{comma}255{colon} a%{equal}{pound}%a (expect 10){f6}":return
 
 {:5800} ' &,17: sys49155
-	gosub 3012:return
+' &,17: the ++ overlay's second entry ($1c03). None of the overlays has one
+' (++ netsub's $1c03 is in the middle of its first), so it isn't called
+	&"{f6}&{comma}17{f6:2}":lp=1:&"&{comma}17 runs the ++ overlay's second entry ($1c03). None of the overlays has one{comma} so it isn't called here.{f6}":return
 
 {:5900} ' &,18: Screen Mode
-	gosub 3012:return
+' &,18,x: the console's mask (the status lines at the bottom) turned off or
+' on, when x is the mode now (scnmode: 0 the mask on, 1 full screen)
+	&"{f6}&{comma}18 Set Screen Mode{f6:2}":x=peek({sym:scnmode}):lp=1:&"&{comma}18{comma}x switches the console's mask (its status lines) when x is the mode now{colon} 0 the mask on{comma} 1 off. It's {pound}!x. "
+	&"A key to switch{colon} {pound}g1":&,18,x:y=peek({sym:scnmode}):&"{f6}&{comma}18{comma}{pound}!x{colon} mode {pound}!y now. A key to switch back{colon} {pound}g1"
+	k=y:&,18,k:y=peek({sym:scnmode}):&"{f6}&{comma}18{comma}{pound}!k{colon} mode {pound}!y again{f6}":return
 
 {:6000} ' &,19: Get Version
 ' call &,5 display routine
