@@ -1,0 +1,45 @@
+' emp6-includes.lbl: i.EMPIRE's line labels for its modules (i/EMP.*), as a
+' table: nothing includes it (C64List 4.04 can't name a line in another
+' file), so the modules jump to these lines as {$33}nnn.
+' each is its Image 1.2 number plus 3000 (games/empire6/includes.lbl).
+' Image 3.0's im lines come from 3_0-preface.lbl.
+' ----------line label assignments-----------------
+{assign:_1=3000}
+{assign:sub.load_lmp=3005}
+{assign:sub.comma_value=3010}
+{assign:_2852=3012}
+{assign:sub.str_to_int=3015}
+{assign:sub.any_key=3020}
+{assign:sub.open_playerlog=3025}
+{assign:save_stats_quit=3030}
+{assign:sub.save_your_stats=3035}
+{assign:sub.load_your_stats=3040}
+{assign:quit_game=3045}
+{assign:quit_game_2=3046}
+{assign:sub.other_rulers=3050}
+{assign:_58=3054}
+{assign:_64=3057}
+{assign:sub.rank=3060}
+{assign:sub.rank_2=3064}
+{assign:_484=3065}
+{assign:_486=3066}
+{assign:sub.request_your_status=3070}
+{assign:sub.your_status=3071}
+{assign:sub.log_event=3090}
+{assign:sub.read_config=3092}
+{assign:init=3100}
+{assign:start_turn=3106}
+{assign:_351=3108}
+{assign:_352=3109}
+{assign:_353=3111}
+{assign:sub.title=3115}
+{assign:_412=3119}
+{assign:_414=3120}
+{assign:_416=3121}
+{assign:_420=3123}
+{assign:_422=3124}
+{assign:_700=3125}
+
+' 1.2's {quoter:} names for Image's encoded characters were here (C64List
+' 3.03's form, which 4.04 refuses); nothing used them. For those, include
+' ..\quoters.lbl ({comma}, {colon}, {quotation}, ...)
