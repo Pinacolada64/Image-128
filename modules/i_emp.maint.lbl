@@ -24,7 +24,7 @@
 
 {:sub.empty_record}
 ' create empty player record
-	w$="empty"+r$:for x=1 to 15:w$=w$+"0"+r$:next:return
+	w$="empty"+r$:for x=1 to 20:w$=w$+"0"+r$:next:return
 
 {nice:10}
 {:start}
@@ -81,7 +81,7 @@
 
 {:_550}
 ' g3=player #
-	g3=x:for j=1 to 16:input# 2,dt$(j):next
+	g3=x:for j=1 to 21:input# 2,dt$(j):next
 
 {:profile}
 	a%=g3:n$=nn$:if n$="empty" then n$="(Deleted)"
@@ -103,10 +103,13 @@
 	&"{f6}14) Ships    : "+dt$(14)
 	&"{f6}15) Colonies : "+dt$(15)
 	&"{f6}16) Training : "+dt$(16)
+	&"{f6}17) Horses   : "+dt$(17)+"{pound}{back arrow}2018) Timber : "+dt$(18)
+	&"{f6}19) Spices   : "+dt$(19)+"{pound}{back arrow}2020) Cannons: "+dt$(20)
+	&"{f6}21) Forts    : "+dt$(21)
 {:_585}
 ' kk=modified flag
 	&"{f6:2}Edit which #? {pound}i1":gosub {$33}015:if tr%<1 then 300
-' 128: no range check here: 0 is the name ({:change_name} below) and above 16
+' 128: no range check here: 0 is the name ({:change_name} below) and above 21
 ' has its own line ({:_585}); 1.2's on -(tr%<1)-2*(an<1 and an>16) only
 ' ever went on time-out
 	if an$="" and kk=0 then {:start}
@@ -114,7 +117,7 @@
 ' 128: Save changes? only for an$="" (all on its if's line), and on a+1 for
 ' 1.2's on -(tr%<1)-2*(a=.)-3*(a=1), which time-out made 3 or 4
 	if an$="" then:&"{f6}Save changes? ":gosub 94:on -(tr%<1) goto 300:on a+1 goto {:start}, {:_716}
-	if an>16 then {:_585}
+	if an>21 then {:_585}
 ' edit name:
 	if an=. then {:change_name}
 '	kk=1:&"{f6}Enter new value for "+an$+":":gosub 1006:on tr%<1 goto 1811:dt$(r)=an$:goto {:profile}
@@ -137,7 +140,7 @@
 	w$=nn$:p$="Name":&,1,32:on tr%+1 goto 300
 	if an$<>"{up arrow}" then {:edit_name}
 	&"Delete this player? ":a=.:gosub 94
-	if a then gosub {:sub.empty_record}:x=g3:gosub 1:print# 2,w$
+	if a then gosub {:sub.empty_record}:x=g3:gosub 1:print# 2,w$:close 2
 	goto {:profile}
 
 {:edit_name}
@@ -181,8 +184,8 @@
 	w$=nn$+r$+dt$(1)+r$+dt$(2)+r$+dt$(3)+r$+dt$(4)
 	w$=w$+r$+dt$(5)+r$+dt$(6)+r$+dt$(7)+r$+dt$(8)+r$+dt$(9)
 	w$=w$+r$+dt$(10)+r$+dt$(11)+r$+dt$(12)+r$+dt$(13)+r$+dt$(14)+r$+dt$(15)
-	w$=w$+r$+dt$(16)
-	x=1:gosub {$33}025:x=g3:gosub 1:print# 2,w$:goto {:start}
+	w$=w$+r$+dt$(16)+r$+dt$(17)+r$+dt$(18)+r$+dt$(19)+r$+dt$(20)+r$+dt$(21)
+	x=1:gosub {$33}025:x=g3:gosub 1:print# 2,w$:close 2:goto {:start}
 
 ' List Players is now in +.Empire6
 '{:_724}
@@ -200,9 +203,12 @@
 	if a=. then {:start}
 ' FIXME: if e%=62 (file not found) then offer to start new game, don't just quit
 	gosub {$33}025:if e% then:&:goto {:start}
-	&"Resetting Empire... ":gosub {:sub.empty_record}
+' 128: record 24 first, so the drive makes the whole file at once (grown a
+' record at a time, the 1581 lost the last few records when the file grew
+' past about 20 records of 200: the list then hung reading them)
+	&"Resetting Empire... ":gosub {:sub.empty_record}:x=24:gosub 1:print# 2,w$
 	for x=1 to 24:x%=x:&"{pound}#3{pound}%x":gosub 1
-	print# 2,w$:&"{pound}h3":next:&"Done.":goto {:start}
+	print# 2,w$:&"{pound}h3":next:close 2:&"Done.":goto {:start}
 {:scratch_news}
 	dr=3:a$="e.empnews6":gosub 18:close 2:goto {:start}
 

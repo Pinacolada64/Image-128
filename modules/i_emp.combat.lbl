@@ -30,7 +30,7 @@
 ' get enemy name:
 	gosub {$33}025:x=g1:gosub 1:input# 2,en$
 	if left$(en$,5)="empty"or en$="0"then:&"{red}Invalid #!":close 2:goto {:combat_start}
-	input# 2,ez,ew,ef,en,eg,et,ep,e1,e2,e3,e4,e5,e6,e7,e8,og:close 2
+	input# 2,ez,ew,ef,en,eg,et,ep,e1,e2,e3,e4,e5,e6,e7,e8,og,eh,eb,es,ec,eo:close 2
 '	if ez=. then {:_550}
 {:_550}
 	if ez=. then:&"{f6}{white}"+en$+" has no land!{f6}":goto {:combat_start}
@@ -150,7 +150,9 @@
 	w$=en$+r$+str$(ez)+r$+str$(ew)+r$+str$(ef)+r$+str$(en)
 	w$=w$+r$+str$(eg)+r$+str$(et)+r$+str$(ep)+r$+str$(e1)+r$+str$(e2)+r$
 	w$=w$+str$(e3)+r$+str$(e4)+r$+str$(e5)+r$+str$(e6)+r$+str$(e7)+r$+str$(e8)
-	w$=w$+r$+str$(og)
+' 128: + the enemy's horses, timber, spices, cannons, forts (eh eb es ec eo),
+' kept as read
+	w$=w$+r$+str$(og)+r$+str$(eh)+r$+str$(eb)+r$+str$(es)+r$+str$(ec)+r$+str$(eo)
 {:_170}
 ' z8: flag to not write enemy stats?
 ' used to get reset start of each turn in wallwriter

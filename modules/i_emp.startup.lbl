@@ -84,7 +84,7 @@
 ' 128: g3=x, the empty record {:_10} found (1.2: x=g3, g3 not yet set, so
 ' record 0: the 128's record# refuses it, ?illegal quantity; the line
 ' commented out above {:_10}'s had g3=x)
-	w$=w$+r$+"0"+r$+"0"+r$+"1":g3=x:gosub 1:print# 2,w$:&"{f6:2}{lt. blue}OK, all set..." ':gosub 1001:&,2,2
+	w$=w$+r$+"0"+r$+"0"+r$+"1"+r$+"0"+r$+"0"+r$+"0"+r$+"0"+r$+"0":g3=x:gosub 1:print# 2,w$:&"{f6:2}{lt. blue}OK, all set..." ':gosub 1001:&,2,2
 
 {:found_player}
 ' return to +.empire6

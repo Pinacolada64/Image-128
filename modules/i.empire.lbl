@@ -45,7 +45,9 @@
 
 {nice:5}
 {:sub.open_playerlog}
-	a$="e.empire6,l,"+chr$(100):dr=3:goto 4
+' 128: 200 a record: a name and 21 numbers (1.2: 100, for 16 numbers, which
+' big values already overran)
+	a$="e.empire6,l,"+chr$(200):dr=3:goto 4
 
 {nice:5}
 {:save_stats_quit}
@@ -58,13 +60,14 @@
 	w$=na$+r$+str$(la)+r$+str$(wa)+r$+str$(sf)+r$+str$(nb)
 	w$=w$+r$+str$(gr)+r$+str$(tr)+r$+str$(pn)+r$+str$(f%(1))+r$+str$(f%(2))
 	w$=w$+r$+str$(f%(3))+r$+str$(f%(4))+r$+str$(f%(5))+r$+str$(f%(6))
-	w$=w$+r$+str$(yc)+r$+str$(i8)+r$+str$(z9)
+' 128: + Empire II's horses, timber, spices, cannons, forts (fields 17-21)
+	w$=w$+r$+str$(yc)+r$+str$(i8)+r$+str$(z9)+r$+str$(hs)+r$+str$(tb)+r$+str$(sp)+r$+str$(cn)+r$+str$(fo)
 	gosub {:sub.open_playerlog}:x=g3:gosub 1:print# 2,w$:close 2:return
 
 {:sub.load_your_stats}
 ' 128: the name first (z$), as {:sub.save_your_stats} writes it (1.2 read la
 ' from it: ?file data error; nothing called this there)
-	g3=x:gosub 1:input# 2,z$,la,wa,sf,nb,gr,tr,pn,f%(1),f%(2),f%(3),f%(4),f%(5),f%(6),yc,i8,z9
+	g3=x:gosub 1:input# 2,z$,la,wa,sf,nb,gr,tr,pn,f%(1),f%(2),f%(3),f%(4),f%(5),f%(6),yc,i8,z9,hs,tb,sp,cn,fo
 	close 2:return
 	
 {nice:5}
@@ -93,9 +96,8 @@
 ' - use temp "an" to hold REL record #, restore afterwards:
 	an=x:x=val(b$):gosub {:sub.comma_value}:x=an
 {:_64}
-' sh=47? what does that mean? 'if sh' = 'if spacebar hit'...
-' sh=47: %00101111
-' rc is abort character ("/", I'm guessing)
+' sh=47: asc("/")=47
+' rc is asc() of abort character
 	if rc or sh=47 then:&"{f6}{red}(Aborted.){f6}":x=25
 	x=x+1:on -(x<25) goto {:_58}:close 2:return
 
@@ -143,7 +145,7 @@
 	&"{f6}Diplomats: ":x=f%(6):gosub {:sub.comma_value}
 	&"{f6}Ships    : ":x=yc:gosub {:sub.comma_value}
 	&"{f6}Colonies : ":x=i8:gosub {:sub.comma_value}
-	&"{f6}Training : ":x=z9:gosub {:sub.comma_value}
+	&"{f6}Training : ":x=z9:gosub {:sub.comma_value}:&"{f6}Horses   : ":x=hs:gosub {:sub.comma_value}:&"{f6}Timber   : ":x=tb:gosub {:sub.comma_value}:&"{f6}Spices   : ":x=sp:gosub {:sub.comma_value}:&"{f6}Cannons  : ":x=cn:gosub {:sub.comma_value}:&"{f6}Forts    : ":x=fo:gosub {:sub.comma_value}
 	goto {:sub.any_key}
 
 {nice:5}
@@ -179,12 +181,16 @@
 	a=3:gosub 11:e9=a+zz
 
 ' enable error trapping: &,37:
-' dim dt$(16): i/emp.maint's dt$(1)-dt$(16): 1.2's im DIMmed dt$(61); 3.0's
+' dim dt$(21): i/emp.maint's dt$(1)-dt$(21) (16 in 1.2; 17-21: horses,
+' timber, spices, cannons, forts): 1.2's im DIMmed dt$(61); 3.0's
 ' doesn't (the 1.2 arrays come only with its 1.x emulation). Dropped with
 ' the module's other arrays at the main prompt (&,28,1), so DIMmed again next
 ' time. On this line, not one of its own: the lines after keep their numbers
 ' (emp6-includes.lbl)
-	&"{clear}":bn=.:ty=.:z9=.:def fn r(x)=int(rnd(1)*x)+1:dim dt$(16)
+' 128: db, debug mode: the lightbar's left Dbg (check 56) checked. In Image
+' that checkmark means "disable troubleshooting mode" (reversed), so for now
+' turning Empire's debugging on turns Image's troubleshooting display off
+	&"{clear}":bn=.:ty=.:z9=.:def fn r(x)=int(rnd(1)*x)+1:dim dt$(21):&,52,56,3:db=a%
 	k$="Return":if co%>2 then k$="Enter"
 
 ' this will format things roughly for 40/80 columns, just &"{pound}$l"
@@ -227,12 +233,9 @@
 	a$="colony":gosub {:sub.load_lmp}:if tr%<1 then {:save_stats_quit}
 {:_353}
 	&"{f6:2}{red}Heading to the Battlegrounds...{f6:2}"
-	a$="combat":gosub {:sub.load_lmp}:if tr%<1 then {:save_stats_quit}
-
-' new:
-
-' not ready yet:
-'	a$="quests":gosub {:sub.load_lmp}:if tr%<1 then {:save_stats_quit}
+' 128: the quests (i/emp.quests, Empire II's) after the battle, on the same
+' line, so the lines after keep their numbers
+	a$="combat":gosub {:sub.load_lmp}:on -(tr%<1) goto {:save_stats_quit}:a$="quests":gosub {:sub.load_lmp}:if tr%<1 then {:save_stats_quit}
 
 ' 128: tw=2 from i/emp.endturn: not playing again
 	a$="endturn":gosub {:sub.load_lmp}:on -(tr%<1 or tw=2) goto {:save_stats_quit}

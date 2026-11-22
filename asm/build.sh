@@ -194,6 +194,13 @@ done
 # zones from s.timezones (sub.info im=8), and sub.clocks reads s.dstrules
 python3 "$repo/tools/dstfiles.py" "$build/dst" >/dev/null
 
+# Empire 6's texts (disk/s.emp6.*.seq: the quests', from Empire Deluxe)
+empwrites=()
+for f in "$repo"/disk/s.emp6.*.seq; do
+	n=$(basename "$f" .seq)
+	empwrites+=(-write "$f" "$n,s")
+done
+
 cd "$build"
 rm -f image128.d64 image128.d71 image128.d81
 c1541 -format "image bbs 128,ib" d81 image128.d81 \
@@ -211,6 +218,7 @@ c1541 -format "image bbs 128,ib" d81 image128.d81 \
 	-write "$repo/disk/e.fkeys.seq" "e.fkeys,s" \
 	-write "$repo/disk/s.visual.seq" "s.visual,s" \
 	-write "$repo/disk/s.visual 80.seq" "s.visual 80,s" \
+	"${empwrites[@]}" \
 	-write "$build/dst/s.timezones" "s.timezones,s" \
 	-write "$build/dst/s.dstrules" "s.dstrules,s" \
 	"${modwrites[@]}" "${ovlwrites[@]}" >/dev/null

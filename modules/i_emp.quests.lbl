@@ -1,13 +1,119 @@
-' i/emp.quests: a module of Empire 6.0 (i.empire), from the Image 1.2
-' version's +.emp6.quests (games/empire6/plus_emp6_quests.lbl)
+' i/emp.quests: a module of Empire 6.0 (i.empire): the quests, from Empire II
+' (Empire Deluxe, Centipede 128 BBS: games/empire6/mdl.emp.delx3.txt lines
+' 50399-50905), with the payouts its code gives (games/empire6/
+' centipede-to-image.md, section 7). i.empire runs it each turn, after the
+' battle, as Empire II did.
 ' Jumps to i.empire's lines are written {$33}nnn (the line 3nnn, its first
 ' digit a raw byte), which C64List 4.04 leaves as it is: it can't name a line
 ' outside the file, as 3.03 could (1.2's {uses:includes.lbl}). Their names:
-' emp6-includes.lbl
+' emp6-includes.lbl ({$33}090: sub.log_event, the news, from tt$)
+' The texts are on the System drive: s.emp6.win1-8, s.emp6.zircon,
+' s.emp6.rage (disk/, from Empire Deluxe's _WIN1-8, _ZIRCON, _RAGE).
+' The menu is a list for sub.columns (im 432): one column in 40, two in 80.
+' Debug mode (db: the lightbar's left Dbg, read by i.empire): quests 1-8 always
+' succeed, and Zircon asks for his rolls.
+' Empire 6 has no dragons: Zircon's (3 in 50) isn't offered.
 {alpha:alt}
 {uses:..\3_0-preface.lbl}
+{include:"..\asm\equates.asm"}
 {number:4000}
-	+.emp6.quests - written by pinacolada
-	print "Quests not finished yet.":return
+	rem "i/emp.quests" {usedef:__BuildDate} {usedef:__BuildTime}
+
+{:menu}
+	&"{clear}{f6}{yellow}{rvrs on} QUEST MENU {rvrs off}{f6:2}{white}"
+	tt$(1)="Raid the Pirates' Camp":tt$(2)="Mystery of the Haunted Cave":tt$(3)="Rescue the Maiden's Sister"
+	tt$(4)="The Quest of the Gods":tt$(5)="Eradicate the Evil Cult":tt$(6)="Search for the Island of Spice"
+	tt$(7)="Quest for the Legendary Bird City":tt$(8)="Look for the Mountain Side Ship"
+	tt$(9)="Seek Arch-Mage Zircon's Help"
+' sub.columns: n items, x=1 numbered, s=0 all shown; it uses j, which
+' {:sub.comma_value} right-justifies by: j=. after; tt$() cleared (im 83)
+	n=9:x=1:s=.:im=1:gosub 432:j=.:gosub 83
+	&"{f6}{lt. red}(Zircon's help is a gamble!){f6}"
+{:prompt}
+	&"{f6}{lt. blue}{rvrs on}QUEST{rvrs off}{white} 1-9 (?=Menu, 0=None) >> {pound}i1":if tr%<1 then return
+	if an$="{f2}" then {:menu}
+	qx=int(val(an$)):if qx>9 then {:menu}
+	if qx<1 then return
+	if qx=9 then {:zircon}
+' quests 1-8 fail 3 times in 4 (Empire II: int(rnd(1)*20)+1>5)
+	if fn r(20)>5 and db=. then:&"{f6:2}{orange}Your quest fails{white}!{f6}":return
+	dr=1:a$="s.emp6.win"+mid$(str$(qx),2):gosub 14:if tr%<1 then return
+	on qx goto {:q1},{:q2},{:q3},{:q4},{:q5},{:q6},{:q7},{:q8}
+{:q1}
+	pn=pn+30000:goto {:won}
+{:q2}
+	hs=hs+30:goto {:won}
+{:q3}
+	tb=tb+15:goto {:won}
+{:q4}
+	gr=gr+30000:goto {:won}
+{:q5}
+	la=la+4000:goto {:won}
+{:q6}
+	sp=sp+20:goto {:won}
+{:q7}
+	nb=nb+4:goto {:won}
+{:q8}
+	cn=cn+6
+{:won}
+	tt$="{lt. blue}"+na$+"{white} wins quest "+mid$(str$(qx),2):gosub {$33}090:return
+
+' quest 9, Zircon: 18 times in 40 a gift from each of three groups (in groups
+' 1 and 2 the fifth is nothing), then three chances at more; otherwise 4
+' times in 30 he's enraged, and the rest he can't see you
+{:zircon}
+	dr=1:a$="s.emp6.zircon":gosub 14:if tr%<1 then return
+	zr=fn r(40):if db then:&"{f6}{yellow}Dbg{white}: Zircon's roll, 1-40 (19-40: no gifts) {pound}i1":if an$>"" then zr=val(an$)
+	if zr>=19 then {:angry}
+	&"{f6}{purple}   Zircon says he must consult the bones{white}...{f6}"
+	on fn r(5) goto {:z1},{:z2},{:z3},{:z4},{:group2}
+{:z1}
+	&"{f6}{lt. blue}Zircon gives you 8,000 acres!":la=la+8000:goto {:group2}
+{:z2}
+	&"{f6}{lt. blue}Zircon gives you 30,000 gold!":pn=pn+30000:goto {:group2}
+{:z3}
+	&"{f6}{lt. blue}Zircon gives you 5 nobles!":nb=nb+5:goto {:group2}
+{:z4}
+	&"{f6}{lt. blue}Zircon gives you 40,000 bushels!":gr=gr+40000
+{:group2}
+	on fn r(5) goto {:z5},{:z6},{:z7},{:z8},{:group3}
+{:z5}
+	&"{f6}{cyan}Zircon gives you 1,000 serfs!":sf=sf+1000:goto {:group3}
+{:z6}
+	&"{f6}{cyan}Zircon gives you 4 shipyards!":f%(5)=f%(5)+4:goto {:group3}
+{:z7}
+	&"{f6}{cyan}Zircon gives you 2 forts and 8 cannons!":fo=fo+2:cn=cn+8:goto {:group3}
+{:z8}
+	&"{f6}{cyan}Zircon gives you 50 horses!":hs=hs+50
+{:group3}
+	on fn r(5) goto {:z9},{:z10},{:z11},{:z12},{:z13}
+{:z9}
+	&"{f6}{green}Zircon gives you 4 foundries!":f%(4)=f%(4)+4:goto {:extras}
+{:z10}
+	&"{f6}{green}Zircon gives you 10 markets!":f%(2)=f%(2)+10:goto {:extras}
+{:z11}
+	&"{f6}{green}Zircon gives you 10 mills!":f%(3)=f%(3)+10:goto {:extras}
+{:z12}
+	&"{f6}{green}Zircon gives you 10 tons of spices!":sp=sp+10:goto {:extras}
+{:z13}
+	&"{f6}{green}Zircon gives you 4 ships{white}!":yc=yc+4
+{:extras}
+' 3 in 20 each: two more turns today (emp6mem counts them), 10 tons of exports
+' (Empire II's mainland exports; Empire 6's are the colony's, ye)
+	if fn r(20)<4 then:&"{f6}{white}Zircon gives you 2 more turns!":a=peek({sym:emp6mem})-2:poke {sym:emp6mem},-a*(a>.)
+	if fn r(20)<4 then:&"{f6}{orange}Zircon gives you 10 tons of exports{white}!":ye=ye+10
+	&"{f6}":tt$="{lt. blue}"+na$+"{white} wins Zircon's help!":gosub {$33}090:return
+
+{:angry}
+	zr=fn r(30):if db then:&"{f6}{yellow}Dbg{white}: his rage roll, 1-30 (5-30: can't see you) {pound}i1":if an$>"" then zr=val(an$)
+	if zr>4 then:&"{f6:2}{yellow}Zircon{purple} can't see you now{white}!{f6}":return
+	lp=1:&"{f6}{purple}Your brash and superior attitude has enraged {yellow}Zircon{purple}! He demands restitution for your insults{white}!!!"
+	dr=1:a$="s.emp6.rage":gosub 14:if tr%<1 then return
+' as Empire II: what's left under the amount (not under nothing) is set to it
+	la=la-2000:if la<2001 then la=100
+	pn=pn-9000:if pn<9001 then pn=1000
+	nb=nb-4:if nb<5 then nb=1
+	sf=sf-600:if sf<601 then sf=100
+	&"{f6:2}{white}(Press any key) {pound}g1{f6}":tt$="{lt. blue}"+na$+"{white} enrages Zircon!":gosub {$33}090:return
 {number:4199}
-	+.emp6.quests - written by pinacolada
+	rem +.emp6.quests

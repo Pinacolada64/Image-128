@@ -189,25 +189,27 @@ Edit screen (`delx2`):
 | 10 | shipyards | `f%(5)` |
 | 11 | stables | (none) |
 | 12 | ships | `yc` |
-| 13 | forts | (none) |
-| 14 | cannons | (none) |
+| 13 | forts | `fo` (field 21, added) |
+| 14 | cannons | `cn` (field 20, added) |
 | 15 | exports, mainland | (none: Empire 6's exports are the colony's) |
-| 16 | timber | (none) |
+| 16 | timber | `tb` (field 18, added) |
 | 17 | grain, mainland | `gr` |
 | 18 | grain, colony ("-I") | `yg` |
 | 19 | serfs, mainland | `sf` |
 | 20 | serfs, colony | `ys` |
 | 21 | soldiers, mainland | `wa` |
 | 22 | soldiers, colony | (none) |
-| 23 | horses, mainland | (none) |
+| 23 | horses, mainland | `hs` (field 17, added) |
 | 24 | horses, colony | (none) |
-| 25 | spices | (none) |
+| 25 | spices | `sp` (field 19, added) |
 | 26 | exports, colony | `ye` |
 | 28 | dragons | (none) |
 | 29 | turns used | (the turn counter, `emp6mem`) |
 
 Empire 6 has diplomats (`f%(6)`), navigators (`x8`), colonies (`i8`) and
-training (`z9`), which Empire II doesn't.
+training (`z9`), which Empire II doesn't. Horses, timber, spices, cannons and
+forts were added to Empire 6's player record (`e.empire6`, fields 17-21, 200
+bytes a record) for the quests; nothing else in Empire 6 uses them yet.
 
 ## 7. The quest payouts
 
@@ -216,17 +218,17 @@ quests 1-8 fail 3 times in 4 (`int(rnd(1)*20)+1>5`); a win shows `win1`-`win8`
 and writes "<name> Wins Quest n" to the news. `quest payoffs.txt` lists other
 amounts for three of them; the code is what Empire II pays.
 
-| Quest | Empire II pays (code) | `quest payoffs.txt` | Empire 6 |
+| Quest | Empire II pays (code) | `quest payoffs.txt` | Empire 6 (`i/emp.quests`) |
 |---|---|---|---|
 | 1 | 30,000 gold, `x(3)` | 90,000 gold | `pn=pn+30000` |
-| 2 | 30 horses, `x(23)` | 30 horses | no horses |
-| 3 | 15 timber, `x(16)` | 15 tons of timber | no timber |
+| 2 | 30 horses, `x(23)` | 30 horses | `hs=hs+30` |
+| 3 | 15 timber, `x(16)` | 15 tons of timber | `tb=tb+15` |
 | 4 | 30,000 grain, `x(17)` | 40,000 bushels | `gr=gr+30000` |
 | 5 | 4,000 acres, `x(2)` | 4,000 acres | `la=la+4000` |
-| 6 | 20 spices, `x(25)` | 40 tons of spice | no spice |
+| 6 | 20 spices, `x(25)` | 40 tons of spice | `sp=sp+20` |
 | 7 | 4 nobles, `x(6)` | 4 nobles | `nb=nb+4` |
-| 8 | 6 cannons, `x(14)` | 6 cannons | no cannons |
-| 9 | Zircon (below) | lose 2,000 acres, 600 serfs, 4 nobles, 9,000 gold | most of it |
+| 8 | 6 cannons, `x(14)` | 6 cannons | `cn=cn+6` |
+| 9 | Zircon (below) | lose 2,000 acres, 600 serfs, 4 nobles, 9,000 gold | all but the dragon |
 
 Quest 9, Zircon (`zircon` text), doesn't fail as 1-8 do. 18 times in 40
 (`usr(40)+1<19`) he gives one gift from each of three groups of five (in
@@ -239,15 +241,15 @@ groups 1 and 2 the fifth is nothing), then three chances at more. Otherwise,
 | Group | Gifts | In Empire 6 |
 |---|---|---|
 | 1 | 8,000 acres; 30,000 gold; 5 nobles; 40,000 grain | all |
-| 2 | 1,000 serfs; 4 shipyards; 2 forts + 8 cannons; 50 horses | serfs, shipyards |
-| 3 | 4 foundries; 10 markets; 10 mills; 10 spices; 4 ships | all but spices |
+| 2 | 1,000 serfs; 4 shipyards; 2 forts + 8 cannons; 50 horses | all |
+| 3 | 4 foundries; 10 markets; 10 mills; 10 spices; 4 ships | all |
 | extra | 2 more turns (3 in 20); 10 exports (3 in 20, mainland's `x(15)`); a dragon (3 in 50) | turns (`emp6mem`); exports as the colony's (`ye`) |
 
-So quests 1, 4, 5 and 7, and most of Zircon, pay out in Empire 6 as it is.
-Quests 2, 3, 6 and 8 and Zircon's forts, cannons, horses, spices and dragon
-need stats Empire 6 hasn't got: either new fields in the player record
-(`e.empire6`: a name and 16 stats now), or other prizes in their place.
+Empire 6 pays all of these (`modules/i_emp.quests.lbl`, run each turn after
+the battle, as Empire II does), with the code's amounts; win4's and win6's
+texts were changed to match (30,000 bushels, 20 tons of spices). Zircon's
+dragon isn't offered (Empire 6 has no dragons). The texts are `disk/s.emp6.*`
+(`disk/README.md`).
 
-Empire 6 doesn't reach quests yet: `i/emp.quests` prints "Quests not finished
-yet.", and i.empire's line that loads it, between combat and the end of the
-turn, is a comment ("not ready yet").
+Debug mode: with the lightbar's left `Dbg` (check 56) checked when Empire
+starts (`db`), quests 1-8 always succeed and Zircon asks for his two rolls.
