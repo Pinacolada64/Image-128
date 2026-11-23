@@ -176,6 +176,17 @@ back to 15 (`wtrap`), so `im`'s error handler starts there.
 `3_0-preface.lbl`'s numeric assigns, so a jump into `im` is written as
 `gosub {$39}4` and `goto {$33}00` (`sub.stack` and `i.VL` do).
 
+`tools/to406.py modules/<file>.lbl` converts a module built with 4.04
+to 4.06 this way (it prints what it would change; `--write` writes it):
+`{uses:..\3_0-preface.lbl}` becomes `{include:..\Basic70.bas}`, and
+each jump to an `im` line gets its raw first digit, after GOTO, GOSUB or
+THEN, in an ON list, and glued to a keyword or variable (`thengosub30`).
+A module that numbers its lines with `{number:}` also needs
+`{renumber}` (the tool adds it): without it 4.06 ignores `{number:}`
+and numbers the lines from 0. `i.empire` was converted so (11/22/2026,
+for `instr`); a listing of the 4.06 build matched the 4.04 one line for
+line.
+
 ### `i.VL`: the variable list
 
 `VL` loads `i.VL` (`im` line 70 with `a$="VL"`), which lists every simple

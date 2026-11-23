@@ -103,7 +103,7 @@
 ' text gets its own; and a wrapped string that doesn't end in a space ends
 ' the line itself, so the $ before a number is an & of its own, unwrapped
 ' (wrapped, "$" and the number landed on two lines)
-	lp=1:&"{f6:2}{cyan}You can buy up to ":x=a:gosub {$33}010:lp=1:&" more soldiers to protect your Empire.{f6}"
+	lp=1:&"{f6:2}{cyan}You can buy up to ":x=a:pz=a:a$="soldier":gosub {$33}200:gosub {$33}010:lp=1:&" more "+a$+" to protect your Empire.{f6}"
 	lp=1:&"{f6}They cost ":&"$":x=p:gosub {$33}010:&" each. "
 	lp=1:&"{white}You have ":&"$":x=pn:gosub {$33}010:&".{f6}"
 {:_270}
@@ -113,8 +113,8 @@
 	b=int(val(an$)):if b<1 then {:_280}
 ' 128: b*p, the price (x is the money by now: it was last shown with x=pn)
 	if b*p>pn then {:_270}
-	if wa+b>(f%(4)+1)*100 then:&"{f6}You only have ":x=f%(4):gosub {$33}010:&" foundries!{f6}":goto {:_270}
-	if wa+b>nb*20 then:&"{f6}You only have ":x=nb:gosub {$33}010:&" nobles!{f6}":goto {:_270}
+	if wa+b>(f%(4)+1)*100 then:&"{f6}You only have ":x=f%(4):a$="foundry/foundries":gosub {$33}210:&"!{f6}":goto {:_270}
+	if wa+b>nb*20 then:&"{f6}You only have ":x=nb:a$="noble":gosub {$33}210:&"!{f6}":goto {:_270}
 	wa=int(wa+b):pn=int(pn-(b*p))
 {:_280}
 ' increment turns taken:
@@ -141,24 +141,27 @@
 ' FIXME: can c% display over 5 digits?
 ' 128: floats, not a% (most 32,767: ?illegal quantity past it)
 ' (x is this routine's flag, on the next line: a float with MCI here)
-	if py<1 and wa>500 then a=int(wa/5):wa=wa-a:&"{f6}{lt. blue}{pound}!a soldiers desert your army.{f6}"
-	if x<1 and nb>67 then a%=nb/5:nb=nb-a%:&"{f6}{lt. blue}{pound}%a of your nobles defect.{f6}":return
-	if f%(5)>400 then a%=f%(5)/1.1:f%(5)=f%(5)-a%:lp=1:&"{f6}{lt. green}Your kingdom cannot support this many shipyards! {pound}%a are closed.{f6}"
+' 128: the counts and their nouns and verbs through i.empire's {:sub.plural}
+' ({$33}200) and {:sub.count_noun} ({$33}210): "1 foundry is destroyed",
+' "4 foundries are destroyed" (1.2 always had the plural)
+	if py<1 and wa>500 then a=int(wa/5):wa=wa-a:pz=a:a$="soldier":gosub {$33}200:&"{f6}{lt. blue}{pound}!a "+a$+" desert"+vs$+" your army.{f6}"
+	if x<1 and nb>67 then a%=nb/5:nb=nb-a%:pz=a%:gosub {$33}200:&"{f6}{lt. blue}{pound}%a of your nobles defect"+vs$+".{f6}":return
+	if f%(5)>400 then a%=f%(5)/1.1:f%(5)=f%(5)-a%:pz=a%:gosub {$33}200:lp=1:&"{f6}{lt. green}Your kingdom cannot support this many shipyards! {pound}%a "+vb$+" closed.{f6}"
 ' 128: x, as a% would always overflow here (1.2 printed {pound}%f, never set)
 ' 128: lp=1 wraps one string only (it's 0 again after it), so each piece of
 ' text gets its own; and a wrapped string that doesn't end in a space ends
 ' the line itself, so the $ before a number is an & of its own, unwrapped
 ' (wrapped, "$" and the number landed on two lines)
-	if pn>1e6 then x=int(pn/1.5):pn=pn-x:lp=1:&"{f6}{lt. blue}You pay ":&"{lt. green}$":gosub {$33}010:lp=1:&" {lt. blue}to the monks for this year's provisions for your subjects' survival.{f6}"
+	if pn>1e6 then x=int(pn/1.5):pn=pn-x:lp=1:&"{f6}{lt. blue}You pay {lt. green}$":gosub {$33}010:lp=1:&" {lt. blue}to the monks for this year's provisions for your subjects' survival.{f6}"
 {:_340}
 ' 128: x, as a% would always overflow here
-	if la>2500000 then x=int(la/2.5):la=la-x:lp=1:&"{f6}{red}You donate ":gosub {$33}010:lp=1:&" acres of land for the monastery.{f6}"
+	if la>2500000 then x=int(la/2.5):la=la-x:lp=1:&"{f6}{red}You donate ":a$="acre":gosub {$33}210:lp=1:&" of land for the monastery.{f6}"
 {:_346}
-	if f%(4)>400 then a%=f%(4)/3:f%(4)=f%(4)-a%:lp=1:&"{f6:2}{rvrs on}{lt. green}MAJOR EXPLOSION!!!{rvrs off}{f6}{pound}%a foundries are {pound}p4destroyed!{pound}p0{f6:2}"
+	if f%(4)>400 then a%=f%(4)/3:f%(4)=f%(4)-a%:pz=a%:a$="foundry/foundries":gosub {$33}200:lp=1:&"{f6:2}{rvrs on}{lt. green}MAJOR EXPLOSION!!!{rvrs off}{f6}{pound}%a "+a$+" "+vb$+" {pound}p4destroyed!{pound}p0{f6:2}"
 {:_354}
-	if f%(2)>500 then a%=f%(2)/5:f%(2)=f%(2)-a%:lp=1:&"{f6:2}{orange}Some market owners retire. {pound}%a markets close.{f6:2}"
+	if f%(2)>500 then a%=f%(2)/5:f%(2)=f%(2)-a%:pz=a%:a$="market":gosub {$33}200:lp=1:&"{f6:2}{orange}Some market owners retire. {pound}%a "+a$+" close"+vs$+".{f6:2}"
 {:_360}
-	if f%(3)>500 then a%=f%(3)/4:f%(3)=f%(3)-a%:lp=1:&"{f6:2}{green}The mills are overworked! {pound}%a mills{f6}have broken millstones and are shut down.{f6:2}"
+	if f%(3)>500 then a%=f%(3)/4:f%(3)=f%(3)-a%:pz=a%:a$="mill":gosub {$33}200:lp=1:&"{f6:2}{green}The mills are overworked! {pound}%a "+a$+" "+hv$+" broken millstones and "+vb$+" shut down.{f6:2}"
 {:_368}
 	if wa<((nb*20)+1)then return
 	wb=int(wa-nb*20):wa=wa-wb

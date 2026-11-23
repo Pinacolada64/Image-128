@@ -3,7 +3,8 @@
 ' Ported from the Image 1.2 version (games/empire6/Empire6.lbl, "+.empire
 ' 6"): see games/empire6/README.md and modules/TODO.md.
 {alpha:alt}
-{uses:..\3_0-preface.lbl}
+{include:..\Basic70.bas}
+{renumber}
 {number:3000}
 ' core routines needed here:
 '	* displaying stats
@@ -21,7 +22,7 @@
 ' Plus-File drive (unless it's in memory: p1$), shows its name on the status
 ' line, and goes to 4000; the module ends with RETURN.
 ' 1.2: "+.emp6."+a$, loaded with &,7,dv%,1 and run with gosub 801
-	a$="emp."+a$:gosub 72:return
+	a$="emp."+a$:gosub {$37}2:return
 
 {nice:5}
 {:sub.comma_value}
@@ -47,7 +48,7 @@
 {:sub.open_playerlog}
 ' 128: 200 a record: a name and 21 numbers (1.2: 100, for 16 numbers, which
 ' big values already overran)
-	a$="e.empire6,l,"+chr$(200):dr=3:goto 4
+	a$="e.empire6,l,"+chr$(200):dr=3:goto {$34}
 
 {nice:5}
 {:save_stats_quit}
@@ -62,12 +63,12 @@
 	w$=w$+r$+str$(f%(3))+r$+str$(f%(4))+r$+str$(f%(5))+r$+str$(f%(6))
 ' 128: + Empire II's horses, timber, spices, cannons, forts (fields 17-21)
 	w$=w$+r$+str$(yc)+r$+str$(i8)+r$+str$(z9)+r$+str$(hs)+r$+str$(tb)+r$+str$(sp)+r$+str$(cn)+r$+str$(fo)
-	gosub {:sub.open_playerlog}:x=g3:gosub 1:print# 2,w$:close 2:return
+	gosub {:sub.open_playerlog}:x=g3:gosub {$31}:print# 2,w$:close 2:return
 
 {:sub.load_your_stats}
 ' 128: the name first (z$), as {:sub.save_your_stats} writes it (1.2 read la
 ' from it: ?file data error; nothing called this there)
-	g3=x:gosub 1:input# 2,z$,la,wa,sf,nb,gr,tr,pn,f%(1),f%(2),f%(3),f%(4),f%(5),f%(6),yc,i8,z9,hs,tb,sp,cn,fo
+	g3=x:gosub {$31}:input# 2,z$,la,wa,sf,nb,gr,tr,pn,f%(1),f%(2),f%(3),f%(4),f%(5),f%(6),yc,i8,z9,hs,tb,sp,cn,fo
 	close 2:return
 	
 {nice:5}
@@ -75,7 +76,7 @@
 ' quit game:
 	gosub {:sub.rank}:lp=1:&"{f6}{lt. green}Goodbye, {pound}v8{pound}v2... {cyan}Play again soon! "
 {:quit_game_2}
-	close 2:close 15:goto 300
+	close 2:close 15:goto {$33}00
 
 {nice:5}
 {:sub.other_rulers}
@@ -90,7 +91,7 @@
 {:_58}
 ' get player name (n$), acres (b$):
 ' can't use z$ a j l x y since the REL pointer sub uses 'em
-	x%=x:gosub 1:input# 2,n$,b$:if n$="empty" or n$=na$ or left$(n$,1)="0" then {:_64}
+	x%=x:gosub {$31}:input# 2,n$,b$:if n$="empty" or n$=na$ or left$(n$,1)="0" then {:_64}
 	&"{f6}{lt. blue}{pound}# {pound}#2{pound}%x. {lt. green}"+left$(n$+"......................",22)+"{cyan}"
 ' sub uses x:
 ' - use temp "an" to hold REL record #, restore afterwards:
@@ -152,7 +153,7 @@
 {:sub.log_event}
 ' write to "e.empnews6", which the modules read and add to (1.2: "e.empire 6
 ' news", so news logged here was never shown)
-	b$="empnews6":a$="a":gosub 36:if e% then a$="w":gosub 36
+	b$="empnews6":a$="a":gosub {$33}6:if e% then a$="w":gosub {$33}6
 	print# 2,"{lt. green} As of {$04}"d1$:print#2,tt$:print#2,"{pound}vj":close 2:return
 ' {:_442}
 '	b$="empnews6":a$="w":dr=3:gosub 1027:
@@ -168,7 +169,7 @@
 ' mp=auto-reset emperor status
 ' en=bbs credit/money exchange active
 ' nn=bbs credit/money exchange rate
-	a$="e.emp6 config,s,r":dr=3:gosub 4:&,2,2:ln=val(a$)
+	a$="e.emp6 config,s,r":dr=3:gosub {$34}:&,2,2:ln=val(a$)
 	&,2,2:mp=val(a$):&,2,2:en=val(a$):&,2,2:nn=val(a$):close 2:close 15:return
 	
 {nice:100}
@@ -176,9 +177,9 @@
 ' NEW: f1 controls whether to skip to line 100 (start of module):
 ' may not be needed since LMP modules end in RETURN now
 '	if f1 then {:_100}
-	cm$="Empire 6 Alpha":gosub 9
+	cm$="Empire 6 Alpha":gosub {$39}
 ' check for local maint flag + local mode for sysop options
-	a=3:gosub 11:e9=a+zz
+	a=3:gosub {$31}1:e9=a+zz
 
 ' enable error trapping: &,37:
 ' dim dt$(21): i/emp.maint's dt$(1)-dt$(21) (16 in 1.2; 17-21: horses,
@@ -227,7 +228,7 @@
 ' 128: no ships, no colony trip (1.2's "if yc then" covered the question
 ' only, so with none it went on to the shipyards). On this one line: the
 ' lines after keep their numbers (emp6-includes.lbl)
-	on -(yc=.) goto {:_353}:&"{f6:2}{cyan}Colony trip? (Y/N) >> {white}":gosub 94:if a=. then {:_353}
+	on -(yc=.) goto {:_353}:&"{f6:2}{cyan}Colony trip? (Y/N) >> {white}":gosub {$39}4:if a=. then {:_353}
 {:_352}
 	&"{f6:2}{lt. red}Heading down to the Shipyards...{f6:2}"
 	a$="colony":gosub {:sub.load_lmp}:if tr%<1 then {:save_stats_quit}
@@ -276,11 +277,35 @@
 	if ln=. and mp=. then bn=.:return
 	bn=1:&"{f6:2}{white}You are a true EMPEROR!{f6:2}"
 ' append or write:
-	dr=1:b$="s.Honour,s,":a$=b$+"a":gosub 4:if e% then a$=b$+"w":gosub 4
+	dr=1:b$="s.Honour,s,":a$=b$+"a":gosub {$34}:if e% then a$=b$+"w":gosub {$34}
 ' {pound}v0 will just print current time, not time of winning:
 '	print# 2,"Emperor "+na$+"  - {pound}v0":print# 2,str$(la)+" Acres."
 	print# 2,"Emperor "+na$+"  - {$04}"d1$:print# 2,str$(la)+" Acres."
 	close 2:close 15:return
+
+{number:3200}
+' 128 (11/22/2026): plurals, for the modules ({$33}200, {$33}210; here, past
+' every line they jump to, so adding these moved nothing)
+{:sub.plural}
+' the noun and verbs for a count. In: pz the count; a$ the noun, as
+' "singular/plural" ("foundry/foundries"), or the singular alone when the
+' plural is it + s ("mill"). Out: a$ the one to use; vb$ "is" or "are";
+' vs$ "s" or "" for a verb ("desert"+vs$: 1 deserts, 2 desert); hv$ "has"
+' or "have". Uses pw (where the / is). BASIC 7.0's instr: i.empire is built
+' with C64List 4.06 and Basic70.bas (tools/to406.py; 4.04 left instr as
+' variables: ?type mismatch)
+	vb$="are":vs$="":hv$="have":pw=instr(a$,"/"):if pz=1 then vb$="is":vs$="s":hv$="has"
+	if pz=1 then:if pw then a$=left$(a$,pw-1)
+	if pz=1 then return
+	if pw then a$=mid$(a$,pw+1):return
+	a$=a$+"s":return
+
+{number:3210}
+{:sub.count_noun}
+' prints the count x with commas ({:sub.comma_value}, so z$ a j l y as it)
+' and its noun: x=4:a$="foundry/foundries" prints "4 foundries", and sets
+' a$ vb$ vs$ hv$ as {:sub.plural}; pz is x
+	pz=x:gosub {:sub.plural}:gosub {:sub.comma_value}:&" "+a$:return
 
 {number:3798}
 	rem empire iv converted to image by utopia bbs 702-735-6787 24 hours

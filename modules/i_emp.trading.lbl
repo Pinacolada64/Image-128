@@ -48,14 +48,22 @@
 	nb=nb-x:gosub {$33}010:&" nobles died.{f6}":goto {:continue_turn}
 {:_140}
 	lp=1:&"{f6:3}{rvrs on}{red}Mount Apocalypse has erupted!{rvrs off} Lava wipes out:{lt. blue}"
-	a%=fn r(f%(2)/3):f%(2)=f%(2)-a%:&"{pound}%a markets.{f6}"
-	a%=fn r(f%(3)/4):f%(3)=f%(3)-a%:&"{pound}%a mills.{f6}"
-	a%=fn r(f%(4)/3):f%(4)=f%(4)-a%:&"{pound}%a foundries.{f6:2}":goto {:continue_turn}
+' 128: no more lost than there are (fn r() is at least 1: with none, the
+' count went to -1, and endturn then said "You only have -1 foundries!"),
+' and the nouns through i.empire's {:sub.plural} ({$33}200): "1 market"
+	a%=fn r(f%(2)/3):if a%>f%(2) then a%=f%(2)
+	f%(2)=f%(2)-a%:pz=a%:a$="market":gosub {$33}200:&"{pound}%a "+a$+".{f6}"
+	a%=fn r(f%(3)/4):if a%>f%(3) then a%=f%(3)
+	f%(3)=f%(3)-a%:pz=a%:a$="mill":gosub {$33}200:&"{pound}%a "+a$+".{f6}"
+	a%=fn r(f%(4)/3):if a%>f%(4) then a%=f%(4)
+	f%(4)=f%(4)-a%:pz=a%:a$="foundry/foundries":gosub {$33}200:&"{pound}%a "+a$+".{f6:2}":goto {:continue_turn}
 {:_148}
 ' TIDAL WAVE! xxx shipyards are under
 ' water.
-	a%=fn r(f%(5)/2):f%(5)=f%(5)-a%:lp=1:&"{f6:3}{pound}s1{blue}TIDAL WAVE!{pound}s0 "
-	lp=1:&"{pound}%a shipyards are under water!{f6}":goto {:continue_turn}
+' 128: as the lava above: no more than there are; "1 shipyard is"
+	a%=fn r(f%(5)/2):if a%>f%(5) then a%=f%(5)
+	f%(5)=f%(5)-a%:pz=a%:a$="shipyard":gosub {$33}200:lp=1:&"{f6:3}{pound}s1{blue}TIDAL WAVE!{pound}s0 "
+	lp=1:&"{pound}%a "+a$+" "+vb$+" under water!{f6}":goto {:continue_turn}
 {:_152}
 ' Eeek! Rats eat xxx,xxx,xxx bushels of grain.
 ' 128: no more than there is (fn r() is at least 1: with no grain, -1)
