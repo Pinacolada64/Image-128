@@ -67,7 +67,9 @@
 ' prompt (the user's choice: off on the console, where it paused every 14
 ' lines before)
 60089 fori=1ton:tt$(i)=left$(tt$(i),11)+"({lt. red}"+left$(tt$(i),3)+"{white}) {green}"+mid$(tt$(i),12):next
-60090 x=1:s=12:im=1:gosub432
+' 11/23/2026: columns.lbl's routine, included below: no sub.columns load,
+' and sub.info not loaded again after it
+60090 x=1:s=12:gosub61800
 60093 poke53252,2:&"{f6}{white} Which One? {pound}i1"
 60094 a=val(an$):ifan$=""ora<1ora>nthena=.:return
 60096 c$=mid$(tt$(a),21):an$=left$(tt$(a),11):return
@@ -81,3 +83,4 @@
 60108 return
 60110 &"{f6}Incorrect password entered {pound}w2{f6}":return
 60150 rem "sub.info (c)nissa 230406 lh"
+{include:columns.lbl}
