@@ -24,7 +24,7 @@
 ' You haven't enough serfs to maintain
 ' the empire! It's turned over to King
 ' George...
-	lp=1:&"{f6:2}{lt. green}You haven't enough serfs to maintain the Empire! It's turned over to King{f6}George and you are {red}beheaded{lt. green}."
+	lp=1:&"{f6:2}{lt. green}You haven't enough serfs to maintain the Empire! It's turned over to King George and you are {red}beheaded{lt. green}."
 {:_234}
 	w$="empty"+r$+"0":gosub {$33}035:goto {:_284}
 {:_236}
@@ -92,16 +92,20 @@
 	gosub {$33}071
 
 ' pina added this:
-	if wa=nb*20 then:&"(You have enough soldiers, skipping buying any.){f6}":goto {:_280}
-	if pn<1 then:&"(You're broke, skipping buying soldiers.){f6}":goto {:_280}
+	if wa=nb*20 then lp=1:&"(You have enough soldiers, skipping buying any.){f6}":goto {:_280}
+	if pn<1 then lp=1:&"(You're broke, skipping buying soldiers.){f6}":goto {:_280}
 
 ' a=amt of soldiers needed, p=price:
 	a=nb*20-wa:p=fn r(19)+9:j=.
 ' You can buy up to xxx,xxx,xxx more
 ' soldiers to protect your Empire.
-	&"{f6:2}{cyan}You can buy up to ":x=a:gosub {$33}010:lp=1:&" more soldiers to protect your Empire. "
-	&"{f6}They cost $":x=p:gosub {$33}010:&" each."
-	&"{f6}{white}You have $":x=pn:gosub {$33}010:&".{f6}"
+' 128: lp=1 wraps one string only (it's 0 again after it), so each piece of
+' text gets its own; and a wrapped string that doesn't end in a space ends
+' the line itself, so the $ before a number is an & of its own, unwrapped
+' (wrapped, "$" and the number landed on two lines)
+	lp=1:&"{f6:2}{cyan}You can buy up to ":x=a:gosub {$33}010:lp=1:&" more soldiers to protect your Empire.{f6}"
+	lp=1:&"{f6}They cost ":&"$":x=p:gosub {$33}010:&" each. "
+	lp=1:&"{white}You have ":&"$":x=pn:gosub {$33}010:&".{f6}"
 {:_270}
 	&"{f6:2}{cyan}Buy how many? {lt. blue}{pound}i1":if tr%<1 then {:_280}
 ' 128: ifs, not on -(a)-2*(b): with both true it's 3, and on...goto falls through
@@ -134,23 +138,27 @@
 
 {:_320}
 ' subroutine
-' fixme: can c% display over 5 digits?
+' FIXME: can c% display over 5 digits?
 ' 128: floats, not a% (most 32,767: ?illegal quantity past it)
 ' (x is this routine's flag, on the next line: a float with MCI here)
 	if py<1 and wa>500 then a=int(wa/5):wa=wa-a:&"{f6}{lt. blue}{pound}!a soldiers desert your army.{f6}"
 	if x<1 and nb>67 then a%=nb/5:nb=nb-a%:&"{f6}{lt. blue}{pound}%a of your nobles defect.{f6}":return
-	if f%(5)>400 then a%=f%(5)/1.1:f%(5)=f%(5)-a%:&"{f6}{lt. green}Your kingdom cannot support this many{f6}shipyards! {pound}%a are closed.{f6}"
+	if f%(5)>400 then a%=f%(5)/1.1:f%(5)=f%(5)-a%:lp=1:&"{f6}{lt. green}Your kingdom cannot support this many shipyards! {pound}%a are closed.{f6}"
 ' 128: x, as a% would always overflow here (1.2 printed {pound}%f, never set)
-	if pn>1e6 then x=int(pn/1.5):pn=pn-x:&"{f6}{lt. blue}You pay {lt. green}$":gosub {$33}010:&" {lt. blue}to the monks for this{f6}year's provisions for your subjects' survival.{f6}"
+' 128: lp=1 wraps one string only (it's 0 again after it), so each piece of
+' text gets its own; and a wrapped string that doesn't end in a space ends
+' the line itself, so the $ before a number is an & of its own, unwrapped
+' (wrapped, "$" and the number landed on two lines)
+	if pn>1e6 then x=int(pn/1.5):pn=pn-x:lp=1:&"{f6}{lt. blue}You pay ":&"{lt. green}$":gosub {$33}010:lp=1:&" {lt. blue}to the monks for this year's provisions for your subjects' survival.{f6}"
 {:_340}
 ' 128: x, as a% would always overflow here
-	if la>2500000 then x=int(la/2.5):la=la-x:&"{f6}{red}You donate ":gosub {$33}010:lp=1:&" acres of land for the monastery."
+	if la>2500000 then x=int(la/2.5):la=la-x:lp=1:&"{f6}{red}You donate ":gosub {$33}010:lp=1:&" acres of land for the monastery.{f6}"
 {:_346}
-	if f%(4)>400 then a%=f%(4)/3:f%(4)=f%(4)-a%:&"{f6:2}{rvrs on}{lt. green}MAJOR EXPLOSION!!!{rvrs off}{f6}{pound}%a foundries are {pound}p4destroyed!{pound}p0{f6:2}"
+	if f%(4)>400 then a%=f%(4)/3:f%(4)=f%(4)-a%:lp=1:&"{f6:2}{rvrs on}{lt. green}MAJOR EXPLOSION!!!{rvrs off}{f6}{pound}%a foundries are {pound}p4destroyed!{pound}p0{f6:2}"
 {:_354}
-	if f%(2)>500 then a%=f%(2)/5:f%(2)=f%(2)-a%:&"{f6:2}{orange}Some market owners retire. {pound}%a markets close.{f6:2}"
+	if f%(2)>500 then a%=f%(2)/5:f%(2)=f%(2)-a%:lp=1:&"{f6:2}{orange}Some market owners retire. {pound}%a markets close.{f6:2}"
 {:_360}
-	if f%(3)>500 then a%=f%(3)/4:f%(3)=f%(3)-a%:&"{f6:2}{green}The mills are overworked! {pound}%a mills{f6}have broken millstones and are shut down.{f6:2}"
+	if f%(3)>500 then a%=f%(3)/4:f%(3)=f%(3)-a%:lp=1:&"{f6:2}{green}The mills are overworked! {pound}%a mills{f6}have broken millstones and are shut down.{f6:2}"
 {:_368}
 	if wa<((nb*20)+1)then return
 	wb=int(wa-nb*20):wa=wa-wb
@@ -158,4 +166,4 @@
 	lp=1:&"{f6:2}{cyan}Your nobles are too few to support your army! Your excess soldiers are taken by King George.":return
 
 {number:4199}
-	rem +.emp6.endturn
+	rem "i/emp.endturn"
