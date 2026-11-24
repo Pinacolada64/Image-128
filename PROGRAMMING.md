@@ -330,8 +330,16 @@ both.
 
 `sub.columns` (11/20/2026) prints `tt$(1)` to `tt$(n)` in as many columns as
 fit the caller's width, 1 to 4, down the first column and then the next.
-A module calls it through `im` 432: `im=1:gosub 432` (from another sub
-module too: `im` 75 loads that one again afterwards).
+An `i.` or `i/` module calls it through `im` 432: `im=1:gosub 432`.
+
+The routine itself is `modules/columns.lbl` (11/23/2026), lines
+61800-61830, an `{include:}`: `sub.columns` includes it, and so do
+`sub.info` (time zones) and `sub.param1` (protocols), which call it as
+`gosub 61800` themselves. A `sub.` module that called `im` 432 had
+`sub.columns` load in its place, and `im` 75 load it again afterwards: two
+disk loads a list. Another `sub.` module that lists in columns can include
+it the same way, if 61800-61830 are free in it (its host must include
+`equates.asm` too: `sareg`, `sctop`, `scbot`).
 
 | Variable | Meaning |
 |---|---|
@@ -355,11 +363,21 @@ whenever the editor window (`sctop` to `scbot`) is nearly full. "The
 console" is `local` (`peek(53248)`, at the idle screen and in setup) or
 the Loc checkmark (flag 4, a sysop logged on at the console, where `local`
 is 0). Output stopped (`rc`) stops the list. It uses `a`, `a%`, `c7`-`c9`,
-`d9`, `h9`, `i`, `j`, `k9`, `r9` and `w9`, and leaves `n`, `x`, `s` and
-`tt$()` as they were.
+`d9`, `h9`, `i`, `j`, `k9`, `r9`, `w9`, `p9$` and `t9$`, and leaves `n`,
+`x`, `s` and `tt$()` as they were. `j` is `{:sub.comma_value}`'s
+right-justify flag in Empire 6: a caller there sets `j=.` after the list.
+
+Its speed (11/23/2026, the time zone list in x128): the column tabs
+(`t9$`) and the number's MCI (`p9$`, `{pound}#w{pound}# {pound}%a) `:
+`{pound}#` and a figure sets the width and fills with 0, so the space fill
+comes after it; both last one string) are built once a list, and each item
+is printed with its own `&`s. Joining a row into one string to print with
+one `&` was slower: BASIC's string joins (and the garbage they leave)
+cost more than the `&` calls. And `s.timezones` has its colors in the file
+(`tools/dstfiles.py`), so `sub.info` doesn't join them on for every zone.
 
 ```
-61002 &"{f6}Available Protocols{colon}{f6:2}":n=x:x=1:s=10:im=1:gosub432:x=n
+61002 &"{f6}Available Protocols{colon}{f6:2}":n=x:x=1:s=10:gosub61800:x=n
 ```
 
 ## What an ASCII or ANSI caller gets: `outmod`
