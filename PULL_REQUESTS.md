@@ -14,6 +14,11 @@ and/or tip commit), name, and a short summary of what the change adds or fixes.
   tip, the same way as TADA's PULL_REQUESTS.md.
 - Merge dates from #6 on are GitHub's (UTC), a day ahead of the Pacific
   evening a PR was merged in.
+- The catalog's own update PRs (branches `pr-catalog-*`, which only add
+  rows here) aren't listed on their own: each is added by the next update
+  that comes with other PRs to list (2026-11-24), so updating the catalog
+  doesn't need another update for itself. Up to #44 they were listed one
+  by one.
 
 Sections: Open PRs → Feature branches (no PR) → Direct commits to master →
 Merged PRs → Merged branches (newest first).
