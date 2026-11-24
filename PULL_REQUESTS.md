@@ -14,12 +14,17 @@ and/or tip commit), name, and a short summary of what the change adds or fixes.
   tip, the same way as TADA's PULL_REQUESTS.md.
 - Merge dates from #6 on are GitHub's (UTC), a day ahead of the Pacific
   evening a PR was merged in.
+- The catalog's own update PRs (branches `pr-catalog-*`, which only add
+  rows here) aren't listed on their own: each is added by the next update
+  that comes with other PRs to list (2026-11-24), so updating the catalog
+  doesn't need another update for itself. Up to #44 they were listed one
+  by one.
 
 Sections: Open PRs → Feature branches (no PR) → Direct commits to master →
 Merged PRs → Merged branches (newest first).
 
-Seeded 2026-11-17; updated 2026-11-24 against origin/master at `25b459f`
-(all 41 PRs merged).
+Seeded 2026-11-17; updated 2026-11-24 against origin/master at `12f9f9a`
+(all 42 PRs merged).
 
 ---
 
@@ -71,6 +76,7 @@ None.
 
 | PR | Merge commit | Branch | Tip | Summary |
 |----|--------------|--------|-----|---------|
+| [#43](https://github.com/Pinacolada64/Image-128/pull/43) | `12f9f9a` | `pr-catalog-41-42` | `05b0add` | This catalog: #41 and #42. Merged 2026-11-24 |
 | [#42](https://github.com/Pinacolada64/Image-128/pull/42) | `25b459f` | `todo-widest-array` | `e4358c7` | modules/TODO.md: `&,15,8` on any string array (`&,15,8,s,n,tt$(0)` or `,bb$(0)`, the user's idea), so `sub.columns` can list more than `tt$()`; how, and what `columns.lbl`'s own printing would need. Merged 2026-11-24 |
 | [#41](https://github.com/Pinacolada64/Image-128/pull/41) | `0ff448f` | `pr-catalog-38-40` | `9ca040e` | This catalog: #38-#40. Merged 2026-11-24 |
 | [#40](https://github.com/Pinacolada64/Image-128/pull/40) | `ef548a4` | `output-bench` | `1075129` | `i.test calls` 77: the same 1000 characters printed five ways (`print`, `&` plain, with colors, with MCI, with word wrap), timed at 1 MHz and 2 MHz, with a warning first in 40 columns (FAST blanks the VIC); PORTING_NOTES.md "How fast `&` output is": the screen editor is 64-72% of plain `&`, FAST x2.2, 80 columns slower than 40 (199 against 281 characters a second). No speedups made. Merged 2026-11-24 |
