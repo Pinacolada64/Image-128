@@ -101,7 +101,7 @@ spawn "$here" ml.asm "$C64LIST" ml.asm -prg:ml.prg -sym:ml.sym -ovr
 spawn "$here" rs232.asm "$C64LIST" rs232.asm -prg:rs232.prg -ovr
 # the "++" overlays: im loads them at protostart (&,7,dv%,2), each on the
 # disk as "++ <name>"; extra disk names for the same file after a ":"
-overlays="index:4 clock menu2 2 read post path net netsub netlist copier visual chatmode xmodem"
+overlays="index:4 clock menu2 2 read post path net netsub netlist copier visual chatmode xmodem punter"
 ovlwrites=()
 for o in $overlays; do
 	name=${o%%:*}
