@@ -252,13 +252,13 @@
 3344 if q1=6 then b$="TeensyROM"
 3345 if q1=7 then b$="AutoMaint Date"
 3346 return
-3348 &"{clear}{blue}{rvrs on}{pound}{back arrow}39{f6}{rvrs on} {cyan}           Image BBS V3.0{pound}{back arrow}37{blue}  {f6}"
+3348 &"{clear}{blue}{rvrs on}{pound}{back arrow}39{f6}{rvrs on} {cyan}         Image BBS 128 v1.0{pound}{back arrow}37{blue}  {f6}"
 3350 &"{rvrs on} {cyan}        Configuration Editor{pound}{back arrow}37{rvrs off} {rvrs on}{blue} {f6}{rvrs on}  {rvrs off}{pound}{back arrow}38{rvrs on} {f6}"
 3352 &,16,2,34,m%(.,1),n,17,2,n/2+.5,2,6,.:lm=a%+1:&,70,.,n/2+8.5:&"{white}":return
-3354 &"{clear}{blue}{rvrs on}{pound}{back arrow}39{f6}{rvrs on} {cyan}           Image BBS V3.0{pound}{back arrow}37{blue}  {f6}"
+3354 &"{clear}{blue}{rvrs on}{pound}{back arrow}39{f6}{rvrs on} {cyan}         Image BBS 128 v1.0{pound}{back arrow}37{blue}  {f6}"
 3356 &"{rvrs on} {cyan}        Configuration Editor{pound}{back arrow}37{rvrs off} {rvrs on}{blue} {f6}{rvrs on}  {rvrs off}{pound}{back arrow}38{rvrs on} {f6}"
 3358 &,16,2,42,m%(.,1),n,36,1,n,2,6,.:lm=a%+1:&,70,.,n+8:&"{white}":return
-3360 &"{clear}{blue}{rvrs on}{pound}{back arrow}39{f6}{rvrs on} {cyan}           Image BBS V3.0{pound}{back arrow}37{blue}  {f6}"
+3360 &"{clear}{blue}{rvrs on}{pound}{back arrow}39{f6}{rvrs on} {cyan}         Image BBS 128 v1.0{pound}{back arrow}37{blue}  {f6}"
 3362 &"{rvrs on} {cyan}        Configuration Editor{pound}{back arrow}37{rvrs off} {rvrs on}{blue} {f6}{rvrs on}  {rvrs off}{pound}{back arrow}38{rvrs on} {f6}"
 3364 &,16,2,46,m%(.,1),n,36,1,n,2,6,.:lm=a%+1:&,70,.,n+8:&"{white}":return
 ' Prime Time in b$, e.g. "Not Set", " 60, 1A-9A", "240, 12A-11P": p1% minutes a

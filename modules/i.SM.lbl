@@ -25,7 +25,7 @@
 3026 &,16,.,34,m%(.,9),"I","","Set CMD Clock"
 3028 &,16,.,34,m%(.,10),"J","","Netfiles"
 3030 &,16,.,34,m%(.,11),"K","","Quit"
-3032 &"{clear}{blue}{rvrs on}{pound}{back arrow}39{f6}{rvrs on} {cyan}            Image BBS V3.0{pound}{back arrow}37{blue}  {f6}"
+3032 &"{clear}{blue}{rvrs on}{pound}{back arrow}39{f6}{rvrs on} {cyan}          Image BBS 128 v1.0{pound}{back arrow}37{blue}  {f6}"
 3034 &"{rvrs on} {cyan}        Base Editor Programs{pound}{back arrow}37{rvrs off} {rvrs on}{blue} {f6}{rvrs on}  {rvrs off}{pound}{back arrow}38{rvrs on} {f6}"
 3036 &,16,2,34,m%(.,1),n,17,2,n/2+.5,2,6,.:lm=a%+1:&,70,.,n/2+8.5:&"{white}"
 3038 if tr%<1 or lm=nor lm=.then 3130
@@ -42,7 +42,7 @@
 3059 a$="setdev":gosub 3046:goto 3006
 3060 a$="cmdclock":gosub 3046:goto 3006
 3062 a$="netfile":gosub 3046:goto 3000
-3064 on lk%+1 goto 3128:&"{clear}{blue}{rvrs on}{pound}{back arrow}39{f6}{rvrs on} {cyan}            Image BBS V3.0{pound}{back arrow}37{blue}  {f6}"
+3064 on lk%+1 goto 3128:&"{clear}{blue}{rvrs on}{pound}{back arrow}39{f6}{rvrs on} {cyan}          Image BBS 128 v1.0{pound}{back arrow}37{blue}  {f6}"
 3066 &"{rvrs on} {cyan}         Lt. Kernal Programs{pound}{back arrow}37{rvrs off} {rvrs on}{blue} {f6}{rvrs on}  {rvrs off}{pound}{back arrow}38{rvrs on} {f6}"
 3068 &,28,1:n=3
 3070 dim m%(16,n)
@@ -55,7 +55,7 @@
 3084 a$="bu":gosub 3046:goto 3064
 3086 a$="lk util":gosub 3046:goto 3000
 3088 goto 3000
-3090 &"{clear}{blue}{rvrs on}{pound}{back arrow}39{f6}{rvrs on} {cyan}            Image BBS V3.0{pound}{back arrow}37{blue}  {f6}"
+3090 &"{clear}{blue}{rvrs on}{pound}{back arrow}39{f6}{rvrs on} {cyan}          Image BBS 128 v1.0{pound}{back arrow}37{blue}  {f6}"
 3092 &"{rvrs on} {cyan}            Editor Programs{pound}{back arrow}37{rvrs off} {rvrs on}{blue} {f6}{rvrs on}  {rvrs off}{pound}{back arrow}38{rvrs on} {f6}"
 3094 &,28,1:n=8
 3096 dim m%(16,n)

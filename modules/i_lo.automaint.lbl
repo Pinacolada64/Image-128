@@ -13,7 +13,7 @@
 
 4000 rem automaint main module
 4001 print# 131,"ath1"
-4002 poke 53248,1:poke {sym:clock},.:z$=left$(am$,1):&"{clear}{f6:2}Image v3.0 Auto-Maintenance{f6:2}"
+4002 poke 53248,1:poke {sym:clock},.:z$=left$(am$,1):&"{clear}{f6:2}Image 128 v1.0 Auto-Maintenance{f6:2}"
 4004 gosub 4096:rem update daily stats
 4006 gosub 4080:rem totals at end of log
 4008 gosub 4040:rem weekly log routines

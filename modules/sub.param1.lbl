@@ -126,8 +126,10 @@
 61000 gosub61202:onx+1goto999:a=val(mid$(an$,3,3)):ifa>.then61006
 ' 11/20/2026: the list through sub.columns (im 432), numbered, in as many
 ' columns as fit ll% (it was one, or two at 80). Items show from 10; x, the
-' number of protocols, is kept in n meanwhile (sub.columns' x is numbering)
-61002 &"{f6}Available Protocols{colon}{f6:2}":n=x:x=1:s=10:im=1:gosub432:x=n
+' number of protocols, is kept in n meanwhile (sub.columns' x is numbering).
+' 11/23/2026: columns.lbl's routine, included below, so no load of sub.columns
+' and no reload of sub.param1 after it
+61002 &"{f6}Available Protocols{colon}{f6:2}":n=x:x=1:s=10:gosub61800:x=n
 61005 &"{f6}--> {pound}g1":a=val(an$)
 61006 ifa>.anda<=xthenlp=1:&mid$(tt$(a),10):ifa<xorb%=.thenul=a-1
 61008 ifan$="{question}"thena$="s.protos":dr=1:gosub13:goto61002
@@ -168,5 +170,6 @@
 61604 &"{f6}You may only use the line-based editor.{pound}w2{f6}":return
 61700 an$="Off":ifa%thenan$="On"
 61702 return
+{include:columns.lbl}
 61998 copr. 1996 new image 5/5/96
 61999 rem "sub.param1 (c)nissa 210307 lh, 2026-11-11 rs"

@@ -48,7 +48,7 @@
 4568 &"{f6:2}Writing Data..."
 4570 tt$(.)=d1$:w$="":fori=.to13:w$=w$+tt$(i)+r$:next
 4572 x=id:gosub1:print#2,w$:close2:iffd=.thenreturn
-4574 b$="fback":gosub37:poke53280,6
+4574 b$="fback":gosub37:a=6:gosub24
 4576 print#2,"Changed Sysop Data"+r$r$
 4578 print#2,"Handle: "+tt$(1)+r$+"First:  "+tt$(2)+r$+"Last:   "+tt$(3)+r$
 4580 print#2,"Address:{pound}{back arrow}17"+tt$(4)+r$+"City, State Zip: "+tt$(5)+", "+tt$(6)+" ";

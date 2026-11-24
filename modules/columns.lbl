@@ -1,0 +1,57 @@
+' columns.lbl: the list in columns, for {include:} (11/23/2026): sub.columns
+' includes it (i. and i/ modules call it there, through im 432); sub.info
+' and sub.param1 include it too and gosub 61800 themselves, so a list there
+' loads nothing (through im 432 sub.columns took their place, and im 75
+' loaded them again afterwards). Lines 61800-61830: free in all three.
+'
+' In: tt$(1) to tt$(n), shown down the first column, then the next:
+'   n   the number of items
+'   x   1: each numbered, "nn) " (right-aligned to n's digits); 0: not
+'   s   where each item's shown text starts (0 or 1: all of it), so a
+'       caller can keep a key in front of it (sub.info, sub.param1)
+' The columns: as many as fit (ll% + 1) / (the number's width + the widest
+' item + 2), from 1 to 4 and no more than n; each ll% / columns wide, and
+' the MCI tab ({pound}{back arrow}nn) starts each one but the first. The
+' widest item comes from &,15,8, which counts as &,15,7 does: control
+' characters (colors, reverse) nothing, MCI commands what they print, so
+' items can carry colors and MCI. The tabs are worked out once, into t9$
+' (4 characters a column). A long list pauses at the More prompt (flag
+' 34). On the console it pauses itself, as the More prompt doesn't there:
+' "<Hit any key>" each time the editor window (sctop to scbot, $e5/$e4) is
+' nearly full, less 3 rows for the prompt. The console: local (peek(53248) 1, the idle screen
+' and setup) or the Loc checkmark (flag 4: the sysop logged on at the
+' console, where local is 0). Output stopped (rc) stops it.
+' Uses a, a%, c7, c8, c9, d9, h9, i, j, k9, r9, w9, p9$, t9$; leaves n, x,
+' s and tt$() as they were. The host includes equates.asm (sareg, sctop,
+' scbot).
+
+' the widest item (w9), the number's width (d9: digits + ") ")
+61800 if n<1 then return
+61802 if s<1 then s=1
+61804 &,15,8,s,n:w9=peek({sym:sareg}):d9=.:if x then d9=len(str$(n))+1
+' the columns (c9, 1-4), each c8 wide; r9 rows
+61806 c9=int((ll%+1)/(d9+w9+2)):if c9<1 then c9=1
+61808 if c9>4 then c9=4
+61810 if c9>n then c9=n
+' the number's MCI, once (11/23/2026): {pound}#n the field's width (n's
+' figures), then {pound}# and a space the fill (a figure sets the width and
+' fills with 0, so the fill comes after: mcicm.asm's clen); both last one
+' string. Each item's number is then a%=j:&p9$, not str$, len and left$
+' joined for each: in x128, 20 rows of time zones in 10.6 s, not 11.4 (two
+' fresh boots each; one run's 5.3 s was an outlier: a run varies by up to
+' 1.5 s)
+61812 c8=int(ll%/c9):r9=int((n+c9-1)/c9):t9$="":p9$="{white}{pound}#"+chr$(46+d9)+"{pound}# {pound}%a) "
+' the tabs, once: column c7's at 4*c7-3 in t9$
+61814 for i=1 to c9-1:a=i*c8:t9$=t9$+"{pound}{back arrow}"+right$("0"+mid$(str$(a),2),2):next
+' the console: h9 rows a page (0: the More prompt does it)
+61816 k9=.:h9=.:&,52,4,3:if peek(53248) or a% then h9=peek({sym:scbot})-peek({sym:sctop})-3:if h9<1 then h9=1
+' row i: item i+c7*r9 of each column c7, each through its own & (11/23/2026:
+' a row built in a string and printed with one & was slower in x128, 13.4 s
+' against 11.3 for 20 rows: BASIC's string joins cost more than the &s)
+61818 for i=1 to r9:for c7=.to c9-1:j=i+c7*r9:if j>n then 61826
+61820 if c7 then:&mid$(t9$,c7*4-3,4)
+61822 if x then a%=j:&p9$
+61824 &mid$(tt$(j),s)
+61826 next:&"{f6}":if rc then i=r9
+61828 if h9 then k9=k9+1:if k9>=h9 and i<r9 then k9=.:&" {white}<Hit any key>{pound}g1{f6}"
+61830 next:return

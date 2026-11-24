@@ -62,9 +62,7 @@
 3202 gosub3006:onagoto3214,3224,3228,3230,3234,3238,3256:goto3120
 3214 &"{f6}{lt. blue}Available Modes:{f6:2} 1. PETASCII{f6} 2. ASCII{f6} 3. ANSI{f6:2}Which?: {pound}g1{pound}v7{f6}":gosub3006
 3216 ifa<1ora>3then3200
-3218 &,52,16,0:&,52,18,0:on-(a=3)goto3220:&,52,16,a-1:on-(a-1=1)goto3222:&,52,19,0:goto3222
-3220 &,52,16,1:&,52,18,1
-3222 goto3200
+3218 gosub3660:goto3200
 3224 &"{f6}{lt. blue} (C)BM Or (I)BM Graphics?: {pound}g1{pound}v7{f6}":a=-(an$="I")
 3226 &,52,19,a:goto3200
 3228 im=4:gosub430:x=4:gosub3004:goto3200
@@ -119,6 +117,7 @@
 3342 ifan$<>""then:&,60,0,16,s%(1,a),an$:tz=1
 3344 p$="BBS Number":pl=.:&,60,1,14,s%(17,a),w$:poke53252,14:&,1,32
 3346 ifan$<>""then:&,60,0,14,s%(17,a),an$:tz=1
+3348 gosub3670
 3350 &"{clear}":&,18,0:a=.
 3352 fori=1to20:n%=i:&,60,1,16,s%(1,i),b$
 3354 &,60,1,14,s%(17,i),c$
@@ -128,17 +127,18 @@
 3362 on-(an$="D")-2*(an$="L")-3*(an$="S")-4*(a$="E")goto3386,3390,3392,3336
 3364 a=val(an$):ifa<1ora>20then3120
 3366 &,60,1,16,s%(1,a),b$:ifb$=""then3350
-3368 gosub3042
+3368 n%=s%(24,a):gosub3042
 3370 &,60,1,14,s%(17,a),an$
-3372 &,15,2:c$=an$
+3372 &,15,2:c$=an$:a=n%and15:ifa>.anda<4thengosub3660
 3374 gosub3010:print#131,"ate0v0":im=9:gosub446
 3376 &"{f6}{lt. blue} Auto Redial?: ":gosub94:r=a
 3378 a%=.:d%=.:gosub3036
+3379 b=int(n%/16):ifb<1orb>7thenb=val(mt$)
 3380 d%=d%+1:&"{f6}Attempt #{pound}%d: Press {f5}C={f5} to Abort":ifpeek({sym:shflag})=2then3350
-3382 b=val(mt$):gosub3600:ifathen:&,18,0:gosub3040:goto3014
+3382 gosub3600:ifathen:&,18,0:gosub3040:goto3014
 3384 on-(d%>9)goto3350:onrgoto3380:goto3350
 3386 b$="Dial Telnet":gosub3042:gosub3414:iffl=.then3350
-3388 b$="Unlisted Number":goto3372
+3388 b$="Unlisted Number":n%=.:goto3372
 3390 gosub3400:goto3350
 3392 gosub3394:goto3350
 3394 &"Saving Phonebook":a$="e.phone":dr=3:gosub19
@@ -216,4 +216,23 @@
 3655 return
 3656 &,52,$34,3:on-(a%=.)goto3657:poke53371,0:&,52,$35,1
 3657 return
+' 11/15/2026: each phone book entry's graphics mode and BPS rate, set when it's dialed.
+' A record is s%(0-24,n), 50 bytes: the name is 16 bytes from s%(1,n) (32 in older files),
+' the number 14 bytes from s%(17,n); s%(24,n), the last 2 bytes, holds the settings:
+'   graphics mode + 16 * BPS rate; 0 = not set (dial with the current setting)
+'   graphics mode: 1 PETASCII, 2 ASCII, 3 ANSI
+'   BPS rate: 1 300, 2 1200, 3 2400, 4 4800, 5 9600, 6 19200, 7 38400 (sub.modem 60390)
+' Older e.phone files have 0 there. n% holds the entry's settings from 3368 until it's dialed.
+' 3660: set graphics mode a (from 3218, 3214's menu, and 3372)
+3660 &,52,16,0:&,52,18,0:on-(a=3)goto3664:&,52,16,a-1:on-(a=2)goto3666:&,52,19,0:return
+3664 &,52,16,1:&,52,18,1
+3666 return
+' 3670: edit entry a's settings (from 3348); Return keeps the one shown
+3670 n%=s%(24,a):x=n%and15:a%=x
+3672 &"{f6}Graphics Mode:{f6} 0)Not Set 1)PETASCII 2)ASCII 3)ANSI{f6}Which? [{pound}%a]: {pound}g1{pound}v7{f6}"
+3674 ifan$>="0"andan$<="3"thenx=val(an$)
+3676 a%=int(n%/16):b=a%:&"BPS Rate:{f6} 0)Not Set 1)300 2)1200 3)2400 4)4800{f6} 5)9600 6)19200 7)38400{f6}Which? [{pound}%a]: {pound}g1{pound}v7{f6}"
+3678 ifan$>="0"andan$<="7"thenb=val(an$)
+3680 a%=x+16*b:ifa%<>n%thens%(24,a)=a%:tz=1
+3682 return
 3699 rem "i.t (c)nissa 230310 lh"
