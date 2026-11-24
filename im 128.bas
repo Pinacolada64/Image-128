@@ -513,7 +513,10 @@
 ' time (the IRQ keeps d1str, not d1$, up to date until the ML's logoff points
 ' d1$ at it), and the DST check at 3158 (sub.clocks im=12) read that: on
 ' daylight time it moved the clock by the build's date, not the clock's
-3155 if y% then z3$="Setting Clock...":gosub 3404:im=10:a$="clocks":gosub 74:if e%=. then d1$=z$:z2$=left$(" "+z3$+" Clock Set."+s$,36):gosub 3405:goto 3158
+' 11/23/2026: c=$8f again before 3405: 3404 set it (the boot frame's colour),
+' but sub.clocks uses c as a temporary (the hour, the minute), so "Clock Set."
+' and the line above it came out in whatever colour that left
+3155 if y% then z3$="Setting Clock...":gosub 3404:im=10:a$="clocks":gosub 74:if e%=. then d1$=z$:z2$=left$(" "+z3$+" Clock Set."+s$,36):c=$8f:gosub 3405:goto 3158
 3156 z$={usedef:imdate}:gosub 3170
 ' 10/20/2026: ptrlinm and usrlin (c64 970, 971): on the 128, 970 ($03ca)
 ' is in the routines BASIC 7 keeps in RAM, and poking it stopped the
