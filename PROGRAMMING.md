@@ -460,7 +460,7 @@ PST0400UPDT(US/CA) Pacific Time
 | 4-7 | the offset, `hhmm`, from UTC-12: GMT is `1200`, UTC-8 `0400`, UTC+9:30 `2130` |
 | 8 | the rule's letter in `s.dstrules`; `-` for no DST |
 | 9-11 | daylight time's name (spaces for none) |
-| 12- | the description (28 characters show) |
+| 12- | the description as `sub.info` shows it: `(` + the name in light red + `) ` + the text in green (11/23/2026: the colors are in the file, so `sub.info` doesn't join them on for every zone; the text starts at 21; 28 characters of it show) |
 
 The ML converts times between zones with the hour and minute of the offset
 (`tzoneh`/`tzonem` for the BBS, `uzoneh`/`uzonem` for the caller, swap3's
