@@ -203,7 +203,8 @@ pudef "*":&,15,9:print using "#####";c;:&,15,9,1:pudef " ,.$"
 ```
 
 The returns a `print` ends with are left out, so a `;` at the end, or not,
-makes no difference. Up to 128 characters are kept; the rest are lost.
+makes no difference. Up to 255 characters (a string's most) are kept; the
+rest are lost.
 Plain `print`s are caught too: `print "credits";x;` gives
 `credits 7 `, with the spaces BASIC puts around a number.
 

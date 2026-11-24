@@ -131,7 +131,7 @@
 ' and no reload of sub.param1 after it
 61002 &"{f6}Available Protocols{colon}{f6:2}":n=x:x=1:s=10:gosub61800:x=n
 61005 &"{f6}--> {pound}g1":a=val(an$)
-61006 ifa>.anda<=xthenlp=1:&mid$(tt$(a),10):ifa<xorb%=.thenul=a-1
+61006 ifa>.anda<=xthenlp=1:&mid$(tt$(a),10):ifa<x or b%=.thenul=a-1
 61008 ifan$="{question}"thena$="s.protos":dr=1:gosub13:goto61002
 61010 a=-a*(a>.):return
 61100 &,52,4,3:ona%goto999:gosub61000:goto61104

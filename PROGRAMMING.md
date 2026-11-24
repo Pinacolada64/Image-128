@@ -349,7 +349,7 @@ characters (device 3) while it's on, so `print#`, `cmd` and `&` output
 aren't affected; anything printed on the screen is, so stop it in the
 same statement line or soon after (a module that ends between the two
 leaves BASIC's `print`s off the screen until the next `&,15,9`). Returns
-are dropped, so the `;` at the end doesn't matter. Up to 128 characters
+are dropped, so the `;` at the end doesn't matter. Up to 255 characters
 are kept. Plain `print`s work too (`print "credits";x;` gives
 `credits 7 `), and a number too wide for its field prints `*`s, as BASIC
 does.
@@ -371,7 +371,10 @@ take the preface. So `asm/build.sh` checks each preface module with
 copy converted for 4.06, `modules/.406.<name>.lbl` (to406.py's
 conversion: `Basic70.bas` for the preface, `{renumber}`, and the
 preface's line numbers in jumps as raw digits; not in git). The source
-stays as it is, and the build says which modules it converted.
+stays as it is, and the build says which modules it converted. An
+`{include:}`d `.lbl` file is read as part of the module (C64List builds it
+into it), so a `print using` in `columns.lbl` counts for each module that
+includes it (11/24/2026).
 
 `basic7.py` reads the code as BASIC 7.0's tokenizer does: at each place,
 the first keyword that matches, so crunched code hides keywords
@@ -381,8 +384,9 @@ with its `(`, or `using` after `print`; any other is an accident, letters
 to 4.04 but a keyword to 4.06. A module that uses BASIC 7.0 and has
 accidents stops the build, naming their lines: put a space in each
 (`cd or b`). `tools/basic7.py check modules/*.lbl` lists both kinds;
-today six modules have accidents and no uses (`i.CM`, `i.GF`,
-`i_IM.logon`, `i_MM.subop`, `sub.param1`, `sub.protos`), so they build
+today five modules have accidents and no uses (`i.CM`, `i.GF`,
+`i_IM.logon`, `i_MM.subop`, `sub.protos`; `sub.param1`'s was given its
+space), so they build
 with 4.04 as before.
 
 ## Lists in columns: `sub.columns`

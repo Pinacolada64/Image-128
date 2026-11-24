@@ -121,17 +121,35 @@ def keywords(line):
     return found
 
 
-def scan(path):
-    """[(line, keyword, use)]"""
+INCLUDE = re.compile(r'\{include:\s*"?([^"}]+\.lbl)"?\s*\}', re.I)
+
+
+def scan(path, seen=None):
+    """[(where, keyword, use)]: where is the line number, or "file:line" in
+    an included .lbl (11/24/2026: columns.lbl, which sub.info, sub.param1
+    and sub.columns include, uses print using; C64List builds an include as
+    part of the module, so it counts as the module's). Paths as C64List
+    takes them: relative to the including file, \\ or /"""
+    seen = seen if seen is not None else set()
+    path = os.path.normpath(path)
+    if path in seen:
+        return []
+    seen.add(path)
+    top = len(seen) == 1
     out = []
     for n, l in enumerate(open(path, encoding='latin-1').read().split('\n'), 1):
         for k, use in keywords(l):
-            out.append((n, k, use))
+            out.append((n if top else '%s:%d' % (os.path.basename(path), n), k, use))
+        m = INCLUDE.search(l)
+        if m and not l.lstrip().startswith("'"):
+            inc = os.path.join(os.path.dirname(path), m.group(1).replace('\\', '/'))
+            if os.path.exists(inc):
+                out += scan(inc, seen)
     return out
 
 
 def fmt(hits):
-    return ', '.join('%s (%d)' % (k, n) for n, k, u in hits)
+    return ', '.join('%s (%s)' % (k, n) for n, k, u in hits)
 
 
 def main():
