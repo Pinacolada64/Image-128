@@ -4,7 +4,7 @@
 ' core/tests, where most are still TODO). Page 8 adds the Image 128
 ' functions: 71 &,15,7 (centering), 72 &,15,8 (the widest of tt$()), 73 the
 ' MCI tab, 74 sub.columns, 75 ak$ following ll%, 76 &,15,9 (PRINT USING
-' into a string, 11/24/2026).
+' into a string, 11/24/2026), 77 & output speed.
 ' Run it as a module: R at the main prompt, class 3 (an i.* module, as in
 ' Image BBS 3), "test calls". build.sh crunches it ({crunch:on}).
 ' 128: C64 addresses as {sym:...} names (sareg, mask, curdsp, curlin), and
@@ -206,9 +206,10 @@
 	&"[128] sub.columns{colon} a List in Columns{f6}":return
 	&"[128] ak$ Follows ll%{f6}":return
 	&"[128] &{comma}15{comma}9 PRINT USING into a String{f6}":return
+	&"[128] & Output Speed{f6}":return
 {number:3172}
 {:display_page_8}
-	&"{f6}Image 128{colon}{f6:2}":for n=0 to 6:n%=n+70:&sf$:gosub {:header_page_8}:next:return
+	&"{f6}Image 128{colon}{f6:2}":for n=0 to 7:n%=n+70:&sf$:gosub {:header_page_8}:next:return
 
 {number:3176}
 {:show_page}
@@ -217,7 +218,7 @@
 	a%=3012+p*20:&,66,1:&"{f6}[Px) Page 1-8{comma} Q)uit]{f6}"
 {:prompt}
 ' m=0: "main menu" not displayed
-	l=0:h=76:m=.:q=1:gosub {:sub.input_range}:on -(an$="" or an$="Q" or tr%<1) -2*(q=1) goto {:quit}, {:show_page}
+	l=0:h=77:m=.:q=1:gosub {:sub.input_range}:on -(an$="" or an$="Q" or tr%<1) -2*(q=1) goto {:quit}, {:show_page}
 ' Px (switch to Page x) hook:
 	if left$(an$,1)<>"P" then {:dispatch}
 	an=val(mid$(an$,2,1)):if an>. and an<9 then p=an:goto {:show_page}
@@ -861,6 +862,45 @@
 	x=7:&,15,9:print "credits";x;:&,15,9,1,b$:&"print {quotation}credits{quotation};7 into b${colon} [{pound}$b]{f6}"
 	&,15,9:&,15,9,1:a=len(a$):&"nothing printed{colon} len(a$) {pound}!a (expect 0){f6}"
 	x=99.995:&,15,9:print using "##.##";x;:&,15,9,1:&"{quotation}##.##{quotation} 99.995 (too wide){colon} [{pound}$a]{f6}":return
+
+{:7050} ' 77: & output speed
+' The same 1000 characters (20 lines of 49 and a return) printed five ways,
+' each timed in jiffies (ti, 1/60 s): BASIC's print (the KERNAL's screen
+' editor only: the floor), then & with plain text, with a color code before
+' each word, with an MCI variable ({pound}$b), and with word wrap (lp=1).
+' All five at 1 MHz (slow), then at 2 MHz (fast), so what's CPU and what's
+' waiting on the VDC shows (the user's idea). In 40 columns fast turns the
+' VIC's screen off: a warning first, and a key to go on (the user's). The
+' More prompt (flag 34) is off while it runs. The table's columns at 21
+' and 30, so its widest row ends at column 38 in 40 columns.
+' 11/24/2026: to find where & output's time goes
+	&"{f6}& Output Speed{f6}":&,52,34,3:m=a%:&,52,34,0
+	l$="The quick brown fox jumps over the lazy dog 12345":p$=l$+"{f6}"
+	c$="{cyan}The {yellow}quick {white}brown {cyan}fox {yellow}jumps {white}over {cyan}the {yellow}lazy {white}dog 12345{f6}"
+	b$="fox":v$="The quick brown {pound}$b jumps over the lazy dog 12345{f6}"
+	dim t9(1,6)
+	for k=0 to 1:if k then gosub {:sub.bench_fast}
+	t=ti:for i=1 to 20:print l$:next:t9(k,1)=ti-t
+	t=ti:for i=1 to 20:&p$:next:t9(k,2)=ti-t
+	t=ti:for i=1 to 20:&c$:next:t9(k,3)=ti-t
+	t=ti:for i=1 to 20:&v$:next:t9(k,4)=ti-t
+	t=ti:for i=1 to 20:lp=1:&p$:next:t9(k,5)=ti-t
+	t=ti:for i=1 to 20:next:t9(k,6)=ti-t
+	slow:next
+	if m then:&,52,34,1
+	&"{f6}{white}1000 characters{colon} cps (jiffies){f6}"
+	&"{pound}{back arrow}21slow{pound}{back arrow}30fast{f6}"
+	dim n9$(5):n9$(1)="print (editor only)":n9$(2)="& plain":n9$(3)="& a color each word":n9$(4)="& MCI {pound}{pound}$b":n9$(5)="& word wrap (lp{equal}1)"
+	for j=1 to 5:&n9$(j):for k=0 to 1:x=t9(k,j):y=0:if x then y=int(60000/x)
+	&"{pound}{back arrow}"+mid$("2130",k*2+1,2)+"{pound}!y ({pound}!x)":next:&"{f6}":next
+	x=t9(0,6):y=t9(1,6):&"empty loop{colon} {pound}!x and {pound}!y jiffies{f6}"
+	return
+
+{:sub.bench_fast}
+' 2 MHz. In 40 columns (sw, im 3062) the 128 turns the VIC's screen off
+' while it's fast: say so first, and wait for a key
+	if sw<80 then lp=1:&"{f6}{yellow}Next{comma} the same at 2 MHz (FAST). In 40 columns the screen goes blank while it runs{comma} for about 10 seconds{comma} and comes back by itself. Press a key to go on.{white}{pound}g1{f6}"
+	fast:return
 
 {:sub.128_ruler}
 ' a ruler z columns wide: the last digit of each column's number, every
