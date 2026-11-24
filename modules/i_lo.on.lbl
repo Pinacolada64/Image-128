@@ -107,6 +107,6 @@
 4222 &,52,4,3:ifa%thenb$="{gray3}Local Console":return
 4224 &,52,16,3:b$="C/G":ifa%thenb$="ASCII":&,52,18,3:ifa%thenb$="ANSI"
 4226 b$="{gray3}In"+str$(ll%)+" Col. "+b$+" Mode":return
-4228 &"{clear}{blue}{rvrs on}{pound}{back arrow}39{f6}{rvrs on} {cyan}           Image BBS V3.0{pound}{back arrow}37{blue}  {f6}"
+4228 &"{clear}{blue}{rvrs on}{pound}{back arrow}39{f6}{rvrs on} {cyan}         Image BBS 128 v1.0{pound}{back arrow}37{blue}  {f6}"
 4229 &"{rvrs on} {cyan}        Logon Menu Selection{pound}{back arrow}37{rvrs off} {rvrs on}{blue} {f6}{rvrs on}  {rvrs off}{pound}{back arrow}38{rvrs on} {f6}":return
 4230 rem "i/lo.on (c)nissa 231215 lh ad"
