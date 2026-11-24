@@ -424,6 +424,13 @@ out:
 	cmp #2
 	beq out1
 	bcc out4
+; 11/24/2026: &,15,9 (using.asm) capturing: the screen's character to its
+; buffer instead
+	lda usecap
+	beq out2
+	jsr usechr
+	jmp out4
+out2:
 	ldx #1
 	jsr setmode
 	inc scnlock
