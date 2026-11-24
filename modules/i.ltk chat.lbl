@@ -16,6 +16,9 @@
 {include:"..\asm\equates.asm"}
 
 3000 rem "i.ltk chat": chat between lt. kernal stations
+' 11/19/2026 (user): no Lt. Kernal configured (lk%, its device number, 0):
+' say so without loading ++ chatmode; 3004 still catches one that isn't there
+3001 if lk%=. then:&"{f6}This BBS has no Lt. Kernal hard drive.{f6}":goto 300
 3002 p={sym:protostart}+3:a$="chatmode":gosub 28:if e% then:&"{f6}Sorry, the chat module isn't on the system disk.{f6}":goto 300
 3004 a$=na$:&,16,4,1:a%=peek(p):if a%=4 then:&"{f6}This BBS has no Lt. Kernal hard drive.{f6}":goto 300
 3006 if a% then:&"{f6}The chat file isn't ready (error {pound}%a): tell the SysOp.{f6}":goto 300

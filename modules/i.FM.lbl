@@ -36,8 +36,11 @@
 3052 kk=kk+1:tt$(kk)="{back arrow}"+mid$(str$(a),2)
 3054 if kk=.then3002
 3056 &"{f6}Filing Mail For ":&nn$:&"...{f6}"
-3058 a$="f."+left$(nn$,13):dr=2:gosub18
+' 11/10/2026: mail (m.) and waiting-mail (f.) file names keep 14 characters of the
+' handle (a 16-character file name), as im line 32 and i/lo.on 4178 do; some
+' modules kept 13, so a 14+ character handle's mail went to another file
+3058 a$="f."+left$(nn$,14):dr=2:gosub18
 3060 forx=1tokk:print#2,tt$(x):next:close2:goto3002
-3062 a$="f."+left$(nn$,13):dr=2:gosub19:&"{f6}Mail Erased!{f6}":goto3002
+3062 a$="f."+left$(nn$,14):dr=2:gosub19:&"{f6}Mail Erased!{f6}":goto3002
 3064 goto300
 3066 rem "i.FM (c)nissa 210307 lh"

@@ -99,6 +99,14 @@ hcd24:
 wedge_pages = (* - wedge_exec_address) / 256
 
 ;;;
+;;; $3581-$35ff: center_lo.asm (the MCI tab; &,15,7 and &,15,8's stubs)
+;;;
+
+	orig $3581
+{include:"center_lo.asm"}
+	addrcheck glue
+
+;;;
 ;;; glue: $3600-$3fff
 ;;;
 
@@ -108,6 +116,7 @@ wedge_pages = (* - wedge_exec_address) / 256
 {include:"trace.asm"}
 ; the status line's indicators: shared, for the IRQ and the NMI
 {include:"status.asm"}
+
 	addrcheck $4000
 
 ;;;
@@ -206,7 +215,20 @@ swap3_pages = (* - swap3_load_address) / 256
 
 {include:"varbl.asm"}
 
+
 	addrcheck resident_lo_end
+
+;;;
+;;; $d000-$dfff: bank 0's RAM under I/O (11/20/2026), run through farcall
+;;; in cfg_io: &,15,7, &,15,8 and their counting. Nothing there may touch
+;;; I/O (output, local). ml.io loads it (boot.asm; split-ml.py)
+;;;
+
+	orig $d000
+{include:"center.asm"}
+{include:"widest.asm"}
+{include:"widest2.asm"}
+	addrcheck $e000
 
 	orig resident_hi
 

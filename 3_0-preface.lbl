@@ -22,6 +22,7 @@
 ' DOS stuff:
 {assign:18	=18	} ' im.seq_write
 {assign:19	=19	} ' im.file_scratch
+{assign:24	=24	} ' im.border_color: a = the color, if the lightbar's right Dbg is on
 ' TODO: 128: move im.getFreeDirEntry (60) and im.getBlocksFree (61) here
 {assign:28	=28	} ' im.load_protocol
 
@@ -114,6 +115,7 @@
 {assign:429	=429	} ' im.sub_comm2
 {assign:430	=430	} ' im.sub_param1
 {assign:431	=431	} ' im.sub_param2
+{assign:432	=432	} ' im.sub_columns (11/20/2026)
 {assign:436	=436	} ' im.sub_menus
 {assign:437	=437	} ' im.sub_sysdos
 {assign:438	=438	} ' im.sub_stats

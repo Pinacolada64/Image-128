@@ -30,7 +30,11 @@
 7 &"{pound}g1":a$=an$:return
 ' i take it peek(17138) <c64 screen mask mode> is checked within &,69
 ' therefore eliminating it here:
-9 if nt=. then:&,69,4,21,left$(" "+cm$+"               ",22),$8c:return:else return
+' 11/10/2026: begin/bend: the block runs when nt=0, and the line goes on after
+' bend either way, so one return does for both (was: ...:return:else return)
+' 21 spaces after the name (were 15), so the 22-column field is always filled and
+' a shorter name leaves nothing of the one before
+9 if nt=. then begin:&,69,4,21,left$(" "+cm$+"                     ",22),$8c:bend:return
 ' rem print#15,"p{02}"chr$(xand255)chr$(x/256)"{01}":return
 ' record# lfn, record_num [, byte_num]
 10 record#2,x,1:return
@@ -47,11 +51,17 @@
 18 gosub 19:a$=a$+",s,w":goto 4
 19 gosub 3:print#15,"s"dr$a$:return
 ' "scratch(dr$+a$) on u dr%(dr)" doesn't seem to work in basic 7.0
+' 11/16/2026: the VIC-II border color on an event (an error, a new user,
+' feedback...): a = the color (0-15, as poke 53280 takes it), and only while
+' the lightbar's right Dbg is on (check 57, "Border Color on Event"; the
+' user's 3.1 addition, so an error's red border needn't be undone by hand at
+' $d020). Uses a%. BASIC 7's color 4 takes 1-16.
+24 &,52,57,3:if a% then begin:color 4,a+1:bend:return
 28 cm$=a$:gosub 9:dr=5:gosub 3:if "++ "+a$=ml$ then e%=.:return
 29 ml$="++ "+a$:cm$=ml$:gosub 9:a$=dr$+ml$:&,7,dv%,2:goto 5
 30 dr=3:a$="e.stats":goto 4
 31 dr=3:a$="e.access":goto 4
-32 dr=2:a$="m."+left$(tt$,13)+",s,"+a$:goto 4
+32 dr=2:a$="m."+left$(tt$,14)+",s,"+a$:goto 4
 33 dr=3:a$="e.data":goto 4
 34 e%=a%:&,52,46,3:am=a%:a%=e%:dr=3:a$="e.log"+left$(lt$,am)+",s,"+a$:goto 4
 35 dr=6:a$="u.config":goto 4
@@ -107,7 +117,8 @@
 ' Prime Time (pt%) from the hour: from p2% until p3%; an end earlier than the
 ' start runs past midnight (11/17/2026: 10P-2A, or 12P-12A, never came on)
 84 a=int(mn%/60):pt%=-((a>=p2% and a<p3%) or ((a>=p2% or a<p3%) and p3%<p2%))*sgn(p1%):return
-85 &"{f6}Would You Like To Leave Feedback? ":gosub 93:if a=. then return:else dr=3:gosub 61
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+85 &"{f6}Would You Like To Leave Feedback{question} ":gosub 93:if a=. then return:else dr=3:gosub 61
 86 x=2:if bf<35 then 390:else im=1:goto 444
 ' FIXME: building the string like this is terribly inefficient
 90 q$="":if ll%>42 then q$=left$("{space:42}",(ll%-42)/2)
@@ -127,7 +138,7 @@
 96 &"{cyan}[{white}Yes{cyan}]":gosub 7:&"{pound}h5":a=(a$="N")+1
 97 &"{pound}q"+chr$(df%+48)+mid$("YesNo",4-a*3,3)+"{f6}":return
 ' appends " [Y/N]" if expert mode off (0):
-98 a$="{f6}Are You Sure [Y/N]":&left$(a$,len(a$)-6*em)+"?: ":return
+98 a$="{f6}Are You Sure [Y/N]":&left$(a$,len(a$)-6*em)+"{question}: ":return
 
 100 p2$="sub."+a$:gosub 110:is=is+1:im$(is)=im$
 ' FIXME: "new 60000": replace with delete 60000- ?
@@ -142,7 +153,8 @@
 204 s=.:sh=.:gosub 12
 206 poke {sym:ptrlinm},0:&,52,30,3:an$=d1$:&,15:b$=right$(an$,7)
 208 mm=2:gosub 3000:gosub 9:&"{f6} {blue}- {white}{pound}$bM{pound}q0":if tr%<100 then a%=tr%:&" {blue}- {white}{pound}%a {cyan}Min Left{pound}q0"
-209 if zz then a%=usr(0):&"{f6} {blue}- {cyan}Stack Free: {white}{pound}%a{pound}q0"
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+209 if zz then a%=usr(0):&"{f6} {blue}- {cyan}Stack Free{colon} {white}{pound}%a{pound}q0"
 210 &"{f6:2}":poke {sym:llen},38:gosub 6
 212 cm$=left$(p$,11)+":"+left$(an$,4):gosub 9:cm$=p$
 214 on tr%+1 goto 240:if an$="" then gosub 250:goto 200
@@ -153,17 +165,21 @@
 224 x=1:rq=.:rs=1
 226 f4=.:a%=zz:b%=2^ac%:&,42:if a% then ef$=b$:ep$=a$:ec=a%:ec%=b%:goto 260
 228 on -(a$="O" or (lc=1 and a$="Q"))-2*(a$="{question}") goto 230,250:rs=.:return
-230 f4=.:if right$(an$,1)<>"!"then:&"{f6:2}Logoff?: ":gosub 93:if a=. then return
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+230 f4=.:if right$(an$,1)<>"!"then:&"{f6:2}Logoff{question}{colon} ":gosub 93:if a=. then return
 232 f4=1.3:return
 234 f1=1-(right$(an$,1)="!"):cd%=.:if mid$(z$,2,1)="%" then 302
-236 &"{f6}Update Message/File Scan Date?: ":gosub 96:if a then ld$=lt$
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+236 &"{f6}Update Message/File Scan Date{question}{colon} ":gosub 96:if a then ld$=lt$
 238 goto 302
-240 &"{f6}Sorry, Time Limit Exceeded.{f6}":mm=3:gosub 3000:f1=1:goto 302
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+240 &"{f6}Sorry{comma} Time Limit Exceeded.{f6}":mm=3:gosub 3000:f1=1:goto 302
 242 f1=.:&"{f6} Aborted!{f6}":goto 200
 250 im=1:goto 436
 260 if ec%>. and cr-ec%<. then:&"{red}Not Enough Credits!{f6}":return
 262 cr=cr-ec%:if ep$="" or id=1 then 264
-263 &"{f6}{white}Password{blue}:{white}":&,6:if an$<>ep$ then:&"{f6}{red}Incorrect Password.{f6}":return
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+263 &"{f6}{white}Password{blue}{colon}{white}":&,6:if an$<>ep$ then:&"{f6}{red}Incorrect Password.{f6}":return
 264 f4=.:on ec goto 265,266,267,268:return
 265 z$=ef$:f4=1.1:&,28,1:return
 266 f4=1.2:&,28,1:return
@@ -187,8 +203,10 @@
 311 if left$(an$,1)="{uparrow}" then an$=hs$(10-val(mid$(an$,2,1))):goto 314
 312 &,15,6,140:uu$=an$:an$=a$
 313 for ct=1 to 9:hs$(ct)=hs$(ct+1):next:hs$(10)=an$:return
-314 &p$+": {pound}v7{f6}":return
-315 for ct=1 to 10:a%=10-ct:a$=hs$(ct):&"{uparrow}{pound}%a: {pound}$a{f6}":next:an$="":uu$="":return
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+314 &p$+"{colon} {pound}v7{f6}":return
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+315 for ct=1 to 10:a%=10-ct:a$=hs$(ct):&"{uparrow}{pound}%a{colon} {pound}$a{f6}":next:an$="":uu$="":return
 320 gosub 31:x=ac%+1:gosub 1:&,2,2:ag$=a$:&,2,2:close 2
 321 if len(fl$)<len(a$) then fl$=fl$+mid$(a$,len(fl$)+1)
 322 if len(fl$)>len(a$) then fl$=a$
@@ -203,12 +221,14 @@
 330 dr=3:a$="e.macros":gosub 4
 332 if e%=. then:&,2,2:a=val(a$):&"{f6:2}":x=int(rnd(1)*a)+2:gosub 1:&,3,2
 334 close 2:return
-349 &"{f6}Device, Drive: {pound}i1":an$="  "+an$:return
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+349 &"{f6}Device{comma} Drive{colon} {pound}i1":an$="  "+an$:return
 350 a=int(val(mid$(an$,3,2))):if a>. then if a<7 then dr=a:goto 353
 351 if a<7 or a>29 then a=8
 352 &,15,6,133:d2%=val(an$):d1%=a:dr=.:dv%(.)=d1%:dr%(.)=d2%
 353 gosub 3:close 15:a=-(st<>.):return
-370 a=1-a:&"{f6}{green}{pound}$b Mode{lt. green}: {white}O"+mid$("ffn",a*2+1,2)+"{f6}":return
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+370 a=1-a:&"{f6}{green}{pound}$b Mode{lt. green}{colon} {white}O"+mid$("ffn",a*2+1,2)+"{f6}":return
 ' 11/09/2026: 371 toggles uf$'s flag b (b$ its name, for 370's On/Off),
 ' through 377 and 378
 371 gosub 377:gosub 370:goto 378
@@ -230,6 +250,8 @@
 429 a$="comm2":goto 74
 430 a$="param1":goto 74
 431 a$="param2":goto 74
+' 11/20/2026: sub.columns, a list in 1-4 columns for ll% (im=1)
+432 a$="columns":goto 74
 436 a$="menus":goto 74
 437 a$="sysdos":goto 74
 438 a$="stats":goto 74
@@ -249,7 +271,8 @@
 450 a$="stack":goto 74
 500 rem**jump table**
 ' rem 12 bytes vs. 24: a=-(an$="I")-2*(an$="P"):
-501 &"{f6}Edit (I)nfo or (P)arameters? {pound}g1{pound}v7{f6}":a=instr("IP",an$)
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+501 &"{f6}Edit (I)nfo or (P)arameters{question} {pound}g1{pound}v7{f6}":a=instr("IP",an$)
 502 if a then im=1:on a goto 447,430:else return
 503 im=2:goto 447
 504 im=1:goto 443
@@ -312,7 +335,8 @@
 ' e1 (error line) was el: EL is BASIC 7.0's own error-line variable,
 ' and dim el or el=y is a ?syntax error
 ' error number and line from the wedge's trap (c64: 780-782)
-2002 x=peek({sym:sareg}):y=peek({sym:sxreg})+peek({sym:syreg})*256:&"{f6}[Error#{pound}!x, Line#{pound}!y]{f6}":e1=y
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+2002 x=peek({sym:sareg}):y=peek({sym:sxreg})+peek({sym:syreg})*256:&"{f6}[Error#{pound}!x{comma} Line#{pound}!y]{f6}":e1=y
 ' 10/21/2026: a file that won't load (?load error 29: a module, line 79, or an
 ' ML overlay, 29) twice within a minute stops here, saying which. The error
 ' handler (4000) carries on from the idle screen (4046: goto 302), which loads
@@ -353,7 +377,7 @@
 3008 dimc$,c%,c1$,c2$,c3$,ca,cc,cc$,cd%,ch$,cm$,cn,co$,co%,cr,ct,ct%
 3010 dimd$,d%,d1$,d1%,d2$,d2%,d3%,d3$,d4$,d5$,d6$,da%,db%,dc,dc%,dd$,df%,dr,dr$,dv%
 ' 3012 dimdf%
-3014 dime$,e%,e1,em,ef$,ep$,ec,ec%
+3014 dime$,e%,e1,em,ef$,ep$,es$,ec,ec%
 3016 dimf$,f%,f1,f2,f3,f4,ff$,fl,fl$,f1$,f2$,f3$,f4$,f5$,f6$,f7$,f8$
 3018 dimg$,g%
 3020 dimh$,h%,hx$
@@ -386,7 +410,9 @@
 3060 c3$="{f6}Returning To The Editor"+"{f6:2}"
 ' sw: sysop screen width, 40 or 80
 3062 sw=rwindow(2):ak$=left$(" {192:78}",sw-1)+"{f6}"
-3064 r$=chr$(13):nl$=chr$(.):qt$=chr$(34)
+' 11/10/2026: es$ is Escape (chr$(27)), DIMmed in 3014, for Esc sequences
+' such as i/su.config's Esc P
+3064 r$=chr$(13):es$=chr$(27):nl$=chr$(.):qt$=chr$(34)
 ' 650 [c64], 2594/$0a22 [c128]: key repeat
 ' FIXME: 836 is in datebuf, may be no longer needed (y2k fix?)
 ' 3066 open 4,4,7:poke 836,1:poke 650,128
@@ -401,10 +427,18 @@
 3074 dv%=peek({sym:bootdev}):z%=dv%:dr$="0"+":":bd$=dr$:sr=2:pr=-1:f3=1:sys {sym:protostart}+3:&,53
 ' NOTE: __BuildDate and __BuildTime are themselves quoted strings, hence the weirdness here:
 ' 10/27/2026: &,69 is column, then row, and row 0 draws nothing (dispstr6 skips
-' it): row 1, under intro's " Image BBS 128 v..." on row 0 (the frame is 2-5)
-3075 &,69,1,1,"im 128 revision: "+{usedef:__BuildDate}+" "+{usedef:__BuildTime},3
+' it): row 1, under intro's "Image BBS 128 v..." on row 0 (the frame is 2-5)
+' 11/09/2026: column 0, not 1 (with a longer date or time it wrapped in 40
+' columns, and column 0 kept a stray character)
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+3075 &,69,0,1,"im 128 revision{colon} "+{usedef:__BuildDate}+" "+{usedef:__BuildTime},3
 ' a$="NTSC":if peek(678) then a$="PAL"
 3076 a$="NTSC":if peek({sym:ntscpal})=255 then a$="PAL"
+' 11/13/2026: booted from a Lt. Kernal, the boot disk is the LU logged in
+' then (setup's lockinit, in the sys 3074 made: ltkon, ltklu), not "0:",
+' which is LU 0 there. The boot device is the Lt. Kernal if it answers m-r
+' with its status line (as sub.sysdos finds it: it has no m-r)
+3077 if peek({sym:ltkon}) then open 15,dv%,15,"m-r"+chr$(187)+chr$(229)+chr$(16):get#15,a$,a$,a$:close 15:if a$="," then d1%=dv%:d2%=peek({sym:ltklu}):dr$=mid$(str$(d2%),2)+":":bd$=dr$
 3078 gosub 3400:z3$=a$+" System Detected.":gosub 3404
 ' 3080 &,18,.:poke 53248,1:am$="1"+"0001018600":dv%=z%
 3080 &,18,.:poke {sym:local},1:am$="1"+"0001018600":dv%=z%
@@ -425,15 +459,19 @@
 3098 gosub 35:if e% then close 2:gosub 3240:goto 3097
 3100 x=1:gosub 1:&,2,2:bs$=a$:close 2
 3102 im=.:gosub 441:uh=a%
-3103 z2$=left$(z2$,22)+"  ("+mid$(str$(a%),2)+left$(" Users",6+(a%<>.))+")":gosub 3404
-3104 dr=3:gosub 3:z3$="Loading System Defaults...":gosub 3414:gosub 3404:d$=" Definitions: "
+' 11/10/2026: "User" only for 1: (a%<>.) made it "User" for any count but 0
+3103 z2$=left$(z2$,22)+"  ("+mid$(str$(a%),2)+left$(" Users",6+(a%=1))+")":gosub 3404
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+3104 dr=3:gosub 3:z3$="Loading System Defaults...":gosub 3414:gosub 3404:d$=" Definitions{colon} "
 3106 &"{f6}{lt. blue}Extended Command Set{pound}$d":a$=dr$+"e.ecs.main":&,42,4:gosub 3192
 3108 &"Print Mode{pound}$d":a$=dr$+"e.printmodes":&,7,dv%,7:gosub 3192
 3110 &"Lightbar Checkmarks":a$=dr$+"e.lightbar":&,7,dv%,8:gosub 3192
 3111 z3$="Setting Alarm Tables...":gosub 3404
-3112 &"{f6:4}{lt. blue}Alarm Table: ":a$=dr$+"e.alarms":&,7,dv%,9:gosub 3192
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+3112 &"{f6:4}{lt. blue}Alarm Table{colon} ":a$=dr$+"e.alarms":&,7,dv%,9:gosub 3192
 3114 :
-3116 &"{lt. blue}Network Alarm Table: ":dr=2:gosub 3:a$=dr$+"nm.times":&,7,dv%,12:gosub 3192
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+3116 &"{lt. blue}Network Alarm Table{colon} ":dr=2:gosub 3:a$=dr$+"nm.times":&,7,dv%,12:gosub 3192
 3118 dr=3:a$="e.fkeys,s,r":gosub 4:if e% then close 2:goto 3128
 3120 z3$="Enabling Function Keys...":gosub 3404
 3122 for i=1 to 8:&,2,2:if right$(a$,1)="{back arrow}" then a$=left$(a$,len(a$)-1)+r$
@@ -481,7 +519,10 @@
 ' time (the IRQ keeps d1str, not d1$, up to date until the ML's logoff points
 ' d1$ at it), and the DST check at 3158 (sub.clocks im=12) read that: on
 ' daylight time it moved the clock by the build's date, not the clock's
-3155 if y% then z3$="Setting Clock...":gosub 3404:im=10:a$="clocks":gosub 74:if e%=. then d1$=z$:z2$=left$(" "+z3$+" Clock Set."+s$,36):gosub 3405:goto 3158
+' 11/23/2026: c=$8f again before 3405: 3404 set it (the boot frame's colour),
+' but sub.clocks uses c as a temporary (the hour, the minute), so "Clock Set."
+' and the line above it came out in whatever colour that left
+3155 if y% then z3$="Setting Clock...":gosub 3404:im=10:a$="clocks":gosub 74:if e%=. then d1$=z$:z2$=left$(" "+z3$+" Clock Set."+s$,36):c=$8f:gosub 3405:goto 3158
 3156 z$={usedef:imdate}:gosub 3170
 ' 10/20/2026: ptrlinm and usrlin (c64 970, 971): on the 128, 970 ($03ca)
 ' is in the routines BASIC 7 keeps in RAM, and poking it stopped the
@@ -512,14 +553,25 @@
 
 ' get system disk names, read blocks free
 3186 restore 3504:for q=. to 6:bf(q)=-1:next
-3188 z3$="Reading Blocks Free...":gosub 3404:for q=1 to 6:dr=q:gosub 61
-3190 read b$:&"{f6}{rvs off}{lt. blue} {pound}$b Disk{pound}{back arrow}30:{cyan}"+str$(a):next:q=.:return
+' 11/23/2026: and each drive's device,drive and its type: sub.sysdos im=2
+' names every device on the bus from its ROM ("m-r": no reset, no disk
+' access) into tt$(8)-tt$(30) ("1581", "CMD HD", "Lt. Kernal", "?" for one
+' it doesn't know); tt$(1)-tt$(8), the f-keys, were copied out at 3124
+3188 z3$="Reading Blocks Free...":gosub 3404:im=2:a$="sysdos":gosub 74:for q=1 to 6:dr=q:gosub 61
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+' 11/23/2026: Esc Q after the count clears the rest of its line (the 128
+' editor's, on the console: PROGRAMMING.md), so a shorter count than what was
+' on that row leaves no old digits behind. Between the name and the count,
+' the device,drive (dv%, dr$: gosub 61 set them, through gosub 2) at 16 and
+' its type at 22, the count's colon at 33: a 40-column line
+3190 read b$:&"{f6}{rvs off}{lt. blue} {pound}$b Disk{pound}{back arrow}16{white}"+mid$(str$(dv%),2)+","+left$(dr$,len(dr$)-1)+"{pound}{back arrow}22"+tt$(dv%)+"{pound}{back arrow}33{lt. blue}{colon}{cyan}"+str$(a)+"{$1b}q":next:q=.:return
 
 ' new: from 3100- report ok/error
 3192 gosub 5:c$="{lt. green}":if e% then c$="{lt. red}"
 3194 &"{pound}{back arrow}20"+c$+"{pound}$e{f6}{lt. blue}":return
 
-3200 &,27,1:z1$=" Insert All System Disks In Correct ":z2$="       Drives, And Press RETURN     "
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+3200 &,27,1:z1$=" Insert All System Disks In Correct ":z2$="       Drives{comma} And Press RETURN     "
 ' ----+----+----+----+----+----+----+----+
 '                Or Press:                 (16)
 '
@@ -557,14 +609,18 @@
 ' 3240 f$="i/setup 128":close 15:open 1,dv%,1,f$:s=ds:close15:ifsthen:&"{f6}Cannot find {quotation}{pound}$f{quotation}. Halting.{pound}w5":goto 4048
 ' ds=63: file exists
 ' the setup module (Image BBS 3.0's, ported): i/su.config
-3240 f$="i/su.config":close 15:rename (f$) to (f$):if ds<>63 then:&"{f6}Cannot find {quotation}{pound}$f{quotation}. Halting.{pound}w5":goto 4048
+' 11/13/2026: found by opening it on the boot disk (bd$), not BASIC 7's
+' "rename (f$) to (f$)" (63: it's there), which says drive 0: on a Lt. Kernal
+' that's LU 0, not the LU Image booted from (im 3077)
+3240 f$="i/su.config":close 15:open 15,dv%,15:close 1:open 1,dv%,2,bd$+f$+",p,r":input#15,e1:close 1:close 15:if e1 then:&"{f6}Cannot find {quotation}{pound}$f{quotation}. Halting.{pound}w5":goto 4048
 3242 new 4000:load f$,dv%:gosub 4000:return
 
 ' gosub from 3158
 3250 dr=3:a$="e.lightdefs,s,r":gosub 4:if e% then close 2:goto 3300
 3252 z3$="Setting Default Checkmarks...":gosub 3404
 ' 10/27/2026: the page number, 1-8 as i/IM.lightbar numbers them (it printed "!x")
-3254 for x=. to 7:&,2,2:if len(a$)<>16 then:&"Lightbar defaults length error, page"+str$(x+1)+"{f6}":goto 3258
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+3254 for x=. to 7:&,2,2:if len(a$)<>16 then:&"Lightbar defaults length error{comma} page"+str$(x+1)+"{f6}":goto 3258
 3256 for i=1 to 16:&,52,x*16+i-1,val(mid$(a$,i,1)):next
 3258 next:close 2
 
@@ -671,8 +727,10 @@
 4010 &,40:d$="GURU":if x>. and x<42 then d$=err$(x)
 4012 a%=x:&"{f6}{lt. red} SYSTEM ERROR #{pound}%a {white}({pound}$d error){f6}":r$=chr$(13)
 4014 a$="im":if e1=>3000 then a$=pr$:if e1=>4000 then a$=p1$:if e1=>60000 then a$=p2$
-4016 a=e1:&"{lt. blue} In Line:{gray3}{pound}!a {lt. blue}Of {gray3}{pound}$a{f6}"
-4018 &"{f6}{lt. red}Recording Error, Please Wait...":d$=str$(x)+" ("+d$+" error)"
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+4016 a=e1:&"{lt. blue} In Line{colon}{gray3}{pound}!a {lt. blue}Of {gray3}{pound}$a{f6}"
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+4018 &"{f6}{lt. red}Recording Error{comma} Please Wait...":d$=str$(x)+" ("+d$+" error)"
 4020 dr=3:a$="e.errlog,s,a":gosub 4:if e%=. then 4024
 4022 a$="e.errlog,s,w":gosub 4
 4024 print#2,na$r$id;r$d1$r$ac%;r$ph$r$rn$r$co$(co%)r$
@@ -680,8 +738,8 @@
 4028 print#2,"Program: "pr$r$"Module: "p1$r$"Sub Module: "p2$
 4030 print#2,"ML File: "ml$r$"Protocol: "d4$r$
 4032 for i=1 to 10:a$=chr$(58-i):if hs$(i)<>"" then print#2," {uparrow}"a$": "hs$(i)
-' check right Dbg lightbar flag *before* color 4,3 to turn vic-ii border red
-4034 next:print#2,"^":close 2:rem &,52,57,3:if a% then color 4,3
+' a red border on an error, if the lightbar's right Dbg is on (line 24)
+4034 next:print#2,"^":close 2:a=2:gosub 24
 ' 10/27/2026: count the error: st(39) since the daily reset (i/lo.automaint
 ' 4064), st(40) since setup. e.stats has 40 records (i/su.config); 39 and 40
 ' were unused. sub.display shows them in 80 columns
@@ -713,7 +771,8 @@
 4060 gosub 39:close 15
 4062 gosub 30:i=1:x=14:gosub 16:x=25:gosub 16:x=32:gosub 16:close 2
 ' backspaces over "Recording Error, Please Wait..." up to the point of "Record":
-4064 &"{pound}ho{pound}h9ed!{f6:2}{white}{$07}You Have New E-Mail Waiting:{f6:2}{green}Read Now? ":gosub 96
+' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
+4064 &"{pound}ho{pound}h9ed!{f6:2}{white}{$07}You Have New E-Mail Waiting{colon}{f6:2}{green}Read Now{question} ":gosub 96
 4066 if a then a$="E"+"M":goto 70
 4068 pr$="":goto 300
 ' 10/24/2026: just read strings from reserved array err$()

@@ -80,7 +80,9 @@
 4112 &"{pound}g1":a=val(an$):on-(tr%<1) goto {$39}99:on a+1 goto 4124,4114:goto 4116
 4114 &"{pound}v7{pound}g1":on-(an$=chr$(13)) goto 4116:a=10+val(an$):&mid$(str$(val(an$)),2)
 4116 if len(mt$)=1 then:&"{f6:2}{yellow}You Must First Setup a Modem!{f6:2}  {white}>Any Key<{pound}g1":goto 4030
-4118 on-(a>13) goto 4124:on-(a=13) goto 4119:a$=mid$(mt$,a,1)
+' 11/17/2026: flags 1-12 go on to 4120 (they fell through to 4119, flag 13's
+' S2 prompt, so e.g. 3, Auto-Answer, asked for S2)
+4118 on-(a>13) goto 4124:on-(a=13) goto 4119:a$=mid$(mt$,a,1):goto 4120
 4119 gosub 4204:goto 4030
 4120 on agosub 4134,4142,4146,4152,4158,4164,4170,4176,4180,4186,4192,4198
 4122 mt$=left$(mt$,a-1)+a$+mid$(mt$,a+1):jf=1:goto 4030

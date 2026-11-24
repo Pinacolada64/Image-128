@@ -1,0 +1,16 @@
+' sub.columns: a list in 1-4 columns for the caller's width (11/20/2026, the
+' user's design). im loads it through line 432 (a$="columns":goto 74), so
+' an i. or i/ module calls it with im=1:gosub 432. The routine itself is
+' columns.lbl (11/23/2026), which sub.info and sub.param1 include too and
+' call without loading this (a sub module calling another through im 432 had
+' it take its place, and im 75 load it again afterwards). What it takes and
+' does: columns.lbl.
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{include:"..\asm\equates.asm"}
+{crunch:on}
+
+60000 on im gosub 61800:return
+60990 rem "sub.columns 11/23/2026"
+{include:columns.lbl}

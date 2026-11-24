@@ -1345,7 +1345,10 @@ trace0a:
 	jsr trace2
 trace1:
 	dec scnlock
-	jmp vdcstat	; 80 columns: the status lines to the VDC
+; 11/19/2026: akfix (trace.asm: ak$ rebuilt when ll% changes) ends with
+; jmp vdcstat (80 columns: the status lines to the VDC); here, the same 3
+; bytes, as $e000-$fbff has no room
+	jmp akfix
 
 ; trace2, the mask's numbers (P=, V=, L=): trace.asm, in the shared bottom
 ; 16K ($e000-$fbff has no room, 11/15/2026)

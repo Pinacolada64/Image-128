@@ -370,15 +370,39 @@ before `System Idle` comes back:
 ### `T`: carrier detect (DCD)
 
 The modem tells the BBS a caller is connected with its DCD (carrier
-detect) line. Some modems, and tcpser run with `-I`, give it the other
-way round, so Image can invert it: the lightbar's `DCD` checkmark, left
-side ("Invert DCD Signal", flag 58). With the wrong setting, the check
-mark at the right of the status line ("Carrier Present", flag 59) shows
-while nobody is connected, and the BBS takes a call that isn't there.
+detect) line. Two lightbar checks, both on the page with `Dcd` and `Dsr`,
+decide how the SwiftLink driver (`rs232_swift.asm`, `setcarr`) reads it:
 
-`T` turns the inversion on or off, waits a moment for the BBS to read
-the carrier again, and says which setting it's on and whether it's
-right:
+| Check | Flag | Means |
+|---|---|---|
+| `Dsr`, left | 60 (`$3c`) | which 6551 status bit is the carrier: on = DSR (bit 6), off = DCD (bit 5) |
+| `Dcd`, left | 58 (`$3a`) | invert the carrier ("Invert DCD Signal"): on = inverted |
+| `Dcd`, right | 59 (`$3b`) | "Carrier Present": shown by the BBS, not a setting |
+
+(`Dsr`'s right check, flag 61, turns the status line's RX/TX windows on;
+it has nothing to do with the carrier. The user port driver,
+`rs232_user.asm`, reads the carrier from the user port and ignores
+`Dsr`; `Dcd`'s inversion, done in the IRQ, applies to both drivers.)
+
+**In VICE (`start-image-128.sh`), Dsr on, Dcd off, and tcpser without
+`-I`.** A SwiftLink cartridge wires the modem's DCD to the 6551's DSR
+pin, and VICE does the same for the C64 and C128 (`aciacore.c`): the
+carrier tcpser sends shows in status bit 6, and bit 5 never changes.
+With `Dsr` off the BBS reads that unchanging bit 5, and no setting of
+`Dcd` gives a working carrier: not inverted, it sees a caller all the
+time; inverted, it never sees one. The second is the easy one to miss.
+The idle screen looks right, the BBS even answers a call (tcpser rings,
+the BBS sends `ATA`), but the caller gets only `AT` and no logon prompt,
+and the BBS goes back to idle (11/18/2026, the Lt. Kernal system). tcpser's
+`-I` (invert DCD) isn't needed: with `Dsr` on, the carrier comes through
+the right way round.
+
+On real hardware, set `Dsr` the way the cartridge is wired (a SwiftLink:
+on), then use `Dcd` for a modem that gives its DCD the other way round.
+
+`T` turns the `Dcd` inversion on or off (not `Dsr`), waits a moment for
+the BBS to read the carrier again, and says which setting it's on and
+whether it's right:
 
 | Message | Means |
 |---|---|
@@ -390,19 +414,23 @@ right:
 "OK" and "Wrong" are judged by the idle screen itself: nobody is
 connected there, so a carrier means the setting is the wrong way round.
 Pressing `T` while a call is coming in can give `Wrong` when the setting
-is right; press it again when the line is quiet. With tcpser run by
-`start-image-128.sh` (`-I`), the right setting is `DCD Inverted`.
+is right; press it again when the line is quiet. Set `Dsr` first: with
+it off in VICE, `T` says `DCD Inverted: OK`, but only because the bit it
+reads never changes, and no call gets through. With `Dsr` on, the right
+answer in VICE is `DCD Normal: OK`.
 
-The setting is the lightbar checkmark itself, so it can be changed there
-too. Until 10/28/2026 the ML put it back off every few moments (the
-`mxor_compat` bug, `PORTING_NOTES.md`), so it couldn't be left on.
+The settings are the lightbar checkmarks themselves, so they can be
+changed there too. Until 10/28/2026 the ML put `Dcd` back off every few
+moments (the `mxor_compat` bug, `PORTING_NOTES.md`), so it couldn't be
+left on.
 
-**To keep it:** `T` changes the setting only until the BBS restarts,
-which sets the lightbar's checks from `e.lightdefs` (`im 128` line
-3250). Once `T` says `OK`, set the `DCD` left checkmark the same way in
-`IM`: **H** Lightbar/Alarms, **A** Lightbar Defs, then save; `i/IM.lightbar`
-offers to make the saved table active. (Modem Config has no carrier
-setting: its flag 9 is DTR, the BBS's own line to the modem.)
+**To keep them:** `T` and the lightbar change the checks only until the
+BBS restarts, which sets them from `e.lightdefs` (`im 128` line 3250).
+Once a call gets through, set the `Dsr` and `Dcd` left checkmarks the
+same way in `IM`: **H** Lightbar/Alarms, **A** Lightbar Defs, then save;
+`i/IM.lightbar` offers to make the saved table active. (Modem Config has
+no carrier setting: its flag 9 is DTR, the BBS's own line to the modem,
+and flag 11 picks the driver, User Port or SwiftLink.)
 
 ## `IM`: Configuration Editor
 
@@ -637,6 +665,31 @@ On the release's `e.lightbar`, pages 5 to 7 and the last label on page 4
 have placeholder labels: the left checkmark's number in hex (`$3E`,
 `$40`...). Naming one changes only its label, not what uses the
 checkmarks.
+
+## The border color on events: `Dbg`
+
+The lightbar's right `Dbg` checkmark (page 4, check 57, "Border Color on
+Event") lets Image change the 40-column screen's border to show what
+happened since you last looked. With it off, nothing changes the border,
+so there's nothing to set back by hand afterwards (`$d020` from a
+monitor, as before 3.1).
+
+| Border | Means | Where to look | Set by |
+|---|---|---|---|
+| Black | nothing new: the BBS started, or `VF` was run | | `im 128` 3001 (boot), `i.VF` |
+| Red | a BASIC error: Image trapped it, logged it (`e.errlog`) and carried on | `VF`, Error Log | `im 128` 4034 |
+| Green | a caller started the new-user application | `VF`, New Users | `i/lo.new` |
+| Blue | a caller left feedback, or the sysop information was changed (logged as feedback) | `VF`, Feedback | `sub.feedback`, `i/lo-sysop info` |
+| Light blue | a login failed its security check ("Login is not valid": the password, or the first name, last name or e-mail address it asked for at random, didn't match) | `VF`, Telecheck | `i/lo!telecheck` |
+
+The border keeps the last event's color, so a red border may have been
+turned blue by feedback since. Reading feedback (`VF`) sets it back to
+black, with the checkmark on or off, so a color set before you turned the
+checkmark off is cleared too. The 80-column screen has no border; the
+colors show on the 40-column screen only.
+
+Modules set it with `a=`*color*`:gosub 24` (`PROGRAMMING.md`), using the
+VIC-II's color numbers: 0 black, 2 red, 5 green, 6 blue, 14 light blue.
 
 ## Daylight saving time
 

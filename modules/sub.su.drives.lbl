@@ -92,15 +92,27 @@
 ' time, and the answer checked against them, not with "i"
 {:askdrv}
 	a$=left$(tt$(su%(10+j)),3):hc=-(a$="CMD" or a$="RAM"):sg=.:if hc then gosub {:parts}
+' 11/13/2026: on the Lt. Kernal (lk%, its device: i/su.config) the drive
+' number is an LU (0-10), checked by reading its directory ({:asklu})
+	hl=-(lk%>. and su%(10+j)=lk%)
 	p$=l$+" Drive":if hc then p$=l$+" Partition"
+	if hl then p$=l$+" LU"
 	w$=mid$(str$(su%(20+j)),2):if sg and su%(ib+j)=. then w$=mid$(str$(sg),2)
 	ln=3:gosub 4900:b=val(an$):if b<. or b>254 then b=.
 	su%(20+j)=b:&"{f6}":if tt$(su%(10+j))="" then return
 	d=su%(10+j):if hc then {:askpart}
+	if hl then {:asklu}
 ' the drive initializes it ("i0", "i1"...: 00 or an error), as a check
 	close 15:open 15,d,15,"i"+mid$(str$(b),2):input#15,e,e$:close 15
 	if e<20 then return
 	&"{yellow}Device {pound}!d drive {pound}!b{colon} {pound}!e "+e$+". Use it anyway{question} ":gosub 94:if a=. then {:askdrv}
+	return
+{:asklu}
+' its directory, as a check (no "i" there): an LU that isn't there or isn't
+' activated answers with an error
+	close 15:open 15,d,15:close 2:open 2,d,0,"$"+mid$(str$(b),2):get#2,a$:input#15,e,e$:close 2:close 15
+	if e<20 and b<11 then return
+	&"{yellow}Device {pound}!d LU {pound}!b{colon} {pound}!e "+e$+". Use it anyway{question} ":gosub 94:if a=. then {:askdrv}
 	return
 {:askpart}
 	for i=1 to len(pt$):if asc(mid$(pt$,i,1)+nl$)=b then i=255

@@ -32,6 +32,7 @@ parts = {
     'ml.low': (sym['wedgemem'], 0x4000),
     'ml.mod': (sym['editor_load_address'], sym['romtab']),
     'ml.res1': (sym['romtab'], sym['resident_lo_end']),
+    'ml.io': (0xd000, 0xe000),	# 11/20/2026: bank 0's RAM under I/O (cfg_io)
     'ml.res2': (sym['resident_hi'], min(end, sym['resident_hi_end'])),
 }
 

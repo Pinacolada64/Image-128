@@ -358,6 +358,13 @@ charrom8_ld:
 	orig charbuf8
 	byte 0,0,0,0,0,0,0,0
 
+; 11/13/2026: at fixed addresses (equates.asm), for BASIC: 1 if there's a
+; Lt. Kernal, and the LU logged in at boot, which Image boots from when it
+; booted from the Lt. Kernal (intro.asm's lockinit sets them; im 3077)
+	orig ltkon
+	byte 0
+	byte 0		; ltklu
+
 ; 11/12/2026: the Lt. Kernal hard drive, for &,13's locks between the
 ; stations of a multiplexed one (miscl.asm's arbit; intro.asm's lockinit
 ; finds or makes the lockfile and sets these). Here, in the shared 16K,
@@ -453,3 +460,4 @@ ltkbase:
 	word 0		; the lockfile's header block (a lock's block: + 1 + n)
 ltklock:
 	byte 0		; the lock &,13 works on
+

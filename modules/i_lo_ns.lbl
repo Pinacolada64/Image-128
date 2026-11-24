@@ -16,8 +16,11 @@
 4010 dr=2:gosub 3:for i=1 to 60:a$=dr$+"nm.netsub"+str$(i):&,16,2,dv%:gosub 5
 4012 if e%then r%=i-1:i=60:next:&"{f6:3}":goto 4022
 4014 &".":&,16:nn$(i)=left$(a$+"......................",22)+" "
-4016 for j=49707 to 49755 step 3:a$=chr$(peek(j)):if a$<"A" or a$>"Z" then j=49755:goto 4020
-4018 nn$(i)=nn$(i)+chr$(peek(j))+chr$(peek(j+1))+chr$(peek(j+2))+" "
+' 11/09/2026: the NetSub's nodes from an$ (&,16 gives them there: 3 characters
+' a node, 16 at most, padded with -), not peek(49707)-peek(49755), where ++ netlist
+' keeps them on the C64 ($c22b); on the 128 it's at $1c00 (asm/netlist.asm)
+4016 for j=1 to 46 step 3:a$=mid$(an$,j,1):if a$<"A" or a$>"Z" then j=46:goto 4020
+4018 nn$(i)=nn$(i)+mid$(an$,j,3)+" "
 4020 next j:nn$(i)=nn$(i)+"{rvrs off}":next i:&"{f6:3}"
 4022 for i=1 to r%-1:for j=i+1 to r%:if nn$(i)>nn$(j) then a$=nn$(i):nn$(i)=nn$(j):nn$(j)=a$
 4024 next j:a$="{up} Sorting :    {left:3}"+str$(i)+"{f6}":&:next i

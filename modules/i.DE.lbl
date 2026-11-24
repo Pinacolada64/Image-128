@@ -21,7 +21,7 @@
 3020 &,16,.,46,m%(.,5),"W","","Weed Used Records"
 3022 &,16,.,46,m%(.,6),"R","","Read Log Files"
 3024 &,16,.,46,m%(.,7),"Q","","Quit to Main Prompt"
-3026 &"{clear}{blue}{rvrs on}{pound}{back arrow}39{f6}{rvrs on} {cyan}           Image BBS V3.0{pound}{back arrow}37{blue}  {f6}"
+3026 &"{clear}{blue}{rvrs on}{pound}{back arrow}39{f6}{rvrs on} {cyan}         Image BBS 128 v1.0{pound}{back arrow}37{blue}  {f6}"
 3028 &"{rvrs on} {cyan}       Direct Transfer Editor{pound}{back arrow}37{rvrs off} {rvrs on}{blue} {f6}{rvrs on}  {rvrs off}{pound}{back arrow}38{rvrs on} {f6}"
 3030 &,16,2,46,m%(.,1),n,36,1,n,2,6,.:lm=a%+1:&,70,.,n+8:&"{white}"
 3032 iftr%<1orlm=norlm=.then3280

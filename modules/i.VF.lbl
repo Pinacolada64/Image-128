@@ -14,7 +14,8 @@
 ' i.lo.vf, which this replaces, did: the sysop logged in locally (3001),
 ' Mail Check on the menu (3103, 3107), and back to idle on quitting (3425)
 3000 poke 53280,0:dim fl$(15):f4=.:lh=.:on peek({sym:idletool}) gosub 3001:goto 3080
-3001 &,18,0:poke 53252,20:gosub 304:zz=1:&,52,4,1:&,52,5,1:id=1:im=2:gosub 445:ll%=40:gosub 90:return
+' 11/19/2026 (user): the sysop at the console: ll% is the screen's width, sw
+3001 &,18,0:poke 53252,20:gosub 304:zz=1:&,52,4,1:&,52,5,1:id=1:im=2:gosub 445:ll%=sw:gosub 90:return
 3002 on bz+1 goto 3010:&"{f6}":for x=1 to bz:b%=x:b$=dt$(x):&" {pound}%b. {pound}$b{f6}":next:return
 ' 10/27/2026: the count so far after each message, then that many backspaces
 ' ({pound}h and the number of digits), so the next one prints over it
@@ -214,7 +215,10 @@
 3362 for i=1 to 23:a$=a$+tt$(i)+r$:next:gosub 1:print# 2,a$;:close 2
 3364 if x<=l1then l1=x:x=31:gosub 33:gosub 1:print# 2,l1:close 2
 3366 a$="r":gosub 32:close 2:if e%=.then gosub 30:i=-1:x=25:gosub 16:close 2
-3368 dr=2:b$=left$(tt$,13):a$="f."+b$:gosub 19:a$="m."+b$:gosub 19
+' 11/10/2026: mail (m.) and waiting-mail (f.) file names keep 14 characters of the
+' handle (a 16-character file name), as im line 32 and i/lo.on 4178 do; some
+' modules kept 13, so a 14+ character handle's mail went to another file
+3368 dr=2:b$=left$(tt$,14):a$="f."+b$:gosub 19:a$="m."+b$:gosub 19
 3370 goto 3348
 3372 on zz+1 goto 3122:close 2:f1=f1-(f1=.):x=val(f$):if x=.then:&"{f6}No Account!{f6:2}":goto 3122
 3374 gosub 35:gosub 1:for i=1 to 23:input# 2,ed$(i):next

@@ -465,6 +465,20 @@ setp1:
 	sta vars+1,y
 	dec tmp1
 	bpl setp1
+; 11/19/2026: and ll%'s place, for trace.asm's akfix (ak$ kept ll% wide).
+; Not in vars: varbl.asm's $c000-$cfff is full. im DIMs ll% before this
+; (line 3028) and before its &,27,1 mark, so its place doesn't move
+	lda #$cc	; "ll%": L and L, both with bit 7 set (an integer)
+	sta varnam
+	sta varnam+1
+	jsr findvar1
+	sec
+	lda varpnt
+	sbc vartab
+	sta lloff
+	lda varpnt+1
+	sbc vartab+1
+	sta lloff+1
 	rts
 
 date2:
@@ -613,7 +627,9 @@ startmsg:
 	jmp prtvar0
 
 bootvers:
-	ascii "{clear} Image BBS 128 v"
+; 11/09/2026: from column 0. With &,5's a$ (the ML's build date and time,
+; 20 characters) the line is 40, so the leading space it had made it wrap
+	ascii "{clear}Image BBS 128 v"
 	ascii {usedef:version_number}
 	ascii " {pound}$a{f6}"
 bootvers_end:
@@ -655,7 +671,10 @@ screentb:
 ; - Is there one: its KERNAL has a jsr at $ffd2 (CHROUT's entry; the 128's
 ;   own has jmp ($0326)), read with the ROMs in
 ; - this station's port (GETPRT, the host adapter's DIP switches) + $80:
-;   ltkport, a lock's owner byte
+;   ltkport, a lock's owner byte; ltkon 1 and the LU logged in (Image
+;   booted from it, if it booted from the Lt. Kernal): ltklu (11/13/2026).
+;   Its device number isn't kept: hdrnum ($802c, ltk_dos_addresses.asm)
+;   held $92 here; im 3077 asks the boot device instead
 ; - "lockfile" on LU 10, user 0 (every port's), found, or made: lk_locks
 ;   blocks and its header, contiguous (type 5), catalogued, then found
 ;   again (as LK Mini-Mon does; PSV1N5A.TXT, ~/Documents/c64/ltkernal); its
@@ -669,6 +688,8 @@ lockinit:
 	lda #0
 	sta ltkflag
 	sta lknew
+	sta ltkon
+	sta ltklu
 	lda $ffd2
 	cmp #$20
 ; 11/13/2026: beq/jmp, not "bne lockin9": lockin9 is more than 127 bytes on,
@@ -683,6 +704,9 @@ lockin1:
 	and #$0f
 	ora #$80
 	sta ltkport
+	inc ltkon	; there's one; and the LU logged in now, at boot:
+	lda ltk_activl	; Image's boot disk if it booted from the Lt. Kernal
+	sta ltklu	; (im 3077: bd$, dr$)
 	lda ltk_activu	; the logged LU and user, put back after
 	pha
 	lda ltk_activl

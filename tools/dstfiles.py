@@ -13,7 +13,11 @@ first 11 characters: e.data record 45 for the BBS, mid$(uf$,6) for a caller):
   4-7   its offset, hhmm, from UTC-12: GMT is 1200, UTC-8 0400, UTC+9:30 2130
   8     the DST rule's letter in s.dstrules, "-" for none
   9-11  daylight time's name, spaces for none
-  12-   the description (sub.info shows 28 characters of it)
+  12-   the description, as sub.info shows it: "(" + the name in light
+        red + ") " + the text in green (the text: 28 characters show). The
+        colors are in the file (11/23/2026) so sub.info shows each line as
+        it is: it joined them on for every zone, each time (3 s in x128).
+        The text starts at 21 (sub.info 60096)
 
 s.dstrules, a line per rule (sub.clocks reads the BBS's and each caller's):
   1     the letter
@@ -77,6 +81,16 @@ RULES = [
 ]
 
 
+# the description's colors: light red, white, green
+LT_RED, WHITE, GREEN = b"\x96", b"\x05", b"\x1e"
+
+
+def described(zone, desc):
+    """the description field: (name) in light red, then the text in green;
+    9 bytes before the text, so it starts at 21"""
+    return b"(" + LT_RED + petscii(zone[:3]) + WHITE + b") " + GREEN + petscii(desc)
+
+
 def petscii(text):
     """ASCII to PETSCII as the BBS's files have it (lower/upper case mode):
     lowercase letters $41-$5a, capitals $c1-$da"""
@@ -113,7 +127,7 @@ def main():
     out = sys.argv[1]
     os.makedirs(out, exist_ok=True)
     with open(os.path.join(out, "s.timezones"), "wb") as f:
-        f.write(b"".join(petscii(z + d) + b"\r" for z, d in ZONES))
+        f.write(b"".join(petscii(z) + described(z, d) + b"\r" for z, d in ZONES))
     with open(os.path.join(out, "s.dstrules"), "wb") as f:
         f.write(b"".join(petscii(r) + b"\r" for r in RULES))
 

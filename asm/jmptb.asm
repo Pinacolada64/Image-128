@@ -23,7 +23,8 @@
 	word setmode	;&,18
 	word getversn	;&,19
 
-	word swap3_swap_address+12	; 20 - read_interface_byte
+	word swap3_swap_address+15	; 20 - read_interface_byte (11/20/2026: was +12,
+				; swap3's jmp copyrite, so &,20 printed the copyright)
 	; Reads a byte from the interface table
 	; &,20,x,y
 	; x = index (see table)

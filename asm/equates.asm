@@ -129,6 +129,11 @@
 			; so the ML at $c000, the screen, Image's tables and
 			; glue.asm all stay visible, and the C64 code's
 			; "lda (pointer),y" on variables and strings just works
+	cfg_io	= $7f	; 11/20/2026: cfg_ml with RAM, not I/O, at $d000-$dfff; the
+			; shared top 16K makes it bank 0's RAM, where the code
+			; ml.io loads runs (&,15,7, &,15,8: center.asm, widest*.asm)
+			; through farcall. Bank 1's variables are seen as in
+			; cfg_ml; nothing there may touch I/O
 	cfg_bank0= $3f	; bank 0 all RAM, no I/O: to read BASIC program text
 	cfg_charrom= $01 ; bank 0 with the ROMs, and the character ROM at $d000
 			; in place of I/O (editor.asm's big letters read it)
@@ -417,6 +422,9 @@
 	; leave it there), and trace0 copies it into a string of its own before
 	; the next statement. BASIC 7's x$=an$ copies only the descriptor
 	anfix	= $0af4	; 2804
+	; 11/20/2026: &,15,8 (widest.asm): s (the start index) and the items left
+	wst	= $0af5	; 2805
+	wn	= $0af6	; 2806
 	keychk	= $033c	; 128 only: KEYCHK, the editor's vector for each decoded key
 			; on its way into the buffer (.a: the key; default $c6ad)
 
@@ -668,7 +676,10 @@
 ; columns 64-79, which the VIC hasn't got; status.asm's r80_btm copies it
 	btmwin	= $19ba	; 16 bytes ($19ba-$19c9), screen codes
 	btmnew	= $19ca	; non-zero: btmwin changed
-; $19cb-$19ff: free
+	visfrom	= $19cb	; 1 byte (11/11/2026): 1 while sub.editor runs a dot command
+			; from ++ visual (its .H help then goes back to it); was $199f,
+			; which draw_status_line took (11/18/2026)
+; $19cc-$19ff: free
 
 ; $1a00-$1bff: $1ff / 511 bytes. room for IRQ/& jump tables?
 
@@ -946,6 +957,8 @@
 	; (assembled apart): copies 8 bytes of the character ROM to charbuf8
 	charrom8		= $3780
 	charbuf8		= charrom8 + 40
+	ltkon			= charbuf8 + 8	; 11/13/2026: 1 if there's a Lt. Kernal (lockinit), glue.asm
+	ltklu			= ltkon + 1	; the LU logged in at boot (lockinit; im 3077)
 	romtab			= $c000	; romtab.asm, then the resident ML:
 	resident_lo_end		= $d000	;   $c000-$cfff
 	resident_hi		= $e000	;   and $e000-$feff ($ff00-: MMU, and the
@@ -1116,6 +1129,7 @@ var_kp_integer	= 38
 var_c3_string	= 39
 var_mp_string	= 48
 var_mn_integer	= 49
+var_ak_string	= 14	; ak$, the separator line (trace.asm's akfix keeps it ll% long)
 
 ; indices and bit masks for chktbl
 flag_sys_addr	= chktbl + 0
@@ -1219,7 +1233,7 @@ flag_h2e_r_mask	= %10000000	; 47 Undefined
 flag_h38_addr	= chktbl + 7 	; Dbg
 flag_h38_l_mask	= %00000001	; 56 ($38) On: Do not display BASIC variables
 flag_h38_r_mask	= %00000010	; 57 ($39) On: Border Color on Event: the VIC-II border
-			; changes on an error (red), a new user, feedback (im 23)
+			; changes on an error (red), a new user, feedback (im 24)
 
 flag_dcd_addr	= chktbl + 7 	; DCD
 flag_dcd_l_mask	= %00000100	; 58 ($3a) invert DCD: off=normal, on=inverted

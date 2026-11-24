@@ -149,8 +149,11 @@
 3254 &"Edit{f6}":&"{f6:2}Editor:"+str$(kk-1)+" Lines.{f6:2}"
 3256 im=2:gosub440:ifkk=.then3038
 3258 &"{f6:2}Filing Edited Mail...{f6}":b%=ad%:tt$(kk)="{^}":gosub3058:goto3230
-3260 &"{f6}Updating..":close2:close3:dr=2:gosub3:print#15,"s"dr$"m."left$(tt$,13)
-3262 ifa%thenprint#15,"r"dr$"m."left$(tt$,13)"="dr$"temp":goto3266
+' 11/10/2026: mail (m.) and waiting-mail (f.) file names keep 14 characters of the
+' handle (a 16-character file name), as im line 32 and i/lo.on 4178 do; some
+' modules kept 13, so a 14+ character handle's mail went to another file
+3260 &"{f6}Updating..":close2:close3:dr=2:gosub3:print#15,"s"dr$"m."left$(tt$,14)
+3262 ifa%thenprint#15,"r"dr$"m."left$(tt$,14)"="dr$"temp":goto3266
 3264 print#15,"s"dr$"temp":gosub30:i=-1:x=25:gosub16:close2
 3266 gosub3002:ifd%=1thengosub30:x=24:st(x)=a%:gosub17:close2
 3268 goto3088
@@ -231,7 +234,10 @@
 3404 b$=mid$(tt$(.),26):&"{pound}{back arrow}39 {lt. blue}Subj: {white}{pound}$b{f6}{pound}q0":a=aorrc:return
 3406 dr=2:a$="nm.config":gosub4:nn=.:ife%then3414
 3408 input#2,nn,af%,pn$,v$:close2:ifv$<"900610"then3414
-3410 ml$="":a$="path":gosub28:gosub5:ife%then3414
+' 11/19/2026: no gosub 5 after gosub 28: im 29 already reads the drive's
+' status (goto 5), and a second read gives 00, OK, so a failed load of ++
+' path wasn't seen and the next line called whatever was at protostart
+3410 ml$="":a$="path":gosub28:ife%then3414
 3412 dr=2:gosub3:a$=dr$+"nm.nodelist":&,16:gosub5:ife%=0thenreturn
 3414 &:close2:&,52,28,0:nf=.:&"{f6}No Network Configured...{f6:2}{pound}w2":return
 3416 &"{f6}":gosub3426:p$="{f6}Destination Node":gosub6

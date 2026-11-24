@@ -56,7 +56,10 @@
 3184 if x<l1then l1=x:x=31:gosub 33:gosub 1:print# 2,l1:close 2
 3186 rem
 3188 a$="r":gosub 32:close 2:if e%=.then gosub 30:i=-1:x=25:gosub 16:close 2
-3190 dr=2:b$=left$(tt$,13):a$="f."+b$:gosub 19:a$="m."+b$:gosub 19:goto 3108
+' 11/10/2026: mail (m.) and waiting-mail (f.) file names keep 14 characters of the
+' handle (a 16-character file name), as im line 32 and i/lo.on 4178 do; some
+' modules kept 13, so a 14+ character handle's mail went to another file
+3190 dr=2:b$=left$(tt$,14):a$="f."+b$:gosub 19:a$="m."+b$:gosub 19:goto 3108
 3192 &"{f6}Password?: {pound}i1":if an$="" then an$="PASS"
 3194 for i=3 to 23:tt$(i)="0":next:tt$(2)=an$:goto 3126
 3196 &"{clear}":poke 53252,38:for i=1 to 20:b$=mid$(q$,i,1)
@@ -83,7 +86,7 @@
 3238 if len(b$)=1 then b$="0"+b$
 3240 q$=left$(q$,a-1)+b$+mid$(q$,a+2):&"{f6}":goto 3196
 3242 dr=2:gosub 3:a$="f.":for i=1 to 2
-3244 print# 15,"r" dr$a$left$(tt$(1),13) "=" dr$a$left$(tt$,13):a$="m.":next
+3244 print# 15,"r" dr$a$left$(tt$(1),14) "=" dr$a$left$(tt$,14):a$="m.":next
 3246 gosub 5:an$=tt$:kk=id:id=x:im=7:gosub 445:an$=tt$(1):gosub 3250
 3248 an$=tt$(1):if an$<>"{f8}" and an$<>"RES" then im=8:gosub 445
 3249 id=kk:return

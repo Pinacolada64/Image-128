@@ -77,7 +77,7 @@
 4318 &,16,.,34,m%(.,4),"M","","Mail Check"
 4320 &,16,.,34,m%(.,5),"!","","Log Off"
 4322 &,16,.,34,m%(.,6),"I","","Instant"
-4334 &"{clear}{blue}{rvrs on}{pound}{back arrow}39{f6}{rvrs on} {cyan}     Image BBS V3.0 Login Menu{pound}{back arrow}37{blue}  {f6}"
+4334 &"{clear}{blue}{rvrs on}{pound}{back arrow}39{f6}{rvrs on} {cyan}   Image BBS 128 v1.0 Login Menu{pound}{back arrow}37{blue}  {f6}"
 4336 &"{rvrs on} {cyan} Instant Login Restricted to Sysops{pound}{back arrow}37{rvrs off} {rvrs on}{blue} {f6}{rvrs on}  {rvrs off}{pound}{back arrow}38{rvrs on} {f6}"
 4338 &,16,2,34,m%(.,1),n,17,2,n/2+.5,2,6,.:lm=a%+1:&,70,.,n/2+8.5:&"{white}"
 4344 &,28,2:return

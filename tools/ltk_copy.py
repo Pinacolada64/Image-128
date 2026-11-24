@@ -2,7 +2,7 @@
 """ltk_copy.py: copy files from a 1581 disk onto an LU of VICE's Lt. Kernal.
 
     asm/build.sh
-    tools/ltk_copy.py [--lu N] [--source disk.d81] [--save] [--keep] FILE...
+    tools/ltk_copy.py [--lu N] [--source disk.d81] [--images DIR] [--save] [--keep] FILE...
 
 e.g. tools/ltk_copy.py i.IM i/IM.misc --save
 
@@ -12,6 +12,8 @@ Runs tests/standin/ltkcopy.bas with the Lt. Kernal at device 8 (booted in
 --source; it has to boot, so one asm/build.sh made) with the stand-in as
 "im 128" and ltkcopy.list, the LU and the files to copy. Each FILE is
 scratched on the LU, copied with ++ copier and compared (&,16,3).
+"im 128" works too: the stand-in has that name on its disk, so the real
+one goes there as "im 128.real" and is copied to the LU as "im 128".
 
 FILE is the name as c1541 lists it: a capital letter is a shifted one
 (i.IM is "i." and shifted I and M). The LU is 10 (the one the Lt. Kernal
@@ -21,6 +23,10 @@ The run uses copies of LTK DIR's drive images (ltk_chatmode.py's header has
 what they are), made fresh each time in build/ltk-copy/, so the originals
 don't change. --save, if every file copied: each image the run changed
 replaces LTK DIR's, after the old one is kept as <image>.before-<date>-<time>.
+--images DIR takes the drive images from DIR instead (and --save puts them
+back there), e.g. a configured system's (tools/ltk_bbs2.py's
+build/ltk-configured: Image on LU 5, so --lu 5); ltk.crt still comes from
+LTK DIR. VICE keeps the images with every byte inverted (XOR $ff).
 --keep leaves x128 running at the end.
 """
 import filecmp, os, re, shutil, subprocess, sys, time
@@ -35,6 +41,7 @@ build = os.path.join(repo, 'build')
 disk = os.path.join(build, 'standin-ltkcopy.d81')
 PORT = int(os.environ.get('VMON_PORT', '6603'))
 IMAGES = ('disk0.dlk', 'disk1.dlk', 'disk2.dlk')
+REAL_IM = 'im 128.real'  # the real im 128 on the stand-in's disk
 
 args = sys.argv[1:]
 if not args or '-h' in args or '--help' in args:
@@ -45,6 +52,9 @@ if '--lu' in args:
 source = os.path.join(build, 'image128.d81')
 if '--source' in args:
     i = args.index('--source'); source = args[i + 1]; del args[i:i + 2]
+images = LTK
+if '--images' in args:
+    i = args.index('--images'); images = args[i + 1]; del args[i:i + 2]
 save = '--save' in args
 keep = '--keep' in args
 files = [a for a in args if a not in ('--save', '--keep')]
@@ -88,13 +98,23 @@ with open(lst, 'wb') as f:
     for name in files:
         # the type letter in PETSCII too: an ASCII "s" ($73) is a shifted
         # character there, so the stand-in opened every seq file as a prg
-        f.write(petscii(types[name] + name) + b'\r')
-subprocess.run(['c1541', '-attach', disk, '-delete', 'im 128', '-write', prg, 'im 128',
-                '-delete', 'ltkcopy.list', '-write', lst, 'ltkcopy.list,s'],
+        # 11/18/2026: "im 128" is the stand-in on this disk, so the real one
+        # goes on as REAL_IM and the list says "source=dest" (an LU then got
+        # the stand-in as its im 128, which boots to ?LOAD ERROR IN 80)
+        src = REAL_IM + '=' + name if name == 'im 128' else name
+        f.write(petscii(types[name] + src) + b'\r')
+c1541 = ['c1541', '-attach', disk]
+if 'im 128' in files:
+    real = os.path.join(work, 'im128-real.prg')
+    subprocess.run(['c1541', '-attach', source, '-read', 'im 128', real],
+                   capture_output=True, check=True)
+    c1541 += ['-delete', REAL_IM, '-write', real, REAL_IM]
+subprocess.run(c1541 + ['-delete', 'im 128', '-write', prg, 'im 128',
+                        '-delete', 'ltkcopy.list', '-write', lst, 'ltkcopy.list,s'],
                capture_output=True, check=True)
 
 for f in IMAGES:
-    shutil.copy(os.path.join(LTK, f), work)
+    shutil.copy(os.path.join(images, f), work)
 
 
 def waitfor(v, texts, limit, every=3):
@@ -129,13 +149,13 @@ finally:
         v.stop()
 
 if not ok:
-    sys.exit('ltk_copy.py: not every file copied; LTK DIR left as it was')
+    sys.exit(f'ltk_copy.py: not every file copied; {images} left as it was')
 changed = [f for f in IMAGES
-           if not filecmp.cmp(os.path.join(LTK, f), os.path.join(work, f), shallow=False)]
+           if not filecmp.cmp(os.path.join(images, f), os.path.join(work, f), shallow=False)]
 print('changed:', ', '.join(changed) or 'none')
 if save:
     stamp = time.strftime('%Y%m%d-%H%M')
     for f in changed:
-        shutil.copy2(os.path.join(LTK, f), os.path.join(LTK, f'{f}.before-{stamp}'))
-        shutil.copy(os.path.join(work, f), os.path.join(LTK, f))
-        print(f'saved {f} in {LTK} (the old one: {f}.before-{stamp})')
+        shutil.copy2(os.path.join(images, f), os.path.join(images, f'{f}.before-{stamp}'))
+        shutil.copy(os.path.join(work, f), os.path.join(images, f))
+        print(f'saved {f} in {images} (the old one: {f}.before-{stamp})')
