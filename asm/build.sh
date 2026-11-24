@@ -146,6 +146,20 @@ if [ $mode = all ]; then
 		# place, in modules/ too, e.g. the last committed one while it's being
 		# edited (11/13/2026: the setup moved here from the top directory)
 		src=$f; [ "$f" = i_su.config.lbl ] && [ -n "$ISU_CONFIG" ] && src=$ISU_CONFIG
+		# 11/24/2026: a 4.04 module (the preface's) that uses BASIC 7.0's
+		# keywords (print using, pudef, instr(...) is built from a copy made
+		# for 4.06 (tools/basic7.py, to406.py's conversion), .406.<name>.lbl
+		# here (not in git; .. paths as the module's own), so its source keeps
+		# the preface's jumps by number. Exit 1: no BASIC 7.0 ("|| r=$?": set -e);
+		# 2: keywords in its crunched code that 4.06 would tokenize too
+		# (basic7.py says where): stop
+		if [ "$list" = "$C64LIST" ]; then
+			r=0; python3 "$repo/tools/basic7.py" convert "$src" ".406.$f" || r=$?
+			case $r in
+			0) src=.406.$f; list=$C64LIST_406 ;;
+			2) exit 1 ;;
+			esac
+		fi
 		spawn "$repo/modules" "modules/$f" "$list" "$src" "-prg:..\\build\\$m.prg" $crunch -ovr
 		modwrites+=(-write "$m.prg" "$disk")
 	done

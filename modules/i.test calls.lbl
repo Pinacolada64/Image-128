@@ -851,16 +851,16 @@
 {:7000} ' 76: &,15,9: PRINT USING into a string
 ' &,15,9 starts: what BASIC PRINTs to the screen goes into a buffer (asm/
 ' using.asm), not the screen; &,15,9,1 stops and puts it in a$ (&,15,9,1,s$:
-' in s$). Returns are dropped. USING and PUDEF are written as their tokens
-' ({$fb}, {$dd}): C64List 4.04 doesn't know BASIC 7.0's keywords
+' in s$). Returns are dropped. print using and pudef as they are: the build
+' makes a 4.06 copy of a module that uses BASIC 7.0 (tools/basic7.py)
 	&"{f6}&{comma}15{comma}9 PRINT USING into a String{f6:2}"
-	x=1234.5:&,15,9:print{$fb}"#,###.##";x;:&,15,9,1:&"{quotation}#{comma}###.##{quotation} 1234.5{colon}  [{pound}$a]{f6}"
-	x=-42:&,15,9:print{$fb}"#####";x:&,15,9,1:&"{quotation}#####{quotation} -42 (Return){colon} [{pound}$a]{f6}"
-	x=3.5:&,15,9:print{$fb}"$###.##";x;:&,15,9,1:&"{quotation}$###.##{quotation} 3.5{colon}     [{pound}$a]{f6}"
-	x=42:&,15,9:{$dd}"*":print{$fb}"#####";x;:{$dd}" ":&,15,9,1:&"pudef {quotation}{asterisk}{quotation} {quotation}#####{quotation} 42{colon} [{pound}$a]{f6}"
+	x=1234.5:&,15,9:print using "#,###.##";x;:&,15,9,1:&"{quotation}#{comma}###.##{quotation} 1234.5{colon}  [{pound}$a]{f6}"
+	x=-42:&,15,9:print using "#####";x:&,15,9,1:&"{quotation}#####{quotation} -42 (Return){colon} [{pound}$a]{f6}"
+	x=3.5:&,15,9:print using "$###.##";x;:&,15,9,1:&"{quotation}$###.##{quotation} 3.5{colon}     [{pound}$a]{f6}"
+	x=42:&,15,9:pudef "*":print using "#####";x;:pudef " ":&,15,9,1:&"pudef {quotation}{asterisk}{quotation} {quotation}#####{quotation} 42{colon} [{pound}$a]{f6}"
 	x=7:&,15,9:print "credits";x;:&,15,9,1,b$:&"print {quotation}credits{quotation};7 into b${colon} [{pound}$b]{f6}"
 	&,15,9:&,15,9,1:a=len(a$):&"nothing printed{colon} len(a$) {pound}!a (expect 0){f6}"
-	x=99.995:&,15,9:print{$fb}"##.##";x;:&,15,9,1:&"{quotation}##.##{quotation} 99.995 (too wide){colon} [{pound}$a]{f6}":return
+	x=99.995:&,15,9:print using "##.##";x;:&,15,9,1:&"{quotation}##.##{quotation} 99.995 (too wide){colon} [{pound}$a]{f6}":return
 
 {:sub.128_ruler}
 ' a ruler z columns wide: the last digit of each column's number, every

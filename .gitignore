@@ -7,3 +7,5 @@ __pycache__/
 
 # drive ROMs (CMD FD-2000/4000...) for VICE tests: not ours to publish
 ROMs/
+# tools/basic7.py: 4.06 copies of modules using BASIC 7.0 (asm/build.sh)
+modules/.406.*
