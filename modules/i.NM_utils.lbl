@@ -161,7 +161,10 @@
 3300 &"Done!{pound}w1{f6}":return
 3302 close 3:&"{f6:2}Error Creating File {f5}nm.create{f5}.{f6}":return
 3304 if n%<>1 then return
-3306 pr=-1:a$="path":gosub 28:gosub 5:if e%then:&:goto 3316
+' 11/19/2026: no gosub 5 after gosub 28: im 29 already reads the drive's
+' status (goto 5), and a second read gives 00, OK, so a failed load of ++
+' path wasn't seen and the next line called whatever was at protostart
+3306 pr=-1:a$="path":gosub 28:if e%then:&:goto 3316
 3308 dr=2:gosub 3:a$=dr$+"nm.nodelist":&,16:&"{pound}%a Nodes.{f6:2}"
 3310 &"From:{pound}i1":a$=an$:a%=val(a$):if an$="" then 3316
 3312 &"To  :{pound}i1":b$=an$:b%=val(b$):if an$="" then 3316

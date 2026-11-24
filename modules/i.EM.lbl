@@ -234,7 +234,10 @@
 3404 b$=mid$(tt$(.),26):&"{pound}{back arrow}39 {lt. blue}Subj: {white}{pound}$b{f6}{pound}q0":a=aorrc:return
 3406 dr=2:a$="nm.config":gosub4:nn=.:ife%then3414
 3408 input#2,nn,af%,pn$,v$:close2:ifv$<"900610"then3414
-3410 ml$="":a$="path":gosub28:gosub5:ife%then3414
+' 11/19/2026: no gosub 5 after gosub 28: im 29 already reads the drive's
+' status (goto 5), and a second read gives 00, OK, so a failed load of ++
+' path wasn't seen and the next line called whatever was at protostart
+3410 ml$="":a$="path":gosub28:ife%then3414
 3412 dr=2:gosub3:a$=dr$+"nm.nodelist":&,16:gosub5:ife%=0thenreturn
 3414 &:close2:&,52,28,0:nf=.:&"{f6}No Network Configured...{f6:2}{pound}w2":return
 3416 &"{f6}":gosub3426:p$="{f6}Destination Node":gosub6
