@@ -14,13 +14,14 @@
 ; (device 3) here while usecap is set: print#, cmd and & output aren't
 ; touched (& output goes to prtscn and the modem itself, not CHROUT).
 ; Returns are dropped, so PRINT USING with or without its ";" gives the
-; same string; past 128 characters the rest is dropped. PUDEF works as
+; same string; past 255 characters (a string's most) the rest is dropped
+; (11/24/2026: 128 before; columns.lbl catches a whole row of a list). PUDEF works as
 ; usual (the fill, comma, point and dollar characters).
 ;
 ; In the shared bottom 16K after status.asm (glue's area, visible in every
 ; configuration), as the & call runs in cfg_ml and out does too.
 
-usebuf	= $3f80		; 128 bytes, to $3fff: ml.asm's addrcheck keeps
+usebuf	= $3f00		; 255 bytes, to $3ffe: ml.asm's addrcheck keeps
 			; the code below it
 
 ; the & call (strio.asm's convtbl, 9): .y the third number
@@ -74,7 +75,8 @@ usechr:
 	cmp #$0d
 	beq usechr9
 	ldy uselen
-	bmi usechr9	; 128 already
+	cpy #255
+	beq usechr9	; 255 already
 	sta usebuf,y
 	inc uselen
 usechr9:

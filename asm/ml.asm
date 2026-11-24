@@ -117,7 +117,7 @@ wedge_pages = (* - wedge_exec_address) / 256
 ; the status line's indicators: shared, for the IRQ and the NMI
 {include:"status.asm"}
 ; 11/24/2026: &,15,9, BASIC's PRINT (USING) into a string; its buffer is
-; $3f80-$3fff
+; $3f00-$3ffe
 {include:"using.asm"}
 
 	addrcheck usebuf

@@ -47,7 +47,12 @@
 61816 k9=.:h9=.:&,52,4,3:if peek(53248) or a% then h9=peek({sym:scbot})-peek({sym:sctop})-3:if h9<1 then h9=1
 ' row i: item i+c7*r9 of each column c7, each through its own & (11/23/2026:
 ' a row built in a string and printed with one & was slower in x128, 13.4 s
-' against 11.3 for 20 rows: BASIC's string joins cost more than the &s)
+' against 11.3 for 20 rows: BASIC's string joins cost more than the &s).
+' 11/24/2026: and a row printed with BASIC's print (tabs, colors and MCI as
+' they are; the number with print using), caught in a string by &,15,9 and
+' sent with one &, was slower too: the time zone list in 80 columns, 19
+' rows, 17.7 s from the first item to the prompt, against 16.7 (two runs
+' each). The time is in printing the characters, not in the &s
 61818 for i=1 to r9:for c7=.to c9-1:j=i+c7*r9:if j>n then 61826
 61820 if c7 then:&mid$(t9$,c7*4-3,4)
 61822 if x then a%=j:&p9$
