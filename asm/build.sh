@@ -101,7 +101,7 @@ spawn "$here" ml.asm "$C64LIST" ml.asm -prg:ml.prg -sym:ml.sym -ovr
 spawn "$here" rs232.asm "$C64LIST" rs232.asm -prg:rs232.prg -ovr
 # the "++" overlays: im loads them at protostart (&,7,dv%,2), each on the
 # disk as "++ <name>"; extra disk names for the same file after a ":"
-overlays="index:4 clock menu2 2 read post path net netsub netlist copier visual chatmode"
+overlays="index:4 clock menu2 2 read post path net netsub netlist copier visual chatmode xmodem"
 ovlwrites=()
 for o in $overlays; do
 	name=${o%%:*}
@@ -158,6 +158,11 @@ for o in $overlays; do
 	name=${o%%:*}
 	cp "$name.prg" "$build/++ $name.prg"
 done
+# ++ xmodem's 1K block buffer (xbuf) and its CRC tables (512 bytes) follow
+# its code: all must end below protobuf ($2b00), so the code (the file less
+# its 2-byte load address) may be up to $f00 - $600 = 2304 bytes
+xsize=$(( $(stat -c %s xmodem.prg) - 2 ))
+[ $xsize -le 2304 ] || { echo "build.sh: ++ xmodem is $xsize bytes: with its 1K buffer and CRC tables it runs past protobuf" >&2; exit 1; }
 python3 "$repo/tools/split-ml.py" ml.prg ml.sym "$build"
 cp boot.prg "$build/boot 128.prg"
 
@@ -211,6 +216,7 @@ c1541 -format "image bbs 128,ib" d81 image128.d81 \
 	-write "$repo/disk/e.fkeys.seq" "e.fkeys,s" \
 	-write "$repo/disk/s.visual.seq" "s.visual,s" \
 	-write "$repo/disk/s.visual 80.seq" "s.visual 80,s" \
+	-write "$repo/disk/s.m.protos.seq" "s.m.protos,s" \
 	-write "$build/dst/s.timezones" "s.timezones,s" \
 	-write "$build/dst/s.dstrules" "s.dstrules,s" \
 	"${modwrites[@]}" "${ovlwrites[@]}" >/dev/null
