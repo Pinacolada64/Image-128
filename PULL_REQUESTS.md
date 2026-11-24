@@ -18,8 +18,8 @@ and/or tip commit), name, and a short summary of what the change adds or fixes.
 Sections: Open PRs → Feature branches (no PR) → Direct commits to master →
 Merged PRs → Merged branches (newest first).
 
-Seeded 2026-11-17; updated 2026-11-24 against origin/master at `fa65efe`
-(all 36 PRs merged).
+Seeded 2026-11-17; updated 2026-11-24 against origin/master at `ef548a4`
+(all 39 PRs merged).
 
 ---
 
@@ -71,6 +71,9 @@ None.
 
 | PR | Merge commit | Branch | Tip | Summary |
 |----|--------------|--------|-----|---------|
+| [#40](https://github.com/Pinacolada64/Image-128/pull/40) | `ef548a4` | `output-bench` | `1075129` | `i.test calls` 77: the same 1000 characters printed five ways (`print`, `&` plain, with colors, with MCI, with word wrap), timed at 1 MHz and 2 MHz, with a warning first in 40 columns (FAST blanks the VIC); PORTING_NOTES.md "How fast `&` output is": the screen editor is 64-72% of plain `&`, FAST x2.2, 80 columns slower than 40 (199 against 281 characters a second). No speedups made. Merged 2026-11-24 |
+| [#39](https://github.com/Pinacolada64/Image-128/pull/39) | `b1ff6c3` | `columns-using` | `c5e2af3` | `columns.lbl` with `PRINT USING` and `&,15,9` tried and found slower (17.7 against 16.7 s; recorded in its comments); kept: `tools/basic7.py` reads `{include:}`d files, `&,15,9` keeps 255 characters (was 128), `sub.param1`'s `xor` accident given its space. Merged 2026-11-24 |
+| [#38](https://github.com/Pinacolada64/Image-128/pull/38) | `d765b76` | `pr-catalog-35-37` | `1760814` | This catalog: #35-#37. Merged 2026-11-24 |
 | [#36](https://github.com/Pinacolada64/Image-128/pull/36) | `fa65efe` | `docs-gaps` | `a9ea425` | Docs filled in and one manual: SYSOP_COMMANDS.md (the boot screen, the modem's escape character S2 and `J`, the file transfer protocols, Image Terminal's phone book settings), PROGRAMMING.md (`i.test calls`, `i.test clocks`); new chapters `NEW_IN_128.md` (New in Image 128), `INSTALLING.md` (setting up: `RUN "BOOT 128"`, 40/80 columns fixed at boot, the parts, the file copy, and what it doesn't copy yet: System, Etcetera and REL files), `VISUAL_EDITOR.md` (`++ visual`, alpha) and `PRINT_USING.md` (a tutorial on `PRINT USING`, `PUDEF` and `&,15,9`, each result checked in x128); `make manual`: one PDF of them all (76 pages); modules/TODO.md: switching 40/80 columns while running. Merged 2026-11-24 |
 | [#37](https://github.com/Pinacolada64/Image-128/pull/37) | `fee1804` | `print-using` | `0ce4e3c` | `&,15,9`: what BASIC prints on the screen caught in `a$` (`&,15,9,1[,s$]`), so BASIC 7.0's `PRINT USING` formats for `&` output (`asm/using.asm`, a test in `out`; buffer $3f80-$3fff); `tools/basic7.py`: a 4.04 module that uses BASIC 7.0's keywords is built from a 4.06 copy (`to406.py`'s conversion, `{number:}` for numeric labels), and keywords hidden in crunched code stop the build; `i.test calls` 76. Merged 2026-11-24 |
 | [#35](https://github.com/Pinacolada64/Image-128/pull/35) | `65e3358` | `docs-catalog` | `fe90ba2` | This catalog brought up to #34 against `85c9771`; PROGRAMMING.md's "Lists in columns" for `columns.lbl` (#30). Merged 2026-11-24 |
