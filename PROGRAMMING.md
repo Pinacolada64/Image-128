@@ -326,6 +326,64 @@ It used the screen's always, so on a 40-column console a tab past column
 39 did nothing for an 80-column caller. `tests/standin/center.bas` tries
 both.
 
+### Formatting numbers: `&,15,9` and `PRINT USING`
+
+BASIC 7.0's `PRINT USING` formats a number (`#`, `,`, `.`, `$`, `+`/`-`,
+`^^^^`) and `PUDEF` changes its fill, comma, point and dollar characters,
+but a `print` only reaches the console's screen. `&,15,9` catches it in a
+string instead, for `&` to print to the caller with MCI, word wrap and
+translation as usual (11/24/2026, `asm/using.asm`):
+
+| Call | Does |
+|---|---|
+| `&,15,9` | starts: what BASIC prints on the screen goes into a buffer, not the screen |
+| `&,15,9,1` | stops, and puts what was printed in `a$` |
+| `&,15,9,1,s$` | stops, and puts it in `s$` (any string variable) |
+
+```
+&,15,9:print using "##,###.##";x;:&,15,9,1:&"You owe $"+a$+".{f6}"
+```
+
+Image's `CHROUT` hook (`out`, `asm/shdlr.asm`) keeps the screen's
+characters (device 3) while it's on, so `print#`, `cmd` and `&` output
+aren't affected; anything printed on the screen is, so stop it in the
+same statement line or soon after (a module that ends between the two
+leaves BASIC's `print`s off the screen until the next `&,15,9`). Returns
+are dropped, so the `;` at the end doesn't matter. Up to 128 characters
+are kept. Plain `print`s work too (`print "credits";x;` gives
+`credits 7 `), and a number too wide for its field prints `*`s, as BASIC
+does.
+
+Write `print using` and `pudef` as they are, in any module: the build
+tokenizes BASIC 7.0's keywords in a preface module too (below, "BASIC 7.0
+keywords in a 4.04 module"). `i.test calls` 76 tries them.
+
+### BASIC 7.0 keywords in a 4.04 module: `tools/basic7.py`
+
+C64List 4.04, which builds the modules that use the preface
+(`{uses:..\3_0-preface.lbl}`, for `gosub 72` and the other jumps into
+`im` by number), leaves BASIC 7.0's keywords as letters: `instr(` reads as
+variables (?type mismatch), `print using` as `print us in g`. 4.06
+tokenizes them, but only with `{include:..\Basic70.bas}`, and it won't
+take the preface. So `asm/build.sh` checks each preface module with
+`tools/basic7.py` (11/24/2026); one that uses BASIC 7.0 is built from a
+copy converted for 4.06, `modules/.406.<name>.lbl` (to406.py's
+conversion: `Basic70.bas` for the preface, `{renumber}`, and the
+preface's line numbers in jumps as raw digits; not in git). The source
+stays as it is, and the build says which modules it converted.
+
+`basic7.py` reads the code as BASIC 7.0's tokenizer does: at each place,
+the first keyword that matches, so crunched code hides keywords
+(`ifb>cdorb` reads `c DO rb`; `2^xorf`, `XOR`). A keyword counts as a use
+where a statement starts (and isn't run into a letter), a function's
+with its `(`, or `using` after `print`; any other is an accident, letters
+to 4.04 but a keyword to 4.06. A module that uses BASIC 7.0 and has
+accidents stops the build, naming their lines: put a space in each
+(`cd or b`). `tools/basic7.py check modules/*.lbl` lists both kinds;
+today six modules have accidents and no uses (`i.CM`, `i.GF`,
+`i_IM.logon`, `i_MM.subop`, `sub.param1`, `sub.protos`), so they build
+with 4.04 as before.
+
 ## Lists in columns: `sub.columns`
 
 `sub.columns` (11/20/2026) prints `tt$(1)` to `tt$(n)` in as many columns as
