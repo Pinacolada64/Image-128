@@ -1008,3 +1008,34 @@ it; tried in x128 with a 1541, 1571 and 1581, and a CMD FD-4000
 `tests/standin/` programs are petcat source, not C64List: `\` is the `£`
 (`\!i` prints `i` by MCI), and there's no `{sym:...}`. `sys 7171` turns
 Image's trap off; call `&,37` to try it. See `tests/standin/README.md`.
+
+## Trying the `&` calls: `i.test calls`
+
+`i.test calls` (`modules/i.test calls.lbl`, ported from Image BBS 3's
+core/tests, #26) shows Image's `&` calls ten to a page, each with a test
+or a demo where one is written. Run it as a module: `R` at the main
+prompt, class 3, `test calls`. A number runs that call's test; `P1` to
+`P8` turn to a page, `Q` quits to the main prompt. Page 8 has Image 128's
+own functions:
+
+| # | Tries |
+|---|---|
+| 71 | `&,15,7`: centering |
+| 72 | `&,15,8`: the widest of `tt$()` |
+| 73 | the MCI tab, counted on the caller's line |
+| 74 | `sub.columns`: a list in columns |
+| 75 | `ak$` following `ll%` (the ML's `akfix`) |
+
+Calls whose test isn't written yet say `TODO: Finish this!`, as in 3.0's
+version. #27 fixed `&,20`, `&,21` and `&,26` from what this found.
+
+`i.test clocks` (`modules/i.test clocks.lbl`, from the same place, with
+`W`, `U` and `I` added) tries each of `sub.clocks`' clock sources on a
+running BBS: `R`, class 3, `test clocks`. Each choice calls `sub.clocks`
+and shows what came back: `e%` (0: the clock was read, or written), `z$`
+(the date string it used), `ck` and `cp`. `W` writes the BBS's time to
+the clock saved in e.data record 37, `U` to an Ultimate; `I` talks to
+the Ultimate's Command Interface itself (its ID, the DOS target's
+identify string, `GET_TIME`'s raw reply). In VICE, which has no
+Ultimate, try it with the DS12C887 (`-ds12c887rtc -ds12c887rtcbase
+0xd700`).

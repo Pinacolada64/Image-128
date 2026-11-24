@@ -352,6 +352,44 @@ that moment.
 `LTK` also leaves at once when the caller's time is up or their carrier
 drops.
 
+## Booting: the boot screen
+
+While Image 128 starts, a frame near the top of the screen shows two
+lines: the step before on the first, and what it's doing now under it
+(`im` 3404-3405: each new step moves the last one up). In order:
+
+| Line | What's happening |
+|---|---|
+| _computer_ `System Detected.` | the computer and its screen |
+| `Reading Drive Configuration...` | the drives' setup |
+| `Reading System Info...` | the BBS's settings; then the number of users, e.g. `(12 Users)` |
+| `Loading System Defaults...` | the lightbar, the Extended Command Set, the MCI print modes |
+| `Setting Alarm Tables...` | the alarms, and the network's |
+| `Enabling Function Keys...` | the sysop's function keys (`e.fkeys`) |
+| `Reading System Configuration...` | the rest of the configuration |
+| `Setting Clock...` | the clock read from its source (`IM` K); `Clock Set.` follows on the same line when it was |
+| `Setting Default Checkmarks...` | the lightbar's checkmarks the BBS starts with (`e.lightdefs`) |
+| `Reading Blocks Free...` | the drives' free space, listed below the frame |
+
+### The blocks-free list
+
+Each of the six drives gets a line: its name, its device and drive, the
+kind of drive, and its blocks free (11/23/2026):
+
+```
+ System Disk    8,0   1581       : 221
+ E-Mail Disk    8,0   1581       : 221
+ Module Disk   10,1   CMD HD     : 1,234
+```
+
+The kind comes from the drive itself: `sub.sysdos` reads a few bytes of
+each device's ROM (`m-r`: no reset, no disk access, so a drive in use
+isn't disturbed), as the new-system setup's drive scan does. It knows a
+1541, 1571 or 1581, a CMD HD or FD, a RAMLink or RAMDrive, and a Lt.
+Kernal; a drive it doesn't know (an SD2IEC, say) shows `?`. Each line
+clears the rest of its row (Esc Q), so a shorter count doesn't leave old
+digits behind. A line fits 40 columns.
+
 ## The idle screen
 
 What the BBS shows while nobody is connected (`i/lo.idle`). `?` lists
@@ -533,6 +571,29 @@ and a typed `12P` was stored as 24, which never matched; the Misc.
 Features line showed the setting as the module last loaded it. Until
 11/17/2026 Prime Time couldn't run past midnight: an End Time earlier
 than the Start Time never turned it on.
+
+### `J`: the modem's escape character (S2)
+
+`IM` J's flag 13 sets the Hayes escape character, the modem's register
+S2, which Image sends in the modem's init string (`s2=`) at boot. A Hayes
+modem goes back to command mode on a guard time with no data (S12,
+normally a second), three escape characters in a row, then another guard
+time; any other use of the character passes through as data.
+
+| Flag 13 | S2 | Effect |
+|---|---|---|
+| not set (`00`, older configurations) | 27, Esc | what Image has always sent: a caller typing `+++` can't take the modem to command mode |
+| `43` | `+`, the Hayes default | `+++` with the guard times takes the modem to command mode |
+| another 0-255 | that character | |
+
+The hang-up method (flag 2): `E`, ESCape Code Hang-Up, sends three escape
+characters with the guard times, then (flag 4) `ATH`; `D`, DTR Hang-Up,
+drops DTR instead.
+
+ANSI callers get Esc through since 11/15/2026 (#11: `Esc[2J`, `Esc[1;1H`,
+colour codes). That's safe with S2 at 27: each Esc is followed at once by
+`[` and the rest of its sequence, never three Escs on their own with
+silence around them. A module sending raw Escs (`&,51`) should do the same.
 
 ## `IM` H: Lightbar/Alarms
 
@@ -767,3 +828,48 @@ moves the clock to match the rule if it needs it.
 A local end time is asked and shown as the clock reads it then, on daylight
 time (2:00 AM for the US). When a country changes its dates, this is where
 to change them.
+
+## File transfer protocols
+
+A caller chooses a protocol in Terminal Parameters, option 7 (`U/D
+Protocol`); going to a transfer area loads the one chosen (`sub.param1`
+61102), or the list's first, Punter, for a caller who hasn't chosen. The
+list is `s.m.protos` on the System drive (its format: DATA_FILES.md, "Transfer
+protocols"); each line loads an overlay, `++ punter` or `++ xmodem`
+(built for the 128 since 11/20/2026):
+
+| Line | Protocol | Use it for |
+|---|---|---|
+| `punter00` | Punter | Commodore terminals (CCGMS, Novaterm...): the usual choice for them. Sends the file's type (PRG/SEQ) first |
+| `punter20` | Image 1.3 Punter | Commodore terminals that expect Image 1.3's Punter, which sends no file type block for a single file |
+| `xmodem01` | Xmodem/CRC | PC and Mac terminals (SyncTERM, Qodem, Tera Term...); 128-byte blocks with a CRC |
+| `xmodem21` | Xmodem-1K | the same terminals, faster: 1K blocks. If the caller's end asks for checksums instead of CRC, Image sends 128-byte blocks, since 1K blocks go with CRC only |
+| `punter10`, `xmodem11` | Relaxed Punter, Relaxed Xmodem/CRC | the same with longer timeouts: for a link that pauses (telnet over the internet, a busy WiFi modem) |
+
+Xmodem-1K is new with Image 128: on the C64 its 1K block wouldn't fit
+the overlay's memory. Only one file goes at a time with Xmodem; Punter
+can send several (multi-Punter). At the console, the list also offers
+`Copier`, which copies files between two of the BBS's drives (`++
+copier`) instead of over the modem.
+
+To leave a protocol out, take its line out of `s.m.protos` (a SEQ file:
+copy it off with c1541, edit it, and write it back as `s.m.protos,s`).
+
+## Image Terminal: phone book settings
+
+The idle screen's `←` loads Image Terminal (`i.t`), for calling out with
+the BBS's modem. Its phone book (`e.phone` on the Etcetera drive) keeps,
+with each entry's name and number, a graphics mode and a speed
+(11/18/2026, #12):
+
+- **Edit** (`E` at the phone book's prompt) asks, after the number, for
+  the graphics mode (`0` not set, `1` PETASCII, `2` ASCII, `3` ANSI) and
+  the BPS rate (`0` not set, `1` 300, `2` 1200, `3` 2400, `4` 4800, `5`
+  9600, `6` 19200, `7` 38400). Return keeps the one shown.
+- **Dialing** the entry sets that graphics mode before the modem is used
+  and dials at that rate, instead of the modem's own (`IM` J). Not set
+  dials as before, so an older `e.phone` works unchanged.
+
+The two settings are kept in the last two bytes of the entry's 50-byte
+record (the mode + 16 times the rate), as in Image BBS 3's `i.t`, so an
+`e.phone` file works on both. Built, but not yet tried on a call.
