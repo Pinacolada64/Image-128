@@ -3,7 +3,8 @@
 ' demo of each one done so far (11/20/2026: ported from ImageBBS3's
 ' core/tests, where most are still TODO). Page 8 adds the Image 128
 ' functions: 71 &,15,7 (centering), 72 &,15,8 (the widest of tt$()), 73 the
-' MCI tab, 74 sub.columns, 75 ak$ following ll%.
+' MCI tab, 74 sub.columns, 75 ak$ following ll%, 76 &,15,9 (PRINT USING
+' into a string, 11/24/2026).
 ' Run it as a module: R at the main prompt, class 3 (an i.* module, as in
 ' Image BBS 3), "test calls". build.sh crunches it ({crunch:on}).
 ' 128: C64 addresses as {sym:...} names (sareg, mask, curdsp, curlin), and
@@ -204,9 +205,10 @@
 	&"[128] MCI Tab{colon} the Caller's Column{f6}":return
 	&"[128] sub.columns{colon} a List in Columns{f6}":return
 	&"[128] ak$ Follows ll%{f6}":return
+	&"[128] &{comma}15{comma}9 PRINT USING into a String{f6}":return
 {number:3172}
 {:display_page_8}
-	&"{f6}Image 128{colon}{f6:2}":for n=0 to 5:n%=n+70:&sf$:gosub {:header_page_8}:next:return
+	&"{f6}Image 128{colon}{f6:2}":for n=0 to 6:n%=n+70:&sf$:gosub {:header_page_8}:next:return
 
 {number:3176}
 {:show_page}
@@ -215,7 +217,7 @@
 	a%=3012+p*20:&,66,1:&"{f6}[Px) Page 1-8{comma} Q)uit]{f6}"
 {:prompt}
 ' m=0: "main menu" not displayed
-	l=0:h=75:m=.:q=1:gosub {:sub.input_range}:on -(an$="" or an$="Q" or tr%<1) -2*(q=1) goto {:quit}, {:show_page}
+	l=0:h=76:m=.:q=1:gosub {:sub.input_range}:on -(an$="" or an$="Q" or tr%<1) -2*(q=1) goto {:quit}, {:show_page}
 ' Px (switch to Page x) hook:
 	if left$(an$,1)<>"P" then {:dispatch}
 	an=val(mid$(an$,2,1)):if an>. and an<9 then p=an:goto {:show_page}
@@ -845,6 +847,20 @@
 	&"{f6}ak$ Follows ll%{f6}":z=ll%
 	for i=1 to 4:ll%=val(mid$("30406080",i*2-1,2)):a=len(ak$):b%=ll%:&"{f6}ll% {pound}%b{comma} len(ak$) {pound}!a{colon}{f6}{pound}vj":next
 	ll%=z:a=len(ak$):b%=ll%:&"{f6}ll% back to {pound}%b{comma} len(ak$) {pound}!a{f6}":return
+
+{:7000} ' 76: &,15,9: PRINT USING into a string
+' &,15,9 starts: what BASIC PRINTs to the screen goes into a buffer (asm/
+' using.asm), not the screen; &,15,9,1 stops and puts it in a$ (&,15,9,1,s$:
+' in s$). Returns are dropped. USING and PUDEF are written as their tokens
+' ({$fb}, {$dd}): C64List 4.04 doesn't know BASIC 7.0's keywords
+	&"{f6}&{comma}15{comma}9 PRINT USING into a String{f6:2}"
+	x=1234.5:&,15,9:print{$fb}"#,###.##";x;:&,15,9,1:&"{quotation}#{comma}###.##{quotation} 1234.5{colon}  [{pound}$a]{f6}"
+	x=-42:&,15,9:print{$fb}"#####";x:&,15,9,1:&"{quotation}#####{quotation} -42 (Return){colon} [{pound}$a]{f6}"
+	x=3.5:&,15,9:print{$fb}"$###.##";x;:&,15,9,1:&"{quotation}$###.##{quotation} 3.5{colon}     [{pound}$a]{f6}"
+	x=42:&,15,9:{$dd}"*":print{$fb}"#####";x;:{$dd}" ":&,15,9,1:&"pudef {quotation}{asterisk}{quotation} {quotation}#####{quotation} 42{colon} [{pound}$a]{f6}"
+	x=7:&,15,9:print "credits";x;:&,15,9,1,b$:&"print {quotation}credits{quotation};7 into b${colon} [{pound}$b]{f6}"
+	&,15,9:&,15,9,1:a=len(a$):&"nothing printed{colon} len(a$) {pound}!a (expect 0){f6}"
+	x=99.995:&,15,9:print{$fb}"##.##";x;:&,15,9,1:&"{quotation}##.##{quotation} 99.995 (too wide){colon} [{pound}$a]{f6}":return
 
 {:sub.128_ruler}
 ' a ruler z columns wide: the last digit of each column's number, every

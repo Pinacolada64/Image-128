@@ -326,6 +326,40 @@ It used the screen's always, so on a 40-column console a tab past column
 39 did nothing for an 80-column caller. `tests/standin/center.bas` tries
 both.
 
+### Formatting numbers: `&,15,9` and `PRINT USING`
+
+BASIC 7.0's `PRINT USING` formats a number (`#`, `,`, `.`, `$`, `+`/`-`,
+`^^^^`) and `PUDEF` changes its fill, comma, point and dollar characters,
+but a `print` only reaches the console's screen. `&,15,9` catches it in a
+string instead, for `&` to print to the caller with MCI, word wrap and
+translation as usual (11/24/2026, `asm/using.asm`):
+
+| Call | Does |
+|---|---|
+| `&,15,9` | starts: what BASIC prints on the screen goes into a buffer, not the screen |
+| `&,15,9,1` | stops, and puts what was printed in `a$` |
+| `&,15,9,1,s$` | stops, and puts it in `s$` (any string variable) |
+
+```
+&,15,9:print using "##,###.##";x;:&,15,9,1:&"You owe $"+a$+".{f6}"
+```
+
+Image's `CHROUT` hook (`out`, `asm/shdlr.asm`) keeps the screen's
+characters (device 3) while it's on, so `print#`, `cmd` and `&` output
+aren't affected; anything printed on the screen is, so stop it in the
+same statement line or soon after (a module that ends between the two
+leaves BASIC's `print`s off the screen until the next `&,15,9`). Returns
+are dropped, so the `;` at the end doesn't matter. Up to 128 characters
+are kept. Plain `print`s work too (`print "credits";x;` gives
+`credits 7 `), and a number too wide for its field prints `*`s, as BASIC
+does.
+
+A module built with C64List 4.04 (`{uses:..\3_0-preface.lbl}`) can't
+tokenize BASIC 7.0's keywords: write `USING` as its token, `{$fb}`, and
+`PUDEF` as `{$dd}` (`print{$fb}"#####";x;`, `{$dd}"*"`). With 4.06
+(`{include:..\Basic70.bas}`) write them as they are. `i.test calls` 76
+tries them.
+
 ## Lists in columns: `sub.columns`
 
 `sub.columns` (11/20/2026) prints `tt$(1)` to `tt$(n)` in as many columns as
