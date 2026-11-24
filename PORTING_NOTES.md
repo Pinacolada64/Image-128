@@ -423,6 +423,42 @@ still reaches its label (a `$ff` offset is the giveaway).
   monitor, put a key in, and read the stack when it stops: the editor's
   `dec $d0` at `$c252` and the return addresses above it.
 
+## How fast `&` output is (11/24/2026)
+
+`i.test calls` 77 prints the same 1000 characters (20 lines of 49 and a
+return) five ways and times each with `ti`, at 1 MHz (`slow`) and then at
+2 MHz (`fast`; in 40 columns it warns first, as the VIC's screen goes off).
+In x128 on a configured system, the sysop at the console, characters a
+second:
+
+| | 40 col, slow | 40 col, fast | 80 col, slow | 80 col, fast |
+|---|---|---|---|---|
+| `print` (the screen editor only) | 392 | 810 | 312 | 681 |
+| `&` plain | 281 | 582 | 199 | 437 |
+| `&`, a color before each word | 264 | 550 | 184 | 413 |
+| `&`, an MCI variable (`{pound}$b`) | 273 | 566 | 194 | 428 |
+| `&`, word wrap (`lp=1`) | 215 | 444 | 144 | 314 |
+
+(Two runs of each agreed within 1%.)
+
+- **The KERNAL's screen editor is most of it.** BASIC's own `print`, which
+  is only the editor, is 64% of the time of plain `&` in 80 columns, 72%
+  in 40. Image's own work for each character (`outstr`, `domci`,
+  `outchr`, `outscn`'s bookkeeping) is the rest; colors and MCI add
+  little.
+- **Word wrap costs about a third more** than plain `&` (holding each word
+  back, then printing it).
+- **It's all CPU.** 2 MHz is a little *over* twice as fast (x2.18-2.24),
+  so no time goes to waiting on the VDC: the extra is the VIC, which steals
+  cycles at 1 MHz to show its screen, and which `fast` turns off.
+- **80 columns is slower than 40** (199 against 281 for plain `&`): the
+  editor's VDC writes go through its registers, a byte at a time.
+- So: 2 MHz in 80 columns (where the VIC's screen isn't watched) would
+  double the console's output, and writing runs of plain characters to
+  the screen without the editor (`prtscn`, a `farcall` into ROM for each)
+  would cut most of the rest. Callers' output goes to the modem besides,
+  which the test doesn't measure (no caller).
+
 ## Xmodem-1K: a possibility for the 128 (11/10/2026)
 
 **Done 11/20/2026** (branch xmodem-1k): `++ xmodem` is built
