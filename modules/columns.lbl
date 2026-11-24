@@ -37,7 +37,9 @@
 ' figures), then {pound}# and a space the fill (a figure sets the width and
 ' fills with 0, so the fill comes after: mcicm.asm's clen); both last one
 ' string. Each item's number is then a%=j:&p9$, not str$, len and left$
-' joined for each: in x128, 20 rows of time zones in 5.3 s, not 11.3
+' joined for each: in x128, 20 rows of time zones in 10.6 s, not 11.4 (two
+' fresh boots each; one run's 5.3 s was an outlier: a run varies by up to
+' 1.5 s)
 61812 c8=int(ll%/c9):r9=int((n+c9-1)/c9):t9$="":p9$="{white}{pound}#"+chr$(46+d9)+"{pound}# {pound}%a) "
 ' the tabs, once: column c7's at 4*c7-3 in t9$
 61814 for i=1 to c9-1:a=i*c8:t9$=t9$+"{pound}{back arrow}"+right$("0"+mid$(str$(a),2),2):next
