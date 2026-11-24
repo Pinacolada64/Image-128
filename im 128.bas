@@ -544,12 +544,18 @@
 
 ' get system disk names, read blocks free
 3186 restore 3504:for q=. to 6:bf(q)=-1:next
-3188 z3$="Reading Blocks Free...":gosub 3404:for q=1 to 6:dr=q:gosub 61
+' 11/23/2026: and each drive's device,drive and its type: sub.sysdos im=2
+' names every device on the bus from its ROM ("m-r": no reset, no disk
+' access) into tt$(8)-tt$(30) ("1581", "CMD HD", "Lt. Kernal", "?" for one
+' it doesn't know); tt$(1)-tt$(8), the f-keys, were copied out at 3124
+3188 z3$="Reading Blocks Free...":gosub 3404:im=2:a$="sysdos":gosub 74:for q=1 to 6:dr=q:gosub 61
 ' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
 ' 11/23/2026: Esc Q after the count clears the rest of its line (the 128
 ' editor's, on the console: PROGRAMMING.md), so a shorter count than what was
-' on that row leaves no old digits behind
-3190 read b$:&"{f6}{rvs off}{lt. blue} {pound}$b Disk{pound}{back arrow}30{colon}{cyan}"+str$(a)+"{$1b}q":next:q=.:return
+' on that row leaves no old digits behind. Between the name and the count,
+' the device,drive (dv%, dr$: gosub 61 set them, through gosub 2) at 16 and
+' its type at 22, the count's colon at 33: a 40-column line
+3190 read b$:&"{f6}{rvs off}{lt. blue} {pound}$b Disk{pound}{back arrow}16{white}"+mid$(str$(dv%),2)+","+left$(dr$,len(dr$)-1)+"{pound}{back arrow}22"+tt$(dv%)+"{pound}{back arrow}33{lt. blue}{colon}{cyan}"+str$(a)+"{$1b}q":next:q=.:return
 
 ' new: from 3100- report ok/error
 3192 gosub 5:c$="{lt. green}":if e% then c$="{lt. red}"
