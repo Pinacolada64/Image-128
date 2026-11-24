@@ -861,6 +861,7 @@
 	x=42:&,15,9:pudef "*":print using "#####";x;:pudef " ":&,15,9,1:&"pudef {quotation}{asterisk}{quotation} {quotation}#####{quotation} 42{colon} [{pound}$a]{f6}"
 	x=7:&,15,9:print "credits";x;:&,15,9,1,b$:&"print {quotation}credits{quotation};7 into b${colon} [{pound}$b]{f6}"
 	&,15,9:&,15,9,1:a=len(a$):&"nothing printed{colon} len(a$) {pound}!a (expect 0){f6}"
+	&,15,9:for i=1 to 30:print "abcdefghij";:next:&,15,9,1:a=len(a$):&"300 printed{colon} len(a$) {pound}!a (expect 255{colon} the most kept){f6}"
 	x=99.995:&,15,9:print using "##.##";x;:&,15,9,1:&"{quotation}##.##{quotation} 99.995 (too wide){colon} [{pound}$a]{f6}":return
 
 {:7050} ' 77: & output speed

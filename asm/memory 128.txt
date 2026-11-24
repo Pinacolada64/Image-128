@@ -27,7 +27,7 @@ $2f00-$32ff	wedge
 $3300-$35ff	screen mask save area
 $3600-$3fff	glue.asm: farcall, the entries into the ML and the wedge;
 		then trace.asm, status.asm and using.asm (&,15,9), with
-		using.asm's buffer at $3f80-$3fff
+		using.asm's buffer at $3f00-$3ffe
 
 bank 0
 $4000-$bfff	BASIC program text (im at $4001; top $c000 in $1212)
