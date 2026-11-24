@@ -7,6 +7,11 @@
 #                               left out: docs/loop-report.md is
 #                               build/docs/loop-report.pdf)
 #   make build/docs/PORTING_NOTES.pdf   just one
+#   make manual                 the reference docs as one book,
+#                               build/docs/Image128-Manual.pdf: a title page,
+#                               one table of contents, each doc a chapter
+#                               (MANUAL, below: the working notes, TODO, the
+#                               PR catalog and the loop report, left out)
 #   make clean-docs
 #
 # Needs pandoc, lualatex (TeX Live: fontspec, luaotfload, xcolor, colortbl,
@@ -40,7 +45,23 @@ PANDOC_FLAGS := -f markdown-tex_math_dollars -t pdf --pdf-engine=lualatex \
 # docs/x.md goes to build/docs/x.pdf, not build/docs/docs/x.pdf
 PDFS := $(patsubst %.md,$(OUT)/%.pdf,$(patsubst docs/%,%,$(DOCS)))
 
-.PHONY: docs clean-docs
+# 11/23/2026: the book. Each doc has one "# " heading, its chapter; the
+# sysop's docs first, then the programmer's, the editor's notes last.
+MANUAL_DOCS := SYSOP_COMMANDS.md STATUS_LINE.md DATA_FILES.md PROGRAMMING.md \
+	BASIC_VARIABLES.md DEBUG_TECHNIQUES.md PORTING_NOTES.md editor.md
+MANUAL := $(OUT)/Image128-Manual.pdf
+MANUAL_FLAGS := -V documentclass=report --top-level-division=chapter \
+	-M title="Image BBS 128" -M subtitle="Reference Manual" \
+	-M date="$$(git log -1 --format=%cs 2>/dev/null || date +%F)"
+
+.PHONY: docs manual clean-docs
+
+manual: $(MANUAL)
+
+$(MANUAL): $(MANUAL_DOCS) $(PREAMBLE) $(FILTER)
+	@mkdir -p $(dir $@)
+	@echo "Rendering the manual -> $@"
+	$(PANDOC) $(MANUAL_DOCS) $(PANDOC_FLAGS) $(MANUAL_FLAGS) -o $@
 
 docs: $(PDFS)
 
@@ -55,4 +76,4 @@ $(OUT)/%.pdf: docs/%.md $(PREAMBLE) $(FILTER)
 	$(PANDOC) $< $(PANDOC_FLAGS) -o $@
 
 clean-docs:
-	rm -f $(PDFS)
+	rm -f $(PDFS) $(MANUAL)
