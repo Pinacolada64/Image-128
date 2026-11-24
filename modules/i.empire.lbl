@@ -128,26 +128,31 @@
 	if an$<>"Y" then return
 
 {:sub.your_status}
-' wish: different displays for 40/80 columns?
-' player name and id#
-	a%=g3:&"{f6:2}{cyan}{pound}v2 (#{pound}%a{f6}{lt. green}":j=.
-	&"{f6}Land     : ":x=la:gosub {:sub.comma_value}:&" acres"
-	&"{f6}Money    :$":x=pn:gosub {:sub.comma_value}
-	&"{f6}Grain    : ":x=gr:gosub {:sub.comma_value}:&" bushels"
-	&"{f6}Tax rate : ":x=tr:gosub {:sub.comma_value}:&"%"
-	&"{f6}Soldiers : ":x=wa:gosub {:sub.comma_value}
-	&"{f6}Serfs    : ":x=sf:gosub {:sub.comma_value}
-	&"{f6}Nobles   : ":x=nb:gosub {:sub.comma_value}
-	&"{cyan}{f6}Palaces  : ":x=f%(1):gosub {:sub.comma_value}
-	&"{f6}Markets  : ":x=f%(2):gosub {:sub.comma_value}
-	&"{f6}Mills    : ":x=f%(3):gosub {:sub.comma_value}
-	&"{f6}Foundries: ":x=f%(4):gosub {:sub.comma_value}
-	&"{f6}Shipyards: ":x=f%(5):gosub {:sub.comma_value}
-	&"{f6}Diplomats: ":x=f%(6):gosub {:sub.comma_value}
-	&"{f6}Ships    : ":x=yc:gosub {:sub.comma_value}
-	&"{f6}Colonies : ":x=i8:gosub {:sub.comma_value}
-	&"{f6}Training : ":x=z9:gosub {:sub.comma_value}:&"{f6}Horses   : ":x=hs:gosub {:sub.comma_value}:&"{f6}Timber   : ":x=tb:gosub {:sub.comma_value}:&"{f6}Spices   : ":x=sp:gosub {:sub.comma_value}:&"{f6}Cannons  : ":x=cn:gosub {:sub.comma_value}:&"{f6}Forts    : ":x=fo:gosub {:sub.comma_value}
-	goto {:sub.any_key}
+' 11/24/2026 (the user's design): each stat formatted with PRINT USING, caught
+' by &,15,9, into tt$(1)-tt$(21): its color, label (9 wide, from l9$), value
+' (###,###,### right-aligned; money $##,###,###, its $ at the field's left
+' as in a ledger) and unit. &,15,8 gives the widest item (colors count
+' nothing; peek(6), sareg); two columns when two of them fit in ll% (80
+' columns: down the first, then the second, from column ll%/2), else one.
+' Lines 3071-3084: 3090 (sub.log_event) is fixed (emp6-includes.lbl).
+' Uses i9, k9, r9, w9, c9, x, c9$, f9$, h9$, l9$, u9$, v9$, tt$(1)-tt$(21)
+	a%=g3:&"{f6:2}{cyan}{pound}v2 (#{pound}%a){f6:2}":k9=.:c9$="{lt. green}":f9$="###,###,###":u9$=""
+	l9$="Land     Money    Grain    Tax rate Soldiers Serfs    Nobles   Palaces  Markets  Mills    FoundriesShipyardsDiplomatsShips    Colonies Training Horses   Timber   Spices   Cannons  Forts    "
+	x=la:u9$=" acres":gosub {:sub.status_item}:x=pn:f9$="$##,###,###":gosub {:sub.status_item}
+	x=gr:u9$=" bushels":gosub {:sub.status_item}:x=tr:u9$="%":gosub {:sub.status_item}
+	x=wa:gosub {:sub.status_item}:x=sf:gosub {:sub.status_item}:x=nb:gosub {:sub.status_item}
+	c9$="{cyan}":for i9=1 to 6:x=f%(i9):gosub {:sub.status_item}:next
+	x=yc:gosub {:sub.status_item}:x=i8:gosub {:sub.status_item}:x=z9:gosub {:sub.status_item}
+	x=hs:gosub {:sub.status_item}:x=tb:gosub {:sub.status_item}:x=sp:gosub {:sub.status_item}
+	x=cn:gosub {:sub.status_item}:x=fo:gosub {:sub.status_item}
+	&,15,8,0,k9:w9=peek(6):c9=1:if ll%>=2*w9+2 then c9=2
+	r9=int((k9+c9-1)/c9):h9$="{pound}{back arrow}"+mid$(str$(int(ll%/2)),2)
+	for i9=1 to r9:&tt$(i9):if c9=2 then if i9+r9<=k9 then:&h9$+tt$(i9+r9)
+	&"{f6}":next:goto {:sub.any_key}
+{:sub.status_item}
+' the next item, tt$(k9): x with f9$, then f9$ and u9$ back to the usual
+	k9=k9+1:&,15,9:print using f9$;x;:&,15,9,1,v9$
+	tt$(k9)=c9$+mid$(l9$,k9*9-8,9)+":"+v9$+u9$:f9$="###,###,###":u9$="":return
 
 {nice:5}
 {:sub.log_event}
