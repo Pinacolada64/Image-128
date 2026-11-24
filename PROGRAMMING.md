@@ -362,6 +362,82 @@ is 0). Output stopped (`rc`) stops the list. It uses `a`, `a%`, `c7`-`c9`,
 61002 &"{f6}Available Protocols{colon}{f6:2}":n=x:x=1:s=10:im=1:gosub432:x=n
 ```
 
+## What an ASCII or ANSI caller gets: `outmod`
+
+Everything sent to the modem goes through `outmod` (`asm/modem.asm`; `&,51`
+calls it alone, with the character in `$fe`). What it sends depends on the
+caller's translation (Terminal Parameters option 2, `sub.param1`):
+
+| Flag | Name | Effect here |
+|---|---|---|
+| 16 | ASCII | translate: off, every byte goes out as it is (Commodore) |
+| 17 | Line feeds | a line feed after each carriage return |
+| 18 | ANSI colour | cursor, colour and reverse codes as ANSI sequences |
+| 19 | ANSI graphics | PETSCII graphics as IBM (code page 437) characters |
+
+Printable characters go through `tblcta` (PETSCII to ASCII, `intro.asm`'s
+`tr2`): unshifted letters (`$41-$5a`) come out lower case, shifted ones
+(`$c1-$da`) upper case, so in `{alpha:alt}` source `"L"` sends ASCII
+`L`. With flag 19, `$a0-$bf` go through `tblcta1` and `$60-$7f`,
+`$c0-$df` through `tblcta2`, or `tblcta3` (graphics) in upper case mode
+(`mupcase`), where shifted letters are graphics, not capitals.
+
+Control codes (checked 11/15/2026 by `tests/standin/ansiout.bas` with
+`tools/ansiout.py`, which records what a SwiftLink sends, `&,70` too):
+
+| PETSCII | ASCII (16) | ANSI (16 and 18) |
+|---|---|---|
+| Return (13) | CR (and LF, flag 17) | reverse off (`Esc[0;i;3c;40m`, below), then CR (and LF); not in terminal mode (`interm`) |
+| Delete (`$14`) | BS, space, BS (terminal mode: BS) | the same |
+| Clear (`$93`) | FF (`$0c`) | `Esc[2J` |
+| Up (`$91`) | dropped | `Esc[A` |
+| Down (`$11`) | dropped | `Esc[B` |
+| Right (`$1d`) | dropped | `Esc[C` |
+| Left (`$9d`) | dropped | `Esc[D` |
+| Home (`$13`) | dropped | `Esc[1;1H` |
+| Rvs On (`$12`) | dropped | `Esc[0;i;4c;30m`: the colour as the background |
+| Rvs Off (`$92`) | dropped | `Esc[0;i;3c;40m` |
+| a colour | dropped | `Esc[0;i;3c;40m` (table below), reverse off |
+| Esc (`$1b`) | dropped | Esc (11/15/2026; before, dropped) |
+| anything else under 32 | dropped | dropped |
+
+So the ANSI functions it makes itself are only CUU, CUD, CUF, CUB (one
+place each), CUP to 1;1, ED 2 and SGR. And `&,70,column,row` (`cursposn`,
+from 0) sends an ANSI caller one CUP, `Esc[row;columnH` from 1 (11/15/2026,
+`asm/ansicup.asm`), where it used to send Home and a 3-byte `Esc[B` or
+`Esc[C` for each row and column (154 bytes for row 20, column 30): the
+console still gets Home, Downs and Rights, so Image's cursor follows, and
+the modem's counts (`modclm`, `usrlin`) are left as those would leave
+them. Use `&,70` to place the cursor, not cursor keys, for ANSI callers'
+sake. A Commodore caller gets Home, Downs and Rights as before; a plain
+ASCII one nothing. Others (EL `Esc[K`, IL `Esc[L`,
+DL `Esc[M`, scrolling regions) a module or overlay sends
+itself, as Esc and the rest: the capitals as shifted PETSCII, e.g.
+`chr$(27)+"[2"+chr$(203)` for `Esc[2K`. Send them with `&,51` (`poke
+254,c:&,51` for each character, as `ansiout.bas` does): `&` output goes
+to the console too, whose 128 editor would take the Esc as its own and
+print the rest. And only to a caller with flag 18 on: a plain ASCII
+terminal never gets the Esc.
+
+The SGR is built in `ansibuf`, from the last colour sent: `i` the
+intensity, `c` the colour, background always black (40), and reverse
+swaps the two:
+
+| Commodore colour | `i;3c` | Commodore colour | `i;3c` |
+|---|---|---|---|
+| Black (`$90`) | dropped | Orange (`$81`) | `0;33` |
+| White (`$05`) | `1;37` | Brown (`$95`) | `0;33` |
+| Red (`$1c`) | `0;31` | Light Red (`$96`) | `1;31` |
+| Cyan (`$9f`) | `0;36` | Dark Grey (`$97`) | `1;30` |
+| Purple (`$9c`) | `0;35` | Grey (`$98`) | `0;37` |
+| Green (`$1e`) | `0;32` | Light Green (`$99`) | `1;32` |
+| Blue (`$1f`) | `0;34` | Light Blue (`$9a`) | `1;34` |
+| Yellow (`$9e`) | `1;33` | Light Grey (`$9b`) | `0;37` |
+
+& output reaches `outmod` only for a caller: not in local mode (flag 4,
+`local`), with the carrier up (`carrst`'s latch clear) and time left
+(`tr%`; 101 or more is unlimited), and `flag` (53253) clear (`im` 12).
+
 ## Today in History files: `today.<Mon>` and `s.today/hist`
 
 `i/lo/today` (the maker, `modules/i_lo_today.lbl`) reads this month's

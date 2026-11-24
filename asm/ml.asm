@@ -637,5 +637,6 @@ farerr:
 	addrcheck arrayres_hi
 	orig arrayres_hi
 {include:"arrays.asm"}
+{include:"ansicup.asm"}	; 11/15/2026: &,70's ANSI cursor position
 
 	addrcheck resident_hi_end
