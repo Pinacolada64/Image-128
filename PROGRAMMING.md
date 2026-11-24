@@ -356,7 +356,8 @@ does.
 
 Write `print using` and `pudef` as they are, in any module: the build
 tokenizes BASIC 7.0's keywords in a preface module too (below, "BASIC 7.0
-keywords in a 4.04 module"). `i.test calls` 76 tries them.
+keywords in a 4.04 module"). `i.test calls` 76 tries them. PRINT_USING.md
+is a tutorial: each kind of field, `PUDEF`, and an example.
 
 ### BASIC 7.0 keywords in a 4.04 module: `tools/basic7.py`
 

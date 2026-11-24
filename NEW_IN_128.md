@@ -83,6 +83,9 @@ manual's chapters, and PULL_REQUESTS.md lists the change each came from.
 
 ## Programming
 
+- **`PRINT USING` for callers:** `&,15,9` catches what BASIC 7.0's
+  `PRINT USING` formats, for `&` to print (Formatting numbers); modules
+  can write BASIC 7.0's keywords as they are.
 - **New `&` calls:** `&,15,7` centers a string for the caller's width;
   `&,15,8` gives the widest of `tt$()`; `&,13` locks between Lt. Kernal
   stations (Programming).
