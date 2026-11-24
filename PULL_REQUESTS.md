@@ -18,8 +18,8 @@ and/or tip commit), name, and a short summary of what the change adds or fixes.
 Sections: Open PRs → Feature branches (no PR) → Direct commits to master →
 Merged PRs → Merged branches (newest first).
 
-Seeded 2026-11-17; updated 2026-11-24 against origin/master at `ef548a4`
-(all 39 PRs merged).
+Seeded 2026-11-17; updated 2026-11-24 against origin/master at `25b459f`
+(all 41 PRs merged).
 
 ---
 
@@ -71,6 +71,8 @@ None.
 
 | PR | Merge commit | Branch | Tip | Summary |
 |----|--------------|--------|-----|---------|
+| [#42](https://github.com/Pinacolada64/Image-128/pull/42) | `25b459f` | `todo-widest-array` | `e4358c7` | modules/TODO.md: `&,15,8` on any string array (`&,15,8,s,n,tt$(0)` or `,bb$(0)`, the user's idea), so `sub.columns` can list more than `tt$()`; how, and what `columns.lbl`'s own printing would need. Merged 2026-11-24 |
+| [#41](https://github.com/Pinacolada64/Image-128/pull/41) | `0ff448f` | `pr-catalog-38-40` | `9ca040e` | This catalog: #38-#40. Merged 2026-11-24 |
 | [#40](https://github.com/Pinacolada64/Image-128/pull/40) | `ef548a4` | `output-bench` | `1075129` | `i.test calls` 77: the same 1000 characters printed five ways (`print`, `&` plain, with colors, with MCI, with word wrap), timed at 1 MHz and 2 MHz, with a warning first in 40 columns (FAST blanks the VIC); PORTING_NOTES.md "How fast `&` output is": the screen editor is 64-72% of plain `&`, FAST x2.2, 80 columns slower than 40 (199 against 281 characters a second). No speedups made. Merged 2026-11-24 |
 | [#39](https://github.com/Pinacolada64/Image-128/pull/39) | `b1ff6c3` | `columns-using` | `c5e2af3` | `columns.lbl` with `PRINT USING` and `&,15,9` tried and found slower (17.7 against 16.7 s; recorded in its comments); kept: `tools/basic7.py` reads `{include:}`d files, `&,15,9` keeps 255 characters (was 128), `sub.param1`'s `xor` accident given its space. Merged 2026-11-24 |
 | [#38](https://github.com/Pinacolada64/Image-128/pull/38) | `d765b76` | `pr-catalog-35-37` | `1760814` | This catalog: #35-#37. Merged 2026-11-24 |
