@@ -354,6 +354,10 @@ drops.
 
 ## Booting: the boot screen
 
+To boot it, and to choose 40 or 80 columns (the BBS runs in the mode
+the 128 is in at boot, for as long as it runs): INSTALLING.md, "Booting
+Image 128".
+
 While Image 128 starts, a frame near the top of the screen shows two
 lines: the step before on the first, and what it's doing now under it
 (`im` 3404-3405: each new step moves the last one up). In order:

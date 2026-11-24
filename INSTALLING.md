@@ -11,10 +11,45 @@ chosen and writes the configuration files.
 > Etcetera (`e.`) files yet, nor any RELative (REL) file: below, "What
 > the file copy doesn't do yet", for how to put them on by hand.
 
+## Booting Image 128
+
+Put the boot disk in a drive, and at the 128's `READY.` type:
+
+```
+RUN "BOOT 128"
+```
+
+(`RUN "BOOT 128",U9` for a boot disk in device 9, and so on.) `boot 128`
+loads the machine language and `im 128`, and `im` goes on from there: to
+the start-up menu below on a disk that isn't set up yet, or to the boot
+screen and the idle screen on one that is (SYSOP_COMMANDS.md, "Booting:
+the boot screen").
+
+**40 or 80 columns: choose before you boot.** Image 128 runs in the
+screen mode the 128 is in when it boots: started on the 40-column screen
+(the VIC, a TV or a 1702-style monitor), it runs in 40 columns; started on
+the 80-column screen (the VDC, an RGBI monitor), in 80. `im` reads the
+screen's width once, at boot (`im 128` line 3062: `sw=rwindow(2)`). So
+before typing `RUN "BOOT 128"`:
+
+- hold down the 128's `40/80 DISPLAY` key (down for 80 columns, up for 40)
+  when you turn it on or press Reset; or
+- in BASIC, press `Esc` then `X` to switch to the other screen.
+
+The mode can't be changed while the BBS is running: switching between the
+40- and 80-column screens (and monitors) while it runs is a planned
+feature, not written yet (modules/TODO.md). To change it now, take the
+BBS down, switch, and boot again. A caller's own width doesn't depend on
+this: each caller's screen width is their own (Terminal Parameters).
+
+In VICE: `x128 -80col` or `-40col` picks the screen it starts on
+(`start-setup.sh -40` and `start-image-128.sh`'s switches pass it), and
+`-autostart "image128.d81:boot 128"` types the `RUN` for you.
+
 ## Starting it
 
-Boot the disk (`BOOT 128`, or turn the 128 on with it in the boot drive).
-With no `bd.data` on it, `im` shows the start-up menu:
+Boot the disk (above). With no `bd.data` on it, `im` shows the
+start-up menu:
 
 | Key | Does |
 |---|---|
