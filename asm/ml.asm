@@ -116,8 +116,11 @@ wedge_pages = (* - wedge_exec_address) / 256
 {include:"trace.asm"}
 ; the status line's indicators: shared, for the IRQ and the NMI
 {include:"status.asm"}
+; 11/24/2026: &,15,9, BASIC's PRINT (USING) into a string; its buffer is
+; $3f00-$3ffe
+{include:"using.asm"}
 
-	addrcheck $4000
+	addrcheck usebuf
 
 ;;;
 ;;; modules: each starts at its *_load_address from equates.asm, the one
@@ -637,5 +640,6 @@ farerr:
 	addrcheck arrayres_hi
 	orig arrayres_hi
 {include:"arrays.asm"}
+{include:"ansicup.asm"}	; 11/15/2026: &,70's ANSI cursor position
 
 	addrcheck resident_hi_end

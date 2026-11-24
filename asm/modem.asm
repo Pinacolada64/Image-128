@@ -76,6 +76,7 @@ outmod1:
 	cmp #32
 	pla
 	bcc outmod1a
+outmod1j:
 	jmp outm
 outmod1a:
 	pha
@@ -91,6 +92,13 @@ outmod1a:
 	beq outmodl
 	cpx #0
 	beq outmod3
+; 11/15/2026: Esc goes out as it is in ANSI, so BASIC and the ML can send
+; ANSI sequences outmod doesn't make itself (Esc [ L, Esc [ M, Esc [ K...):
+; the "[", digits and capitals after it translate to themselves (capitals
+; as shifted PETSCII, $c1-$da). Without ANSI (plain ASCII) it's still
+; dropped, as are the other control codes not handled below
+	cmp #ascii_escape
+	beq outmod1j
 	cmp #cursor_up
 	beq outmodup
 	cmp #cursor_down

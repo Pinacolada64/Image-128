@@ -255,6 +255,16 @@ The abort key (`rc`) stops it between characters, elements and arrays.
 the statement after the `&`); `&,66,0` is a GOTO. The line must be under
 32768 (`a%` is an integer).
 
+## The border color on an event: `gosub 24`
+
+`a=`*color*`:gosub 24` sets the VIC-II border to *color* (0-15, the
+numbers `poke 53280` takes) if the lightbar's right `Dbg` (check 57,
+Border Color on Event) is on, and does nothing if it's off. It uses
+`a%`. Use it rather than `poke 53280` for anything that marks an event, so
+the sysop's checkmark decides: im's error handler (4034, red), `i/lo.new`
+(green), `sub.feedback` and `i/lo-sysop info` (blue), `i/lo!telecheck`
+(light blue). `3_0-preface.lbl` names it `im.border_color`.
+
 ## Writing `&` output
 
 - After THEN, write `then:&"..."`: the wedge only sees `&` at the start
@@ -327,12 +337,83 @@ It used the screen's always, so on a 40-column console a tab past column
 39 did nothing for an 80-column caller. `tests/standin/center.bas` tries
 both.
 
+### Formatting numbers: `&,15,9` and `PRINT USING`
+
+BASIC 7.0's `PRINT USING` formats a number (`#`, `,`, `.`, `$`, `+`/`-`,
+`^^^^`) and `PUDEF` changes its fill, comma, point and dollar characters,
+but a `print` only reaches the console's screen. `&,15,9` catches it in a
+string instead, for `&` to print to the caller with MCI, word wrap and
+translation as usual (11/24/2026, `asm/using.asm`):
+
+| Call | Does |
+|---|---|
+| `&,15,9` | starts: what BASIC prints on the screen goes into a buffer, not the screen |
+| `&,15,9,1` | stops, and puts what was printed in `a$` |
+| `&,15,9,1,s$` | stops, and puts it in `s$` (any string variable) |
+
+```
+&,15,9:print using "##,###.##";x;:&,15,9,1:&"You owe $"+a$+".{f6}"
+```
+
+Image's `CHROUT` hook (`out`, `asm/shdlr.asm`) keeps the screen's
+characters (device 3) while it's on, so `print#`, `cmd` and `&` output
+aren't affected; anything printed on the screen is, so stop it in the
+same statement line or soon after (a module that ends between the two
+leaves BASIC's `print`s off the screen until the next `&,15,9`). Returns
+are dropped, so the `;` at the end doesn't matter. Up to 255 characters
+are kept. Plain `print`s work too (`print "credits";x;` gives
+`credits 7 `), and a number too wide for its field prints `*`s, as BASIC
+does.
+
+Write `print using` and `pudef` as they are, in any module: the build
+tokenizes BASIC 7.0's keywords in a preface module too (below, "BASIC 7.0
+keywords in a 4.04 module"). `i.test calls` 76 tries them. PRINT_USING.md
+is a tutorial: each kind of field, `PUDEF`, and an example.
+
+### BASIC 7.0 keywords in a 4.04 module: `tools/basic7.py`
+
+C64List 4.04, which builds the modules that use the preface
+(`{uses:..\3_0-preface.lbl}`, for `gosub 72` and the other jumps into
+`im` by number), leaves BASIC 7.0's keywords as letters: `instr(` reads as
+variables (?type mismatch), `print using` as `print us in g`. 4.06
+tokenizes them, but only with `{include:..\Basic70.bas}`, and it won't
+take the preface. So `asm/build.sh` checks each preface module with
+`tools/basic7.py` (11/24/2026); one that uses BASIC 7.0 is built from a
+copy converted for 4.06, `modules/.406.<name>.lbl` (to406.py's
+conversion: `Basic70.bas` for the preface, `{renumber}`, and the
+preface's line numbers in jumps as raw digits; not in git). The source
+stays as it is, and the build says which modules it converted. An
+`{include:}`d `.lbl` file is read as part of the module (C64List builds it
+into it), so a `print using` in `columns.lbl` counts for each module that
+includes it (11/24/2026).
+
+`basic7.py` reads the code as BASIC 7.0's tokenizer does: at each place,
+the first keyword that matches, so crunched code hides keywords
+(`ifb>cdorb` reads `c DO rb`; `2^xorf`, `XOR`). A keyword counts as a use
+where a statement starts (and isn't run into a letter), a function's
+with its `(`, or `using` after `print`; any other is an accident, letters
+to 4.04 but a keyword to 4.06. A module that uses BASIC 7.0 and has
+accidents stops the build, naming their lines: put a space in each
+(`cd or b`). `tools/basic7.py check modules/*.lbl` lists both kinds;
+today five modules have accidents and no uses (`i.CM`, `i.GF`,
+`i_IM.logon`, `i_MM.subop`, `sub.protos`; `sub.param1`'s was given its
+space), so they build
+with 4.04 as before.
+
 ## Lists in columns: `sub.columns`
 
 `sub.columns` (11/20/2026) prints `tt$(1)` to `tt$(n)` in as many columns as
 fit the caller's width, 1 to 4, down the first column and then the next.
-A module calls it through `im` 432: `im=1:gosub 432` (from another sub
-module too: `im` 75 loads that one again afterwards).
+An `i.` or `i/` module calls it through `im` 432: `im=1:gosub 432`.
+
+The routine itself is `modules/columns.lbl` (11/23/2026), lines
+61800-61830, an `{include:}`: `sub.columns` includes it, and so do
+`sub.info` (time zones) and `sub.param1` (protocols), which call it as
+`gosub 61800` themselves. A `sub.` module that called `im` 432 had
+`sub.columns` load in its place, and `im` 75 load it again afterwards: two
+disk loads a list. Another `sub.` module that lists in columns can include
+it the same way, if 61800-61830 are free in it (its host must include
+`equates.asm` too: `sareg`, `sctop`, `scbot`).
 
 | Variable | Meaning |
 |---|---|
@@ -356,12 +437,98 @@ whenever the editor window (`sctop` to `scbot`) is nearly full. "The
 console" is `local` (`peek(53248)`, at the idle screen and in setup) or
 the Loc checkmark (flag 4, a sysop logged on at the console, where `local`
 is 0). Output stopped (`rc`) stops the list. It uses `a`, `a%`, `c7`-`c9`,
-`d9`, `h9`, `i`, `j`, `k9`, `r9` and `w9`, and leaves `n`, `x`, `s` and
-`tt$()` as they were.
+`d9`, `h9`, `i`, `j`, `k9`, `r9`, `w9`, `p9$` and `t9$`, and leaves `n`,
+`x`, `s` and `tt$()` as they were. `j` is `{:sub.comma_value}`'s
+right-justify flag in Empire 6: a caller there sets `j=.` after the list.
+
+Its speed (11/23/2026, the time zone list in x128): the column tabs
+(`t9$`) and the number's MCI (`p9$`, `{pound}#w{pound}# {pound}%a) `:
+`{pound}#` and a figure sets the width and fills with 0, so the space fill
+comes after it; both last one string) are built once a list, and each item
+is printed with its own `&`s. Joining a row into one string to print with
+one `&` was slower: BASIC's string joins (and the garbage they leave)
+cost more than the `&` calls. And `s.timezones` has its colors in the file
+(`tools/dstfiles.py`), so `sub.info` doesn't join them on for every zone.
 
 ```
-61002 &"{f6}Available Protocols{colon}{f6:2}":n=x:x=1:s=10:im=1:gosub432:x=n
+61002 &"{f6}Available Protocols{colon}{f6:2}":n=x:x=1:s=10:gosub61800:x=n
 ```
+
+## What an ASCII or ANSI caller gets: `outmod`
+
+Everything sent to the modem goes through `outmod` (`asm/modem.asm`; `&,51`
+calls it alone, with the character in `$fe`). What it sends depends on the
+caller's translation (Terminal Parameters option 2, `sub.param1`):
+
+| Flag | Name | Effect here |
+|---|---|---|
+| 16 | ASCII | translate: off, every byte goes out as it is (Commodore) |
+| 17 | Line feeds | a line feed after each carriage return |
+| 18 | ANSI colour | cursor, colour and reverse codes as ANSI sequences |
+| 19 | ANSI graphics | PETSCII graphics as IBM (code page 437) characters |
+
+Printable characters go through `tblcta` (PETSCII to ASCII, `intro.asm`'s
+`tr2`): unshifted letters (`$41-$5a`) come out lower case, shifted ones
+(`$c1-$da`) upper case, so in `{alpha:alt}` source `"L"` sends ASCII
+`L`. With flag 19, `$a0-$bf` go through `tblcta1` and `$60-$7f`,
+`$c0-$df` through `tblcta2`, or `tblcta3` (graphics) in upper case mode
+(`mupcase`), where shifted letters are graphics, not capitals.
+
+Control codes (checked 11/15/2026 by `tests/standin/ansiout.bas` with
+`tools/ansiout.py`, which records what a SwiftLink sends, `&,70` too):
+
+| PETSCII | ASCII (16) | ANSI (16 and 18) |
+|---|---|---|
+| Return (13) | CR (and LF, flag 17) | reverse off (`Esc[0;i;3c;40m`, below), then CR (and LF); not in terminal mode (`interm`) |
+| Delete (`$14`) | BS, space, BS (terminal mode: BS) | the same |
+| Clear (`$93`) | FF (`$0c`) | `Esc[2J` |
+| Up (`$91`) | dropped | `Esc[A` |
+| Down (`$11`) | dropped | `Esc[B` |
+| Right (`$1d`) | dropped | `Esc[C` |
+| Left (`$9d`) | dropped | `Esc[D` |
+| Home (`$13`) | dropped | `Esc[1;1H` |
+| Rvs On (`$12`) | dropped | `Esc[0;i;4c;30m`: the colour as the background |
+| Rvs Off (`$92`) | dropped | `Esc[0;i;3c;40m` |
+| a colour | dropped | `Esc[0;i;3c;40m` (table below), reverse off |
+| Esc (`$1b`) | dropped | Esc (11/15/2026; before, dropped) |
+| anything else under 32 | dropped | dropped |
+
+So the ANSI functions it makes itself are only CUU, CUD, CUF, CUB (one
+place each), CUP to 1;1, ED 2 and SGR. And `&,70,column,row` (`cursposn`,
+from 0) sends an ANSI caller one CUP, `Esc[row;columnH` from 1 (11/15/2026,
+`asm/ansicup.asm`), where it used to send Home and a 3-byte `Esc[B` or
+`Esc[C` for each row and column (154 bytes for row 20, column 30): the
+console still gets Home, Downs and Rights, so Image's cursor follows, and
+the modem's counts (`modclm`, `usrlin`) are left as those would leave
+them. Use `&,70` to place the cursor, not cursor keys, for ANSI callers'
+sake. A Commodore caller gets Home, Downs and Rights as before; a plain
+ASCII one nothing. Others (EL `Esc[K`, IL `Esc[L`,
+DL `Esc[M`, scrolling regions) a module or overlay sends
+itself, as Esc and the rest: the capitals as shifted PETSCII, e.g.
+`chr$(27)+"[2"+chr$(203)` for `Esc[2K`. Send them with `&,51` (`poke
+254,c:&,51` for each character, as `ansiout.bas` does): `&` output goes
+to the console too, whose 128 editor would take the Esc as its own and
+print the rest. And only to a caller with flag 18 on: a plain ASCII
+terminal never gets the Esc.
+
+The SGR is built in `ansibuf`, from the last colour sent: `i` the
+intensity, `c` the colour, background always black (40), and reverse
+swaps the two:
+
+| Commodore colour | `i;3c` | Commodore colour | `i;3c` |
+|---|---|---|---|
+| Black (`$90`) | dropped | Orange (`$81`) | `0;33` |
+| White (`$05`) | `1;37` | Brown (`$95`) | `0;33` |
+| Red (`$1c`) | `0;31` | Light Red (`$96`) | `1;31` |
+| Cyan (`$9f`) | `0;36` | Dark Grey (`$97`) | `1;30` |
+| Purple (`$9c`) | `0;35` | Grey (`$98`) | `0;37` |
+| Green (`$1e`) | `0;32` | Light Green (`$99`) | `1;32` |
+| Blue (`$1f`) | `0;34` | Light Blue (`$9a`) | `1;34` |
+| Yellow (`$9e`) | `1;33` | Light Grey (`$9b`) | `0;37` |
+
+& output reaches `outmod` only for a caller: not in local mode (flag 4,
+`local`), with the carrier up (`carrst`'s latch clear) and time left
+(`tr%`; 101 or more is unlimited), and `flag` (53253) clear (`im` 12).
 
 ## Today in History files: `today.<Mon>` and `s.today/hist`
 
@@ -471,7 +638,7 @@ PST0400UPDT(US/CA) Pacific Time
 | 4-7 | the offset, `hhmm`, from UTC-12: GMT is `1200`, UTC-8 `0400`, UTC+9:30 `2130` |
 | 8 | the rule's letter in `s.dstrules`; `-` for no DST |
 | 9-11 | daylight time's name (spaces for none) |
-| 12- | the description (28 characters show) |
+| 12- | the description as `sub.info` shows it: `(` + the name in light red + `) ` + the text in green (11/23/2026: the colors are in the file, so `sub.info` doesn't join them on for every zone; the text starts at 21; 28 characters of it show) |
 
 The ML converts times between zones with the hour and minute of the offset
 (`tzoneh`/`tzonem` for the BBS, `uzoneh`/`uzonem` for the caller, swap3's
@@ -915,3 +1082,34 @@ it; tried in x128 with a 1541, 1571 and 1581, and a CMD FD-4000
 `tests/standin/` programs are petcat source, not C64List: `\` is the `£`
 (`\!i` prints `i` by MCI), and there's no `{sym:...}`. `sys 7171` turns
 Image's trap off; call `&,37` to try it. See `tests/standin/README.md`.
+
+## Trying the `&` calls: `i.test calls`
+
+`i.test calls` (`modules/i.test calls.lbl`, ported from Image BBS 3's
+core/tests, #26) shows Image's `&` calls ten to a page, each with a test
+or a demo where one is written. Run it as a module: `R` at the main
+prompt, class 3, `test calls`. A number runs that call's test; `P1` to
+`P8` turn to a page, `Q` quits to the main prompt. Page 8 has Image 128's
+own functions:
+
+| # | Tries |
+|---|---|
+| 71 | `&,15,7`: centering |
+| 72 | `&,15,8`: the widest of `tt$()` |
+| 73 | the MCI tab, counted on the caller's line |
+| 74 | `sub.columns`: a list in columns |
+| 75 | `ak$` following `ll%` (the ML's `akfix`) |
+
+Calls whose test isn't written yet say `TODO: Finish this!`, as in 3.0's
+version. #27 fixed `&,20`, `&,21` and `&,26` from what this found.
+
+`i.test clocks` (`modules/i.test clocks.lbl`, from the same place, with
+`W`, `U` and `I` added) tries each of `sub.clocks`' clock sources on a
+running BBS: `R`, class 3, `test clocks`. Each choice calls `sub.clocks`
+and shows what came back: `e%` (0: the clock was read, or written), `z$`
+(the date string it used), `ck` and `cp`. `W` writes the BBS's time to
+the clock saved in e.data record 37, `U` to an Ultimate; `I` talks to
+the Ultimate's Command Interface itself (its ID, the DOS target's
+identify string, `GET_TIME`'s raw reply). In VICE, which has no
+Ultimate, try it with the DS12C887 (`-ds12c887rtc -ds12c887rtcbase
+0xd700`).

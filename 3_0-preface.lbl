@@ -22,6 +22,7 @@
 ' DOS stuff:
 {assign:18	=18	} ' im.seq_write
 {assign:19	=19	} ' im.file_scratch
+{assign:24	=24	} ' im.border_color: a = the color, if the lightbar's right Dbg is on
 ' TODO: 128: move im.getFreeDirEntry (60) and im.getBlocksFree (61) here
 {assign:28	=28	} ' im.load_protocol
 

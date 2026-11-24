@@ -1240,7 +1240,7 @@ flag_h2e_r_mask	= %10000000	; 47 Undefined
 flag_h38_addr	= chktbl + 7 	; Dbg
 flag_h38_l_mask	= %00000001	; 56 ($38) On: Do not display BASIC variables
 flag_h38_r_mask	= %00000010	; 57 ($39) On: Border Color on Event: the VIC-II border
-			; changes on an error (red), a new user, feedback (im 23)
+			; changes on an error (red), a new user, feedback (im 24)
 
 flag_dcd_addr	= chktbl + 7 	; DCD
 flag_dcd_l_mask	= %00000100	; 58 ($3a) invert DCD: off=normal, on=inverted

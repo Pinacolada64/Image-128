@@ -1,10 +1,57 @@
-version = "9107098739"
+; xmodem.asm -- "++ xmodem": Xmodem, Xmodem/CRC and Xmodem-1K, for the
+; U/D sections (sub.protos: a$="xmodem":gosub 28, then &,16,4,f with
+; s.m.protos' column 7; i/MM.ud-download and i/MM.ud-trans call it):
+;
+; &,16      (0) send the open disk file #2 to the caller
+; &,16,1    receive a file from the caller into #2
+; &,16,2    send an$ (up to its comma) as a name block (Image to Image)
+; &,16,3    receive a name block into an$ (",s" added)
+; &,16,4,f  the flag byte: bit 1 relaxed timing (4 seconds a byte, not 1),
+;           bit 2 send 1K blocks (STX) instead of 128 bytes (SOH)
+; &,16,5    a% = the flag byte
+; &,16,255  a% = 1, the protocol number
+;
+; Returns a% the good blocks, b% the bad ones, rc the bytes (a float).
+; Receiving takes 128-byte and 1K blocks alike, CRC or checksum, whatever
+; the flag says.
+;
+; Ported on 2026-11-20 from the 3.0 release's (C64 values in comments):
+; - runs at protostart ($1c00; c64 $c000), where &,7,dv%,2 loads it; xbuf,
+;   the 1024-byte block buffer, follows the code and must end below
+;   protobuf ($2b00): on the C64 it ran past the protocol area ($ca80);
+;   the CRC by table (512 bytes, after xbuf, made at setup), not bit by
+;   bit, so a 1K block at 19200 is taken in 40 columns (1 MHz) too
+; - in 80 columns each call runs at 2 MHz, as ++ net's (a 1 MHz receiver
+;   loses bytes of a block at 19200), then the blanker's speed again
+; - the KERNAL through the ML's ROM stubs; the modem read straight from
+;   the driver (getmdm, as ++ net); carrier is carrst's bit 7 (c64:
+;   flag_dcd_addr); the block pointer is bufptr ($66/$67; c64 $b0/$b1,
+;   the 128's tape timing)
+; - the screen: the counters ("Good:", "Bad:") on row 15 and the clock on
+;   row 14, as sub.display draws them; in 80 columns both rows are copied
+;   from the VDC first and each changed cell goes back (&,72, as ++
+;   copier); the block's bytes from row 2 (pscr; rows 0-1 are the boot's
+;   header), each block to the VDC's same rows. The clock is drawn when
+;   its seconds change, not on every byte read; no colour RAM writes
+; - rc made here (normalized by shifting), not with the C64 BASIC ROM's
+;   $bc4f
+; Fixed on the way (the C64's has them too):
+; - receiving with checksums compared the check byte with the CRC, so
+;   every block was refused
+; - a block sent again (its number one less than expected) wasn't taken
+;   as a repeat: the test was one more
+; - receiving a 1K block: the byte index wasn't reset after each 128-byte
+;   piece, so pieces 2-8 went astray; and the bytes were counted at the
+;   flag's block size, not the block's
+; - 1K blocks went to a receiver that asked for checksums (NAK, not "C");
+;   now it gets 128-byte blocks, as Xmodem-1K is CRC only
 
-{alpha:alt}	; .encoding "petscii_mixed"
-
+{alpha:alt}	; c64: KickAss's petscii_mixed: capitals $c1-$da, lowercase $41-$5a
 {include:"equates.asm"}
 
-* = protostart ; "xmodem.prg"
+bufptr	= varbuf+3	; the block pointer ($66/$67; c64 $b0/$b1)
+
+	orig protostart	; c64: $c000
 
 chrack = 6
 chrnak = 21
@@ -13,33 +60,50 @@ chrcan = 24
 chrsoh = 1
 chrstx = 2
 
-gcount = 11
-bcount = 23
-ncount = 38
-tcount = 17
+mfile = 131	; the modem
 
-pbuf0= $658
-pbuf1= $400
-pbuf2= $500
-pbuf3= $630
+gcount = 11	; "Good:"'s last digit (row 15)
+bcount = 23	; "Bad:"'s
+tcount = 17	; the clock's first digit (row 14)
 
-;flagbyte:
+pbuf0	= $0658	; row 15: the counters
+pbufrow	= 15
+pbuf3	= $0630	; row 14: the clock
+clkrow	= 14
+pscr	= $0400+80	; row 2 on: the block's bytes (c64: $0400)
 
-; 1 = 0=normal,1=relaxed
-; 2 = 0=128b,1=1k
-; 4 =
+; &,16,x passes x in X: 255 (wraps to 0 on inx) = protocol number,
+; then 0-4, and anything above 4 reads the flag
+; 128: in 80 columns at 2 MHz, as ++ net's entry
+entry:
+	bit mode
+	bpl dispatch	; 40 columns: 1 MHz, as on the C64
+	lda $d030
+	ora #1
+	sta $d030
+	jsr dispatch
+	lda blnkflag
+	and #1
+	sta speed
+	lda $d030
+	and #$fe
+	ora speed
+	sta $d030
+	rts
+speed:
+	byte 0
 
-ml:
+dispatch:
 	inx
 	beq protonum
 	dex
-	beq x49152
+	beq jsend
 	dex
-	beq x49155
+	beq jrecv
 	dex
-	beq x49158
+	beq jsendnam
 	dex
-	beq x49161
+	beq jrecvnam
 	dex
 	beq setflag
 	bne getflag
@@ -49,7 +113,7 @@ defflag:
 flagbyte:
 	byte 0
 versiond:
-	ascii {usedef:version}
+	ascii "9107098739"
 
 protonum:
 	lda #0
@@ -59,13 +123,13 @@ protonum:
 	ldx #var_a_integer
 	jmp putvar
 
-x49152:
+jsend:
 	jmp xsend
-x49155:
+jrecv:
 	jmp xrecv
-x49158:
+jsendnam:
 	jmp xsendnam
-x49161:
+jrecvnam:
 	jmp xrecvnam
 setflag:
 	sty defflag
@@ -78,11 +142,11 @@ getflag:
 	ldx #var_a_integer
 	jmp putvar
 
-t1:
-	byte 60,240
+wait1s:
+	byte 60,240	; jiffies a wait counts as a second: normal, relaxed
 
 setup:
-	lda #52
+	lda #52		; &,52,16,3: ASCII translation, kept; then off
 	ldx #16
 	ldy #3
 	jsr usetbl1
@@ -92,36 +156,45 @@ setup:
 	ldx #16
 	ldy #0
 	jsr usetbl1
+	jsr mkcrctab
 	jsr nobytes
 	lda #0
 	sta endflag
-	lda #0
 	sta abrtflag
-	lda #0
 	sta lastbuf
-	ldy #0
-	lda #1
-setup1:
-	sta pbuf1+$d400,y
-	iny
-	bpl setup1
+	lda #$ff
+	sta lastsec
+	ldx #pbufrow+64	; 128: rows 14 and 15 from the VDC (80 columns)
+	jsr vdcrow
+	ldx #clkrow+64
+	jsr vdcrow
 	lda defflag
 	sta flagbyte
 	and #2
 	bne setup2
-	ldx #<128
-	ldy #>128
-	lda #0
-	beq setup3
+	jsr set128
+	jmp startclk
 setup2:
-	ldx #<1024
-	ldy #>1024
-	lda #1
-setup3:
+	jsr set1k
+	jmp startclk
+
+; 128-byte blocks
+set128:
+	lda #0
 	sta kflag
-	stx blocksiz
-	sty blocksiz+1
-	jsr startclk
+	lda #<128
+	sta blocksiz
+	lda #>128
+	sta blocksiz+1
+	rts
+; 1K blocks
+set1k:
+	lda #1
+	sta kflag
+	lda #<1024
+	sta blocksiz
+	lda #>1024
+	sta blocksiz+1
 	rts
 
 nobytes:
@@ -152,6 +225,7 @@ goodblk:
 	bne goodb1
 	inc blocks+1
 goodb1:
+	jsr showblk
 	ldx #gcount
 	bne incblk
 
@@ -167,7 +241,11 @@ badblk1:
 	inc badblks+1
 badb2:
 	ldx #bcount
+; add 1 to the 5-digit counter whose last digit is at pbuf0+X, and (128)
+; its five cells to the VDC
 incblk:
+	txa
+	pha
 	ldy #5
 incblk1:
 	inc pbuf0,x
@@ -180,58 +258,124 @@ incblk1:
 	dey
 	bne incblk1
 incblk2:
+	pla
+	tax
+	ldy #5
+incblk3:
+	txa
+	pha
+	tya
+	pha
+	txa
+	tay
+	ldx #pbufrow
+	jsr vdccell
+	pla
+	tay
+	pla
+	tax
+	dex
+	dey
+	bne incblk3
 	rts
 
+; 128: &,72: .x a row (+64: VDC to VIC; +32: VIC to VDC), or .x the row
+; and .y the column of one cell (VIC to VDC). Nothing in 40 columns
+vdcrow:
+	ldy #0
+vdccell:
+	lda #72
+	jmp usetbl1
+
+; 128: the block's bytes (rows 2-4) to the VDC
+showblk:
+	ldx #2
+showblk1:
+	txa
+	pha
+	ora #$20
+	tax
+	jsr vdcrow
+	pla
+	tax
+	inx
+	cpx #5
+	bcc showblk1
+	rts
+
+; add .a to the checksum and the CRC (CCITT, $1021; crc is its high byte,
+; crc+1 its low). Keeps .a .x .y
+; 128, 11/20/2026: the CRC by table (crchi/crclo, made by mkcrctab), not
+; bit by bit: eight shifts a byte were too slow for a 1K block at 19200 in
+; 40 columns (1 MHz): the driver's buffer overran, and every block was
+; refused
 calcsum:
 	pha
 	clc
 	adc checksum
 	sta checksum
+	stx calcsx
 	pla
 	pha
-	eor crc
+	eor crc		; the table's index: the CRC's high byte and .a
+	tax
+	lda crc+1
+	eor crchi,x
 	sta crc
-	txa
-	pha
-	ldx #8
-calcsum1:
+	lda crclo,x
+	sta crc+1
+	ldx calcsx
+	pla
+	rts
+calcsx:
+	byte 0
+
+; the CRC tables after xbuf (not in the file): for each byte i, the CRC of
+; i shifted in from the high byte. Made once per load
+mkcrctab:
+	lda crcmade
+	bne mkcrc9
+	ldx #0
+mkcrc1:
+	stx crc		; i * 256
+	lda #0
+	sta crc+1
+	ldy #8
+mkcrc2:
 	asl crc+1
 	rol crc
-	bcc calcsum2
-	lda #>$1021
-	eor crc
+	bcc mkcrc3
+	lda crc
+	eor #>$1021
 	sta crc
-	lda #<$1021
-	eor crc+1
+	lda crc+1
+	eor #<$1021
 	sta crc+1
-calcsum2:
-	dex
-	bne calcsum1
-	pla
-	tax
-	pla
+mkcrc3:
+	dey
+	bne mkcrc2
+	lda crc
+	sta crchi,x
+	lda crc+1
+	sta crclo,x
+	inx
+	bne mkcrc1
+	inc crcmade
+mkcrc9:
 	rts
+crcmade:
+	byte 0
 
 ; check carrier/abort
-
 exit:
-
-; if the commodore key is pressed, abort the transfer
-
-	lda shflag		; c64: $028d
-	cmp #COMMODORE_KEY	; 2
+	lda shflag		; c64: $028d: C= held aborts
+	cmp #COMMODORE_KEY
 	beq exit1
-
-; if carrier is lost, abort the transfer
-
-	lda flag_dcd_addr
-	and #flag_dcd_r_mask
-	beq exit1
-
+	lda carrst		; c64: flag_dcd_addr; 128: bit 7, carrier
+	bpl exit1
 	rts
 
-; exit and abort the transfer
-
+; abort the transfer
 exit1:
 	ldx stack
 	txs
@@ -242,6 +386,7 @@ exit1:
 	jsr sendbyte
 	jsr sendbyte
 	jsr nobytes
+; a% the good blocks, b% the bad, rc the bytes; the translation back
 exit2:
 	lda #52
 	ldx #16
@@ -259,31 +404,36 @@ exit2:
 	sta varbuf
 	ldx #var_b_integer
 	jsr putvar
+; 128: rc from bytes (24 bits), as BASIC packs a float (c64: $bc4f): the
+; exponent, then the mantissa from its top bit, which (positive) is
+; cleared
+	lda bytes+2
+	sta varbuf+1
+	lda bytes+1
+	sta varbuf+2
 	lda bytes
-	ldx bytes+1
-	ldy bytes+2
-	sta $64
-	stx $63
-	sty $62
-	ldx #0
-	stx $0d
-	ldx #$98
-	lda $62
-	eor #$ff
-	rol
-	lda r6510
-	pha
-	lda #r6510_normal
-	sta r6510
+	sta varbuf+3
 	lda #0
-	sta $65
-	jsr $bc4f
-	pla
-	sta r6510
-	lda $66
-	ora #$7f
-	and $62
-	sta $62
+	sta varbuf+4
+	sta varbuf
+	lda varbuf+1
+	ora varbuf+2
+	ora varbuf+3
+	beq exit4	; 0: exponent 0
+	ldx #$98	; 2^24
+exit3:
+	lda varbuf+1
+	bmi exit3a
+	asl varbuf+3
+	rol varbuf+2
+	rol varbuf+1
+	dex
+	bne exit3
+exit3a:
+	stx varbuf
+	and #$7f
+	sta varbuf+1
+exit4:
 	ldx #var_rc_float
 	jmp putvar
 
@@ -293,8 +443,8 @@ getbyte:
 getbyte1:
 	lda #0
 	sta charval
-	lda ridbe
-	cmp ridbs
+	lda ridbe	; c64: 667
+	cmp ridbs	; c64: 668
 	beq getbyte2
 	tya
 	pha
@@ -318,14 +468,14 @@ getbyte3:
 	lda charval
 	rts
 
+; a byte to the modem. Keeps .a
+; 128, 11/20/2026: the driver's rsout directly (c64: chkout 131, chrout,
+; clrchn). The driver's clrchn turns its receiving off and on again, and a
+; byte that came meanwhile (the PC answers an ACK at once) was lost; rsout
+; keeps taking bytes while it waits to send. Translation is off (setup)
 sendbyte:
 	pha
-	ldx #131
-	jsr chkout
-	pla
-	jsr chrout
-	pha
-	jsr clrchn
+	jsr rsout
 	pla
 	rts
 
@@ -346,7 +496,7 @@ waitch2:
 	and #1
 	tax
 	lda jiffy
-	cmp t1,x
+	cmp wait1s,x
 	bcc waitch2
 	dec waitsec
 	bne waitch1
@@ -355,6 +505,8 @@ waitch2:
 waitch3:
 	rts
 
+; the receiver's first byte: "C" CRC, NAK checksum (128: and then
+; 128-byte blocks, as 1K is CRC only), CAN cancels
 xsendcrc:
 	lda #0
 	sta crcflag
@@ -370,8 +522,9 @@ xsendc0:
 xsendc1:
 	lda #1
 	sta crcflag
-xsendc2:
 	rts
+xsendc2:
+	jmp set128
 xsendc3:
 	jmp exit1
 
@@ -414,12 +567,12 @@ sendblk5:
 	clc
 	lda kflag
 	bne sendbl4
-	lda $b0
+	lda bufptr
 	adc #128
-	sta $b0
-	lda $b1
+	sta bufptr
+	lda bufptr+1
 	adc #0
-	sta $b1
+	sta bufptr+1
 	rts
 sendbl4:
 	lda lastbuf
@@ -437,16 +590,16 @@ sendbuf:
 	lda kflag
 	beq sendbuf1
 	lda #<xbuf
-	sta $b0
+	sta bufptr
 	lda #>xbuf
-	sta $b1
+	sta bufptr+1
 	lda #1
 	sta bufnum
 sendbuf1:
-	lda ($b0),y
+	lda (bufptr),y
 	jsr sendbyte
 	jsr calcsum
-	sta pbuf1,y
+	sta pscr,y
 	iny
 	cpy #128
 	bcc sendbuf1
@@ -460,12 +613,12 @@ sendbuf2:
 	beq sendbuf3
 	clc
 	ldy #0
-	lda $b0
+	lda bufptr
 	adc #128
-	sta $b0
-	lda $b1
+	sta bufptr
+	lda bufptr+1
 	adc #0
-	sta $b1
+	sta bufptr+1
 	inc bufnum
 	lda bufnum
 	cmp #9
@@ -484,31 +637,33 @@ sendchk1:
 	lda crc+1
 	jmp sendbyte
 
+; read up to eight 128-byte pieces of #2 into xbuf, the last one padded
+; with ^Z; lastbuf: the piece the file ended in (0: it didn't)
 fillbuf:
 	ldx #2
 	jsr chkin
 	lda #<xbuf
-	sta $b0
+	sta bufptr
 	lda #>xbuf
-	sta $b1
+	sta bufptr+1
 	ldx #1
 	stx bufnum
 fillbuf0:
 	ldy #0
 fillbuf1:
 	jsr chrin
-	sta ($b0),y
+	sta (bufptr),y
 	iny
 	jsr readst
 	bne fillbuf2
 	cpy #128
 	bcc fillbuf1
-	lda $b0
+	lda bufptr
 	adc #127
-	sta $b0
-	lda $b1
+	sta bufptr
+	lda bufptr+1
 	adc #0
-	sta $b1
+	sta bufptr+1
 	inc bufnum
 	ldx bufnum
 	cpx #9
@@ -520,27 +675,27 @@ fillbuf2:
 	bcs fillbuf4
 fillbuf3:
 	lda #26
-	sta ($b0),y
+	sta (bufptr),y
 	iny
 	cpy #128
 	bcc fillbuf3
 fillbuf4:
 	ldy #0
-	lda $b0
+	lda bufptr
 	adc #127
-	sta $b0
-	lda $b1
+	sta bufptr
+	lda bufptr+1
 	adc #0
-	sta $b1
+	sta bufptr+1
 	inx
 	cpx #9
 	bcc fillbuf3
 
 setbuf:
 	lda #<xbuf
-	sta $b0
+	sta bufptr
 	lda #>xbuf
-	sta $b1
+	sta bufptr+1
 	lda #1
 	sta bufnum
 	jmp clrchn
@@ -576,13 +731,9 @@ xsend5:
 xsend6:
 	jmp exit1
 
-; initial handshake
-; exits with crcflag indicating if CRC was selected
-
+; initial handshake: "C" three times (CRC), then NAK three times
+; (checksum), again until something comes; crcflag says which
 xrecvcrc:
-
-; try three times to get a response with 'c' (CRC mode)
-
 	lda #1
 	sta crcflag
 	lda #3
@@ -594,9 +745,6 @@ xrecvc1:
 	bcc xrecvc3
 	dec bufnum
 	bne xrecvc1
-
-; try three times to get a response with NAK (non-CRC mode)
-
 	lda #3
 	sta bufnum
 	lda #0
@@ -608,7 +756,6 @@ xrecvc2:
 	bcc xrecvc3
 	dec bufnum
 	bne xrecvc2
-
 	jmp xrecvcrc
 xrecvc3:
 	rts
@@ -621,9 +768,7 @@ xrecv:
 	sta blocknum
 	lda #0
 	sta lastbuf
-
 	jsr xrecvcrc
-
 	jsr recvblk0
 	jmp xrecv2
 xrecv1:
@@ -637,108 +782,82 @@ xrecv2:
 xrecv3:
 	jmp exit1
 
+; a block (or EOT, or CAN CAN); exits with .x 0 a block, 1 cancelled,
+; 2 the end
 recvblk:
 	jsr waitch02
 	bcs recvblk2
 recvblk0:
-	ldx #0
-	stx kflag
-
-; check for default handshake indicator
-
 	cmp #chrsoh
-	beq recvblk5
-
-; check for 1k handshake indicator
-
+	beq recvsoh
 	cmp #chrstx
 	beq recvblk1
-
-; check for cancel
-
 	cmp #chrcan
 	beq recvblk3
-
-; check for end of transmission
-
 	cmp #chreot
 	beq recvblk4
 
+; nothing recognized in time, or a bad block: wait for the line to go
+; quiet, then NAK
 recvblk2:
 	jsr waitch02
 	bcc recvblk2
-
-; didn't get something we recognized in time, send NAK
-
 	lda #chrnak
 	jsr sendbyte
-
 	jsr badblk
 	jmp recvblk
 
-; cancel received
-
+; two CANs cancel
 recvblk3:
 	jsr waitch02
 	bcs recvblk2
-
-; need two in a row to actual cancel
-
 	cmp #chrcan
 	bne recvblk2
-
-; exit with code 1 - cancelled
-
 	ldx #1
 	rts
 
-; end of transmission received
-
+; EOT: the end
 recvblk4:
 	lda #chrack
 	jsr sendbyte
-
-; exit with code 2 - success
-
 	ldx #2
 	rts
 
-; 1k buffer start of data received
-
+; SOH: a 128-byte block; STX: a 1K block (128: counted as such)
+recvsoh:
+	jsr set128
+	jmp recvblk5
 recvblk1:
-	ldx #1
-	stx kflag
-
-; start of data received
-
+	jsr set1k
 recvblk5:
 	jsr waitch02
 	bcs recvblk2
-
 	sta blockrcv
-
 	jsr waitch02
 	bcs recvblk2
-
 	sta blockrcv+1
-
 	jsr recvbuf
 	bcs recvblk2
-
 	jsr waitch02
 	bcs recvblk2
-	cmp crc
-	beq recvblk6
-	jmp recvblk2
-recvblk6:
-	lda crcflag
+; 128: the checksum, or the CRC's two bytes (c64: compared the first
+; byte with the CRC's either way)
+	ldx crcflag
+	bne recvbl5c
+	cmp checksum
+	bne recvblk7
 	beq recvblk8
+recvbl5c:
+	cmp crc
+	bne recvblk7
 	jsr waitch02
-	bcs recvblk2
+	bcs recvblk7
 	cmp crc+1
 	beq recvblk8
 recvblk7:
 	jmp recvblk2
+; the block number and its complement; the one expected is saved, the
+; one before (sent again: our ACK was lost) is ACKed and dropped
 recvblk8:
 	lda blockrcv+1
 	eor #255
@@ -747,8 +866,8 @@ recvblk8:
 	lda blockrcv
 	cmp blocknum
 	beq recvblk9
-	sec
-	sbc #1
+	clc		; 128: +1 = blocknum (c64: -1)
+	adc #1
 	cmp blocknum
 	bne recvblk7
 	lda #chrack
@@ -763,30 +882,30 @@ recvblk9:
 	ldx #0
 	rts
 
+; write the block in xbuf (1 or 8 pieces) to #2
 savebuf:
 	ldx #2
 	jsr chkout
 	ldy #0
 	lda #<xbuf
-	sta $b0
+	sta bufptr
 	lda #>xbuf
-	sta $b1
+	sta bufptr+1
 	lda #1
 	sta bufnum
 savebuf1:
-	lda ($b0),y
+	lda (bufptr),y
 	jsr chrout
-	sta pbuf1,y
 	iny
 	cpy #128
 	bcc savebuf1
 	ldy #0
-	lda $b0
+	lda bufptr
 	adc #127
-	sta $b0
-	lda $b1
+	sta bufptr
+	lda bufptr+1
 	adc #0
-	sta $b1
+	sta bufptr+1
 	inc bufnum
 	lda bufnum
 	cmp #9
@@ -799,39 +918,70 @@ savebuf2:
 buffer_index:
 	byte 0
 
+; a block's data (128 bytes, or 1024 with kflag) into xbuf, with its
+; checksum and CRC; carry set if a byte didn't come in time
 recvbuf:
 	ldy #0
 	sty checksum
 	sty crc
 	sty crc+1
 	lda #<xbuf
-	sta $b0
+	sta bufptr
 	lda #>xbuf
-	sta $b1
+	sta bufptr+1
 	lda #1
 	sta bufnum
 	lda #0
 	sta buffer_index
+; 128, 11/20/2026: a byte already in the driver's buffer straight from
+; rsget; the timeouts, carrier and clock (waitch02) only when it's empty.
+; Each byte the long way was too slow for a 1K block at 19200 in 40
+; columns: the driver's buffer (128 bytes) reached its 120 and stopped
+; taking bytes, and the block was refused
+; With 8 or more waiting, straight from the buffer (rsibuf, a ring of
+; 128 in both drivers), without rsget's receive window on the status
+; line; with fewer, rsget, which also turns the SwiftLink's receiving
+; back on (flow control) once fewer than 100 wait
 recvbuf1:
+	ldy ridbs
+	cpy ridbe
+	beq recvbf1s
+	lda ridbe
+	sec
+	sbc ridbs
+	and #127
+	cmp #8
+	bcc recvbf1r
+	lda rsibuf,y
+	iny
+	bpl recvbf1w
+	ldy #0
+recvbf1w:
+	sty ridbs
+	jmp recvbf1g
+recvbf1r:
+	jsr rsget	; a byte (translation is off: setup)
+	jmp recvbf1g
+recvbf1s:
 	jsr waitch02
 	bcs recvbuf3
+recvbf1g:
 	jsr calcsum
 	ldy buffer_index
-	sta ($b0),y
-; temporary - show buffer data on screen
-	sta pbuf1,y
-
+	sta (bufptr),y
+	sta pscr,y
 	iny
 	sty buffer_index
 	cpy #128
 	bcc recvbuf1
-	ldy #0
-	lda $b0
+	ldy #0		; 128: the next piece from its start (c64: kept 128)
+	sty buffer_index
+	lda bufptr
 	adc #127
-	sta $b0
-	lda $b1
+	sta bufptr
+	lda bufptr+1
 	adc #0
-	sta $b1
+	sta bufptr+1
 	inc bufnum
 	lda bufnum
 	cmp #9
@@ -873,8 +1023,6 @@ bytes:
 	byte 0,0,0
 crc:
 	word 0
-crc1:
-	word 0
 checksum:
 	byte 0
 charval:
@@ -885,20 +1033,21 @@ blocks:
 	word 0
 badblks:
 	word 0
+lastsec:
+	byte 0
 
+; send an$ up to its comma, as a 128-byte name block numbered 0
 xsendnam:
 	tsx
 	stx stack
 	jsr setup
-	lda #0
-	sta kflag
 	jsr setbuf
 	lda #0
 	sta blocknum
 	jsr xsendcrc
-xsendn2:
+	jsr set128	; a name block is 128 bytes, whatever the flag
 	ldx #var_an_string
-	jsr >@usevar
+	jsr usevar
 	ldy #0
 	lda varbuf
 	beq xsendn4
@@ -915,7 +1064,7 @@ xsendn3:
 xsendn8:
 	and #127
 xsendn7:
-	sta $568,y
+	sta pscr,y
 	sta xbuf,y
 	iny
 	cpy varbuf
@@ -929,9 +1078,8 @@ xsendn4:
 	bcc xsendn4
 	jsr sendblk
 	jmp exit2
-xsendn6:
-	jmp exit1
 
+; receive a name block into an$, with ",s"
 xrecvnam:
 	tsx
 	stx stack
@@ -975,16 +1123,36 @@ xrecvn2:
 	jsr putvar
 	jmp exit2
 
+; 128, as ++ net's: the driver directly, rather than &,4 through usetbl1
+; (c64: lda #4 / jmp usetbl1); 7 bits only in ASCII translation, which
+; setup turns off
 getmdm:
-	lda #4
-	jmp usetbl1
-@usevar:
+	jsr rsinabl
+	sec
+	jsr rsget
+	bcs getmdm6
+	pha
+	lda flag_asc_addr
+	and #flag_asc_l_mask
+	beq getmdm1
+	pla
+	and #$7f
+	pha
+getmdm1:
+	pla
+	rts
+getmdm6:
+	lda #0
+	rts
+usevar:
 	lda #29
 	jmp usetbl1
 putvar:
 	lda #30
 	jmp usetbl1
 
+; CIA 2's time of day from 00:00:00 (hours written first stop it, tenths
+; last start it)
 startclk:
 	lda #0
 	ldy #3
@@ -994,7 +1162,21 @@ startcl1:
 	bpl startcl1
 	rts
 
+; the clock on row 14, hh:mm:ss, when its seconds have changed (128: and
+; its cells to the VDC; c64: on every byte read). Reading the seconds
+; alone doesn't latch it; reading the hours does, until the tenths are.
+; Keeps .x .y
 displclk:
+	lda $dd09
+	cmp lastsec
+	bne displcl0
+	rts
+displcl0:
+	sta lastsec
+	txa
+	pha
+	tya
+	pha
 	ldx #0
 	ldy #3
 displcl1:
@@ -1015,6 +1197,22 @@ displcl1:
 	jmp displcl1
 displcl2:
 	lda $dd08
+	ldx #tcount	; 128: its 8 cells to the VDC
+displcl5:
+	txa
+	tay
+	pha
+	ldx #clkrow
+	jsr vdccell
+	pla
+	tax
+	inx
+	cpx #tcount+8
+	bcc displcl5
+	pla
+	tay
+	pla
+	tax
 	rts
 displcl3:
 	ora #$30
@@ -1023,5 +1221,8 @@ displcl4:
 	inx
 	rts
 
+; the 1K block buffer, then the CRC tables (made by mkcrctab, not in
+; the file): all must end below protobuf ($2b00); asm/build.sh checks
 xbuf:
-
+crchi	= xbuf+1024
+crclo	= xbuf+1280

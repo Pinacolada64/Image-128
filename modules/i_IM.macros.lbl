@@ -13,7 +13,7 @@
 4006 next:return
 4008 gosub4002:ife%then:&:close2:fl=1:return
 4010 x=1:&,2,2:mc=val(a$):return
-4012 &"{f6:2}{rvrs on}   <>-     IMAGE V3.0     -<>   {rvrs off}{f6}{rvrs on}   <>-Macro Editor/Creator-<>   {rvrs off}{f6:2}"
+4012 &"{f6:2}{rvrs on}   <>-   IMAGE 128 V1.0   -<>   {rvrs off}{f6}{rvrs on}   <>-Macro Editor/Creator-<>   {rvrs off}{f6:2}"
 4014 lp=1:&"Keyboard Colors are active.{f6}Use the {f5}{back arrow}{f5} when you want a >RETURN< in"
 4016 lp=1:&" your macro."
 4018 poke53252,78:goto4078

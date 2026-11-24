@@ -51,6 +51,12 @@
 18 gosub 19:a$=a$+",s,w":goto 4
 19 gosub 3:print#15,"s"dr$a$:return
 ' "scratch(dr$+a$) on u dr%(dr)" doesn't seem to work in basic 7.0
+' 11/16/2026: the VIC-II border color on an event (an error, a new user,
+' feedback...): a = the color (0-15, as poke 53280 takes it), and only while
+' the lightbar's right Dbg is on (check 57, "Border Color on Event"; the
+' user's 3.1 addition, so an error's red border needn't be undone by hand at
+' $d020). Uses a%. BASIC 7's color 4 takes 1-16.
+24 &,52,57,3:if a% then begin:color 4,a+1:bend:return
 28 cm$=a$:gosub 9:dr=5:gosub 3:if "++ "+a$=ml$ then e%=.:return
 29 ml$="++ "+a$:cm$=ml$:gosub 9:a$=dr$+ml$:&,7,dv%,2:goto 5
 30 dr=3:a$="e.stats":goto 4
@@ -513,7 +519,10 @@
 ' time (the IRQ keeps d1str, not d1$, up to date until the ML's logoff points
 ' d1$ at it), and the DST check at 3158 (sub.clocks im=12) read that: on
 ' daylight time it moved the clock by the build's date, not the clock's
-3155 if y% then z3$="Setting Clock...":gosub 3404:im=10:a$="clocks":gosub 74:if e%=. then d1$=z$:z2$=left$(" "+z3$+" Clock Set."+s$,36):gosub 3405:goto 3158
+' 11/23/2026: c=$8f again before 3405: 3404 set it (the boot frame's colour),
+' but sub.clocks uses c as a temporary (the hour, the minute), so "Clock Set."
+' and the line above it came out in whatever colour that left
+3155 if y% then z3$="Setting Clock...":gosub 3404:im=10:a$="clocks":gosub 74:if e%=. then d1$=z$:z2$=left$(" "+z3$+" Clock Set."+s$,36):c=$8f:gosub 3405:goto 3158
 3156 z$={usedef:imdate}:gosub 3170
 ' 10/20/2026: ptrlinm and usrlin (c64 970, 971): on the 128, 970 ($03ca)
 ' is in the routines BASIC 7 keeps in RAM, and poking it stopped the
@@ -544,9 +553,18 @@
 
 ' get system disk names, read blocks free
 3186 restore 3504:for q=. to 6:bf(q)=-1:next
-3188 z3$="Reading Blocks Free...":gosub 3404:for q=1 to 6:dr=q:gosub 61
+' 11/23/2026: and each drive's device,drive and its type: sub.sysdos im=2
+' names every device on the bus from its ROM ("m-r": no reset, no disk
+' access) into tt$(8)-tt$(30) ("1581", "CMD HD", "Lt. Kernal", "?" for one
+' it doesn't know); tt$(1)-tt$(8), the f-keys, were copied out at 3124
+3188 z3$="Reading Blocks Free...":gosub 3404:im=2:a$="sysdos":gosub 74:for q=1 to 6:dr=q:gosub 61
 ' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
-3190 read b$:&"{f6}{rvs off}{lt. blue} {pound}$b Disk{pound}{back arrow}30{colon}{cyan}"+str$(a):next:q=.:return
+' 11/23/2026: Esc Q after the count clears the rest of its line (the 128
+' editor's, on the console: PROGRAMMING.md), so a shorter count than what was
+' on that row leaves no old digits behind. Between the name and the count,
+' the device,drive (dv%, dr$: gosub 61 set them, through gosub 2) at 16 and
+' its type at 22, the count's colon at 33: a 40-column line
+3190 read b$:&"{f6}{rvs off}{lt. blue} {pound}$b Disk{pound}{back arrow}16{white}"+mid$(str$(dv%),2)+","+left$(dr$,len(dr$)-1)+"{pound}{back arrow}22"+tt$(dv%)+"{pound}{back arrow}33{lt. blue}{colon}{cyan}"+str$(a)+"{$1b}q":next:q=.:return
 
 ' new: from 3100- report ok/error
 3192 gosub 5:c$="{lt. green}":if e% then c$="{lt. red}"
@@ -720,8 +738,8 @@
 4028 print#2,"Program: "pr$r$"Module: "p1$r$"Sub Module: "p2$
 4030 print#2,"ML File: "ml$r$"Protocol: "d4$r$
 4032 for i=1 to 10:a$=chr$(58-i):if hs$(i)<>"" then print#2," {uparrow}"a$": "hs$(i)
-' check right Dbg lightbar flag *before* color 4,3 to turn vic-ii border red
-4034 next:print#2,"^":close 2:rem &,52,57,3:if a% then color 4,3
+' a red border on an error, if the lightbar's right Dbg is on (line 24)
+4034 next:print#2,"^":close 2:a=2:gosub 24
 ' 10/27/2026: count the error: st(39) since the daily reset (i/lo.automaint
 ' 4064), st(40) since setup. e.stats has 40 records (i/su.config); 39 and 40
 ' were unused. sub.display shows them in 80 columns
