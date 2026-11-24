@@ -7,6 +7,11 @@
 #                               left out: docs/loop-report.md is
 #                               build/docs/loop-report.pdf)
 #   make build/docs/PORTING_NOTES.pdf   just one
+#   make manual                 the reference docs as one book,
+#                               build/docs/Image128-Manual.pdf: a title page,
+#                               one table of contents, each doc a chapter
+#                               (MANUAL, below: the working notes, TODO, the
+#                               PR catalog and the loop report, left out)
 #   make clean-docs
 #
 # Needs pandoc, lualatex (TeX Live: fontspec, luaotfload, xcolor, colortbl,
@@ -24,6 +29,7 @@
 
 DOCS := PORTING_NOTES.md PROGRAMMING.md DEBUG_TECHNIQUES.md DATA_FILES.md \
 	BASIC_VARIABLES.md SYSOP_COMMANDS.md STATUS_LINE.md editor.md \
+	VISUAL_EDITOR.md INSTALLING.md NEW_IN_128.md PRINT_USING.md \
 	modules/TODO.md \
 	docs/loop-report.md
 OUT := build/docs
@@ -40,7 +46,24 @@ PANDOC_FLAGS := -f markdown-tex_math_dollars -t pdf --pdf-engine=lualatex \
 # docs/x.md goes to build/docs/x.pdf, not build/docs/docs/x.pdf
 PDFS := $(patsubst %.md,$(OUT)/%.pdf,$(patsubst docs/%,%,$(DOCS)))
 
-.PHONY: docs clean-docs
+# 11/23/2026: the book. Each doc has one "# " heading, its chapter: what's
+# new first, then setting up, the sysop's docs, the programmer's, and the
+# editor's notes last.
+MANUAL_DOCS := NEW_IN_128.md INSTALLING.md SYSOP_COMMANDS.md VISUAL_EDITOR.md STATUS_LINE.md DATA_FILES.md PROGRAMMING.md PRINT_USING.md \
+	BASIC_VARIABLES.md DEBUG_TECHNIQUES.md PORTING_NOTES.md editor.md
+MANUAL := $(OUT)/Image128-Manual.pdf
+MANUAL_FLAGS := -V documentclass=report --top-level-division=chapter \
+	-M title="Image BBS 128" -M subtitle="Reference Manual" \
+	-M date="$$(git log -1 --format=%cs 2>/dev/null || date +%F)"
+
+.PHONY: docs manual clean-docs
+
+manual: $(MANUAL)
+
+$(MANUAL): $(MANUAL_DOCS) $(PREAMBLE) $(FILTER)
+	@mkdir -p $(dir $@)
+	@echo "Rendering the manual -> $@"
+	$(PANDOC) $(MANUAL_DOCS) $(PANDOC_FLAGS) $(MANUAL_FLAGS) -o $@
 
 docs: $(PDFS)
 
@@ -55,4 +78,4 @@ $(OUT)/%.pdf: docs/%.md $(PREAMBLE) $(FILTER)
 	$(PANDOC) $< $(PANDOC_FLAGS) -o $@
 
 clean-docs:
-	rm -f $(PDFS)
+	rm -f $(PDFS) $(MANUAL)
