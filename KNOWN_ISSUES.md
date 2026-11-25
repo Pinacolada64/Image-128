@@ -25,6 +25,12 @@ On the status line's row of counters, the name of the module running
 When a caller asks to chat, the flashing display doesn't start drawing at
 the right column in 80 columns.
 
+### `++ menu2` leaves cursor droppings in 80 columns
+
+Menus drawn by the `++ menu2` overlay (`IM`'s Configuration Editor, and
+others that load it) leave stray cursor cells behind on the VDC screen in
+80 columns.
+
 ### Setting up a Lt. Kernal port's modem changes the others' interface
 
 On a multiplexed Lt. Kernal, each port has its own modem setup in
