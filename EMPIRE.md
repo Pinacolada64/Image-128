@@ -67,7 +67,8 @@ the **H**elm, **S**hield or **L**ow, and **C**harge or ride **S**teady.
    serfs, nobles with their soldiers, navigators and spices out; spices
    traded for timber or exports, ships and forts built, the island fed;
    grain, serfs, soldiers, horses and exports home, the exports sold to
-   the market master. Pirates, storms, winds, shipworms and mutiny at sea
+   the market master or held in the dry dock (a $100-a-ton storage fee,
+   and 20 tons or more may spoil). Pirates, storms, winds, shipworms and mutiny at sea
    both ways.
 4. **Combat** (`i/emp.combat`): attack another ruler, soldiers and
    nobles against theirs.
@@ -173,7 +174,7 @@ Sources: `modules/i.empire.lbl`, `modules/i_emp.<name>.lbl` (`_` for
 
 | File | Drive | Kind | Holds |
 |---|---|---|---|
-| `e.empire6` | 3 | REL, 200 bytes | records 1-24, a ruler each: name, land, soldiers, serfs, nobles, grain, tax rate, money, palaces, markets, mills, foundries, shipyards, diplomats, ships, colonies, training, horses, timber, spices, cannons, forts. Records 25-48, each ruler's island (record = the ruler's + 24), the same fields in the same order (the island's exports where the colonies are): `{:sub.island_load}`, `{:sub.island_save}` |
+| `e.empire6` | 3 | REL, 200 bytes | records 1-24, a ruler each: name, land, soldiers, serfs, nobles, grain, tax rate, money, palaces, markets, mills, foundries, shipyards, diplomats, ships, colonies, training, horses, timber, spices, cannons, forts. Records 25-48, each ruler's island (record = the ruler's + 24), the same fields in the same order (the island's exports where the colonies are; the exports held in the mainland's dry dock where the training is): `{:sub.island_load}`, `{:sub.island_save}` |
 | `e.emp6 config` | 3 | SEQ | the land an Emperor needs (`ln`), the auto-reset (`mp`), the BBS credit exchange and its rate (`en`, `nn`) |
 | `e.empnews6` | 3 | SEQ | the news (`{:sub.log_event}` appends) |
 | `e.emp6.wall` | 3 | SEQ | the Empire wall |

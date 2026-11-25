@@ -2,6 +2,6 @@
 
    Then feed your islanders, soldiers and horses from the island's grain. Too little, and they starve.
 
-   At home, the market master buys your exports. Barter for a new offer, but he only bargains so long. Sell, or hold: what you hold goes back to the island's warehouse for a later trip.
+   At home, the market master buys your exports. Barter for a new offer, but he only bargains so long. Sell, or hold them in the dry dock for your next trip home: he charges $100 a ton to store them, and 20 tons or more may spoil.
 
                <Press any Key>\g1

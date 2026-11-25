@@ -7,7 +7,8 @@
 ' The island: i.empire's {:sub.island_load} ({$33}220) and
 ' {:sub.island_save} ({$33}223), il(1)-il(21) in the ruler's field order
 ' (2 soldiers, 3 serfs, 5 grain, 15 exports, 17 horses, 18 timber, 19
-' spices, 20 cannons, 21 forts are the ones used here).
+' spices, 20 cannons, 21 forts are the ones used here; 16, the training
+' field, holds the exports kept in the mainland's dry dock).
 '
 ' The fleet's cargo: c7(0) ships, 1 grain, 2 serfs, 3 nobles, 4 navigators,
 ' 5 exports, 6 soldiers, 7 horses, 8 spices (n7$() their nouns); k7() the
@@ -178,13 +179,16 @@
 	&"{f6:2}{cyan}You start your trip home...":gosub {:hazard}
 	if c7(0)<1 then {:swim}
 	&"{f6:2}{lt. green}You've reached home port. Unloading the ships..."
-	gr=gr+c7(1):sf=sf+c7(2):nb=nb+c7(3):wa=wa+c7(6):hs=hs+c7(7):yc=yc+c7(0):gosub {:market}
+	gr=gr+c7(1):sf=sf+c7(2):nb=nb+c7(3):wa=wa+c7(6):hs=hs+c7(7):yc=yc+c7(0):c7(5)=c7(5)+il(16):il(16)=.:gosub {:market}
 	gosub {$33}223:return
 {:swim}
 	&"{f6}{white}You return... by swimming! King George frowns at your seamanship.{f6}":gosub {$33}223:return
 
 ' exports sold to the market master (Empire II 50281-50295): $0-4,999 a
-' ton, b7 bargains (1-5) for a new offer; the rest back to the island
+' ton, b7 bargains (1-5) for a new offer. The exports held stay in the
+' dry dock (il(16)) for the next trip home, as Empire II's (50296-50301):
+' 20 tons or more, some spoil; a storage fee of $100 a ton, no more than
+' the treasury has
 {:market}
 	if c7(5)<1 then return
 	b7=fn r(5)
@@ -200,8 +204,17 @@
 	if an$<>"S" then {:hold}
 	m7=c7(5):gosub {:how_many}:c7(5)=c7(5)-q7:pn=pn+q7*g7:&"{f6}{lt. green}Sold!":if c7(5)>. then {:offer2}
 {:hold}
-	if c7(5)>. then il(15)=il(15)+c7(5):c7(5)=.:&"{f6}{white}The rest go back to your island's warehouse."
-	return
+	if c7(5)<1 then return
+	if c7(5)<20 then {:storage}
+	t7=int(rnd(1)*c7(5))
+	if db then:&"{f6}{yellow}Dbg{white}: spoilage{comma} 0-":x=c7(5):gosub {$33}010:&" tons {pound}i1":if an$>"" then t7=val(an$)
+	if t7>c7(5) then t7=c7(5)
+	c7(5)=c7(5)-t7:if t7>. then:&"{f6}{lt. red}Spoilage destroys ":x=t7:a$="ton/tons":gosub {$33}210:&" of cargo!"
+{:storage}
+	if c7(5)<1 then return
+	t7=c7(5)*100:if t7>pn then t7=int(pn)
+	if t7<. then t7=.
+	pn=pn-t7:il(16)=c7(5):&"{f6}{white}":x=c7(5):a$=n7$(5):gosub {$33}210:&" stay in the dry dock.{f6}The market master charges a $":x=t7:gosub {$33}010:&" storage fee!":c7(5)=.:return
 
 ' the sea (Empire II 50114-50175): 1 or 11 a seagull, 2 pirates, 3 a storm,
 ' 5 off course, 7 shipworms, 9 mutiny, the rest calm; then the losses. No
