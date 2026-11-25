@@ -129,7 +129,12 @@
 	&"{f6}{white}Haven't you had enough yet?{lt. blue} ":gosub 94:if a then {:_294}
 ' fix it so the sysop handle is reported here :)
 ' i think this will work: I1$ Access level + handle of the sysop. 
-	lp=1:&"{f6}{yellow}Tough bananas, {pound}v2! {white}Wait til "+mid$(i1$,2)+" hears about this! "
+' 128: i1$, the sysop's handle: u.config record 1's first field (the user's
+' note), which im reads only when it mails an error (4052), so it was ""
+' here ("Wait til  hears about this!"): read as 4052 does if it's empty.
+' The record has the handle alone, so all of it (mid$(i1$,2) lost its I)
+	if i1$="" then gosub 35:x=1:gosub 1:&,2,2:i1$=a$:close 2
+	lp=1:&"{f6}{yellow}Tough bananas, {pound}v2! {white}Wait til "+i1$+" hears about this! "
 {:_294}
 ' return to bbs main prompt:
 ' 128: tw=2 and back: i.empire quits (goto 3045 from here left the gosubs
