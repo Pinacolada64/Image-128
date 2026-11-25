@@ -124,7 +124,9 @@
 {:_120}
 	&"{f6}{lt. green}--> You lost ":x=sl:gosub {$33}010:&" soldiers in the process..."
 {:_122}
-	wa=wa-sl:goto {:_34}
+' 11/25/2026: no more than there are (sl is at least 2)
+	wa=wa-sl:if wa<. then wa=.
+	goto {:_34}
 {:_124}
 ' load tourney module:
 ' TODO: should make it just once per play
@@ -228,8 +230,9 @@
 '	on -(yc<1) goto {:_624} ew=ew-(yc*fn r(7)):return
 '{:_624}
 '	wa=wa-(e7*fn r(7)):return
-	if yc>1 then wa=wa-(e7*fn r(7)):return
-	ew=ew-(yc*fn r(7)):return
+' 11/25/2026: down to 0 at most (up to 7 a ship: past what there was)
+	if yc>1 then wa=wa-(e7*fn r(7)):wa=wa*-(wa>.):return
+	ew=ew-(yc*fn r(7)):ew=ew*-(ew>.):return
 {:_625}
 	lp=1:&"{clear}{purple}{f6:2}Lord Randall is furious at you! Watch out!{f6}"
 	z8=1:ez=fn r(50000)+100000:ew=fn r(wa/2)+wa:en=100
@@ -239,12 +242,15 @@
 ' yours & enemy's army's soldiers:
 	&"{white}   ":x=wa:gosub {$33}010:&"{pound}{back arrow}17 ":x=ew:gosub {$33}010:&"{f6}":return
 {:_705}
+' 11/25/2026: no more than they have (fn r() is at least 1: from a ruler
+' with none, 1, leaving them -1): x past what's there made that, and below
+' 0, 0 (the expressions keep the line going, as an if wouldn't)
 	&"{f6:2}On your new land you find:{f6}":j=1
-	x=fn r(e5/ 6):&"{f6}Shipyards: ":gosub {$33}010:f%(5)=f%(5)+x:e5=e5-x
-	x=fn r(e4/ 6):&"{f6}Foundries: ":gosub {$33}010:f%(4)=f%(4)+x:e4=e4-x
-	x=fn r(e3/ 6):&"{f6}Mills    : ":gosub {$33}010:f%(3)=f%(3)+x:e3=e3-x
-	x=fn r(e2/ 6):&"{f6}Markets  : ":gosub {$33}010:f%(2)=f%(2)+x:e2=e2-x
-	x=fn r(ef/10):&"{f6}Serfs    : ":gosub {$33}010:sf=sf+x:ef=ef-x
+	x=fn r(e5/ 6):x=x+(x>e5)*(x-e5):x=x*-(x>.):&"{f6}Shipyards: ":gosub {$33}010:f%(5)=f%(5)+x:e5=e5-x
+	x=fn r(e4/ 6):x=x+(x>e4)*(x-e4):x=x*-(x>.):&"{f6}Foundries: ":gosub {$33}010:f%(4)=f%(4)+x:e4=e4-x
+	x=fn r(e3/ 6):x=x+(x>e3)*(x-e3):x=x*-(x>.):&"{f6}Mills    : ":gosub {$33}010:f%(3)=f%(3)+x:e3=e3-x
+	x=fn r(e2/ 6):x=x+(x>e2)*(x-e2):x=x*-(x>.):&"{f6}Markets  : ":gosub {$33}010:f%(2)=f%(2)+x:e2=e2-x
+	x=fn r(ef/10):x=x+(x>ef)*(x-ef):x=x*-(x>.):&"{f6}Serfs    : ":gosub {$33}010:sf=sf+x:ef=ef-x
 	j=0:return
 {:_800}
 	if(f%(1)*100000)+100000>la then return

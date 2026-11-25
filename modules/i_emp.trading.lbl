@@ -73,11 +73,15 @@
 	&" bushels of grain.{f6:2}":goto {:continue_turn}
 {:_156}
 ' FIXME: correct message if last palace destroyed ("Your last palace was destroyed!" / "Your last <x> palaces were destroyed!"):
-	if fn r(100)<85 and f%(1)=0 and nb=0 then {:continue_turn}
-	f%(1)=f%(1)-1:nb=nb-1:&"{f6:2}{pound}s1{rvrs on}{pound}p4{brown}EARTHQUAKE!{pound}p0{f6}"
-	lp=1:&"{orange}One of your Palace(s) was destroyed! 1 noble was killed. "
-' FIXME: orphan line?
-	&"{orange}10% of your Palace was destroyed!{f6}1 noble was killed.{f6}":return
+' 11/25/2026: a palace and a noble lost only if there are any (1.2 took
+' both whenever there was either, leaving -1 palaces or nobles, and with
+' neither still went on 15% of the time); and its message once (1.2 also
+' printed an older one after it: "10% of your Palace was destroyed!")
+	if f%(1)<1 and nb<1 then {:continue_turn}
+	&"{f6:2}{pound}s1{rvrs on}{pound}p4{brown}EARTHQUAKE!{pound}p0{f6}{orange}"
+	if f%(1)>. then f%(1)=f%(1)-1:&"One of your palaces was destroyed! "
+	if nb>. then nb=nb-1:&"1 noble was killed."
+	&"{f6}":return
 
 {:continue_turn}
 	&"{f6:2}{green}You have {lt. green}":x=la:gosub {$33}010:& " {green}acres of land.":gosub {:_276}:if tr%<1 then {$33}030

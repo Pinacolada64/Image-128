@@ -69,7 +69,12 @@
 ' 128: the name first (z$), as {:sub.save_your_stats} writes it (1.2 read la
 ' from it: ?file data error; nothing called this there)
 	g3=x:gosub {$31}:input# 2,z$,la,wa,sf,nb,gr,tr,pn,f%(1),f%(2),f%(3),f%(4),f%(5),f%(6),yc,i8,z9,hs,tb,sp,cn,fo
-	close 2:return
+	close 2
+' 11/25/2026: none of them below 0 (the -1 markets, mills and palaces, the
+' -20 soldiers that combat, the earthquake and the town's penalty left in
+' records, before they were fixed); the tax rate and training as they are
+	la=la*-(la>.):wa=wa*-(wa>.):sf=sf*-(sf>.):nb=nb*-(nb>.):gr=gr*-(gr>.):pn=pn*-(pn>.):yc=yc*-(yc>.):i8=i8*-(i8>.)
+	hs=hs*-(hs>.):tb=tb*-(tb>.):sp=sp*-(sp>.):cn=cn*-(cn>.):fo=fo*-(fo>.):for i9=1 to 6:f%(i9)=f%(i9)*-(f%(i9)>.):next:return
 	
 {nice:5}
 {:quit_game}

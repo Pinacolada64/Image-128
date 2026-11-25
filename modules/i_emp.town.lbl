@@ -252,7 +252,9 @@ lp=1:&"{f6}{white}The Barbarians will buy a Palace for ":x=wb:gosub {$33}010:lp=
 ' George hears about this!
 	lp=1:&"{f6:2}{red}Nice try, but we keep our promotion records up to date, and they show that"
 	lp=1:&"your eligible warriors have already been promoted! Just wait until King"
+' 11/25/2026: the penalty down to 0 at most
 	&"George hears about this!{f6:2}{pound}q1":wa=wa-20:la=la-500:sf=sf-100
+	wa=wa*-(wa>.):la=la*-(la>.):sf=sf*-(sf>.)
 '	nb=nb-1:if nb<1 then nb=0
 	nb=nb+(nb>1)
 	return
