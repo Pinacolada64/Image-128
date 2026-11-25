@@ -63,6 +63,12 @@ the **H**elm, **S**hield or **L**ow, and **C**harge or ride **S**teady.
    diplomats, ships.
 3. **The colony** (`i/emp.colony`), with ships: serfs, grain and exports
    carried, the colonists fed, storms, pirates and the natives.
+   Then **the island** (`i/emp.island`, Empire II's), with ships: grain,
+   serfs, nobles with their soldiers, navigators and spices out; spices
+   traded for timber or exports, ships and forts built, the island fed;
+   grain, serfs, soldiers, horses and exports home, the exports sold to
+   the market master. Pirates, storms, winds, shipworms and mutiny at sea
+   both ways.
 4. **Combat** (`i/emp.combat`): attack another ruler, soldiers and
    nobles against theirs.
 5. **A quest** (`i/emp.quests`), each turn after combat, as in Empire
@@ -150,6 +156,7 @@ From `games/empire6/changelog.txt`:
 | `i/emp.startturn` | 4000- | the turn's menu |
 | `i/emp.trading` | 4000- | the year: weather, prices, land and grain, harvest, season, feeding, census, investments |
 | `i/emp.colony` | 4000- | the colony: cargo, colonists, exports, the voyage's dangers |
+| `i/emp.island` | 4000- | the island trip (Empire II's): the fleet's cargo both ways, trading and building on the island, feeding it, the market master; `Dbg` picks the sea's event |
 | `i/emp.combat` | 4000- | attacking another ruler |
 | `i/emp.quests` | 4000- | Empire II's quests, after a battle |
 | `i/emp.endturn` | 4000- | the year's end: taxes, pay, rank |

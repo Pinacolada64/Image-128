@@ -1,0 +1,242 @@
+' i/emp.island: a module of Empire 6.0 (i.empire): the voyage to the ruler's
+' island and back, from Empire II's (games/empire6/mdl.emp.delx2.txt,
+' 50051-50303), 11/24/2026 (the user's request: Empire II's islands, beside
+' the colony). i.empire's {:sub.island_trip} offers it after the colony trip
+' (ships needed), and loads it with {:sub.load_lmp}; it ends with RETURN.
+'
+' The island: i.empire's {:sub.island_load} ({$33}220) and
+' {:sub.island_save} ({$33}223), il(1)-il(21) in the ruler's field order
+' (2 soldiers, 3 serfs, 5 grain, 15 exports, 17 horses, 18 timber, 19
+' spices, 20 cannons, 21 forts are the ones used here).
+'
+' The fleet's cargo: c7(0) ships, 1 grain, 2 serfs, 3 nobles, 4 navigators,
+' 5 exports, 6 soldiers, 7 horses, 8 spices (n7$() their nouns); k7() the
+' same, lost at sea. Each ship holds 100: a bushel takes .01, a serf .2, a
+' noble 20 (with his 20 soldiers), a navigator 1, a ton of spices 5; on the
+' way home a soldier or a horse 1, a ton of exports 20 (Empire II's).
+' Arrays of 9 (no DIM needed: 10 or fewer). Other variables: d7 the way (1
+' out, 2 home), r7 the room left, n7 the manifest item, i7 its cargo, u7
+' its room each, a7 how many there are, m7 the most that can go, q7 a
+' number typed, t7 b7 g7 h7 scratch. i.empire's: yc ships, gr grain, sf
+' serfs, nb nobles, wa soldiers, hs horses, pn money.
+'
+' Jumps to i.empire's lines are written {$33}nnn (emp6-includes.lbl).
+{alpha:alt}
+{uses:..\3_0-preface.lbl}
+{include:..\quoters.lbl}
+{number:4000}
+	rem "i/emp.island" {usedef:__BuildDate} {usedef:__BuildTime}
+	goto {:island_start}
+
+{:ask}
+' a line typed: an$, and its number q7
+	&"{white}{pound}i1":if tr%<1 then {$33}030
+	q7=int(val(an$)):return
+
+{:island_start}
+	n7$(0)="ship":n7$(1)="bushel":n7$(2)="serf":n7$(3)="noble":n7$(4)="navigator"
+	n7$(5)="ton of exports/tons of exports":n7$(6)="soldier":n7$(7)="horse":n7$(8)="ton of spices/tons of spices"
+	for i7=0 to 8:c7(i7)=.:next:gosub {$33}220:q7=1:if yc=1 then {:ships}
+{:how_many_ships}
+	&"{f6:2}{lt. green}Take how many ships? (1-":x=yc:gosub {$33}010:&") ":gosub {:ask}
+	if q7<1 or q7>yc then {:how_many_ships}
+{:ships}
+	c7(0)=q7:yc=yc-q7:d7=1:r7=q7*100
+	lp=1:&"{f6:2}{green}The mainland docks. Nobles sail with 20 soldiers each; navigators and spices cost $500 apiece.{f6}"
+
+' the manifest: the items, what's aboard, the most that can go
+{:manifest}
+	&"{f6}{lt. blue}Aboard:"
+	for n7=1 to 5:gosub {:item}:&"{f6}{yellow}["+mid$(str$(n7),2)+"] {white}":x=c7(i7):a$=n7$(i7):gosub {$33}210:&" {gray2}(max ":x=m7:gosub {$33}010:&")":next
+	&"{f6:2}{lt. green}Load which? [0=sail{comma} Y=stats] ":gosub {:ask}
+	on -(an$="Y") gosub {$33}071:if an$="0" then on d7 goto {:sail_out},{:sail_home}
+	if q7<1 or q7>5 then {:manifest}
+	n7=q7:gosub {:item}:&"{f6}{yellow}How many? (max ":x=m7:gosub {$33}010:&") ":gosub {:ask}
+	if q7<1 then {:manifest}
+	if q7>m7 then:&"{f6}{lt. red}Only ":x=m7:a$=n7$(i7):gosub {$33}210:&" can go.":goto {:manifest}
+	on n7+5*(d7-1) gosub {:take1},{:take2},{:take3},{:take4},{:take4},{:take6},{:take7},{:take8},{:take9},{:take10}
+	c7(i7)=c7(i7)+q7:r7=r7-q7*u7:goto {:manifest}
+
+{:item}
+' item n7 of the way d7: its cargo i7, room each u7, how many there are a7,
+' and the most that can go m7 (the room's worth at most)
+	on n7+5*(d7-1) gosub {:item1},{:item2},{:item3},{:item4},{:item5},{:item6},{:item7},{:item8},{:item9},{:item10}
+	m7=int(r7/u7+.001):if a7<m7 then m7=int(a7)
+	if m7<. then m7=.
+	return
+{:item1}
+	i7=1:u7=.01:a7=gr:return
+{:item2}
+	i7=2:u7=.2:a7=sf:return
+{:item3}
+	i7=3:u7=20:a7=nb:if a7>wa/20 then a7=wa/20
+	return
+{:item4}
+	i7=4:u7=1:a7=pn/500:return
+{:item5}
+	i7=8:u7=5:a7=pn/500:return
+{:item6}
+	i7=1:u7=.01:a7=il(5):return
+{:item7}
+	i7=2:u7=.2:a7=il(3):return
+{:item8}
+' soldiers: 20 for each noble aboard
+	i7=6:u7=1:a7=il(2):if a7>c7(3)*20-c7(6) then a7=c7(3)*20-c7(6)
+	return
+{:item9}
+	i7=7:u7=1:a7=il(17):return
+{:item10}
+	i7=5:u7=20:a7=il(15):return
+' what's loaded, taken from where it was
+{:take1}
+	gr=gr-q7:return
+{:take2}
+	sf=sf-q7:return
+{:take3}
+	nb=nb-q7:wa=wa-q7*20:c7(6)=c7(6)+q7*20:return
+{:take4}
+	pn=pn-q7*500:return
+{:take6}
+	il(5)=il(5)-q7:return
+{:take7}
+	il(3)=il(3)-q7:return
+{:take8}
+	il(2)=il(2)-q7:return
+{:take9}
+	il(17)=il(17)-q7:return
+{:take10}
+	il(15)=il(15)-q7:return
+
+{:sail_out}
+	&"{f6:2}{cyan}You set sail for your island...":gosub {:hazard}
+	if c7(0)<1 then:&"{f6:2}{white}You find yourself alone in the ocean{comma} without a ship!":goto {:swim}
+	&"{f6:2}{lt. green}You arrive at your island.":il(5)=il(5)+c7(1):il(3)=il(3)+c7(2):il(2)=il(2)+c7(6)
+	il(19)=il(19)+c7(8):c7(1)=.:c7(2)=.:c7(6)=.:c7(8)=.
+
+' the island: spices traded, timber built with (Empire II 50186-50221)
+{:island}
+	&"{f6:2}{lt. blue}Your island holds:"
+' each: its field in il() and its noun (n7$(), 9 timber)
+	n7$(9)="ton of timber/tons of timber"
+	for i7=1 to 7:t7=val(mid$("03020517191815",i7*2-1,2)):a$=n7$(val(mid$("2617895",i7,1)))
+	&"{f6}{white}":x=il(t7):gosub {$33}210:next
+	&"{f6}":x=il(21):a$="fort":gosub {$33}210:&"{comma} ":x=il(20):a$="cannon":gosub {$33}210
+	&"{f6:2}{lt. green}[T]imber [E]xports [S]hips [F]orts{f6}[C]ontinue [Y] Stats ":gosub {:ask}
+	on -(an$="T")-2*(an$="E")-3*(an$="S")-4*(an$="F")-5*(an$="C") goto {:timber},{:exports},{:build_ships},{:forts},{:feed}
+	on -(an$="Y") gosub {$33}071:goto {:island}
+{:timber}
+	&"{f6}{yellow}2 tons of spices buy 1 of timber.":m7=int(il(19)/2):gosub {:how_many}:il(19)=il(19)-q7*2:il(18)=il(18)+q7:goto {:island}
+{:exports}
+	&"{f6}{yellow}3 tons of spices make 1 of exports.":m7=int(il(19)/3):gosub {:how_many}:il(19)=il(19)-q7*3:il(15)=il(15)+q7:goto {:island}
+{:build_ships}
+	&"{f6}{yellow}3 tons of timber build a ship.":m7=int(il(18)/3):gosub {:how_many}:il(18)=il(18)-q7*3:c7(0)=c7(0)+q7:goto {:island}
+{:forts}
+	&"{f6}{yellow}5 tons of timber build a fort{comma} with 3 cannons.":m7=int(il(18)/5):gosub {:how_many}
+	il(18)=il(18)-q7*5:il(21)=il(21)+q7:il(20)=il(20)+q7*3:goto {:island}
+{:how_many}
+' q7, from 0 to m7
+	&"{f6}How many? (max ":x=m7:gosub {$33}010:&") ":gosub {:ask}:if q7<. then q7=.
+	if q7>m7 then q7=m7
+	return
+
+' the islanders, the garrison and the herds fed from the island's grain
+' (Empire II 50223-50259)
+{:feed}
+	t7=(fn r(5)+2)*il(3):a$="Your islanders":gosub {:feed_ask}
+	if q7<t7/2 then il(3)=int(rnd(1)*il(3)):&"{f6}{lt. red}Famine strikes the island!"
+	if il(2)<1 then {:feed_horses}
+	t7=(fn r(15)+1)*il(2):a$="Your garrison":gosub {:feed_ask}
+	if q7<t7 then t7=int(rnd(1)*il(2)):il(2)=il(2)-t7:&"{f6}{lt. red}":x=t7:a$="soldier":gosub {$33}210:&" starve!"
+{:feed_horses}
+	if il(17)<1 then {:load_home}
+	t7=(fn r(7)+1)*il(17):a$="Your horses":gosub {:feed_ask}
+	if q7<t7 then il(17)=int(rnd(1)*il(17)):&"{f6}{lt. red}Your horses starve!"
+	goto {:load_home}
+{:feed_ask}
+' a$ need t7 bushels; q7 given (Return: all they need), the island's grain
+' at most
+	&"{f6:2}{yellow}"+a$+" need ":x=t7:a$="bushel":gosub {$33}210:&".{f6}The island has ":x=il(5):gosub {$33}010
+	&".{f6}Give how many? (Return=":x=t7:gosub {$33}010:&") ":gosub {:ask}:if an$="" then q7=t7
+	if q7<. then q7=.
+	if q7>il(5) then q7=int(il(5))
+	il(5)=il(5)-q7:return
+
+{:load_home}
+	if c7(0)<1 then:&"{f6:2}{white}No ships! You must swim back!":goto {:swim}
+	d7=2:r7=c7(0)*100:&"{f6:2}{green}The island's docks. Each noble aboard leads 20 soldiers.{f6}":goto {:manifest}
+
+{:sail_home}
+	&"{f6:2}{cyan}You start your trip home...":gosub {:hazard}
+	if c7(0)<1 then {:swim}
+	&"{f6:2}{lt. green}You've reached home port. Unloading the ships..."
+	gr=gr+c7(1):sf=sf+c7(2):nb=nb+c7(3):wa=wa+c7(6):hs=hs+c7(7):yc=yc+c7(0):gosub {:market}
+	gosub {$33}223:return
+{:swim}
+	&"{f6}{white}You return... by swimming! King George frowns at your seamanship.{f6}":gosub {$33}223:return
+
+' exports sold to the market master (Empire II 50281-50295): $0-4,999 a
+' ton, b7 bargains (1-5) for a new offer; the rest back to the island
+{:market}
+	if c7(5)<1 then return
+	b7=fn r(5)
+{:offer}
+	g7=int(rnd(1)*5000)
+{:offer2}
+	&"{f6:2}{yellow}":x=c7(5):a$=n7$(5):gosub {$33}210:&" in the dry dock.{f6}The market master offers $":x=g7:gosub {$33}010
+	&" a ton.{f6}{lt. green}[B]arter [S]ell [H]old ":gosub {:ask}
+	if an$="B" then b7=b7-1:if b7>=. then {:offer}
+	if an$="B" then:&"{f6}{white}The market master has made his final offer!":goto {:offer2}
+	if an$<>"S" then {:hold}
+	m7=c7(5):gosub {:how_many}:c7(5)=c7(5)-q7:pn=pn+q7*g7:&"{f6}{lt. green}Sold!":if c7(5)>. then {:offer2}
+{:hold}
+	if c7(5)>. then il(15)=il(15)+c7(5):c7(5)=.:&"{f6}{white}The rest go back to your island's warehouse."
+	return
+
+' the sea (Empire II 50114-50175): 1 or 11 a seagull, 2 pirates, 3 a storm,
+' 5 off course, 7 shipworms, 9 mutiny, the rest calm; then the losses. No
+' ships left: all their cargo lost too
+{:hazard}
+' Dbg on the lightbar (db, read when Empire starts): the event chosen, as
+' i/emp.quests' rolls
+	for i7=0 to 8:k7(i7)=.:next:h7=fn r(11)
+	if db then:&"{f6}{yellow}Dbg{white}: the sea, 1-11 (2 pirates{comma} 3 storm{comma} 5 off course{comma} 7 worms{comma} 9 mutiny) {pound}i1":if an$>"" then h7=val(an$)
+	on h7 gosub {:seagull},{:pirates},{:storm},{:calm},{:off_course},{:calm},{:worms},{:calm},{:mutiny},{:calm},{:seagull}
+	if c7(0)<1 then gosub {:lose_all}
+	t7=.:for i7=0 to 8:t7=t7+k7(i7):next:if t7=. then return
+	&"{f6:2}{lt. red}Lost at sea:{white}"
+	for i7=0 to 8:if k7(i7) then:&"{f6}  ":x=k7(i7):a$=n7$(i7):gosub {$33}210
+	next:return
+{:calm}
+	&"{f6}{lt. blue}The seas are calm{comma} your course true...":return
+{:seagull}
+	&"{f6}{white}A seagull bombs your head{comma} from above!":return
+{:pirates}
+	&"{f6}{lt. red}Pirates attack your ships!"
+' nobles against ships, compared once (ships captured change the count)
+	on sgn(c7(3)-c7(0))+2 goto {:outnumbered},{:hold_off}
+	&"{f6}{lt. green}Your armies defeat them easily!":if fn r(10)>7 then t7=fn r(2):c7(0)=c7(0)+t7:&"{f6}You capture ":x=t7:a$="ship":gosub {$33}210:&"!"
+	return
+{:hold_off}
+	&"{f6}{yellow}Your armies hold them off{comma} but lose some cargo.":goto {:lose_some}
+{:outnumbered}
+	&"{f6}{lt. red}Your men are outnumbered!":k7(0)=1:c7(0)=c7(0)-1:goto {:lose_some}
+{:storm}
+	&"{f6}{lt. red}A raging storm devastates your flotilla!":k7(0)=int(rnd(1)*c7(0)):c7(0)=c7(0)-k7(0):goto {:lose_some}
+{:off_course}
+	&"{f6}{yellow}Your ships are blown off course...":if c7(4)>=c7(0) then:&"{f6}{lt. green}Your navigators correct for the wind.":return
+' the ships with no navigator lost (as the colony's)
+	k7(0)=c7(0)-c7(4):c7(0)=c7(4):goto {:lose_some}
+{:worms}
+	&"{f6}{yellow}Shipworms have eaten your hulls! Cargo floats away!":goto {:lose_some}
+{:mutiny}
+	if c7(6)<1 then {:calm}
+	&"{f6}{lt. red}A mutiny is brewing among your armies...":if fn r(10)=1 then:&"{f6}They take your ships and sail away!":goto {:lose_all}
+	&"{f6}{lt. green}Your nobles subdue the soldiers.":t7=int(rnd(1)*c7(6)):k7(6)=t7:c7(6)=c7(6)-t7:return
+{:lose_some}
+' a share of each cargo but the nobles
+	for i7=1 to 8:t7=int(rnd(1)*c7(i7))*-(i7<>3):k7(i7)=k7(i7)+t7:c7(i7)=c7(i7)-t7:next:return
+{:lose_all}
+	for i7=0 to 8:k7(i7)=k7(i7)+c7(i7):c7(i7)=.:next:return
+
+{number:4199}
+	rem i/emp.island - image 128

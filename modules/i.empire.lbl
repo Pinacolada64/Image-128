@@ -250,7 +250,9 @@
 	&"{f6:2}{lt. red}Heading down to the Shipyards...{f6:2}"
 	a$="colony":gosub {:sub.load_lmp}:if tr%<1 then {:save_stats_quit}
 {:_353}
-	&"{f6:2}{red}Heading to the Battlegrounds...{f6:2}"
+' 11/24/2026: the island trip first (i/emp.island), on this line so the
+' lines after keep their numbers
+	gosub {:sub.island_trip}:&"{f6:2}{red}Heading to the Battlegrounds...{f6:2}"
 ' 128: the quests (i/emp.quests, Empire II's) after the battle, on the same
 ' line, so the lines after keep their numbers
 	a$="combat":gosub {:sub.load_lmp}:on -(tr%<1) goto {:save_stats_quit}:a$="quests":gosub {:sub.load_lmp}:if tr%<1 then {:save_stats_quit}
@@ -356,6 +358,12 @@
 ' the island's record (g3+24), as {:sub.save_your_stats} writes the ruler's
 	w$=il$:for i9=1 to 21:w$=w$+r$+str$(il(i9)):next
 	gosub {:sub.open_playerlog}:x=g3+24:gosub {$31}:print# 2,w$:close 2:return
+{:sub.island_trip}
+' after the colony trip (line 3111): ships needed, then i/emp.island
+	if yc<1 then return
+	&"{f6:2}{cyan}Sail to your island? (Y/N) >> {white}":gosub {$39}4:if a=. then return
+	a$="island":gosub {:sub.load_lmp}:if tr%<1 then {:save_stats_quit}
+	return
 
 {number:3996}
 	rem empire iv converted to image by utopia bbs 702-735-6787 24 hours
