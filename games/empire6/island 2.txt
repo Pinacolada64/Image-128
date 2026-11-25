@@ -1,0 +1,7 @@
+   YOUR ISLAND. Spices become timber (2 tons for 1) or exports (3 tons for 1). Timber builds ships (3 tons each), which join your fleet, or forts (5 tons each, with 3 cannons) to guard the island.
+
+   Then feed your islanders, soldiers and horses from the island's grain. Too little, and they starve.
+
+   At home, the market master buys your exports. Barter for a new offer, but he only bargains so long. Sell, or hold: what you hold goes back to the island's warehouse for a later trip.
+
+               <Press any Key>\g1

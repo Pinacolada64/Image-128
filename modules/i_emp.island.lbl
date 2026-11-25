@@ -48,8 +48,8 @@
 {:manifest}
 	&"{f6}{lt. blue}Aboard:"
 	for n7=1 to 5:gosub {:item}:&"{f6}{yellow}["+mid$(str$(n7),2)+"] {white}":x=c7(i7):a$=n7$(i7):gosub {$33}210:&" {gray2}(max ":x=m7:gosub {$33}010:&")":next
-	&"{f6:2}{lt. green}Load which? [0=sail{comma} Y=stats] ":gosub {:ask}
-	on -(an$="Y") gosub {$33}071:if an$="0" then on d7 goto {:sail_out},{:sail_home}
+	&"{f6:2}{lt. green}Load which? [0=sail{comma} {question}=help{comma} Y=stats] ":gosub {:ask}
+	on -(an$="Y")-2*(an$="{question}") gosub {$33}071,{:help1}:if an$="0" then on d7 goto {:sail_out},{:sail_home}
 	if q7<1 or q7>5 then {:manifest}
 	n7=q7:gosub {:item}:&"{f6}{yellow}How many? (max ":x=m7:gosub {$33}010:&") ":gosub {:ask}
 	if q7<1 then {:manifest}
@@ -107,6 +107,15 @@
 {:take10}
 	il(15)=il(15)-q7:return
 
+' the help: s.emp6.island1 (the docks), island2 (the island, the market);
+' games/empire6/"island N.txt" made into them by tools/centseq.py --text
+{:help1}
+	a$="s.emp6.island1":goto {:help}
+{:help2}
+	a$="s.emp6.island2"
+{:help}
+	dr=1:gosub 14:return
+
 {:sail_out}
 	&"{f6:2}{cyan}You set sail for your island...":gosub {:hazard}
 	if c7(0)<1 then:&"{f6:2}{white}You find yourself alone in the ocean{comma} without a ship!":goto {:swim}
@@ -121,9 +130,9 @@
 	for i7=1 to 7:t7=val(mid$("03020517191815",i7*2-1,2)):a$=n7$(val(mid$("2617895",i7,1)))
 	&"{f6}{white}":x=il(t7):gosub {$33}210:next
 	&"{f6}":x=il(21):a$="fort":gosub {$33}210:&"{comma} ":x=il(20):a$="cannon":gosub {$33}210
-	&"{f6:2}{lt. green}[T]imber [E]xports [S]hips [F]orts{f6}[C]ontinue [Y] Stats ":gosub {:ask}
+	&"{f6:2}{lt. green}[T]imber [E]xports [S]hips [F]orts{f6}[C]ontinue [Y] Stats [{question}] Help ":gosub {:ask}
 	on -(an$="T")-2*(an$="E")-3*(an$="S")-4*(an$="F")-5*(an$="C") goto {:timber},{:exports},{:build_ships},{:forts},{:feed}
-	on -(an$="Y") gosub {$33}071:goto {:island}
+	on -(an$="Y")-2*(an$="{question}") gosub {$33}071,{:help2}:goto {:island}
 {:timber}
 	&"{f6}{yellow}2 tons of spices buy 1 of timber.":m7=int(il(19)/2):gosub {:how_many}:il(19)=il(19)-q7*2:il(18)=il(18)+q7:goto {:island}
 {:exports}
@@ -184,7 +193,8 @@
 	if db then:&"{f6}{yellow}Dbg{white}: the offer{comma} $0-4{comma}999 a ton {pound}i1":if an$>"" then g7=val(an$)
 {:offer2}
 	&"{f6:2}{yellow}":x=c7(5):a$=n7$(5):gosub {$33}210:&" in the dry dock.{f6}The market master offers $":x=g7:gosub {$33}010
-	&" a ton.{f6}{lt. green}[B]arter [S]ell [H]old ":gosub {:ask}
+	&" a ton.{f6}{lt. green}[B]arter [S]ell [H]old [{question}] Help ":gosub {:ask}
+	if an$="{question}" then gosub {:help2}:goto {:offer2}
 	if an$="B" then b7=b7-1:if b7>=. then {:offer}
 	if an$="B" then:&"{f6}{white}The market master has made his final offer!":goto {:offer2}
 	if an$<>"S" then {:hold}

@@ -1,0 +1,9 @@
+   THE DOCKS. Each ship holds 100 units of cargo. A bushel of grain takes a hundredth of a unit, a serf a fifth, a noble 20 (he brings 20 soldiers along), a navigator 1, and a ton of spices or exports 5 or 20.
+
+   Pick an item by its number, then how many. The maximum shown is what you have and what still fits. Type 0 to sail.
+
+   Outward, navigators and spices cost $500 each. Take a navigator for every ship, or the winds may carry ships away. Take nobles to fight off pirates: they must outnumber your ships.
+
+   Homeward, each noble aboard leads 20 soldiers back. Bring exports home to sell.
+
+               <Press any Key>\g1
