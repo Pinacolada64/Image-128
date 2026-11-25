@@ -110,7 +110,11 @@ def convert(data):
 # lines or begin with three spaces; each is given a colour in turn, as the
 # Centipede texts colour theirs, and the result line ("You win ...", "You
 # lose ...") is purple with its amounts white, as theirs are. Then the same
-# wrapping as above.
+# wrapping as above. The result line (11/25/2026): an amount won, lost,
+# gained, found or rescued ("You win 100 acres", "Inside, you find 90,000
+# gold!"), or "You have lost" (not "You have planned...", "You have landed
+# ...", which are the story); nothing after the Press any Key line (wreck6
+# has bytes left over from the disk there).
 PARA_COLOURS = [0x9e, 0x96, 0x9c, 0x99]   # yellow, light red, purple, light green
 RESULT, AMOUNT = 0x9c, 0x05
 
@@ -138,7 +142,7 @@ def from_text(text):
     for line in lines:
         if 'Press any' in line:
             tail.append(line.rstrip())
-            continue
+            break               # anything after it is left over on the disk
         if not line.strip():
             if cur:
                 paras.append(' '.join(cur)); cur = []
@@ -151,7 +155,7 @@ def from_text(text):
     src = []
     k = 0
     for p in paras:
-        if re.match(r'You (win|lose|have)', p):
+        if re.search(r'\b(win|lose|gain|find|rescue) [\d$]', p) or p.startswith('You have lost'):
             body = re.sub(r'(\d[\d,]*)', lambda m: '\x05' + m.group(1) + chr(RESULT), p)
             src += [b'', bytes([RESULT]) + b'   ' + petscii(body)]
         else:

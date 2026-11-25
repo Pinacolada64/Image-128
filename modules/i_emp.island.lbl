@@ -118,7 +118,7 @@
 	dr=1:gosub 14:return
 
 {:sail_out}
-	&"{f6:2}{cyan}You set sail for your island...":gosub {:hazard}
+	&"{f6:2}{cyan}You set sail for your island...":gosub {:hazard}:gosub {:discover}
 	if c7(0)<1 then:&"{f6:2}{white}You find yourself alone in the ocean{comma} without a ship!":goto {:swim}
 	&"{f6:2}{lt. green}You arrive at your island.":il(5)=il(5)+c7(1):il(3)=il(3)+c7(2):il(2)=il(2)+c7(6)
 	il(19)=il(19)+c7(8):c7(1)=.:c7(2)=.:c7(6)=.:c7(8)=.
@@ -176,7 +176,7 @@
 	d7=2:r7=c7(0)*100:&"{f6:2}{green}The island's docks. Each noble aboard leads 20 soldiers.{f6}":goto {:manifest}
 
 {:sail_home}
-	&"{f6:2}{cyan}You start your trip home...":gosub {:hazard}
+	&"{f6:2}{cyan}You start your trip home...":gosub {:hazard}:gosub {:discover}
 	if c7(0)<1 then {:swim}
 	&"{f6:2}{lt. green}You've reached home port. Unloading the ships..."
 	gr=gr+c7(1):sf=sf+c7(2):nb=nb+c7(3):wa=wa+c7(6):hs=hs+c7(7):yc=yc+c7(0):c7(5)=c7(5)+il(16):il(16)=.:gosub {:market}
@@ -260,6 +260,59 @@
 	if db then:&"{f6}{yellow}Dbg{white}: the mutiny roll{comma} 1-10 (1: they take the ships{comma} 2-10: subdued) {pound}i1":if an$>"" then h7=val(an$)
 	if h7=1 then:&"{f6}They take your ships and sail away!":goto {:lose_all}
 	&"{f6}{lt. green}Your nobles subdue the soldiers.":t7=int(rnd(1)*c7(6)):k7(6)=t7:c7(6)=c7(6)-t7:return
+' uncharted islands and wreckage (Empire II 50500-51220), after the sea's
+' event both ways: 1 in 6 an island, else 1 in 6 wreckage. Explored, 1 in
+' 20 nothing; else one of six (island) or seven (wreckage) finds, its
+' story s.emp6.isle1-6, wreck1-7 (games/empire6/isleN.txt, wreckN.txt, by
+' tools/centseq.py --text), and the news. The finds go where Empire II
+' put them: gold, nobles, soldiers, serfs, cannons, horses the realm's;
+' timber and spices the island's; exports the dry dock's. The bad ones
+' (eruption, pirates, cannibals, sea serpent, waterspout, fog) cost ships
+' and cargo. Dbg picks the find and what it is.
+{:discover}
+	if c7(0)<1 then return
+	b7=.:if fn r(30)<6 then b7=1:goto {:discover_dbg}
+	if fn r(30)<6 then b7=2
+{:discover_dbg}
+	if db then:&"{f6}{yellow}Dbg{white}: a find{comma} 0-2 (1 island{comma} 2 wreckage) {pound}i1":if an$>"" then b7=val(an$)
+	if b7<1 or b7>2 then return
+{:discover_ask}
+	if b7=1 then:&"{f6:2}{lt. green}The first mate reports an uncharted island off the port bow!":a$="Explore the island"
+	if b7=2 then:&"{f6:2}{lt. green}The first mate reports wreckage off the starboard bow!":a$="Examine the wreckage"
+	&"{f6}[E] "+a$+"{f6}[C] Continue your voyage{f6}Your command{comma} Cap'n? ":gosub {:ask}
+	if an$="Y" then gosub {$33}071:goto {:discover_ask}
+	if an$<>"E" then:&"{f6}{white}You keep to your course...":return
+	h7=fn r(6-(b7=2)):if fn r(20)=20 then h7=.
+	if db then:&"{f6}{yellow}Dbg{white}: what it is{comma} 0 nothing{comma} ":on b7 gosub {:dbg_isle},{:dbg_wreck}:if an$>"" then h7=val(an$)
+	if h7<1 or h7>6-(b7=2) then:&"{f6}{white}You find nothing of interest...":return
+	a$="s.emp6."+mid$("islewreck",b7*4-3,4+b7-1)+mid$(str$(h7),2):dr=1:gosub 14
+	on h7+6*(b7-1) gosub {:isle1},{:damage},{:isle3},{:damage},{:isle5},{:damage},{:wreck1},{:damage},{:wreck3},{:damage},{:wreck5},{:wreck6},{:damage}
+	tt$="{lt. blue}"+na$+tt$:goto {$33}090
+{:dbg_isle}
+	&"1 treasure{comma} 2 eruption{comma} 3 lost colony{comma} 4 pirates{comma} 5 horses{comma} 6 cannibals {pound}i1":return
+{:dbg_wreck}
+	&"1 survivors{comma} 2 sea serpent{comma} 3 exports{comma} 4 waterspout{comma} 5 spices{comma} 6 a prince{comma} 7 fog {pound}i1":return
+{:isle1}
+	pn=pn+90000:tt$=" found buried treasure!":return
+{:isle3}
+	cn=cn+10:nb=nb+3:wa=wa+30:sf=sf+250:tt$=" found a lost colony!":return
+{:isle5}
+	hs=hs+100:il(18)=il(18)+20:tt$=" found wild horses!":return
+{:wreck1}
+	nb=nb+2:wa=wa+15:sf=sf+30:tt$=" rescued survivors at sea!":return
+{:wreck3}
+	il(16)=il(16)+5:tt$=" found exports in a wreck!":return
+{:wreck5}
+	il(19)=il(19)+16:tt$=" found spices in a wreck!":return
+{:wreck6}
+	nb=nb+3:wa=wa+25:pn=pn+15000:tt$=" rescued a prince at sea!":return
+{:damage}
+' ships and a share of each cargo lost, and listed (Empire II 50800)
+	for i7=0 to 8:k7(i7)=.:next:k7(0)=int(rnd(1)*c7(0)):c7(0)=c7(0)-k7(0):gosub {:lose_some}
+	if c7(0)<1 then gosub {:lose_all}
+	&"{f6:2}{lt. red}Lost:{white}":for i7=0 to 8:if k7(i7) then:&"{f6}  ":x=k7(i7):a$=n7$(i7):gosub {$33}210
+	next:tt$="'s fleet was battered at sea!":return
+
 {:lose_some}
 ' a share of each cargo but the nobles
 	for i7=1 to 8:t7=int(rnd(1)*c7(i7))*-(i7<>3):k7(i7)=k7(i7)+t7:c7(i7)=c7(i7)-t7:next:return
