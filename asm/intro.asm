@@ -702,6 +702,7 @@ lockin1:
 	jsr ltk_bnkout
 	jsr ltk_getprt
 	and #$0f
+	sta ltkprt	; 11/25/2026: the port, for BASIC (equates.asm)
 	ora #$80
 	sta ltkport
 	inc ltkon	; there's one; and the LU logged in now, at boot:
