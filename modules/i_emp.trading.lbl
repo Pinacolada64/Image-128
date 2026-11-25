@@ -119,6 +119,15 @@
 	x=int((la*wc+(rnd(1)*sf)*wc+gr*wc)/3):if x>(la+sf)*4 then x=(la+sf)*4
 	&"{f6:2}{lt. blue}This year's harvest is ":gosub {$33}010:&" bushels.{lt. blue}{f6}"
 	gr=gr+x:pl=1
+' 11/24/2026: the season, from Image's clock (d1$: the weekday, then YYMMDD,
+' so the month is characters 4-5): Dec-Feb winter, Mar-May spring, Jun-Aug
+' summer, Sep-Nov autumn, and the other way round south of the equator
+' (n9 2, from the BBS's DST rule: {:sub.hemisphere}, the user's idea; read
+' once a game). Printed before the feeding, once (the retries go back to
+' {:_220}). m9, n9, s9$
+	if n9=. then gosub {:sub.hemisphere}
+	m9=val(mid$(d1$,4,2)):m9=int((m9-int(m9/12)*12)/3):if n9=2 then m9=m9+2+4*(m9>1)
+	s9$=mid$("winterspringsummerautumn",m9*6+1,6):&"{f6}{lt. green}It is "+s9$+".{f6}"
 {:_220}
 ' new: return=max value
 
@@ -274,5 +283,25 @@ lp=1:&"{f6}{cyan}Give them how many? ({pound}$k= ":x=dq:gosub {$33}010:lp=1:&"){
 	&"{yellow}{rvrs on}[4]{rvrs off}{white} Palace{pound}{back arrow}20{green}${pound}v6{f6}":&"{yellow}{rvrs on}[5]{rvrs off}{white} Foundry{pound}{back arrow}20{green}$7,000{f6}"
 	&"{yellow}{rvrs on}[6]{rvrs off}{white} Shipyard{pound}{back arrow}20{green}$8,000{f6}":&"{yellow}{rvrs on}[7]{rvrs off}{white} Noble{pound}{back arrow}20{green}$25,000{f6}"
 	&"{yellow}{rvrs on}[8]{rvrs off}{white} Diplomat{pound}{back arrow}20{green}$50,000{f6}":&"{yellow}{rvrs on}[9]{rvrs off}{white} Ship{pound}{back arrow}20{green}$5,000{f6}":return
+{:sub.hemisphere}
+' 11/24/2026: n9, the BBS's hemisphere: 2 south, 1 north. e.data record 46
+' (as sub.clocks reads it) ends with a copy of the system time zone's DST
+' rule (PROGRAMMING.md, "The BBS's state") after its flags, digits and
+' commas ("1,0,", as sub.clocks writes it now): the letter, the start
+' (month: characters 2-3) and the end (11-12). A start after the end is DST over New Year: Australia's and New Zealand's
+' rules, the southern hemisphere. A zone with no DST (no rule copy) can't
+' say, and counts as north (nor does a copy whose months aren't 1-12).
+' An older i.IM/sub.clocks wrote "1," and the rule's whole line, filling the
+' 31-byte record with no return, which &,2 reads as "^" (found in x128 on
+' an old test disk): north too, until the record is written again (the
+' time zone chosen again in IM). b$, m9, s9
+	n9=1:gosub 33:x=46:gosub 1:&,2,2:close 2:m9=1
+{:hemi_flags}
+	b$=mid$(a$,m9,1):if b$="," or (b$>="0" and b$<="9") then m9=m9+1:if m9<len(a$) then {:hemi_flags}
+	a$=mid$(a$,m9):if len(a$)<19 then return
+	m9=val(mid$(a$,2,2)):s9=val(mid$(a$,11,2)):if m9<1 or m9>12 or s9<1 or s9>12 then return
+	if m9>s9 then n9=2
+	return
+
 {number:4199}
 	rem +.emp6.trading
