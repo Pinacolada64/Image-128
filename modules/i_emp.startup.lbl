@@ -87,12 +87,13 @@
 	w$=w$+r$+"0"+r$+"0"+r$+"1"+r$+"0"+r$+"0"+r$+"0"+r$+"0"+r$+"0":g3=x:gosub 1:print# 2,w$:&"{f6:2}{lt. blue}OK, all set..." ':gosub 1001:&,2,2
 
 {:found_player}
-' return to +.empire6
+' return to i.empire6
 ' 128: and load the player's stats (i.empire's {:sub.load_your_stats}, 3040:
 ' g3=x, then the record): nothing called it, so a turn started with them all
 ' 0 (1.2 too). A new player comes here too, after his record is written
 	gosub {$33}040:return
-{number:4197}
-	rem fixes by pinacolada - 8/Sep/2012 12:03
-	rem and more on 12/Aug/2014 10:47
+{nice:100}
+{crunch:off}
+	rem fixes by pinacolada - 8/Sep/2012 12:03 and more on 12/Aug/2014 10:47
 	rem empire boot mark a. dickenson
+    rem i/emp.startup - image 128

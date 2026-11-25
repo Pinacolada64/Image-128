@@ -96,4 +96,4 @@
 {:_110}
 	return
 {number:4199}
-	rem +.emp6.startturn
+	rem i/emp.startturn
