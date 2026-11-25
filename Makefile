@@ -12,6 +12,10 @@
 #                               one table of contents, each doc a chapter
 #                               (MANUAL, below: the working notes, TODO, the
 #                               PR catalog and the loop report, left out)
+#   make empire-manual          EMPIRE.md as a book of its own (11/24/2026, the
+#                               user's choice: Empire 6's manual, not a chapter
+#                               of Image's), build/docs/Empire6-Manual.pdf: its
+#                               "## " sections the chapters
 #   make clean-docs
 #
 # Needs pandoc, lualatex (TeX Live: fontspec, luaotfload, xcolor, colortbl,
@@ -49,16 +53,31 @@ PDFS := $(patsubst %.md,$(OUT)/%.pdf,$(patsubst docs/%,%,$(DOCS)))
 # 11/23/2026: the book. Each doc has one "# " heading, its chapter: what's
 # new first, then setting up, the sysop's docs, the programmer's, and the
 # editor's notes last.
-MANUAL_DOCS := NEW_IN_128.md INSTALLING.md SYSOP_COMMANDS.md VISUAL_EDITOR.md STATUS_LINE.md DATA_FILES.md PROGRAMMING.md PRINT_USING.md EMPIRE.md \
+MANUAL_DOCS := NEW_IN_128.md INSTALLING.md SYSOP_COMMANDS.md VISUAL_EDITOR.md STATUS_LINE.md DATA_FILES.md PROGRAMMING.md PRINT_USING.md \
 	BASIC_VARIABLES.md DEBUG_TECHNIQUES.md PORTING_NOTES.md editor.md
 MANUAL := $(OUT)/Image128-Manual.pdf
 MANUAL_FLAGS := -V documentclass=report --top-level-division=chapter \
 	-M title="Image BBS 128" -M subtitle="Reference Manual" \
 	-M date="$$(git log -1 --format=%cs 2>/dev/null || date +%F)"
 
-.PHONY: docs manual clean-docs
+# 11/24/2026: Empire 6's manual, from EMPIRE.md alone: its headings one
+# level up ("## Playing" a chapter), its "# Empire 6" giving way to the title
+EMPIRE_MANUAL := $(OUT)/Empire6-Manual.pdf
+EMPIRE_FLAGS := -V documentclass=report --top-level-division=chapter \
+	--shift-heading-level-by=-1 \
+	-M title="Empire 6" -M subtitle="for Image BBS 128" \
+	-M date="$$(git log -1 --format=%cs 2>/dev/null || date +%F)"
+
+.PHONY: docs manual empire-manual clean-docs
 
 manual: $(MANUAL)
+
+empire-manual: $(EMPIRE_MANUAL)
+
+$(EMPIRE_MANUAL): EMPIRE.md $(PREAMBLE) $(FILTER)
+	@mkdir -p $(dir $@)
+	@echo "Rendering Empire 6's manual -> $@"
+	$(PANDOC) EMPIRE.md $(PANDOC_FLAGS) $(EMPIRE_FLAGS) -o $@
 
 $(MANUAL): $(MANUAL_DOCS) $(PREAMBLE) $(FILTER)
 	@mkdir -p $(dir $@)

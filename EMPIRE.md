@@ -1,5 +1,7 @@
 # Empire 6
 
+## Introduction
+
 Empire is a game of ruling a medieval realm, a year a turn: buy and sell
 land and grain, feed the people and the army, build markets, mills and
 palaces, raise soldiers, sail to colonies, and attack the other rulers on
