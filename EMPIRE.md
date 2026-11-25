@@ -24,9 +24,14 @@ The sysop puts `i.empire` on a menu command (or runs it with `R`, class
 3, `empire`). It offers the Empire wall ("Read Empire wall?"); a new
 ruler is asked their name. Then:
 
-1. **The menu** (`i/emp.startturn`): `I` Instructions, `N` Empire News,
-   `O` Other Rulers, `P` (or `C`) Play Empire, `T` Town Activities, `Y`
-   Your Stats, `Q` Quit; `M` Maintenance for the sysop.
+1. **The menu** (`i/emp.startturn`): `H` Hold a Tournament, `I`
+   Instructions, `N` Empire News, `O` Other Rulers, `P` (or `C`) Play
+   Empire, `T` Town Activities, `Y` Your Stats, `Q` Quit; `M` Maintenance
+   for the sysop.
+   **A tournament** (`H`, `i/emp.tourney`), as in Empire II, before the
+   year: with a noble to ride, a horse and 900 serfs to watch, a joust with
+   one of twelve stories and stakes (100 acres, 1,000 gold, a noble, 7,000
+   bushels, a shipyard and 100 acres, 2 tons of timber, won or lost).
 2. **The year** (`i/emp.trading`): the weather (poor to fantastic), land
    and grain to buy or sell at the year's prices, the harvest, the season
    (from Image's clock), feeding the people and the army (Return gives
@@ -97,6 +102,10 @@ From `games/empire6/changelog.txt`:
 - **40/80 columns**: the text word-wraps (`lp=1`) instead of the 1.2
   version's `l$` line breaks
 - **Debug mode**: the lightbar's `Dbg` checkmark (`db`)
+- **The tournament** reached at last (`H`, as in Empire II), with all
+  twelve outcomes, Empire II's amounts, a horse needed, and its stories
+- **"Wait til ... hears about this!"** names the sysop again (`i1$`, read
+  from `u.config`)
 - About 70 fixes, each marked `' 128:` in the code, among them: the
   year's weather (`wc`) was never set, so prices divided by zero; an
   investment's number was never kept, so anything bought gave free
@@ -121,7 +130,7 @@ From `games/empire6/changelog.txt`:
 | `i/emp.endturn` | 4000- | the year's end: taxes, pay, rank |
 | `i/emp.town` | 4000- | the Town's shops and services |
 | `i/emp.maint` | 4000- | the sysop's maintenance: rulers' stats, the config, the reset |
-| `i/emp.tourney` | 4000- | the joust, ported but not yet reached from the game |
+| `i/emp.tourney` | 4000- | a tournament (`H` on the menu): Empire II's joust, one of twelve stakes won or lost |
 
 Sources: `modules/i.empire.lbl`, `modules/i_emp.<name>.lbl` (`_` for
 `/`); the Image 1.2 originals in `games/empire6/` (`Empire6.lbl`,
@@ -136,6 +145,7 @@ Sources: `modules/i.empire.lbl`, `modules/i_emp.<name>.lbl` (`_` for
 | `e.empnews6` | 3 | SEQ | the news (`{:sub.log_event}` appends) |
 | `e.emp6.wall` | 3 | SEQ | the Empire wall |
 | `s.emp6.win1`-`win8`, `s.emp6.zircon`, `s.emp6.rage` | 1 | SEQ | the quests' stories (from Empire II, rewrapped for 39 columns: `disk/README.md`) |
+| `s.emp6.tourney1`-`tourney12` | 1 | SEQ | the tournament's stories (Empire II's, as corrected in 2014, coloured and wrapped by `tools/centseq.py --text`) |
 
 `asm/build.sh` puts the `s.emp6.*` files on `image128.d81`.
 
@@ -148,7 +158,8 @@ loaded at 4000 by `{:sub.load_lmp}` (`a$="name":gosub` it: `im` line 72
 loads `i/emp.name` unless it's there already) and returns. A module
 can't load another (Image 128's nested reload: `modules/TODO.md`), so it
 returns with a request in `tw`: from `startturn`, 1 the Town, 2 quit, 3
-maintenance; `i.empire` acts on it.
+maintenance, 5 a tournament (`{:sub.tourney}`, then the year); `i.empire`
+acts on it.
 
 The modules jump to `i.empire`'s lines by number, so **those lines can't
 move**. `modules/emp6-includes.lbl` names them (each is its Image 1.2

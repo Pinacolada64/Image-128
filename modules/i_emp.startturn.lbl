@@ -15,6 +15,8 @@
 
 {:sub.main_menu}
 	&"{yellow}{clear}{f6:2}Empire Menu{f6}{white}{$af:13}{f6:2}"
+' 11/24/2026: H, as Empire II's menu has it: i/emp.tourney (tw=5)
+	&"{cyan}{rvrs on}[H]{rvrs off} {lt. green}Hold a Tournament{f6}"
 	&"{cyan}{rvrs on}[I]{rvrs off} {lt. green}Instructions{f6}"
 	if e9 then:&"{cyan}{rvrs on}[M]{rvrs off} {lt. green}Maintenance{f6}"
 ' "Empire Records," perhaps? :)
@@ -52,6 +54,9 @@
 ' 128: Q returns with tw=2: i.empire quits (goto 3030 from here left the
 ' gosubs that ran this module on the stack)
 	if an$="Q" then tw=2:return
+' 11/24/2026: H returns with tw=5: i.empire holds the tournament, then the
+' year goes on (Empire II: H, then the harvest)
+	if an$="H" then tw=5:return
 	on -(an$="C" or an$="P")-2*(an$="T") goto {:_110},{:town}
 '	on -(an$="T")-2*(an$="M") goto {:_38},{:_108},{:_420}
 ' o)ther rulers, n)ews, i)nstructions, ? (help)

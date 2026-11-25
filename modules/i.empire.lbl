@@ -153,6 +153,11 @@
 ' the next item, tt$(k9): x with f9$, then f9$ and u9$ back to the usual
 	k9=k9+1:&,15,9:print using f9$;x;:&,15,9,1,v9$
 	tt$(k9)=c9$+mid$(l9$,k9*9-8,9)+":"+v9$+u9$:f9$="###,###,###":u9$="":return
+{:sub.tourney}
+' 11/24/2026: a tournament (i/emp.tourney), asked for with H on the turn's
+' menu (tw=5: {:start_turn}), before the year, as Empire II holds it. 3086:
+' the room before 3090 (sub.log_event, fixed)
+	a$="tourney":gosub {:sub.load_lmp}:tw=.:return
 
 {nice:5}
 {:sub.log_event}
@@ -223,9 +228,11 @@
 ' replaced, so its return had nowhere to go)
 ' 128: j=. too ({:sub.comma_value}'s right-justify, which the player list can
 ' leave on: "Rats eat       4,230 bushels")
-	tw=.:j=.:a$="startturn":gosub {:sub.load_lmp}:on -(tr%<1 or tw=2)-2*(tw=3)-3*(tw=4) goto {:save_stats_quit},{:_420},{:quit_game}:if tw then a$="town":gosub {:sub.load_lmp}:goto {:start_turn}
+	tw=.:j=.:a$="startturn":gosub {:sub.load_lmp}:on -(tr%<1 or tw=2)-2*(tw=3)-3*(tw=4) goto {:save_stats_quit},{:_420},{:quit_game}:if tw=1 then a$="town":gosub {:sub.load_lmp}:goto {:start_turn}
 
-	a$="trading":gosub {:sub.load_lmp}:if tr%<1 then {:save_stats_quit}	
+' 11/24/2026: tw=5 (H): the tournament first ({:sub.tourney}), on this line:
+' the next is _351, fixed (3108)
+	on -(tw=5) gosub {:sub.tourney}:a$="trading":gosub {:sub.load_lmp}:if tr%<1 then {:save_stats_quit}	
 
 {:_351}
 '	&"{f6:2}{cyan}Colony Trip? (Y/N) >>{white}":gosub 1902:on a goto {:_352}:goto {:_353}
