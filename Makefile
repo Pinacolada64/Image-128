@@ -29,7 +29,7 @@
 
 DOCS := PORTING_NOTES.md PROGRAMMING.md DEBUG_TECHNIQUES.md DATA_FILES.md \
 	BASIC_VARIABLES.md SYSOP_COMMANDS.md STATUS_LINE.md editor.md \
-	VISUAL_EDITOR.md INSTALLING.md NEW_IN_128.md PRINT_USING.md \
+	VISUAL_EDITOR.md INSTALLING.md NEW_IN_128.md PRINT_USING.md EMPIRE.md \
 	modules/TODO.md \
 	docs/loop-report.md
 OUT := build/docs
@@ -49,7 +49,7 @@ PDFS := $(patsubst %.md,$(OUT)/%.pdf,$(patsubst docs/%,%,$(DOCS)))
 # 11/23/2026: the book. Each doc has one "# " heading, its chapter: what's
 # new first, then setting up, the sysop's docs, the programmer's, and the
 # editor's notes last.
-MANUAL_DOCS := NEW_IN_128.md INSTALLING.md SYSOP_COMMANDS.md VISUAL_EDITOR.md STATUS_LINE.md DATA_FILES.md PROGRAMMING.md PRINT_USING.md \
+MANUAL_DOCS := NEW_IN_128.md INSTALLING.md SYSOP_COMMANDS.md VISUAL_EDITOR.md STATUS_LINE.md DATA_FILES.md PROGRAMMING.md PRINT_USING.md EMPIRE.md \
 	BASIC_VARIABLES.md DEBUG_TECHNIQUES.md PORTING_NOTES.md editor.md
 MANUAL := $(OUT)/Image128-Manual.pdf
 MANUAL_FLAGS := -V documentclass=report --top-level-division=chapter \
