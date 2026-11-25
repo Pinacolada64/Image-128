@@ -191,12 +191,40 @@ module to 4.06 for good: `tools/to406.py`.
 
 ### Variables and memory
 
-`games/empire6/variables.txt` lists the game's variables (`la` land, `pn`
-money, `gr` grain, `sf` serfs, `wa` soldiers, `nb` nobles, `tr` tax rate,
-`f%(1-6)` the buildings, `yc` ships, `i8` colonies, `z9` training; `hs`,
-`tb`, `sp`, `cn`, `fo` the new ones). New code uses names ending in 9
-(`k9`, `c9$`...), which the game doesn't, and `tt$()`, Image's scratch
-array. `db` is debug mode (`if db then ...`).
+`games/empire6/variables.txt` lists the game's variables:
+
+| Variable | Purpose |
+|---|---|
+| `la` | land |
+| `pn` | money |
+| `gr` | grain |
+| `sf` | serfs |
+| `wa` | soldiers |
+| `nb` | nobles |
+| `tr` | tax rate |
+| `f%(1-6)` | the buildings |
+| `yc` | ships |
+| `i8` | colonies |
+| `z9` | training |
+
+Table: Existing Player Data from v5.1
+
+| Variable | Purpose |
+|---|---|
+| `hs` | horses |
+| `tb` | timber |
+| `sp` | spices |
+| `cn` | cannons |
+| `fo` | forts |
+
+Table: Added in the Image 128 port
+
+New code uses names ending in 9 (`k9`, `c9$`...), which the game doesn't, and `tt$()`, Image's scratch
+array.
+
+> This is quite likely going to be converted over to Image 3.0 structs.
+
+`db` is debug mode (`if db then ...`).
 
 `emp6mem` (`$0a6e`, 2670-2686, `asm/equates.asm`) keeps what lasts
 across a call: +0 the turns played, +1 the ruler they're for, +2 how many
