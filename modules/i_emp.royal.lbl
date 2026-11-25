@@ -1,0 +1,215 @@
+' i/emp.royal: a module of Empire 6.0 (i.empire): the royal tournament, the
+' interactive joust (11/24/2026, the user's TODO entry "a royal tournament
+' with jousting"). Empire II's tournament (i/emp.tourney) is one roll; here
+' the ruler hosts it and the champion rides:
+'
+' - hosting: a noble, a horse (hs) and 900 serfs, as i/emp.tourney asks, and
+'   a purse of 1,000-10,000 gold (spent; a better purse draws better
+'   knights, skill 20 + purse/500 + up to 20)
+' - the champion: named the first time, skill 30 at first, +3 a match won
+'   and +1 a match lost (at most 99), wins counted; unhorsed, hurt one time
+'   in three: resting 3 days (no tournament till then). Kept in e.emp6.champs
+'   (drive 3, REL, 40 bytes a ruler, record g3: the name, skill, wins, the
+'   day the rest ends), not e.empire6, whose 200-byte record is nearly full
+' - a wager: Baron Graznick (Empire II's rival, tourney 1) offers one of
+'   Empire II's stakes (100 acres, 1,000 gold, a noble, 7,000 bushels, a
+'   shipyard and 100 acres, 2 tons of timber), won if the champion wins the
+'   tournament, lost if not; it may be refused
+' - four knights: the semifinal, the other semifinal fought meanwhile, the
+'   final
+' - a joust: three passes; each, the ruler chooses the aim (Helm, Shield,
+'   Low) and the ride (Charge, Steady), the rival chooses at random. A
+'   strike lands on 45% + (skill - the other's)/2 + 2 a horse point (the
+'   ruler's from hs: int(log(hs+1)); a rival's 2-5), helm -15, shield +10,
+'   charging +8, against a steady rider -8; it scores 3 (helm), 2 (shield)
+'   or 1 (low), and unhorses the other 35% (helm), 10% (shield) or 20%
+'   (low) of the hits, +10 charging, -10 against a steady rider. One
+'   unhorsed ends it; both, they ride on. Most points after three passes;
+'   level, more passes (up to six; then the better knight)
+' - after: the final won, the purse stays home and the wager is won, in
+'   the news; a knight beaten may swear loyalty (one time in five: a noble,
+'   as the 1.2 version's tourney did)
+'
+' Variables: o9$ s9 w9 r9 the champion (name, skill, wins, rest day), p9
+' the purse, d9 today (yy*372+mm*31+dd), b9 the champion's horse; w9$ q9 h9
+' the rival (name, skill, horse); a9 y9 the ruler's aim and ride, x9 j9 the
+' rival's; k9 c9 the points, i9 the pass, g9 1 a match won, o9 1 the
+' champion unhorsed; {:hit}'s l9 m8 v9 u9 p8 f9 in, u8 h8 b8 out (g8 r8
+' kept from the champion's strike); d8 k8 l8 the three rivals (tt$()), s8
+' y8 their skills, n9$ o8 the other semifinal's winner; w8 the wager's
+' stake, a8 1 accepted, l8 +1 or -1 applying it. Names checked against
+' i.empire and i/emp.* (none used there).
+' Jumps to i.empire's lines are written {$33}nnn (emp6-includes.lbl).
+{alpha:alt}
+{uses:..\3_0-preface.lbl}
+{include:..\quoters.lbl}
+{number:4000}
+	rem "i/emp.royal" {usedef:__BuildDate} {usedef:__BuildTime}
+	if nb<1 then:lp=1:&"{f6:2}{lt. blue}You haven't a noble to ride in a tournament!{f6}":return
+	if hs<1 then:lp=1:&"{f6:2}{lt. blue}You haven't a horse for a champion!{f6}":return
+	if sf<900 then:lp=1:&"{f6:2}{lt. blue}Not enough serfs would attend. The tournament is called off!{f6}":return
+	if pn<1000 then:lp=1:&"{f6:2}{lt. blue}You can't afford a purse of even 1{comma}000 gold!{f6}":return
+	gosub {:sub.champ_read}:d9=val(mid$(d1$,2,2))*372+val(mid$(d1$,4,2))*31+val(mid$(d1$,6,2))
+	if r9>d9 then:lp=1:&"{f6:2}{lt. blue}"+o9$+" is still healing from the last tournament.{f6}":return
+	if o9$<>"" then {:host}
+' an input takes peek(53252) characters (the last input's, if not set: x128
+' cut "Sir Kay" to "Sir Ka")
+	poke 53252,20:lp=1:&"{f6:2}{yellow}You choose a champion from among your knights.{f6}{lt. green}Your champion's name{colon} {white}{pound}i1":if tr%<1 then return
+	o9$=left$(an$,20):if o9$="" then o9$="Sir Roland"
+	s9=30:w9=.:r9=.
+
+{:host}
+	b9=int(log(hs+1))
+	lp=1:&"{f6:2}{yellow}A royal tournament! {lt. green}Your champion{comma} {white}"+o9$+"{lt. green}{comma} skill{white}"+str$(s9)+"{lt. green}{comma} wins{white}"+str$(w9)+"{lt. green}.{f6}"
+{:purse}
+	poke 53252,5:lp=1:&"{f6}{lt. green}The purse (1000-10000 gold{comma} Return 2000){colon} {white}{pound}i1":if tr%<1 then return
+	p9=int(val(an$)):if an$="" then p9=2000
+	if p9<1000 or p9>10000 then {:purse}
+	if p9>pn then:lp=1:&"{f6}{lt. red}You have only $":x=pn:gosub {$33}010:&".{f6}":goto {:purse}
+	pn=pn-p9
+
+' three knights come, none twice
+	tt$(1)="Sir Garrick the Grim":tt$(2)="Sir Bertrand of Highcombe":tt$(3)="Sir Osric the Bold":tt$(4)="Sir Hugo of Ravenmoor"
+	tt$(5)="Dame Isolde of Greywater":tt$(6)="Sir Tristan the Swift":tt$(7)="Sir Aldric of Ironvale":tt$(8)="The Black Knight"
+	d8=fn r(8)
+{:pick2}
+	k8=fn r(8):if k8=d8 then {:pick2}
+{:pick3}
+	l8=fn r(8):if l8=d8 or l8=k8 then {:pick3}
+	q9=int(20+p9/500+rnd(1)*20):s8=int(20+p9/500+rnd(1)*20):y8=int(20+p9/500+rnd(1)*20)
+	lp=1:&"{f6}{lt. green}The knights arrive{colon} {white}"+tt$(d8)+"{lt. green}{comma} {white}"+tt$(k8)+"{lt. green} and {white}"+tt$(l8)+"{lt. green}.{f6}"
+
+' the wager
+	w8=fn r(6):lp=1:&"{f6}{cyan}Baron Graznick wagers{white} ":gosub {:stake_text}:&"{cyan} on your champion. Accept{question} "
+	gosub 94:a8=a:if tr%<1 then {:save}
+
+' the semifinal
+	w9$=tt$(d8):h9=fn r(4)+1
+	lp=1:&"{f6:2}{yellow}The trumpets sound! {white}The semifinal{colon} {lt. green}"+o9$+" against "+w9$+".{f6}"
+	gosub {:joust}:if tr%<1 then {:save}
+	if g9=. then {:lost}
+	n9$=tt$(k8):o8=s8:if y8+rnd(1)*20>s8+rnd(1)*20 then n9$=tt$(l8):o8=y8
+	lp=1:&"{f6}{lt. green}In the other semifinal{comma} {white}"+n9$+"{lt. green} unhorses the other knight.{f6}"
+
+' the final
+	w9$=n9$:q9=o8:h9=fn r(4)+1
+	lp=1:&"{f6:2}{yellow}The final! {lt. green}"+o9$+" against "+w9$+".{f6}"
+	gosub {:joust}:if tr%<1 then {:save}
+	if g9=. then {:lost}
+
+{:won}
+	pn=pn+p9:w9=w9+1
+	lp=1:&"{f6:2}{yellow}"+o9$+" wins the royal tournament! {white}The purse stays in your treasury.{f6}"
+	if a8 then l8=1:gosub {:stake_apply}:&"{f6}{lt. green}You win{white} ":gosub {:stake_text}:&"{lt. green} from Baron Graznick!{f6}"
+	&"{f6}{yellow}The court is impressed!!{f6}"
+	tt$="{lt. blue}"+na$+"{white}'s champion "+o9$+" wins a royal tournament!":gosub {$33}090
+	goto {:save}
+
+{:lost}
+	lp=1:&"{f6:2}{lt. red}"+w9$+" takes the purse.{f6}"
+	if a8 then l8=-1:gosub {:stake_apply}:&"{f6}{lt. red}You lose{white} ":gosub {:stake_text}:&"{lt. red} to Baron Graznick.{f6}"
+	&"{f6}{lt. red}Tough luck!!{f6}"
+
+{:save}
+	gosub {:sub.champ_write}:return
+
+' one match against w9$ (skill q9, horse h9): g9 1 won; o9 1 the champion
+' was unhorsed
+{:joust}
+	k9=.:c9=.:i9=.:o9=.:g9=.
+{:pass}
+	i9=i9+1:&"{f6}{cyan}Pass"+str$(i9)+"{colon} {lt. green}Aim at the {white}H{lt. green}elm{comma} {white}S{lt. green}hield or {white}L{lt. green}ow{question} {white}{pound}g1"
+	if tr%<1 then return
+	a9=1:if an$="S" then a9=2
+	if an$="L" then a9=3
+	&"{f6}{lt. green}Ride{colon} {white}C{lt. green}harge or {white}S{lt. green}teady{question} {white}{pound}g1":if tr%<1 then return
+	y9=1:if an$="S" then y9=2
+	x9=fn r(3):j9=fn r(2)
+' the champion's strike, then the rival's
+	l9=s9:m8=b9:v9=a9:u9=y9:p8=q9:f9=j9:gosub {:hit}:g8=u8:k9=k9+h8:r8=b8
+	l9=q9:m8=h9:v9=x9:u9=j9:p8=s9:f9=y9:gosub {:hit}:c9=c9+h8
+' (one string: word wrap ends a string that doesn't end in a space)
+	v9=a9:gosub {:aim}:a$=z$:v9=x9:gosub {:aim}
+	lp=1:&"{f6}{white}"+o9$+"{lt. green} aims at "+a$+"; {white}"+w9$+"{lt. green} at "+z$+".{f6}"
+	if g8 then:&"{yellow}A hit for "+o9$+"!":if a9=2 then:&" The lance shatters!"
+	if g8=. then:&"{lt. green}"+o9$+" misses."
+	&"{f6}":if u8 then:&"{lt. red}"+w9$+" strikes home!"
+	if u8=. then:&"{lt. green}"+w9$+" misses."
+	&"{f6}{white}Score{colon} "+o9$+str$(k9)+"{comma} "+w9$+str$(c9)+"{f6}"
+	if r8 and b8 then:&"{yellow}Both knights fall{comma} and ride again!{f6}":goto {:passes}
+	if r8 then:lp=1:&"{yellow}"+w9$+" is unhorsed! {white}"+o9$+" wins!{f6}":g9=1:goto {:match_end}
+	if b8 then:lp=1:&"{lt. red}"+o9$+" is unhorsed! {white}"+w9$+" wins.{f6}":o9=1:goto {:match_end}
+{:passes}
+	if i9<3 then {:pass}
+	if k9=c9 and i9<6 then:&"{lt. green}Level! Another pass.{f6}":goto {:pass}
+	g9=-(k9>c9):if k9=c9 then g9=-(s9+rnd(1)*20>q9+rnd(1)*20)
+	if g9 then:&"{yellow}"+o9$+" wins on points!{f6}"
+	if g9=. then:&"{lt. red}"+w9$+" wins on points.{f6}"
+{:match_end}
+	s9=s9+1+2*g9:if s9>99 then s9=99
+	if g9 then if fn r(5)=1 then nb=nb+1:lp=1:&"{f6}{yellow}"+w9$+" swears loyalty to you! {white}A noble joins your court.{f6}"
+	if o9 then if fn r(3)=1 then r9=d9+3:lp=1:&"{f6}{lt. red}"+o9$+" is hurt{comma} and must rest for three days.{f6}"
+	return
+
+' a strike: l9 the attacker's skill, m8 horse, v9 aim (1 helm, 2 shield, 3
+' low), u9 ride (1 charge, 2 steady); p8 the defender's skill, f9 ride.
+' Out: u8 1 a hit, h8 its points, b8 1 the defender unhorsed. a, x scratch
+{:hit}
+	a=45+(l9-p8)/2+m8*2:if v9=1 then a=a-15
+	if v9=2 then a=a+10
+	if u9=1 then a=a+8
+	if f9=2 then a=a-8
+	u8=.:h8=.:b8=.:if rnd(1)*100>=a then return
+	u8=1:h8=4-v9:x=35:if v9=2 then x=10
+	if v9=3 then x=20
+	if u9=1 then x=x+10
+	if f9=2 then x=x-10
+	if rnd(1)*100<x then b8=1
+	return
+
+{:aim}
+	z$="the helm":if v9=2 then z$="the shield"
+	if v9=3 then z$="low"
+	return
+
+' the wager's stake (w8) as text, and applied (l8: +1 won, -1 lost), each
+' as Empire II's tourney has it; a loss stops at none (a noble: one kept)
+{:stake_text}
+	if w8=1 then:&"100 acres":return
+	if w8=2 then:&"1{comma}000 gold":return
+	if w8=3 then:&"a noble":return
+	if w8=4 then:&"7{comma}000 bushels":return
+	if w8=5 then:&"a shipyard and 100 acres":return
+	&"2 tons of timber":return
+{:stake_apply}
+	on w8 goto {:sa1},{:sa2},{:sa3},{:sa4},{:sa5},{:sa6}
+{:sa1}
+	la=la+100*l8:if la<. then la=.
+	return
+{:sa2}
+	pn=pn+1000*l8:if pn<. then pn=.
+	return
+{:sa3}
+	nb=nb+l8:if nb<1 then nb=1
+	return
+{:sa4}
+	gr=gr+7000*l8:if gr<. then gr=.
+	return
+{:sa5}
+	f%(5)=f%(5)+l8:if f%(5)<. then f%(5)=.
+	goto {:sa1}
+{:sa6}
+	tb=tb+2*l8:if tb<. then tb=.
+	return
+
+' the champion's record, g3 of e.emp6.champs (REL, 40 bytes, made the
+' first time: drive 3): the name, skill, wins and the day the rest ends, a
+' line each. A record not written yet reads as one character (&,2,2): a new
+' champion (o9$ "")
+{:sub.champ_read}
+	a$="e.emp6.champs,l,"+chr$(40):dr=3:gosub 4:x=g3:gosub 1:&,2,2:o9$=a$:s9=30:w9=.:r9=.
+	if len(o9$)<2 then o9$="":close 2:return
+	&,2,2:s9=val(a$):&,2,2:w9=val(a$):&,2,2:r9=val(a$):close 2:return
+{:sub.champ_write}
+	a$="e.emp6.champs,l,"+chr$(40):dr=3:gosub 4:x=g3:gosub 1
+	print# 2,o9$+r$+str$(s9)+r$+str$(w9)+r$+str$(r9):close 2:return

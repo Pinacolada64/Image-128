@@ -158,6 +158,10 @@
 ' menu (tw=5: {:start_turn}), before the year, as Empire II holds it. 3086:
 ' the room before 3090 (sub.log_event, fixed)
 	a$="tourney":gosub {:sub.load_lmp}:tw=.:return
+{:sub.royal}
+' 11/24/2026: the royal tournament (i/emp.royal: the interactive joust), H
+' then R on the turn's menu (tw=6). 3087
+	a$="royal":gosub {:sub.load_lmp}:tw=.:return
 
 {nice:5}
 {:sub.log_event}
@@ -230,9 +234,10 @@
 ' leave on: "Rats eat       4,230 bushels")
 	tw=.:j=.:a$="startturn":gosub {:sub.load_lmp}:on -(tr%<1 or tw=2)-2*(tw=3)-3*(tw=4) goto {:save_stats_quit},{:_420},{:quit_game}:if tw=1 then a$="town":gosub {:sub.load_lmp}:goto {:start_turn}
 
-' 11/24/2026: tw=5 (H): the tournament first ({:sub.tourney}), on this line:
+' 11/24/2026: tw=5 (H, W) the wager joust, tw=6 (H, R) the royal tournament,
+' first ({:sub.tourney}, {:sub.royal}), on this line:
 ' the next is _351, fixed (3108)
-	on -(tw=5) gosub {:sub.tourney}:a$="trading":gosub {:sub.load_lmp}:if tr%<1 then {:save_stats_quit}	
+	on -(tw=5)-2*(tw=6) gosub {:sub.tourney},{:sub.royal}:a$="trading":gosub {:sub.load_lmp}:if tr%<1 then {:save_stats_quit}	
 
 {:_351}
 '	&"{f6:2}{cyan}Colony Trip? (Y/N) >>{white}":gosub 1902:on a goto {:_352}:goto {:_353}

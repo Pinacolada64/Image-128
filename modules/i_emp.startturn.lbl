@@ -6,6 +6,7 @@
 ' emp6-includes.lbl
 {alpha:alt}
 {uses:..\3_0-preface.lbl}
+{include:..\quoters.lbl}
 ' C64 addresses in peek/poke are the 128's, as {sym:...} names from
 ' asm/equates.asm: 899-901 (the cassette buffer) are emp6mem's
 {include:"..\asm\equates.asm"}
@@ -27,6 +28,13 @@
 	&"{cyan}{rvrs on}[Y]{rvrs off} {lt. green}Your Stats{f6:2}"
 	&"{cyan}{rvrs on}[Q]{rvrs off} {lt. green}Quit Game{f6}"
 	return
+
+' 11/24/2026: H: the royal tournament (R: i/emp.royal, the interactive
+' joust, tw=6) or Empire II's wager joust (W, or any other key: i/emp.tourney,
+' tw=5)
+{:which_joust}
+	lp=1:&"{f6}{cyan}A {white}R{cyan}oyal tournament{comma} or a {white}W{cyan}ager joust{question} {white}{pound}g1":tw=5:if an$="R" then tw=6
+	&"{f6}":return
 
 {:begin}	
 	if g3=peek({sym:emp6mem}+1) and peek({sym:emp6mem})>4 and e9<1 then {:_90}
@@ -56,7 +64,7 @@
 	if an$="Q" then tw=2:return
 ' 11/24/2026: H returns with tw=5: i.empire holds the tournament, then the
 ' year goes on (Empire II: H, then the harvest)
-	if an$="H" then tw=5:return
+	if an$="H" then gosub {:which_joust}:return
 	on -(an$="C" or an$="P")-2*(an$="T") goto {:_110},{:town}
 '	on -(an$="T")-2*(an$="M") goto {:_38},{:_108},{:_420}
 ' o)ther rulers, n)ews, i)nstructions, ? (help)

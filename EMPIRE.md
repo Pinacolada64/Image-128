@@ -28,10 +28,33 @@ ruler is asked their name. Then:
    Instructions, `N` Empire News, `O` Other Rulers, `P` (or `C`) Play
    Empire, `T` Town Activities, `Y` Your Stats, `Q` Quit; `M` Maintenance
    for the sysop.
-   **A tournament** (`H`, `i/emp.tourney`), as in Empire II, before the
-   year: with a noble to ride, a horse and 900 serfs to watch, a joust with
-   one of twelve stories and stakes (100 acres, 1,000 gold, a noble, 7,000
-   bushels, a shipyard and 100 acres, 2 tons of timber, won or lost).
+   **A tournament** (`H`), before the year, with a noble to ride, a
+   horse and 900 serfs to watch: a **Royal tournament** (`R`,
+   `i/emp.royal`), the ruler's champion jousting in a bracket of four, or a
+   **Wager joust** (`W`, `i/emp.tourney`), Empire II's: one of twelve
+   stories and stakes (100 acres, 1,000 gold, a noble, 7,000 bushels, a
+   shipyard and 100 acres, 2 tons of timber, won or lost).
+
+### The royal tournament
+
+The ruler sets the purse (1,000-10,000 gold: the more, the better the
+knights who come), names a champion the first time, and may take Baron
+Graznick's wager (one of Empire II's stakes, won if the champion wins
+the tournament). Then a semifinal and a final, each three passes: aim at
+the **H**elm, **S**hield or **L**ow, and **C**harge or ride **S**teady.
+
+- A helm strike is the hardest to land and likeliest to unhorse (3
+  points); a shield strike lands most and can shatter the lance (2); low,
+  between (1). Charging hits more often, and is hit more often; riding
+  steady defends.
+- The champion's skill, the realm's horses (the more, the better the
+  mount) and the rival's skill decide the odds. Unhorsing the other ends
+  the match; otherwise the most points after three passes (level: more
+  passes).
+- Won, the champion's skill rises 3 (lost, 1), and a beaten knight may
+  swear loyalty (a noble). Unhorsed, a champion may be hurt and rest three
+  days. The final won keeps the purse at home, wins the wager, and makes
+  the news.
 2. **The year** (`i/emp.trading`): the weather (poor to fantastic), land
    and grain to buy or sell at the year's prices, the harvest, the season
    (from Image's clock), feeding the people and the army (Return gives
@@ -104,6 +127,8 @@ From `games/empire6/changelog.txt`:
 - **Debug mode**: the lightbar's `Dbg` checkmark (`db`)
 - **The tournament** reached at last (`H`, as in Empire II), with all
   twelve outcomes, Empire II's amounts, a horse needed, and its stories
+- **The royal tournament**: an interactive joust, a champion who improves
+  (`i/emp.royal`)
 - **"Wait til ... hears about this!"** names the sysop again (`i1$`, read
   from `u.config`)
 - About 70 fixes, each marked `' 128:` in the code, among them: the
@@ -130,7 +155,8 @@ From `games/empire6/changelog.txt`:
 | `i/emp.endturn` | 4000- | the year's end: taxes, pay, rank |
 | `i/emp.town` | 4000- | the Town's shops and services |
 | `i/emp.maint` | 4000- | the sysop's maintenance: rulers' stats, the config, the reset |
-| `i/emp.tourney` | 4000- | a tournament (`H` on the menu): Empire II's joust, one of twelve stakes won or lost |
+| `i/emp.tourney` | 4000- | the wager joust (`H`, `W`): Empire II's tournament, one of twelve stakes won or lost |
+| `i/emp.royal` | 4000- | the royal tournament (`H`, `R`): the champion's joust, pass by pass |
 
 Sources: `modules/i.empire.lbl`, `modules/i_emp.<name>.lbl` (`_` for
 `/`); the Image 1.2 originals in `games/empire6/` (`Empire6.lbl`,
@@ -145,6 +171,7 @@ Sources: `modules/i.empire.lbl`, `modules/i_emp.<name>.lbl` (`_` for
 | `e.empnews6` | 3 | SEQ | the news (`{:sub.log_event}` appends) |
 | `e.emp6.wall` | 3 | SEQ | the Empire wall |
 | `s.emp6.win1`-`win8`, `s.emp6.zircon`, `s.emp6.rage` | 1 | SEQ | the quests' stories (from Empire II, rewrapped for 39 columns: `disk/README.md`) |
+| `e.emp6.champs` | 3 | REL, 40 bytes | a ruler's champion (record = the ruler's): name, skill, wins, the day a hurt champion may ride again |
 | `s.emp6.tourney1`-`tourney12` | 1 | SEQ | the tournament's stories (Empire II's, as corrected in 2014, coloured and wrapped by `tools/centseq.py --text`) |
 
 `asm/build.sh` puts the `s.emp6.*` files on `image128.d81`.
@@ -158,8 +185,8 @@ loaded at 4000 by `{:sub.load_lmp}` (`a$="name":gosub` it: `im` line 72
 loads `i/emp.name` unless it's there already) and returns. A module
 can't load another (Image 128's nested reload: `modules/TODO.md`), so it
 returns with a request in `tw`: from `startturn`, 1 the Town, 2 quit, 3
-maintenance, 5 a tournament (`{:sub.tourney}`, then the year); `i.empire`
-acts on it.
+maintenance, 5 the wager joust (`{:sub.tourney}`), 6 the royal
+tournament (`{:sub.royal}`), each then the year; `i.empire` acts on it.
 
 The modules jump to `i.empire`'s lines by number, so **those lines can't
 move**. `modules/emp6-includes.lbl` names them (each is its Image 1.2
@@ -322,8 +349,10 @@ it needs (most need room in the player record: the islands entry).
 - **A court jester**: a joke each turn; gossip about other rulers
   (`games/empire6/jester.md`)
 - **Festivals and banquets**: the people's mood, guests and courtship
-- **A royal tournament with jousting**: hosted by the ruler, a champion,
-  three passes a joust with choices of aim and riding
+- **A royal tournament with jousting**: begun (11/24/2026: the champion,
+  the purse, the wager, a bracket of four, passes with choices of aim and
+  riding); still to come: proclaiming it ahead, archery and the melee,
+  invited rulers' champions, the jester and suitors at the lists
 
 ### The game
 
