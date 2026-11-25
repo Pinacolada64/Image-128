@@ -248,12 +248,80 @@ In x128, a configured system with Empire on it: `build/empire-test.d81`
 
 ## Plans
 
-The `TODO` file has Empire's plans, among them: Lt. Kernal multiplayer
-and the network (attacks, alliances, news and a wall between boards),
-alliances, trade and a market between players, spies, sieges, houses,
-seasons and a winner, crops and farmers, the hunt, a fishing fleet,
-islands as in Empire II (a second record per ruler), the royal vault and
-heists, a royal tournament with jousting, courtship and marriage with
-the game's own suitors (`games/empire6/suitors.md`), a court wizard and
-a court jester (`games/empire6/jester.md`), Honor and the royal granary,
-Your Status in a module of its own, and help for each prompt.
+Empire's TODO items, by category. Each is an entry in the `TODO` file,
+with the details: what the game does today, how it could work, and what
+it needs (most need room in the player record: the islands entry).
+
+### Multiplayer and diplomacy
+
+- **A multiplexed Lt. Kernal**: callers on several stations playing at
+  once, sharing the player file safely, with things that happen between
+  them as they play; the sysop can join in
+- **Across the network**: rulers on different BBSes over NetMail,
+  store-and-forward: expeditions, alliances, caravans, envoys and spies,
+  network news, a networked wall, rankings, network-wide events
+- **Alliances and treaties**: pacts against attack, or a shared defence,
+  signed by diplomats; breaking one has a cost
+- **Mail between rulers**: offers, threats and treaty proposals, with
+  Accept or Refuse at the next turn
+- **Tribute and vassals**: a beaten ruler pays a share of taxes instead of
+  losing land, until they buy their freedom
+- **Houses**: two or three teams with a shared treasury and a house rank
+- **Bounties**: BBS credits posted on a ruler's head
+- **A tournament ladder**: jousts between players, standings on the wall
+- **A market between players**: sell orders that wait for a buyer
+- **Utopia's Auction between players**: serfs auctioned between rulers
+
+### War and intrigue
+
+- **Use the new stats**: forts and cannons in defence, horses in attack,
+  timber for building, spices for trade and content serfs
+- **Sieges**: an attack on a fortified ruler takes several turns; relief
+  or surrender
+- **Siege planning**: the castle's map in Commodore color graphics,
+  trebuchets, mines and more
+- **Spies and sabotage**: see another ruler's stats, burn a mill, poison
+  grain; scrying with a seer in the Town
+- **Barbarian invasions**: a horde that every ruler helps to beat
+- **The royal treasury vault, and heists**: gold kept safe in levels of
+  vault; heists against it, and by the ruler from a Town tavern
+
+### The land: economy and food
+
+- **Crops and farmers**: wheat, rye, barley, oats and more, planted by
+  acre, each with its weather; farmers as a stat
+- **Markets with goods**: cloth, salt, iron and the crops, not only money
+- **A royal hunt**: meat as food in lean years, salted with spices; the
+  forest's game, poachers
+- **A royal fishing fleet**: boats and fishermen, fish as food and trade,
+  storms and pirates
+- **Islands, as in Empire II**: a second holding with mirrored stats (a
+  second record per ruler), sailing, exploring with Empire II's island
+  stories
+
+### The court
+
+- **Honor**: a stat that rises and falls with the ruler's deeds, and the
+  royal granary, opened (or not) to the starving in a drought
+- **Gender, courtship and marriage**: titles by gender, courtship points,
+  a dowry, a marriage that joins two realms
+- **Suitors**: the game's own nobles to court, free, courted, married or
+  widowed (`games/empire6/suitors.md`)
+- **A court wizard**: spells for a fee, which can fail or backfire
+- **A court jester**: a joke each turn; gossip about other rulers
+  (`games/empire6/jester.md`)
+- **Festivals and banquets**: the people's mood, guests and courtship
+- **A royal tournament with jousting**: hosted by the ruler, a champion,
+  three passes a joust with choices of aim and riding
+
+### The game
+
+- **Seasons and a winner**: a season ends after some weeks or with an
+  Emperor; the Hall of Fame and a reset
+
+### The program
+
+- **Your Status in a module of its own** (`sub.your status`), when a
+  ruler takes two records
+- **Help for each prompt**: a help key at every prompt, from SEQ files
+  or a REL file indexed as `++ post` does
