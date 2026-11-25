@@ -304,11 +304,21 @@
 ' 128 (11/22/2026): plurals, for the modules ({$33}200, {$33}210; here, past
 ' every line they jump to, so adding these moved nothing)
 {:sub.plural}
-' the noun and verbs for a count. In: pz the count; a$ the noun, as
-' "singular/plural" ("foundry/foundries"), or the singular alone when the
-' plural is it + s ("mill"). Out: a$ the one to use; vb$ "is" or "are";
-' vs$ "s" or "" for a verb ("desert"+vs$: 1 deserts, 2 desert); hv$ "has"
-' or "have". Uses pw (where the / is). BASIC 7.0's instr: i.empire is built
+' the noun and verbs for a count.
+'
+' In:
+' pz=the item count
+' a$=the noun, as "singular/plural" ("foundry/foundries"),
+'    or the singular alone when the plural is it + s ("mill").
+'
+' Out:
+' a$=the string to output
+' vb$="is" or "are"
+' vs$="s" or "" for verb-subject agreement ("flee"+vs$: 1 serf flees, 2 serfs flee)
+' hv$="has" or "have".
+'
+' Uses: pw (where the / is).
+' BASIC 7.0's instr: i.empire is built
 ' with C64List 4.06 and Basic70.bas (tools/to406.py; 4.04 left instr as
 ' variables: ?type mismatch)
 	vb$="are":vs$="":hv$="have":pw=instr(a$,"/"):if pz=1 then vb$="is":vs$="s":hv$="has"
@@ -324,6 +334,6 @@
 ' a$ vb$ vs$ hv$ as {:sub.plural}; pz is x
 	pz=x:gosub {:sub.plural}:gosub {:sub.comma_value}:&" "+a$:return
 
-{number:3798}
+{number:3996}
 	rem empire iv converted to image by utopia bbs 702-735-6787 24 hours
-	rem hacked mercilessly, lmp-ed, &c. by pinacolada, nov 2012 - oct 2014
+	rem hacked mercilessly, lmp-ed, &c. by pinacolada for image 128, nov 2012 - oct 2014, nov 2026
