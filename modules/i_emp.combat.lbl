@@ -31,6 +31,9 @@
 	gosub {$33}025:x=g1:gosub 1:input# 2,en$
 	if left$(en$,5)="empty"or en$="0"then:&"{red}Invalid #!":close 2:goto {:combat_start}
 	input# 2,ez,ew,ef,en,eg,et,ep,e1,e2,e3,e4,e5,e6,e7,e8,og,eh,eb,es,ec,eo:close 2
+' 11/25/2026 (online play): what was read, to send the enemy the changes
+	e0(1)=ez:e0(2)=ew:e0(3)=ef:e0(4)=en:e0(5)=eg:e0(6)=et:e0(7)=ep:e0(8)=e1:e0(9)=e2:e0(10)=e3:e0(11)=e4
+	e0(12)=e5:e0(13)=e6:e0(14)=e7:e0(15)=e8:e0(16)=og:e0(17)=eh:e0(18)=eb:e0(19)=es:e0(20)=ec:e0(21)=eo
 '	if ez=. then {:_550}
 {:_550}
 	if ez=. then:&"{f6}{white}"+en$+" has no land!{f6}":goto {:combat_start}
@@ -158,7 +161,13 @@
 {:_170}
 ' z8: flag to not write enemy stats?
 ' used to get reset start of each turn in wallwriter
-	on -(z8=1) goto {:_180}:gosub {$33}025:x=g1:gosub 1:print# 2,w$:close 2
+' 11/25/2026 (online play): the changes, not the values, through i.empire's
+' {:sub.ruler_change} (3300): to the enemy's record, read fresh, or to
+' their dispatch if they're at play at another station
+	on -(z8=1) goto {:_180}:dl(1)=ez-e0(1):dl(2)=ew-e0(2):dl(3)=ef-e0(3):dl(4)=en-e0(4):dl(5)=eg-e0(5):dl(6)=.:dl(7)=ep-e0(7)
+	dl(8)=e1-e0(8):dl(9)=e2-e0(9):dl(10)=e3-e0(10):dl(11)=e4-e0(11):dl(12)=e5-e0(12):dl(13)=e6-e0(13):dl(14)=e7-e0(14)
+	dl(15)=e8-e0(15):dl(16)=.:dl(17)=eh-e0(17):dl(18)=eb-e0(18):dl(19)=es-e0(19):dl(20)=ec-e0(20):dl(21)=eo-e0(21)
+	j7=g1:nm$=en$:x9=.:gosub {$33}300
 	if ez<1 then gr=gr+eg:pn=pn+ep:sf=sf+ef:f%(4)=f%(4)+e4:f%(3)=f%(3)+e3:goto {:combat_176}
 	goto {:_180}
 {:combat_176}

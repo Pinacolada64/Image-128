@@ -56,6 +56,8 @@
 '	on -(tz=3) gosub {:_700}:on -(bn=1) goto {:_41}:ff=.:vg=.:if z8=. or z8=2 then {:town}
 
 {:main_prompt}
+' 11/25/2026: the other rulers at play (online play)
+	gosub {$33}360
 	z8=.:ff=.:vg=.:gosub {$33}115:&"{f6:2}{lt. green}Your command, {gray1}{pound}v8{lt. blue}{pound}v2?{lt. green}>>{lt. blue}{pound}i1":if tr%<1 then {$33}030
 	gosub {$33}070
 ' q)uit, c)ontinue / p)lay, t)own

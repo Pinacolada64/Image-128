@@ -211,5 +211,6 @@
 	if len(o9$)<2 then o9$="":close 2:return
 	&,2,2:s9=val(a$):&,2,2:w9=val(a$):&,2,2:r9=val(a$):close 2:return
 {:sub.champ_write}
-	a$="e.emp6.champs,l,"+chr$(40):dr=3:gosub 4:x=g3:gosub 1
-	print# 2,o9$+r$+str$(s9)+r$+str$(w9)+r$+str$(r9):close 2:return
+' 11/25/2026: under lock 1 (online play)
+	&,13,1,1:a$="e.emp6.champs,l,"+chr$(40):dr=3:gosub 4:x=g3:gosub 1
+	print# 2,o9$+r$+str$(s9)+r$+str$(w9)+r$+str$(r9):close 2:&,13,2,1:return

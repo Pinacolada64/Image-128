@@ -19,11 +19,12 @@
 	
 {nice:5}
 {:sub.load_lmp}
+' 11/25/2026: first, any dispatch for this ruler (online play: {:sub.dispatch})
 ' run the module i/emp.<a$> as a subroutine: im's line 72 loads it from the
 ' Plus-File drive (unless it's in memory: p1$), shows its name on the status
 ' line, and goes to 4000; the module ends with RETURN.
 ' 1.2: "+.emp6."+a$, loaded with &,7,dv%,1 and run with gosub 801
-	a$="emp."+a$:gosub {$37}2:return
+	n8$=a$:x9=.:gosub {:sub.dispatch}:a$="emp."+n8$:gosub {$37}2:return
 
 {nice:5}
 {:sub.comma_value}
@@ -58,8 +59,8 @@
 
 {nice:5}
 {:sub.save_your_stats}
-' call with gosub
-	w$=na$+r$+str$(la)+r$+str$(wa)+r$+str$(sf)+r$+str$(nb)
+' call with gosub; 11/25/2026: any dispatch applied first (online play)
+	x9=.:gosub {:sub.dispatch}:w$=na$+r$+str$(la)+r$+str$(wa)+r$+str$(sf)+r$+str$(nb)
 	w$=w$+r$+str$(gr)+r$+str$(tr)+r$+str$(pn)+r$+str$(f%(1))+r$+str$(f%(2))
 	w$=w$+r$+str$(f%(3))+r$+str$(f%(4))+r$+str$(f%(5))+r$+str$(f%(6))
 ' 128: + Empire II's horses, timber, spices, cannons, forts (fields 17-21)
@@ -74,13 +75,13 @@
 ' 11/25/2026: none of them below 0 (the -1 markets, mills and palaces, the
 ' -20 soldiers that combat, the earthquake and the town's penalty left in
 ' records, before they were fixed); the tax rate and training as they are
-	la=la*-(la>.):wa=wa*-(wa>.):sf=sf*-(sf>.):nb=nb*-(nb>.):gr=gr*-(gr>.):pn=pn*-(pn>.):yc=yc*-(yc>.):i8=i8*-(i8>.)
-	hs=hs*-(hs>.):tb=tb*-(tb>.):sp=sp*-(sp>.):cn=cn*-(cn>.):fo=fo*-(fo>.):for i9=1 to 6:f%(i9)=f%(i9)*-(f%(i9)>.):next:return
-	
+' and any dispatch applied (online play)
+	gosub {:sub.no_negatives}:x9=.:goto {:sub.dispatch}
+
 {nice:5}
 {:quit_game}
 ' quit game:
-	gosub {:sub.rank}:lp=1:&"{f6}{lt. green}Goodbye, {pound}v8{pound}v2... {cyan}Play again soon! "
+	ap=.:gosub {:sub.at_play}:gosub {:sub.rank}:lp=1:&"{f6}{lt. green}Goodbye, {pound}v8{pound}v2... {cyan}Play again soon! "
 {:quit_game_2}
 	close 2:close 15:goto {$33}00
 
@@ -101,7 +102,7 @@
 	&"{f6}{lt. blue}{pound}# {pound}#2{pound}%x. {lt. green}"+left$(n$+"......................",22)+"{cyan}"
 ' sub uses x:
 ' - use temp "an" to hold REL record #, restore afterwards:
-	an=x:x=val(b$):gosub {:sub.comma_value}:x=an
+	an=x:x=val(b$):gosub {:sub.comma_value}:x=an:gosub {:court_mark}
 {:_64}
 ' sh=47: asc("/")=47
 ' rc is asc() of abort character
@@ -173,8 +174,8 @@
 {:sub.log_event}
 ' write to "e.empnews6", which the modules read and add to (1.2: "e.empire 6
 ' news", so news logged here was never shown)
-	b$="empnews6":a$="a":gosub {$33}6:if e% then a$="w":gosub {$33}6
-	print# 2,"{lt. green} As of {$04}"d1$:print#2,tt$:print#2,"{pound}vj":close 2:return
+	&,13,1,1:b$="empnews6":a$="a":gosub {$33}6:if e% then a$="w":gosub {$33}6
+	print# 2,"{lt. green} As of {$04}"d1$:print#2,tt$:print#2,"{pound}vj":close 2:&,13,2,1:return
 ' {:_442}
 '	b$="empnews6":a$="w":dr=3:gosub 1027:
 '	print# 2,"{lt. green} As Of: {$04}"+d1$+"{f6}{pound}vj":close 2:goto {:_185}
@@ -197,7 +198,7 @@
 ' NEW: f1 controls whether to skip to line 100 (start of module):
 ' may not be needed since LMP modules end in RETURN now
 '	if f1 then {:_100}
-	cm$="Empire 6 Alpha":gosub {$39}
+	cm$="Empire 128 Alpha":gosub {$39}
 ' check for local maint flag + local mode for sysop options
 	a=3:gosub {$31}1:e9=a+zz
 
@@ -211,7 +212,7 @@
 ' 128: db, debug mode: the lightbar's left Dbg (check 56) checked. In Image
 ' that checkmark means "disable troubleshooting mode" (reversed), so for now
 ' turning Empire's debugging on turns Image's troubleshooting display off
-	&"{clear}":bn=.:ty=.:z9=.:def fn r(x)=int(rnd(1)*x)+1:dim dt$(21),il(21),ei(21):&,52,56,3:db=a%
+	&"{clear}":bn=.:ty=.:z9=.:def fn r(x)=int(rnd(1)*x)+1:dim dt$(21),il(21),ei(21),e0(21),dl(21):&,52,56,3:db=a%
 	k$="Return":if co%>2 then k$="Enter"
 
 ' this will format things roughly for 40/80 columns, just &"{pound}$l"
@@ -357,12 +358,12 @@
 ' 50355-50370: 5,000 bushels, 500-800 serfs, 50 horses). il$ the name; uses
 ' a$, i9
 	gosub {:sub.open_playerlog}:x=g3+24:gosub {$31}:&,2,2:il$=a$:if il$<>na$ then {:island_new}
-	for i9=1 to 21:&,2,2:il(i9)=val(a$):next:close 2:return
+	for i9=1 to 21:&,2,2:il(i9)=val(a$):next:close 2:x9=1:goto {:sub.dispatch}
 {:island_new}
-	close 2:il$=na$:for i9=1 to 21:il(i9)=.:next:il(3)=500+fn r(300):il(5)=5000:il(17)=50:return
+	close 2:il$=na$:for i9=1 to 21:il(i9)=.:next:il(3)=500+fn r(300):il(5)=5000:il(17)=50:x9=1:goto {:sub.dispatch}
 {:sub.island_save}
 ' the island's record (g3+24), as {:sub.save_your_stats} writes the ruler's
-	w$=il$:for i9=1 to 21:w$=w$+r$+str$(il(i9)):next
+	x9=1:gosub {:sub.dispatch}:w$=il$:for i9=1 to 21:w$=w$+r$+str$(il(i9)):next
 	gosub {:sub.open_playerlog}:x=g3+24:gosub {$31}:print# 2,w$:close 2:return
 {:sub.island_trip}
 ' after the colony trip (line 3111): ships needed, then i/emp.island
@@ -420,9 +421,10 @@
 	if l7=. then cn=cn+x:a$="cannon"
 	&"{f6}  ":gosub {:sub.count_noun}:next:tt$=" plundered "+ei$+"'s island!"
 {:raid_save}
+' online play: the changes to their island sent ({:sub.ruler_change}): to
+' their dispatch if they're at play
 	tt$="{lt. blue}"+na$+tt$:if j7=. then {:sub.log_event}
-	w$=ei$:for i9=1 to 21:w$=w$+r$+str$(ei(i9)):next
-	gosub {:sub.open_playerlog}:x=j7+24:gosub {$31}:print# 2,w$:close 2:goto {:sub.log_event}
+	for i9=1 to 21:dl(i9)=ei(i9)-e0(i9):next:nm$=ei$:x9=1:gosub {:sub.ruler_change}:goto {:sub.log_event}
 {:randall_isle}
 ' Lord Randall's island: 3 forts, 12 cannons, 200 soldiers, 800 serfs,
 ' 8,000 bushels, 60 horses, 30 tons of spices, 10 of exports
@@ -434,8 +436,96 @@
 ' {:island_new} (no forts, so only Dbg's raid finds it)
 	ei$="":if j7<1 or j7>24 or j7=g3 then return
 	gosub {:sub.open_playerlog}:x=j7:gosub {$31}:&,2,2:if a$="empty" or a$="" then close 2:return
-	ei$=a$:x=j7+24:gosub {$31}:&,2,2:if a$<>ei$ then close 2:for i9=1 to 21:ei(i9)=.:next:ei(3)=500+fn r(300):ei(5)=5000:ei(17)=50:return
-	for i9=1 to 21:&,2,2:ei(i9)=val(a$):next:close 2:return
+	ei$=a$:x=j7+24:gosub {$31}:&,2,2:if a$<>ei$ then close 2:for i9=1 to 21:ei(i9)=.:next:ei(3)=500+fn r(300):ei(5)=5000:ei(17)=50:for i9=1 to 21:e0(i9)=ei(i9):next:return
+	for i9=1 to 21:&,2,2:ei(i9)=val(a$):next:close 2:for i9=1 to 21:e0(i9)=ei(i9):next:return
+
+{number:3300}
+' ---------------------------------------------------------------------
+' 11/25/2026: online play (the user's: Empire 128, rulers at different
+' Lt. Kernal stations at once). e.empire6 has, past the rulers (1-24) and
+' their islands (25-48):
+'   49-72  each ruler's court (48+n): the name; ap, 1 at play, 0 not
+'          (a station number later: ltkport is glue.asm's, not in
+'          equates.asm for {sym:}); when; who has sent dispatches since
+'   73-96  the ruler's dispatch (72+n): the name, then 21 changes to the
+'          ruler's stats, in their record's order, still to be applied
+'   97-120 the island's dispatch (96+n): the same, for the island
+' A ruler at play has their stats in memory, saved at the end of the turn,
+' so another station's attack on them (combat, a raid) would be written
+' over: it goes to their dispatch instead ({:sub.ruler_change}), which
+' their game applies at its next module ({:sub.load_lmp}), at loading and
+' saving their stats, and their island's. Every write to Empire's records,
+' and the reads that decide one, under &,13's lock 1 (PROGRAMMING.md):
+' without a Lt. Kernal it does nothing.
+{:sub.ruler_change}
+' ruler j7 (1-24, nm$ the name) changed by dl(1)-dl(21): x9 0 the ruler,
+' 1 the island (e0(), the values read before the change, for an island
+' not made yet). At play: added to the dispatch, nm$ to the court's
+' senders. Else the record read fresh, changed (none below 0 but the tax
+' rate, 6, and training, 16), written. Uses i9, x, a$, w$, ap, k9$, j8
+	if j7<1 or j7>24 then return
+	&,13,1,1:j8=j7:gosub {:court_read}:gosub {:sub.open_playerlog}:if ap then {:change_dispatch}
+	x=j7+24*x9:gosub {$31}:&,2,2:w$=a$:if a$<>nm$ then for i9=1 to 21:dl(i9)=dl(i9)+e0(i9):next:goto {:change_write}
+	for i9=1 to 21:&,2,2:dl(i9)=dl(i9)+val(a$):if dl(i9)<. and i9<>6 and i9<>16 then dl(i9)=.
+	next
+{:change_write}
+	w$=nm$:for i9=1 to 21:w$=w$+r$+str$(dl(i9)):next:gosub {$31}:print# 2,w$:close 2:&,13,2,1:return
+{:change_dispatch}
+	x=72+j7+24*x9:gosub {$31}:&,2,2:if a$=nm$ then for i9=1 to 21:&,2,2:dl(i9)=dl(i9)+val(a$):next
+	x=72+j7+24*x9:w$=nm$:for i9=1 to 21:w$=w$+r$+str$(dl(i9)):next:gosub {$31}:print# 2,w$
+	if right$(k9$,len(na$))<>na$ then k9$=k9$+", "+na$
+	x=48+j7:w$=nm$+r$+str$(ap)+r$+a9$+r$+k9$:gosub {$31}:print# 2,w$:close 2:&,13,2,1:return
+{:court_read}
+' ruler j8's court: ap (0 if the court isn't theirs), a9$ when, k9$ the
+' senders. Uses a$, x
+	ap=.:a9$="":k9$="":gosub {:sub.open_playerlog}:x=48+j8:gosub {$31}:&,2,2:n9$=a$:if n9$="" or n9$="empty" then close 2:return
+	&,2,2:ap=val(a$):&,2,2:a9$=a$:&,2,2:k9$=a$:close 2:return
+{number:3320}
+{:sub.at_play}
+' this ruler's court: at play (ap 1) or not (ap 0), d1$
+' when; the senders kept. Uses a8
+	if g3<1 then return
+	&,13,1,1:j8=g3:a8=ap:gosub {:court_read}:ap=a8:if n9$<>na$ then k9$=""
+	w$=na$+r$+str$(ap)+r$+d1$+r$+k9$:gosub {:sub.open_playerlog}:x=48+g3:gosub {$31}:print# 2,w$:close 2:&,13,2,1:return
+{:sub.dispatch}
+' this ruler's dispatch (x9 0) or island's (x9 1) applied, cleared, and
+' shown ("News from the front!", and who sent them): the ruler's to the
+' stats in memory, the island's to il(). Uses dl(), d9, i9, j8, a$, w$
+	if g3<1 then return
+	&,13,1,1:d9=.:gosub {:sub.open_playerlog}:x=72+g3+24*x9:gosub {$31}:&,2,2:if a$<>na$ then close 2:&,13,2,1:return
+	for i9=1 to 21:&,2,2:dl(i9)=val(a$):d9=d9-(dl(i9)<>.):next:if d9=. then close 2:&,13,2,1:return
+	w$=na$:for i9=1 to 21:w$=w$+r$+"0":next:gosub {$31}:print# 2,w$:close 2:j8=g3:gosub {:court_read}
+	w$=na$+r$+str$(ap)+r$+a9$+r$:gosub {:sub.open_playerlog}:x=48+g3:gosub {$31}:print# 2,w$:close 2:&,13,2,1
+	if x9 then for i9=1 to 21:il(i9)=il(i9)+dl(i9):next:goto {:dispatch_show}
+	la=la+dl(1):wa=wa+dl(2):sf=sf+dl(3):nb=nb+dl(4):gr=gr+dl(5):pn=pn+dl(7):for i9=1 to 6:f%(i9)=f%(i9)+dl(i9+7):next
+	yc=yc+dl(14):i8=i8+dl(15):hs=hs+dl(17):tb=tb+dl(18):sp=sp+dl(19):cn=cn+dl(20):fo=fo+dl(21):gosub {:sub.no_negatives}
+{:dispatch_show}
+	&"{f6:2}{yellow}{rvrs on} News from the front! {rvrs off}{white}"+mid$(" Your island:",1,13*x9)+" (from "+mid$(k9$,3)+")"
+	for i9=1 to 21:if dl(i9) then gosub {:stat_noun}:x=abs(dl(i9)):&"{f6}  "+mid$("+-",1-(dl(i9)<.),1):gosub {:sub.count_noun}
+	next:&"{f6}":return
+{:stat_noun}
+' a$ the noun of field i9 (as {:sub.count_noun} takes it)
+	a$="||acre|soldier|serf|noble|bushel|percent tax|dollar|palace|market|mill|foundry|shipyard|diplomat|ship|colony/colonies|training|horse|ton of timber/tons of timber|ton of spices/tons of spices|cannon|fort|"
+' (C64List 4.04 doesn't tokenize BASIC 7's instr: a character at a time;
+' c8$ the list, j8 the bars passed, c8 the place)
+	c8$=a$:a$="":j8=.:for c8=1 to len(c8$):if mid$(c8$,c8,1)="|" then j8=j8+1
+	if j8=i9+1 and mid$(c8$,c8,1)<>"|" then a$=a$+mid$(c8$,c8,1)
+	next:return
+{:sub.no_negatives}
+' none of the stats below 0 (the tax rate and training as they are)
+	la=la*-(la>.):wa=wa*-(wa>.):sf=sf*-(sf>.):nb=nb*-(nb>.):gr=gr*-(gr>.):pn=pn*-(pn>.):yc=yc*-(yc>.):i8=i8*-(i8>.)
+	hs=hs*-(hs>.):tb=tb*-(tb>.):sp=sp*-(sp>.):cn=cn*-(cn>.):fo=fo*-(fo>.):for i9=1 to 6:f%(i9)=f%(i9)*-(f%(i9)>.):next:return
+{number:3360}
+{:sub.who_plays}
+' the other rulers at play: "At play: NAME, NAME"
+	z8$="":gosub {:sub.open_playerlog}:for j8=1 to 24:x=48+j8:gosub {$31}:&,2,2:n9$=a$:&,2,2:ap=val(a$)
+	if ap and j8<>g3 and n9$<>"" and n9$<>"empty" then z8$=z8$+", "+n9$
+	next:close 2:if z8$>"" then:lp=1:&"{f6}{yellow}At play{colon} {white}"+mid$(z8$,3)+"{f6}"
+	return
+{:court_mark}
+' Other Rulers: " (at play)" after ruler x's acres; x and file 2 kept
+	j8=x:x=48+j8:gosub {$31}:&,2,2:&,2,2:x=j8:if val(a$) then:&" {yellow}(at play)"
+	return
 
 {number:3996}
 	rem empire iv converted to image by utopia bbs 702-735-6787 24 hours

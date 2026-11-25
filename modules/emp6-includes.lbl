@@ -12,6 +12,9 @@
 {assign:sub.island_load=3220}
 {assign:sub.island_save=3223}
 {assign:sub.island_raid=3230}
+{assign:sub.ruler_change=3300}
+{assign:sub.at_play=3320}
+{assign:sub.who_plays=3360}
 {assign:_2852=3012}
 {assign:sub.str_to_int=3015}
 {assign:sub.any_key=3020}

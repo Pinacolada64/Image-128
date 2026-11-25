@@ -28,7 +28,7 @@
 
 {nice:10}
 {:start}
-	&"{clear}{cyan} Empire 6 Maintenance{f6}{pound}vj"
+	&"{clear}{cyan} Empire 128 Maintenance{f6}{pound}vj"
 '	&" {pound}k1Call Utopia ][ 702-735-6787 24 Hours{pound}k0"
 	&"{purple}Options:{white}{f6:2}"
 	&"(C)onfig Auto-Reset & Credit/Money Exchange{f6}"
@@ -140,7 +140,8 @@
 	w$=nn$:p$="Name":&,1,32:on tr%+1 goto 300
 	if an$<>"{up arrow}" then {:edit_name}
 	&"Delete this player? ":a=.:gosub 94
-	if a then gosub {:sub.empty_record}:x=g3:gosub 1:print# 2,w$:x=g3+24:gosub 1:print# 2,w$:close 2
+' 11/25/2026: the ruler's court and dispatches (49-120) too
+	if a then gosub {:sub.empty_record}:for x=g3 to g3+96 step 24:gosub 1:print# 2,w$:next:close 2
 	goto {:profile}
 
 {:edit_name}
@@ -208,8 +209,10 @@
 ' past about 20 records of 200: the list then hung reading them)
 ' 11/24/2026: 48 records: the rulers' (1-24) and their islands' (25-48,
 ' i.empire's {:sub.island_load})
-	&"Resetting Empire... ":gosub {:sub.empty_record}:x=48:gosub 1:print# 2,w$
-	for x=1 to 48:x%=x:&"{pound}#3{pound}%x":gosub 1
+' 11/25/2026: 120: and the courts (49-72) and dispatches (73-120) of online
+' play
+	&"Resetting Empire... ":gosub {:sub.empty_record}:x=120:gosub 1:print# 2,w$
+	for x=1 to 120:x%=x:&"{pound}#3{pound}%x":gosub 1
 	print# 2,w$:&"{pound}h3":next:close 2:&"Done.":goto {:start}
 {:scratch_news}
 	dr=3:a$="e.empnews6":gosub 18:close 2:goto {:start}
