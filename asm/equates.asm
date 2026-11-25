@@ -1102,6 +1102,11 @@
 	ltk_activl= $8000
 	ltk_activu= $8001
 	ltk_setlun= $8099
+; the host adapter's port register: bits 0-3 are this station's port (0-15),
+; as its DIP switches set it. BASIC reads it as peek({sym:ltk_port}) and 15
+; (sub.modem 60110, i/IM.modem 4014 have it as peek(57092) and 15), but only
+; with a Lt. Kernal (lk% not 0): without one $df04 is open I/O
+	ltk_port  = $df04
 
 	hdrblk	= $91e0
 	filnam	= hdrblk+$00

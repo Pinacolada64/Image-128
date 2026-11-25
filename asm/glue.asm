@@ -455,7 +455,8 @@ ltkblk:
 ltkflag:
 	byte 0		; 1: lockinit found (or made) the lockfile
 ltkport:
-	byte 0		; this station's port, + $80 (a lock's owner byte)
+	byte 0		; this station's port, + $80 (a lock's owner byte); the
+			; port is also ltk_port's bits 0-3 (equates.asm)
 ltkbase:
 	word 0		; the lockfile's header block (a lock's block: + 1 + n)
 ltklock:

@@ -46,13 +46,16 @@
 	if ez>200000 and (la-50000)>ez then {:_625}
 	i=1:if peek({sym:emp6mem}+2)=. then {:_28}
 {:_24}
-	a=peek({sym:emp6mem}+2+i):on-(a=x)goto {:_26}:i=i+1:on-(i>peek({sym:emp6mem}+2))goto {:_28}:goto {:_24}
+' 11/25/2026: g1, the enemy's number (1.2 used x, by then the enemy's land
+' from the line above: poked, ?illegal quantity past 255, found attacking
+' a ruler online; Lord Randall's attack doesn't come here)
+	a=peek({sym:emp6mem}+2+i):on-(a=g1)goto {:_26}:i=i+1:on-(i>peek({sym:emp6mem}+2))goto {:_28}:goto {:_24}
 {:_26}
 	&"{f6}{yellow}{pound}s1You already did!{pound}s0{pound}w1{lt. blue} Try someone else!{f6}":goto {:combat_start}
 {:_28}
 ' 128: the list stops at emp6max (17 bytes free at emp6mem; c64: unbounded,
 ' into the cassette buffer): those past it can be attacked again
-	if peek({sym:emp6mem}+2)<{sym:emp6max} then poke {sym:emp6mem}+2,peek({sym:emp6mem}+2)+1:poke {sym:emp6mem}+2+peek({sym:emp6mem}+2),x
+	if peek({sym:emp6mem}+2)<{sym:emp6max} then poke {sym:emp6mem}+2,peek({sym:emp6mem}+2)+1:poke {sym:emp6mem}+2+peek({sym:emp6mem}+2),g1
 {:_30}
 	if g1=g3 then:lp=1:&"{f6:2}{lt. red}Attack YOURSELF? {red}Bad mistake!{f6}{lt. blue} "
 	la=la-fn r(la/2):goto {:_182}
