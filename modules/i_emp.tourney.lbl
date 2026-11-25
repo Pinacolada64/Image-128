@@ -71,15 +71,15 @@
 ' each: the new figure, then the court's verdict (z$ "won" or "lost";
 ' {:sub.comma_value} uses z$ too, so it's kept in v9$ meanwhile)
 {:acres}
-	v9$=z$:&"{f6}{white}(You have ":x=la:gosub {$33}010:&" acres now.){f6}":goto {:verdict}
+	v9$=z$:&"{f6}{white}(You have ":x=la:a$="acre":gosub {$33}210:&" now.){f6}":goto {:verdict}
 {:gold}
 	v9$=z$:&"{f6}{white}(You have $":x=pn:gosub {$33}010:&" now.){f6}":goto {:verdict}
 {:nobles}
-	v9$=z$:&"{f6}{white}(You have ":x=nb:gosub {$33}010:&" nobles now.){f6}":goto {:verdict}
+	v9$=z$:&"{f6}{white}(You have ":x=nb:a$="noble":gosub {$33}210:&" now.){f6}":goto {:verdict}
 {:grain}
-	v9$=z$:&"{f6}{white}(You have ":x=gr:gosub {$33}010:&" bushels of grain now.){f6}":goto {:verdict}
+	v9$=z$:&"{f6}{white}(You have ":x=gr:a$="bushel":gosub {$33}210:&" of grain now.){f6}":goto {:verdict}
 {:shipyards}
-	v9$=z$:&"{f6}{white}(You have ":x=f%(5):gosub {$33}010:&" shipyards and ":x=la:gosub {$33}010:&" acres now.){f6}":goto {:verdict}
+	v9$=z$:&"{f6}{white}(You have ":x=f%(5):a$="shipyard":gosub {$33}210:&" and ":x=la:a$="acre":gosub {$33}210:&" now.){f6}":goto {:verdict}
 {:timber}
 	v9$=z$:&"{f6}{white}(You have ":x=tb:gosub {$33}010:&" tons of timber now.){f6}"
 {:verdict}

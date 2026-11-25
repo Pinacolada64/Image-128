@@ -111,7 +111,7 @@
 	x=int(yg*2*rnd(1)+ys*3*rnd(1)+i8*50*rnd(1)):if x>1e5 then x=1e5
 	if x>(yg+ys)*5 then x=int(yg+ys)*5
 	if x+yg>1e5 then x=1e5-yg
-	&"{f6:2}{green}":gosub {:msg.colony}:&" produce{pound}$z {white}":gosub {$33}010:&" {green}bushels of grain.":yg=yg+x
+	&"{f6:2}{green}":gosub {:msg.colony}:&" produce{pound}$z {white}":a$="bushel":pz=x:gosub {$33}200:gosub {$33}010:&" {green}"+a$+" of grain.":yg=yg+x
 	lp=1:&"{f6:2}{blue}Exports brought back to your empire can be converted to cash. "
 {:_128}
 	&"{f6:2}{green}You have{white} ":x=ye:a$="ton":gosub {$33}210:&" {green}of exports.{f6:2}{lt. blue}[A]cquire [S]ell [C]ontinue [Y] Colony stats -=> {pound}i1"
@@ -301,7 +301,7 @@ lp=1:&"{f6}{cyan}Your{white} ":x=yc:a$="ship":gosub {$33}210:lp=1:&" {cyan}can c
 
 {:sub.colony_stats}
 	&"{f6:2}{cyan}"+na$+" (Player #":x=g3:gosub {$33}010:&"):{f6:2}{lt. green}Cash     :{yellow}$":x=pn:gosub {$33}010
-	&"{f6}{lt. green}Grain    :{yellow} ":x=yg:gosub {$33}010:&" bushels{f6}{lt. green}Tax rate :{yellow} ":x=tr:gosub {$33}010:&"%"
+	&"{f6}{lt. green}Grain    :{yellow} ":x=yg:a$="bushel":gosub {$33}210:&"{f6}{lt. green}Tax rate :{yellow} ":x=tr:gosub {$33}010:&"%"
 	&"{f6}{lt. green}Serfs    :{yellow} ":x=ys:gosub {$33}010:&"{f6}{lt. green}Nobles   :{yellow} ":x=yw:gosub {$33}010
 	z$="Im":if im=1 then z$="Ex"
 	&"{lt. green}{pound}$zports  :{yellow} ":x=ye:gosub {$33}010:&"{f6}{lt. green}Ships    :{yellow} ":x=yc:gosub {$33}010
@@ -329,7 +329,7 @@ lp=1:&"{f6}{cyan}Your{white} ":x=yc:a$="ship":gosub {$33}210:lp=1:&" {cyan}can c
 lp=1:&" {yellow}serfs on your ":x=yc:gosub {$33}010:lp=1:&" ships! ":GOTO 40
 
 {:_549}
-	&"{f6:2}{yellow}You may only have{white} ":x=(i8+1)*100:gosub {$33}010:&" {yellow}serfs"
+	&"{f6:2}{yellow}You may only have{white} ":x=(i8+1)*100:a$="serf":pz=x:gosub {$33}200:gosub {$33}010:&" {yellow}"+a$
 {:_552}
 lp=1:&" in your ":x=i8:a$="colony/colonies":gosub {$33}210:lp=1:&"! ":GOTO {:_40}
 

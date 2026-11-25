@@ -155,14 +155,14 @@
 	&"{cyan}    [Y] {lt. green}Your Status{f6:2}"
 	&"{cyan}    [Q] {lt. green}Return to the Empire{f6}":return
 {:_142}
-	&"{f6}{lt. green}You have ":x=sf:gosub {$33}010:&" serfs."
+	&"{f6}{lt. green}You have ":x=sf:a$="serf":gosub {$33}210:&"."
 ' 128: la/sf as it is ((la/nb)/(sf/nb) divided by zero with no nobles), and
 ' 25 with no serfs
 	wb=25:if sf then wb=int(la/sf):if wb<25 then wb=25
 {:_146}
 lp=1:&"{f6}{white}The Barbarians will buy your serfs for ":x=wb:gosub {$33}010:lp=1:&" dollars each. "
 	gosub {:sub.sell}:ss=val(an$):if ss<1 then return
-	if ss>sf then:&"{f6}You only have ":x=sf:gosub {$33}010:&" serfs.":goto {:_146}
+	if ss>sf then:&"{f6}You only have ":x=sf:a$="serf":gosub {$33}210:&".":goto {:_146}
 	sf=sf-ss:pn=pn+(wb*ss):&"{f6}{lt. green}SOLD!!":return
 {:_154}
 	&"{f6:2}Wanna sell some of your serfs (Y/N): ":gosub 94:if a=. then return
@@ -264,7 +264,7 @@ lp=1:&"{f6}{white}The Barbarians will buy a Palace for ":x=wb:gosub {$33}010:lp=
 	wb=int(nb*20-wa):if wb>(sf/2)then {:_290}
 '	if wb<1 then {:_290}
 	&"{clear}{f6:2}{lt. blue}{rvrs on}: Warrior Training :{rvrs off}{pound}q1{f6}"
-	&"{f6}{white}You have ":x=wb:gosub {$33}010:&" serfs that meet the requirement to be trained"
+	&"{f6}{white}You have ":x=wb:a$="serf":gosub {$33}210:&" that meet the requirement to be trained"
 	&" as warriors.{f6:2}Training cost is one acre per serf.{f6}"
 	&"{f6}{lt. green}Do you want them trained (Y/N) >> ":gosub 94
 	if a then sf=sf-wb:la=la-wb:wa=wa+wb:&"{f6:2}{pound}w2{yellow}Ok, all serfs have been trained.{f6}{pound}q1"

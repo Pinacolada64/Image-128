@@ -18,7 +18,9 @@
 	&"{green}{f6:2}The Barbarians will ":return
 
 {:sub.so_many_bushels}
-	gosub {:sub.you_only_have}:x=gr:gosub {$33}010:&" bushels!":return
+' 11/25/2026: bushels through {:sub.count_noun} ({$33}210), here and
+' throughout: "1 bushel", not "1 bushels"
+	gosub {:sub.you_only_have}:x=gr:a$="bushel":gosub {$33}210:&"!":return
 
 {:sub.price_adjust}
 	if f%(1)=0 then in(4)=50000:b$="50,000":return
@@ -42,11 +44,11 @@
 ' 128: no more die than there are (fn r() is at least 1: with none, -1)
 ' 128: floats, not a% (most 32,767: ?illegal quantity past it)
 	x=fn r(sf/4):if x>sf then x=sf
-	sf=sf-x:gosub {$33}010:&" serfs died.{f6}"
+	sf=sf-x:a$="serf":gosub {$33}210:&" died.{f6}"
 	x=fn r(wa/2):if x>wa then x=wa
-	wa=wa-x:gosub {$33}010:&" soldiers died.{f6}"
+	wa=wa-x:a$="soldier":gosub {$33}210:&" died.{f6}"
 	x=fn r(nb/3):if x>nb then x=nb
-	nb=nb-x:gosub {$33}010:&" nobles died.{f6}":goto {:continue_turn}
+	nb=nb-x:a$="noble":gosub {$33}210:&" died.{f6}":goto {:continue_turn}
 {:_140}
 	lp=1:&"{f6:3}{rvrs on}{red}Mount Apocalypse has erupted!{rvrs off} Lava wipes out:{lt. blue}"
 ' 128: no more lost than there are (fn r() is at least 1: with none, the
@@ -69,8 +71,8 @@
 ' Eeek! Rats eat xxx,xxx,xxx bushels of grain.
 ' 128: no more than there is (fn r() is at least 1: with no grain, -1)
 	x=fn r(gr/3):if x>gr then x=gr
-	gr=gr-x:&"{f6:3}Eeek! {green}Rats eat ":gosub {$33}010
-	&" bushels of grain.{f6:2}":goto {:continue_turn}
+	gr=gr-x:&"{f6:3}Eeek! {green}Rats eat ":a$="bushel":gosub {$33}210
+	&" of grain.{f6:2}":goto {:continue_turn}
 {:_156}
 ' FIXME: correct message if last palace destroyed ("Your last palace was destroyed!" / "Your last <x> palaces were destroyed!"):
 ' 11/25/2026: a palace and a noble lost only if there are any (1.2 took
@@ -99,7 +101,7 @@
 	gosub {:sub.barbarians_will}:&"buy your land for{white} ":x=wb:gosub {$33}010:&" {green}dollars"
 	&" an acre.":gosub {:_274}:if tr%<1 then {$33}030
 	sl=val(an$):if sl<1 then {:continue_turn}
-	if sl>la-1 then gosub {:sub.you_only_have}:x=la:gosub {$33}010:&" acres!":goto {:_178}
+	if sl>la-1 then gosub {:sub.you_only_have}:x=la:a$="acre":gosub {$33}210:&"!":goto {:_178}
 	la=la-sl:pn=pn+(wb*sl):&"{f6}{yellow}Sold!"
 {:_188}
 ' FIXME: find where wc is defined
@@ -118,18 +120,18 @@
 '											^^^^^^
 	gosub {:_274}:if tr%<1 goto {$33}030
 	sq=val(an$):if sq<1 then {:_188}
-	if sq>gr then gosub {:sub.you_only_have}:x=gr:gosub {$33}010:&" bushels!":goto {:_204}
+	if sq>gr then gosub {:sub.you_only_have}:x=gr:a$="bushel":gosub {$33}210:&"!":goto {:_204}
 	gr=gr-sq:pn=int(pn+(sq*wb)):&"{f6}{purple}Sold!"
 {:_214}
 	x=int((la*wc+(rnd(1)*sf)*wc+gr*wc)/3):if x>(la+sf)*4 then x=(la+sf)*4
-	&"{f6:2}{lt. blue}This year's harvest is ":gosub {$33}010:&" bushels.{lt. blue}{f6}"
+	&"{f6:2}{lt. blue}This year's harvest is ":a$="bushel":gosub {$33}210:&".{lt. blue}{f6}"
 	gr=gr+x:pl=1
 ' 11/24/2026: the island's year (Empire II, delx1 50725-50730): its grain
 ' from its forts, serfs and horses and the realm's land, a share of each at
 ' random; its herds grow by a third at most, and 10
 	gosub {$33}220:x=int(il(21)*rnd(1)+il(3)*rnd(1)+il(17)*rnd(1)+la*rnd(1)):il(5)=il(5)+x
 ' (three short lines: each fits 40 columns, no word wrap needed)
-	&"{lt. blue}Your island harvests ":gosub {$33}010:&" bushels.{f6}Its stores{colon} ":x=il(5):a$="bushel":gosub {$33}210
+	&"{lt. blue}Your island harvests ":a$="bushel":gosub {$33}210:&".{f6}Its stores{colon} ":x=il(5):a$="bushel":gosub {$33}210
 	x=int(rnd(1)*il(17)/3)+10:il(17)=il(17)+x:&".{f6}Its herds grow by ":a$="horse":gosub {$33}210:&".{f6}":gosub {$33}223
 ' 11/24/2026: the season, from Image's clock (d1$: the weekday, then YYMMDD,
 ' so the month is characters 4-5): Dec-Feb winter, Mar-May spring, Jun-Aug
@@ -146,7 +148,7 @@
 ' Your people require xxxxx bushels.
 ' Give them how many?
 ' (Return=50000): []
-	pq=sf*5+1:&"{f6}{lt. green}Your people require ":x=pq:gosub {$33}010:&" bushels.{f6}"
+	pq=sf*5+1:&"{f6}{lt. green}Your people require ":x=pq:a$="bushel":gosub {$33}210:&".{f6}"
 ' 128: dq, the default offered: pq stays what they need (1.2 lowered pq to
 ' the grain there was, so the report, gp/pq, saw a short ration as a full one
 ' and divided by zero with no grain)
@@ -155,7 +157,7 @@
 ' menu's "C", 0 bushels; the army's prompt has it)
 lp=1:&"{f6}{cyan}Give them how many? ({pound}$k= ":x=dq:gosub {$33}010:lp=1:&"){lt. blue}: ":&"{pound}i1":if tr%<1 then {$33}030
 ' theoretically, return sets this value:
-	if an$="" then an$=mid$(str$(dq),2):&"{f6}(Giving {pound}v7 bushels.){f6}"
+	if an$="" then an$=mid$(str$(dq),2):x=dq:&"{f6}(Giving ":a$="bushel":gosub {$33}210:&".){f6}"
 	gp=int(val(an$)):if gp<. then {:_220}
 ' new: subroutined message
 	if gr<=. then gp=.:ga=.:goto {:no_grain}
@@ -167,7 +169,7 @@ lp=1:&"{f6}{cyan}Give them how many? ({pound}$k= ":x=dq:gosub {$33}010:lp=1:&"){
 {:_228}
 ' Your army requires xxxxx bushels.
 ' Give them how many?
-	ar=wa*10+1:&"{f6:2}{lt. green}Your army requires ":x=ar:gosub {$33}010:&" bushels.{f6}"
+	ar=wa*10+1:&"{f6:2}{lt. green}Your army requires ":x=ar:a$="bushel":gosub {$33}210:&".{f6}"
 ' new: if you have fewer bushels, adjust accordingly:
 ' wish: buy option here?
 ' 128: dq, as for the people: ar stays what the army needs (report: ga/ar)
@@ -175,7 +177,7 @@ lp=1:&"{f6}{cyan}Give them how many? ({pound}$k= ":x=dq:gosub {$33}010:lp=1:&"){
 lp=1:&"{f6}{cyan}Give them how many? ({pound}$k= ":x=dq:gosub {$33}010:lp=1:&"){lt. blue}: ":&"{pound}i1"
 	if tr%<1 then {$33}030
 ' theoretically, return sets this value:
-	if an$="" then an$=mid$(str$(dq),2):&"{f6}(Giving {pound}v7 bushels.){f6}"
+	if an$="" then an$=mid$(str$(dq),2):x=dq:&"{f6}(Giving ":a$="bushel":gosub {$33}210:&".){f6}"
 	ga=int(val(an$)):if ga<. then {:_228}
 	if gr<=. then ga=.:goto {:no_grain}
 	if ga>gr then gosub {:sub.so_many_bushels}:goto {:_228}
@@ -268,7 +270,7 @@ lp=1:&"{f6}{cyan}Give them how many? ({pound}$k= ":x=dq:gosub {$33}010:lp=1:&"){
 	f%(3)=f%(3)+bn:gosub {:_350}:x=f%(3):gosub {$33}010:&" "+in$(in)+"s.":goto {:_296}
 {:_328}
 	f%(1)=f%(1)+bn:gosub {:_350}:x=f%(1):gosub {$33}010:&" Palace(s),":nb=nb+bn*2
-	&"{f6}and ":x=nb:gosub {$33}010:&" nobles.":goto {:_296}
+	&"{f6}and ":x=nb:a$="noble":gosub {$33}210:&".":goto {:_296}
 {:_334}
 	f%(4)=f%(4)+bn:gosub {:_350}:x=f%(4):gosub {$33}010:&" "+in$(in)+"s.":goto {:_296}
 {:_336}
@@ -280,7 +282,7 @@ lp=1:&"{f6}{cyan}Give them how many? ({pound}$k= ":x=dq:gosub {$33}010:lp=1:&"){
 	if f%(6)+bn>3 then:&"{f6}{lt. green}You can only have 3 Diplomats at any time!{f6}":goto {:_296}
 	f%(6)=f%(6)+bn:gosub {:_350}:x=f%(6):gosub {$33}010:&" "+in$(in)+"s.":goto {:_296}
 {:_345}
-	if bn+yc>(f%(5)+1)*50 then gosub {:sub.you_only_have}:x=f%(5):gosub {$33}010:&" shipyards!":goto {:_296}
+	if bn+yc>(f%(5)+1)*50 then gosub {:sub.you_only_have}:x=f%(5):a$="shipyard":gosub {$33}210:&"!":goto {:_296}
 	yc=yc+bn:gosub {:_350}:x=yc:gosub {$33}010:&" "+in$(in)+"s.":goto {:_296}
 '	goto {:_351}
 {:_350}
