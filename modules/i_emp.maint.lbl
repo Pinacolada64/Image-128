@@ -140,7 +140,7 @@
 	w$=nn$:p$="Name":&,1,32:on tr%+1 goto 300
 	if an$<>"{up arrow}" then {:edit_name}
 	&"Delete this player? ":a=.:gosub 94
-	if a then gosub {:sub.empty_record}:x=g3:gosub 1:print# 2,w$:close 2
+	if a then gosub {:sub.empty_record}:x=g3:gosub 1:print# 2,w$:x=g3+24:gosub 1:print# 2,w$:close 2
 	goto {:profile}
 
 {:edit_name}
@@ -206,8 +206,10 @@
 ' 128: record 24 first, so the drive makes the whole file at once (grown a
 ' record at a time, the 1581 lost the last few records when the file grew
 ' past about 20 records of 200: the list then hung reading them)
-	&"Resetting Empire... ":gosub {:sub.empty_record}:x=24:gosub 1:print# 2,w$
-	for x=1 to 24:x%=x:&"{pound}#3{pound}%x":gosub 1
+' 11/24/2026: 48 records: the rulers' (1-24) and their islands' (25-48,
+' i.empire's {:sub.island_load})
+	&"Resetting Empire... ":gosub {:sub.empty_record}:x=48:gosub 1:print# 2,w$
+	for x=1 to 48:x%=x:&"{pound}#3{pound}%x":gosub 1
 	print# 2,w$:&"{pound}h3":next:close 2:&"Done.":goto {:start}
 {:scratch_news}
 	dr=3:a$="e.empnews6":gosub 18:close 2:goto {:start}

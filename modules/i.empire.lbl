@@ -205,7 +205,7 @@
 ' 128: db, debug mode: the lightbar's left Dbg (check 56) checked. In Image
 ' that checkmark means "disable troubleshooting mode" (reversed), so for now
 ' turning Empire's debugging on turns Image's troubleshooting display off
-	&"{clear}":bn=.:ty=.:z9=.:def fn r(x)=int(rnd(1)*x)+1:dim dt$(21):&,52,56,3:db=a%
+	&"{clear}":bn=.:ty=.:z9=.:def fn r(x)=int(rnd(1)*x)+1:dim dt$(21),il(21):&,52,56,3:db=a%
 	k$="Return":if co%>2 then k$="Enter"
 
 ' this will format things roughly for 40/80 columns, just &"{pound}$l"
@@ -333,6 +333,29 @@
 ' and its noun: x=4:a$="foundry/foundries" prints "4 foundries", and sets
 ' a$ vb$ vs$ hv$ as {:sub.plural}; pz is x
 	pz=x:gosub {:sub.plural}:gosub {:sub.comma_value}:&" "+a$:return
+
+{number:3220}
+{:sub.island_load}
+' 11/24/2026: the ruler's island (the user's: Empire II's island, beside the
+' colony), a second record in e.empire6 laid out as the ruler's own: record
+' g3+24 (the rulers are 1-24, so none of theirs moves), the name, then the
+' same 21 fields into il(1)-il(21): 1 land, 2 soldiers, 3 serfs, 4 nobles,
+' 5 grain, 6 tax rate, 7 gold, 8-13 the buildings (palaces, markets, mills,
+' foundries, shipyards, diplomats), 14 ships, 15 exports (the island has no
+' colonies: their place), 16 training, 17 horses, 18 timber, 19 spices, 20
+' cannons, 21 forts. Read a line at a time (&,2,2): a record not written
+' yet (an older game's) can't stall a read of 22 values. Not the ruler's
+' (empty, or none yet): a new island, as Empire II starts one (delx1
+' 50355-50370: 5,000 bushels, 500-800 serfs, 50 horses). il$ the name; uses
+' a$, i9
+	gosub {:sub.open_playerlog}:x=g3+24:gosub {$31}:&,2,2:il$=a$:if il$<>na$ then {:island_new}
+	for i9=1 to 21:&,2,2:il(i9)=val(a$):next:close 2:return
+{:island_new}
+	close 2:il$=na$:for i9=1 to 21:il(i9)=.:next:il(3)=500+fn r(300):il(5)=5000:il(17)=50:return
+{:sub.island_save}
+' the island's record (g3+24), as {:sub.save_your_stats} writes the ruler's
+	w$=il$:for i9=1 to 21:w$=w$+r$+str$(il(i9)):next
+	gosub {:sub.open_playerlog}:x=g3+24:gosub {$31}:print# 2,w$:close 2:return
 
 {number:3996}
 	rem empire iv converted to image by utopia bbs 702-735-6787 24 hours

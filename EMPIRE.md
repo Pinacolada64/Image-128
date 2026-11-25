@@ -166,7 +166,7 @@ Sources: `modules/i.empire.lbl`, `modules/i_emp.<name>.lbl` (`_` for
 
 | File | Drive | Kind | Holds |
 |---|---|---|---|
-| `e.empire6` | 3 | REL, 200 bytes | a ruler a record: name, land, soldiers, serfs, nobles, grain, tax rate, money, palaces, markets, mills, foundries, shipyards, diplomats, ships, colonies, training, horses, timber, spices, cannons, forts |
+| `e.empire6` | 3 | REL, 200 bytes | records 1-24, a ruler each: name, land, soldiers, serfs, nobles, grain, tax rate, money, palaces, markets, mills, foundries, shipyards, diplomats, ships, colonies, training, horses, timber, spices, cannons, forts. Records 25-48, each ruler's island (record = the ruler's + 24), the same fields in the same order (the island's exports where the colonies are): `{:sub.island_load}`, `{:sub.island_save}` |
 | `e.emp6 config` | 3 | SEQ | the land an Emperor needs (`ln`), the auto-reset (`mp`), the BBS credit exchange and its rate (`en`, `nn`) |
 | `e.empnews6` | 3 | SEQ | the news (`{:sub.log_event}` appends) |
 | `e.emp6.wall` | 3 | SEQ | the Empire wall |
@@ -226,6 +226,8 @@ module to 4.06 for good: `tools/to406.py`.
 | 3115 | `sub.title` | the rank's title in `d2$` (from `tz`), as `sub.rank` |
 | 3200 | `sub.plural` | `a$` ("ship" or "colony/colonies") for `pz` items, with `vb$`/`hv$` ("is"/"are", "has"/"have") |
 | 3210 | `sub.count_noun` | the count and the noun: "3 ships" |
+| 3220 | `sub.island_load` | the ruler's island (record `g3`+24) into `il$`, `il(1)`-`il(21)`; a new one if there's none |
+| 3223 | `sub.island_save` | the island's record written |
 
 ### Variables and memory
 

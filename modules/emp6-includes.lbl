@@ -9,6 +9,8 @@
 {assign:sub.comma_value=3010}
 {assign:sub.plural=3200}
 {assign:sub.count_noun=3210}
+{assign:sub.island_load=3220}
+{assign:sub.island_save=3223}
 {assign:_2852=3012}
 {assign:sub.str_to_int=3015}
 {assign:sub.any_key=3020}

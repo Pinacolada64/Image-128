@@ -6,6 +6,7 @@
 ' emp6-includes.lbl
 {alpha:alt}
 {uses:..\3_0-preface.lbl}
+{include:..\quoters.lbl}
 {number:4000}
 	rem "i/emp.trading" {usedef:__BuildDate} {usedef:__BuildTime}
 	goto {:begin}
@@ -119,6 +120,13 @@
 	x=int((la*wc+(rnd(1)*sf)*wc+gr*wc)/3):if x>(la+sf)*4 then x=(la+sf)*4
 	&"{f6:2}{lt. blue}This year's harvest is ":gosub {$33}010:&" bushels.{lt. blue}{f6}"
 	gr=gr+x:pl=1
+' 11/24/2026: the island's year (Empire II, delx1 50725-50730): its grain
+' from its forts, serfs and horses and the realm's land, a share of each at
+' random; its herds grow by a third at most, and 10
+	gosub {$33}220:x=int(il(21)*rnd(1)+il(3)*rnd(1)+il(17)*rnd(1)+la*rnd(1)):il(5)=il(5)+x
+' (three short lines: each fits 40 columns, no word wrap needed)
+	&"{lt. blue}Your island harvests ":gosub {$33}010:&" bushels.{f6}Its stores{colon} ":x=il(5):a$="bushel":gosub {$33}210
+	x=int(rnd(1)*il(17)/3)+10:il(17)=il(17)+x:&".{f6}Its herds grow by ":a$="horse":gosub {$33}210:&".{f6}":gosub {$33}223
 ' 11/24/2026: the season, from Image's clock (d1$: the weekday, then YYMMDD,
 ' so the month is characters 4-5): Dec-Feb winter, Mar-May spring, Jun-Aug
 ' summer, Sep-Nov autumn, and the other way round south of the equator
