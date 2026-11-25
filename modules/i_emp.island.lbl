@@ -145,7 +145,7 @@
 	t7=(fn r(5)+2)*il(3):a$="Your islanders":gosub {:feed_ask}
 	if q7<t7/2 then il(3)=int(rnd(1)*il(3)):&"{f6}{lt. red}Famine strikes the island!"
 	if il(2)<1 then {:feed_horses}
-	t7=(fn r(15)+1)*il(2):a$="Your garrison":gosub {:feed_ask}
+	t7=(fn r(15)+1)*il(2):a$="Your soldiers":gosub {:feed_ask}
 	if q7<t7 then t7=int(rnd(1)*il(2)):il(2)=il(2)-t7:&"{f6}{lt. red}":x=t7:a$="soldier":gosub {$33}210:&" starve!"
 {:feed_horses}
 	if il(17)<1 then {:load_home}
@@ -181,6 +181,7 @@
 	b7=fn r(5)
 {:offer}
 	g7=int(rnd(1)*5000)
+	if db then:&"{f6}{yellow}Dbg{white}: the offer{comma} $0-4{comma}999 a ton {pound}i1":if an$>"" then g7=val(an$)
 {:offer2}
 	&"{f6:2}{yellow}":x=c7(5):a$=n7$(5):gosub {$33}210:&" in the dry dock.{f6}The market master offers $":x=g7:gosub {$33}010
 	&" a ton.{f6}{lt. green}[B]arter [S]ell [H]old ":gosub {:ask}
@@ -214,7 +215,9 @@
 	&"{f6}{lt. red}Pirates attack your ships!"
 ' nobles against ships, compared once (ships captured change the count)
 	on sgn(c7(3)-c7(0))+2 goto {:outnumbered},{:hold_off}
-	&"{f6}{lt. green}Your armies defeat them easily!":if fn r(10)>7 then t7=fn r(2):c7(0)=c7(0)+t7:&"{f6}You capture ":x=t7:a$="ship":gosub {$33}210:&"!"
+	&"{f6}{lt. green}Your armies defeat them easily!":h7=fn r(10)
+	if db then:&"{f6}{yellow}Dbg{white}: the capture roll{comma} 1-10 (8-10: their ships captured) {pound}i1":if an$>"" then h7=val(an$)
+	if h7>7 then t7=fn r(2):c7(0)=c7(0)+t7:&"{f6}You capture ":x=t7:a$="ship":gosub {$33}210:&"!"
 	return
 {:hold_off}
 	&"{f6}{yellow}Your armies hold them off{comma} but lose some cargo.":goto {:lose_some}
@@ -230,7 +233,9 @@
 	&"{f6}{yellow}Shipworms have eaten your hulls! Cargo floats away!":goto {:lose_some}
 {:mutiny}
 	if c7(6)<1 then {:calm}
-	&"{f6}{lt. red}A mutiny is brewing among your armies...":if fn r(10)=1 then:&"{f6}They take your ships and sail away!":goto {:lose_all}
+	&"{f6}{lt. red}A mutiny is brewing among your armies...":h7=fn r(10)
+	if db then:&"{f6}{yellow}Dbg{white}: the mutiny roll{comma} 1-10 (1: they take the ships{comma} 2-10: subdued) {pound}i1":if an$>"" then h7=val(an$)
+	if h7=1 then:&"{f6}They take your ships and sail away!":goto {:lose_all}
 	&"{f6}{lt. green}Your nobles subdue the soldiers.":t7=int(rnd(1)*c7(6)):k7(6)=t7:c7(6)=c7(6)-t7:return
 {:lose_some}
 ' a share of each cargo but the nobles
