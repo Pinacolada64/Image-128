@@ -68,8 +68,12 @@ the **H**elm, **S**hield or **L**ow, and **C**harge or ride **S**teady.
    traded for timber or exports, ships and forts built, the island fed;
    grain, serfs, soldiers, horses and exports home, the exports sold to
    the market master or held in the dry dock (a $100-a-ton storage fee,
-   and 20 tons or more may spoil). Pirates, storms, winds, shipworms and mutiny at sea
-   both ways.
+   and 20 tons or more may spoil). Pirates, storms, winds, shipworms and
+   mutiny at sea both ways, and Empire II's finds: uncharted islands
+   (treasure, a lost colony, wild horses; an eruption, pirates, cannibals)
+   and wreckage (survivors, exports, spices, a rescued prince; a sea
+   serpent, a waterspout, fog), each with its story (`s.emp6.isle1-6`,
+   `s.emp6.wreck1-7`) and in the news.
 4. **Combat** (`i/emp.combat`): attack another ruler, soldiers and
    nobles against theirs.
 5. **A quest** (`i/emp.quests`), each turn after combat, as in Empire
