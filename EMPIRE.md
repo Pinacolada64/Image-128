@@ -73,7 +73,12 @@ the **H**elm, **S**hield or **L**ow, and **C**harge or ride **S**teady.
    (treasure, a lost colony, wild horses; an eruption, pirates, cannibals)
    and wreckage (survivors, exports, spices, a rescued prince; a sea
    serpent, a waterspout, fog), each with its story (`s.emp6.isle1-6`,
-   `s.emp6.wreck1-7`) and in the news.
+   `s.emp6.wreck1-7`) and in the news. With no find, another ruler's
+   island may be sighted (a fort and 3 cannons), or Lord Randall's: attack
+   it round by round, ships, nobles and soldiers against forts, cannons and
+   its garrison; win a fort and a share of its serfs, grain, horses,
+   spices, exports and cannons, or lose ships and cargo
+   (`{:sub.island_raid}` in `i.empire`).
 4. **Combat** (`i/emp.combat`): attack another ruler, soldiers and
    nobles against theirs.
 5. **A quest** (`i/emp.quests`), each turn after combat, as in Empire
@@ -240,6 +245,7 @@ module to 4.06 for good: `tools/to406.py`.
 | 3210 | `sub.count_noun` | the count and the noun: "3 ships" |
 | 3220 | `sub.island_load` | the ruler's island (record `g3`+24) into `il$`, `il(1)`-`il(21)`; a new one if there's none |
 | 3223 | `sub.island_save` | the island's record written |
+| 3230 | `sub.island_raid` | another ruler's island (or Lord Randall's) sighted and raided, for `i/emp.island`; `h7` 0 none, 1 won, 2 lost |
 
 ### Variables and memory
 

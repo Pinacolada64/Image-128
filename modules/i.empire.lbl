@@ -4,6 +4,7 @@
 ' 6"): see games/empire6/README.md and modules/TODO.md.
 {alpha:alt}
 {include:..\Basic70.bas}
+{include:..\quoters.lbl}
 {renumber}
 {number:3000}
 ' core routines needed here:
@@ -210,7 +211,7 @@
 ' 128: db, debug mode: the lightbar's left Dbg (check 56) checked. In Image
 ' that checkmark means "disable troubleshooting mode" (reversed), so for now
 ' turning Empire's debugging on turns Image's troubleshooting display off
-	&"{clear}":bn=.:ty=.:z9=.:def fn r(x)=int(rnd(1)*x)+1:dim dt$(21),il(21):&,52,56,3:db=a%
+	&"{clear}":bn=.:ty=.:z9=.:def fn r(x)=int(rnd(1)*x)+1:dim dt$(21),il(21),ei(21):&,52,56,3:db=a%
 	k$="Return":if co%>2 then k$="Enter"
 
 ' this will format things roughly for 40/80 columns, just &"{pound}$l"
@@ -369,6 +370,72 @@
 	&"{f6:2}{cyan}Sail to your island? (Y/N) >> {white}":gosub {$39}4:if a=. then return
 	a$="island":gosub {:sub.load_lmp}:if tr%<1 then {:save_stats_quit}
 	return
+
+{number:3230}
+{:sub.island_raid}
+' 11/25/2026: another ruler's island sighted (Empire II 50304-50373), for
+' i/emp.island on a voyage with no other find. Up to 10 tries at a ruler
+' (1-24, not this one, not empty) whose island (record +24, named theirs)
+' has a fort and 3 cannons; attack, or sail on. Strength: yours 6 a ship, 2
+' a noble, 1 a soldier aboard (c7()); theirs 20 a fort, 5 a cannon, 1 a
+' soldier of the garrison (ei()). Round by round, "+" they lose, "-" you
+' do, z7 a round, until one side has none left. Won: one of their forts
+' destroyed, half their garrison, some of your soldiers, and a share (one
+' fort's) of their serfs, grain, horses, spices and exports aboard, and of
+' their cannons yours. Lost (h7=2): their fort batters your fleet
+' (i/emp.island's {:damage}), and a tenth of their garrison falls. Their
+' island saved, and the news. Dbg picks the ruler (any island: one not
+' made yet is made, as {:island_new}) and the battle. h7: 0 none or sailed
+' on, 1 won, 2 lost. Uses ei$, ei(), j7, l7, v7, w7, z7, o7, i9, x, a$
+' No ruler's island to raid (one ruler on the BBS, or no forts yet): 1 in
+' 4, Lord Randall's (j7 0), as combat has him for a stand-in: the same
+' each time, not saved (Dbg: L)
+	h7=.:if db=. then {:raid_try}
+	&"{f6}{yellow}Dbg{white}: a raid{comma} 0 none{comma} 1-24 a ruler's island{comma} L Lord Randall's {pound}i1":if an$="0" then return
+	if an$="L" then gosub {:randall_isle}:goto {:raid_found}
+	j7=val(an$):if j7 then gosub {:raid_read}:h7=-(ei$>""):goto {:raid_found}
+{:raid_try}
+	for l7=1 to 10:j7=fn r(24):gosub {:raid_read}:if ei$>"" then if ei(21)>=1 and ei(20)>=3 then h7=1:l7=10
+	next:if h7=. and fn r(4)=1 then gosub {:randall_isle}
+{:raid_found}
+	if h7=. then return
+	h7=.:&"{f6:2}{lt. green}The first mate reports "+ei$+"'s island on the horizon!{f6}[A] Attack the island{f6}[C] Continue your voyage{f6}Your command{comma} Cap'n? {pound}i1"
+	if tr%<1 then {:save_stats_quit}
+	if an$<>"A" then:&"{f6}{white}You change course...":return
+	v7=c7(0)*6+c7(3)*2+c7(6):w7=ei(21)*20+ei(20)*5+ei(2):z7=int((v7+w7)/60)+1
+	&"{f6}The first mate maneuvers your ships into position...{f6:2}{white}[+] their loss  [-] yours{f6}"
+	if db then:&"{yellow}Dbg{white}: the battle{comma} 1 won{comma} 2 lost {pound}i1{f6}":h7=val(an$):if h7<. or h7>2 then h7=.
+{:raid_round}
+	if h7 then {:raid_end}
+	o7=rnd(1)*50+c7(0)*.5+c7(3)*.2-rnd(1)*50-ei(21)*.5-ei(20)*.2
+	if o7>. then:&"{lt. red}+":w7=w7-z7:if w7<1 then h7=1
+	if o7<=. then:&"{white}-":v7=v7-z7:if v7<1 then h7=2
+	goto {:raid_round}
+{:raid_end}
+	if h7=2 then:&"{f6:2}{lt. red}"+ei$+"'s mighty fort blasts your flotilla!":tt$="'s ships were battered at "+ei$+"'s island!":ei(2)=int(ei(2)*.9):goto {:raid_save}
+	&"{f6:2}{lt. green}Your forces destroy one of "+ei$+"'s forts!{f6}Your crew returns with:{white}"
+	o7=ei(21)+1:ei(21)=ei(21)+(ei(21)>.):ei(2)=int(ei(2)/2):x=int(rnd(1)*c7(6)/2):c7(6)=c7(6)-x
+	for i9=1 to 6:j9=val(mid$("030517191520",i9*2-1,2)):x=int(ei(j9)/o7):ei(j9)=ei(j9)-x:l7=val(mid$("217850",i9,1))
+	if l7 then c7(l7)=c7(l7)+x:a$=n7$(l7)
+	if l7=. then cn=cn+x:a$="cannon"
+	&"{f6}  ":gosub {:sub.count_noun}:next:tt$=" plundered "+ei$+"'s island!"
+{:raid_save}
+	tt$="{lt. blue}"+na$+tt$:if j7=. then {:sub.log_event}
+	w$=ei$:for i9=1 to 21:w$=w$+r$+str$(ei(i9)):next
+	gosub {:sub.open_playerlog}:x=j7+24:gosub {$31}:print# 2,w$:close 2:goto {:sub.log_event}
+{:randall_isle}
+' Lord Randall's island: 3 forts, 12 cannons, 200 soldiers, 800 serfs,
+' 8,000 bushels, 60 horses, 30 tons of spices, 10 of exports
+	ei$="LORD RANDALL":j7=.:h7=1:for i9=1 to 21:ei(i9)=.:next:ei(2)=200:ei(3)=800:ei(5)=8000
+	ei(15)=10:ei(17)=60:ei(19)=30:ei(20)=12:ei(21)=3:return
+{:raid_read}
+' ruler j7's name and island into ei$, ei(); ei$ "" if there's no such
+' ruler (or it's this one). An island not made yet: a new one, as
+' {:island_new} (no forts, so only Dbg's raid finds it)
+	ei$="":if j7<1 or j7>24 or j7=g3 then return
+	gosub {:sub.open_playerlog}:x=j7:gosub {$31}:&,2,2:if a$="empty" or a$="" then close 2:return
+	ei$=a$:x=j7+24:gosub {$31}:&,2,2:if a$<>ei$ then close 2:for i9=1 to 21:ei(i9)=.:next:ei(3)=500+fn r(300):ei(5)=5000:ei(17)=50:return
+	for i9=1 to 21:&,2,2:ei(i9)=val(a$):next:close 2:return
 
 {number:3996}
 	rem empire iv converted to image by utopia bbs 702-735-6787 24 hours

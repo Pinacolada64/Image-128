@@ -179,7 +179,7 @@
 	&"{f6:2}{cyan}You start your trip home...":gosub {:hazard}:gosub {:discover}
 	if c7(0)<1 then {:swim}
 	&"{f6:2}{lt. green}You've reached home port. Unloading the ships..."
-	gr=gr+c7(1):sf=sf+c7(2):nb=nb+c7(3):wa=wa+c7(6):hs=hs+c7(7):yc=yc+c7(0):c7(5)=c7(5)+il(16):il(16)=.:gosub {:market}
+	gr=gr+c7(1):sf=sf+c7(2):nb=nb+c7(3):wa=wa+c7(6):hs=hs+c7(7):sp=sp+c7(8):yc=yc+c7(0):c7(5)=c7(5)+il(16):il(16)=.:gosub {:market}
 	gosub {$33}223:return
 {:swim}
 	&"{f6}{white}You return... by swimming! King George frowns at your seamanship.{f6}":gosub {$33}223:return
@@ -275,7 +275,9 @@
 	if fn r(30)<6 then b7=2
 {:discover_dbg}
 	if db then:&"{f6}{yellow}Dbg{white}: a find{comma} 0-2 (1 island{comma} 2 wreckage) {pound}i1":if an$>"" then b7=val(an$)
-	if b7<1 or b7>2 then return
+' no find: perhaps another ruler's island to raid (i.empire's
+' {:sub.island_raid}, 3230); lost, the fleet battered
+	if b7<1 or b7>2 then gosub {$33}230:on -(h7=2) goto {:damage}:return
 {:discover_ask}
 	if b7=1 then:&"{f6:2}{lt. green}The first mate reports an uncharted island off the port bow!":a$="Explore the island"
 	if b7=2 then:&"{f6:2}{lt. green}The first mate reports wreckage off the starboard bow!":a$="Examine the wreckage"
