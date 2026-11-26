@@ -534,13 +534,25 @@ r80_dirty:	byte 1,1,1
 ; pausewt, from out (shdlr.asm) before the screen's character: NO SCROLL
 ; (pause, $0a21) on: Pau, and wait here until it's off (the 128's print
 ; would wait for it itself, with nothing showing).
+; 11/25/2026: the wait does getchr's idle work, as Ctrl-S's does: vdcstat
+; (80 columns: the status lines, the clock with them; in 40 the IRQ draws
+; them), and carchk: a caller gone (carrier, or time up) ends the pause, as
+; the KERNAL's key would (pause cleared, so its print won't wait either).
+; No getkbd: the key that ends it stays in the buffer.
 pausewt:
 	lda pause
 	beq pausew9
 	jsr pauseon
 pausew1:
+	jsr vdcstat
+	jsr carchk
+	bne pausew2
 	lda pause
 	bne pausew1
+	jmp pauseoff
+pausew2:
+	lda #0
+	sta pause
 	jmp pauseoff
 pausew9:
 	rts
