@@ -68,7 +68,10 @@
 ' false, it skips the rest of line 24, and 25 returns
 24 &,52,57,3:if a% then color 4,a+1
 25 return
-28 cm$=a$:gosub 9:dr=5:gosub 3:if "++ "+a$=ml$ then e%=.:return
+' 11/26/2026 (the user's): not cm$=a$:gosub 9 here as well as on 29: the
+' Area window showed the overlay's name ("punter") and then, from 29,
+' "++ punter"
+28 dr=5:gosub 3:if "++ "+a$=ml$ then e%=.:return
 29 ml$="++ "+a$:cm$=ml$:gosub 9:a$=dr$+ml$:&,7,dv%,2:goto 5
 30 dr=3:a$="e.stats":goto 4
 31 dr=3:a$="e.access":goto 4
