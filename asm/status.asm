@@ -526,6 +526,43 @@ r80_mid:	byte 1,12,3	; 41-78, plain cells: values (the window's cyan)
 r80_rev:	byte 1,15,3	; 41-78, reversed: row 22's white bar, the box's
 			; light gray labels, the window
 r80_dirty:	byte 1,1,1
+
+; 11/25/2026 (the user's): the pause indicator (Pau; 40 columns' P) for both
+; pauses. In 80 columns stat_vdc only draws it from vdcstat on the main line,
+; and both pauses held the main line, so it never showed: pauseon and
+; pauseoff draw it at once.
+; pausewt, from out (shdlr.asm) before the screen's character: NO SCROLL
+; (pause, $0a21) on: Pau, and wait here until it's off (the 128's print
+; would wait for it itself, with nothing showing).
+pausewt:
+	lda pause
+	beq pausew9
+	jsr pauseon
+pausew1:
+	lda pause
+	bne pausew1
+	jmp pauseoff
+pausew9:
+	rts
+; pausecs, from output2 (chrio.asm): the caller's Ctrl-S: Pau until the
+; next key
+pausecs:
+	jsr pauseon
+	jsr xgetchr0
+pauseoff:
+	lda #stat_pau
+	ldx #0
+	jsr draw_status_line
+	jmp pausedrw
+pauseon:
+	lda #stat_pau
+	ldx #1
+	jsr draw_status_line
+; 80 columns: drawn now (vdcstat only looks once in 8 jiffies; keeps .x .y)
+pausedrw:
+	lda #$ff
+	sta vdcst_jif
+	jmp vdcstat
 r80_text:	; row 22: "L=00000 M=" name(16) " Image BBS 128", all reversed
 	byte $cc,$bd,$b0,$b0,$b0,$b0,$b0,$a0,$cd,$bd
 	byte $a0,$a0,$a0,$a0,$a0,$a0,$a0,$a0,$a0,$a0

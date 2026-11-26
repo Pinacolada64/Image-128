@@ -431,6 +431,7 @@ out:
 	jsr usechr
 	jmp out4
 out2:
+	jsr pausewt	; 11/25/2026: NO SCROLL: Pau while it holds (status.asm)
 	ldx #1
 	jsr setmode
 	inc scnlock
