@@ -296,6 +296,8 @@
 ; keyboard stuff:
 ;
 	lstx	= $d5	; c64: 197 / $c5. last key pressed
+	pause	= $0a21	; [128 OS] not 0 while NO SCROLL holds the screen: the
+			; editor's print waits for it (tried in x128, 11/25/2026)
 	ndx	= $d0	; c64: 198 / $c6. number of characters in keyboard buffer
 	ldtb2	= $035e	; [128 OS] screen line link bitmap, 4 bytes (c64: ldtb1, 217)
 	bnkvar	= $03d5	; [128 OS] BASIC 7's BANK number (0-15), which peek, poke and sys use

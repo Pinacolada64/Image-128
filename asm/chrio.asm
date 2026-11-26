@@ -46,14 +46,8 @@ output1a:
 	pla
 	rts
 output2:
-	lda #stat_pau
-	ldx #1
-	jsr draw_status_line
-	jsr xgetchr0
-	lda #stat_pau
-	ldx #0
-	jsr draw_status_line
-	lda $fe
+	jsr pausecs	; Pau until the next key (status.asm: drawn at once in 80
+	lda $fe		; columns, 11/25/2026)
 	jmp output0
 
 setoutmd:

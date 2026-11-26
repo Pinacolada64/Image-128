@@ -102,7 +102,7 @@ that is on shows. In 80 columns each has a three-letter label at column
 | # | 80 columns | 40 columns | On while |
 |--:|---|---|---|
 | 0 | `Abt` | `A`, column 30 | output was aborted (`/`, space or Ctrl-C) |
-| 1 | `Pau` | `P`, column 30 | output is paused (Ctrl-S), waiting for a key |
+| 1 | `Pau` | `P`, column 30 | output is paused: Ctrl-S, or NO SCROLL at the console (see below) |
 | 2 | `Dsk` | `L`, column 30 | a load or save runs with the SwiftLink's interrupts off |
 | 3 | `GC` | `G`, column 31 | garbage collection |
 | 4 | `Swp` | `S`, column 31 | the ML swaps pages of memory (modules in and out) |
@@ -114,3 +114,39 @@ that is on shows. In 80 columns each has a three-letter label at column
 
 The user port driver shows none of `Ovr`, `Flo` and `Int`, and `Dsk` is the
 SwiftLink's only.
+
+### Pausing output (`Pau`)
+
+There are two ways to pause output, and `Pau` shows for both:
+
+- **Ctrl-S**, typed by the caller or at the console, while output is
+  running. Output holds until the next key. That key is then checked like
+  any key typed during output: `/`, space or Ctrl-C abort the output (`Abt`),
+  any other key just lets it go on. Ctrl-S is checked in `output`
+  (`asm/chrio.asm`), and `pausecs` (`asm/status.asm`) waits for the key.
+- **NO SCROLL** on the 128's keyboard (F8 in VICE's positional keymap; keypad
+  `*` in the symbolic one). The KERNAL's keyscan sets `pause` ($0a21) when
+  it's pressed and clears it when it's pressed again, or when any other key
+  is pressed. That other key stays in the keyboard buffer for the BBS, so
+  it may answer the prompt that comes next. Output to the screen checks the
+  flag in `pausewt` (`asm/status.asm`), called from `out` and `outscn0`
+  (`asm/shdlr.asm`) before each character. The caller's output holds too:
+  each character goes to the screen before the modem (`outchr3`: `outscn0`,
+  then `outmdm0`).
+
+`Pau` is drawn as soon as the pause starts and cleared as soon as it ends.
+In 80 columns, `pausedrw` doesn't wait for `vdcstat`'s next turn
+(once every 8 jiffies on the main line) to draw it.
+
+While NO SCROLL holds output, the wait keeps doing what `getchr` does
+between keys:
+
+- `vdcstat` keeps the 80-column status lines up to date, so the clock and
+  the caller's time left keep counting. In 40 columns the IRQ draws them
+  anyway.
+- `carchk`: if the caller drops carrier or runs out of time, the pause ends
+  by itself (`pause` cleared), so a station isn't left stuck behind a
+  forgotten NO SCROLL.
+
+Without this, the 128 editor's own print would wait for `pause` itself
+(`$c734`), with nothing on the status line and the clock stopped.
