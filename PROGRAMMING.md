@@ -147,6 +147,40 @@ trap logs and recovers from. Frames from further out (a check run from
 inside a module's own FOR loop) look the same as garbage: they're listed,
 and cleared too.
 
+## `IF ... THEN BEGIN ... BEND` on one line
+
+**Don't put a `BEGIN` block and its `BEND` on the same line as the `IF`.**
+When the condition is true, the block runs and the line goes on after
+`BEND`, as you'd expect. When it's false, BASIC 7.0 doesn't go on after
+the `BEND`: it goes on at the **next line**, skipping everything after
+the `BEND` too. Tried in x128 (11/25/2026):
+
+```
+10 a=0:gosub 24
+15 print "back":end
+24 if a then begin:print "block":bend:return
+28 print "reached 28":end
+```
+
+prints `reached 28`, not `back`: the `return` after `bend` never ran, and
+the program fell into the next line. In `im 128` that next line was the
+overlay loader: line 24 (the border color, `gosub 24`) ran on into line
+28 whenever the lightbar's check 57 was off, and loaded an overlay named
+whatever `a$` held, so every new user's login stopped with "?load error
+in 29" (`++ 0`).
+
+Put the block on a line of its own instead, and go to it:
+
+```
+24 &,52,57,3:on -(a%<>.) goto 25:return
+25 color 4,a+1:return
+```
+
+(`on -(`*condition*`) goto` *line* goes there when the condition is
+true, and on to the next statement when it's false.) A `BEGIN` whose
+`BEND` is on a later line isn't affected: there, the next line after
+`BEND` is where it should go on anyway.
+
 ## Reading the variables: `bank`
 
 BASIC 7.0 keeps its variables, arrays and strings in bank 1; here they
