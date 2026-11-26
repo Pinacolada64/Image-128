@@ -12,6 +12,10 @@ scnoff:
 	beq sc1
 	jsr scrnon
 sc1:
+; 11/25/2026: NO SCROLL: Pau while it holds (status.asm). Here as well as in
+; out: outchr's characters come here and go to prtscn without passing out,
+; and the 128 editor's print waited for NO SCROLL itself, with no Pau
+	jsr pausewt
 	jsr crsroff
 	jsr cleanup
 sc1a:
@@ -431,6 +435,7 @@ out:
 	jsr usechr
 	jmp out4
 out2:
+	jsr pausewt	; 11/25/2026: NO SCROLL: Pau while it holds (status.asm)
 	ldx #1
 	jsr setmode
 	inc scnlock

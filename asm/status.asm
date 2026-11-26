@@ -546,6 +546,55 @@ r80_pageset:
 	sta r80_dirty	; row 22
 r80ps9:
 	rts
+
+; 11/25/2026 (the user's): the pause indicator (Pau; 40 columns' P) for both
+; pauses. In 80 columns stat_vdc only draws it from vdcstat on the main line,
+; and both pauses held the main line, so it never showed: pauseon and
+; pauseoff draw it at once.
+; pausewt, from out (shdlr.asm) before the screen's character: NO SCROLL
+; (pause, $0a21) on: Pau, and wait here until it's off (the 128's print
+; would wait for it itself, with nothing showing).
+; 11/25/2026: the wait does getchr's idle work, as Ctrl-S's does: vdcstat
+; (80 columns: the status lines, the clock with them; in 40 the IRQ draws
+; them), and carchk: a caller gone (carrier, or time up) ends the pause, as
+; the KERNAL's key would (pause cleared, so its print won't wait either).
+; No getkbd: the key that ends it stays in the buffer.
+pausewt:
+	lda pause
+	beq pausew9
+	jsr pauseon
+pausew1:
+	jsr vdcstat
+	jsr carchk
+	bne pausew2
+	lda pause
+	bne pausew1
+	jmp pauseoff
+pausew2:
+	lda #0
+	sta pause
+	jmp pauseoff
+pausew9:
+	rts
+; pausecs, from output2 (chrio.asm): the caller's Ctrl-S: Pau until the
+; next key
+pausecs:
+	jsr pauseon
+	jsr xgetchr0
+pauseoff:
+	lda #stat_pau
+	ldx #0
+	jsr draw_status_line
+	jmp pausedrw
+pauseon:
+	lda #stat_pau
+	ldx #1
+	jsr draw_status_line
+; 80 columns: drawn now (vdcstat only looks once in 8 jiffies; keeps .x .y)
+pausedrw:
+	lda #$ff
+	sta vdcst_jif
+	jmp vdcstat
 r80_text:	; row 22: "L=00000 M=" name(16) " Image BBS 128", all reversed
 	byte $cc,$bd,$b0,$b0,$b0,$b0,$b0,$a0,$cd,$bd
 	byte $a0,$a0,$a0,$a0,$a0,$a0,$a0,$a0,$a0,$a0
