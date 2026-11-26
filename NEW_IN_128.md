@@ -32,8 +32,10 @@ manual's chapters, and PULL_REQUESTS.md lists the change each came from.
   system; a scan of the bus that names each drive; the files copied to the
   drives chosen; conversion from Image 1.2 and 2.0 (Setting up a new
   system). The file copy doesn't copy System, Etcetera or REL files yet.
-- **The boot screen's blocks-free list** shows each drive's device, drive
-  and kind (1581, CMD HD, Lt. Kernal...) (Sysop Commands, "Booting").
+- **The blocks-free list,** at boot and on the idle screen (`3`), shows
+  each drive's device, drive (the partition or Lt. Kernal LU) and kind
+  (1581, CMD HD, Lt. Kernal...), one drive to a line (Sysop Commands,
+  "Booting" and "The idle screen").
 
 ## The clock and time
 
