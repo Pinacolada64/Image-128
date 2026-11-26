@@ -12,16 +12,29 @@ Menus drawn by the `++ menu2` overlay (`IM`'s Configuration Editor, and
 others that load it) leave stray cursor cells behind on the VDC screen in
 80 columns.
 
-### After any error on the Lt. Kernal, recording it fails too
+### Setup copies only from the boot disk
 
-An error shows "Recording Error, Please Wait..." and then "?load error in
-29", and the station drops to the Lt. Kernal's prompt instead of going
-back to the BBS. Restart it with `BOOT 128` at the left margin (or
-reset it). This may have the same cause as the NEW error below (`im`
-line 24 running on into the overlay loader at 28): to be tried again once
-PR #48 is merged.
+Setup's copy (`sub.su.copy`) reads the boot disk's directory and copies
+those files to the drives they belong on, but it never asks for another
+distribution disk. Files that come on other disks, such as the `s.` files
+(`s_files.d81` in this build), aren't copied: copy them to the System
+disk (drive 1) by hand, with a file copier or, once the BBS is running,
+with the sysop's `Copier` (INSTALLING.md). Asking for each distribution
+disk in turn is planned (modules/TODO.md, "setup's copy from several
+disks").
 
-## Fixed, waiting to be merged
+## Fixed
+
+### After any error on the Lt. Kernal, recording it failed too
+
+An error showed "Recording Error, Please Wait..." and then "?load error in
+29", and the station dropped to the Lt. Kernal's prompt. The error handler
+calls the border color routine (`im` 24, `a=2:gosub 24`) after writing
+`e.errlog`; with the lightbar's Border Color on Event check off, the same
+`begin`/`bend` problem as NEW below ran it on into line 28, which tried to
+load an overlay named after `a$` ("e.errlog,s,a"). Fixed by PR #48, with
+the simpler line 24 of PR #55; tried on the Lt. Kernal test BBS: a syntax
+error is recorded (Errors 1/1) and the BBS goes back to its prompt.
 
 ### Typing NEW at the login prompt stopped with error #29
 
@@ -62,8 +75,6 @@ Fixed on `lo-new-wrap` (PR #52).
 C64List writes a `{sym:name}`'s value right-justified in a field
 (`peek( 2670+2)`). The build now closes those spaces up
 (`tools/tighten.py`). Fixed on `sym-spaces` (PR #53).
-
-## Fixed
 
 ### The status line's module name (`M=`) was cut short in 80 columns
 
