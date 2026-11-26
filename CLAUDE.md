@@ -17,11 +17,25 @@ does in the prompt. In x128, check 56 is bit 0 of `chktbl`+7 (`$1307`).
 
 ## The Lt. Kernal station's port
 
-On a multiplexed Lt. Kernal, the station's port (0-15) is the host
-adapter's port register, `$df04` (57092), bits 0-3: `ltk_port` in
-`asm/equates.asm`. From BASIC, `peek({sym:ltk_port}) and 15` (`sub.modem`
-60110 and `i/IM.modem` 4014 write it as `peek(57092) and 15`). Read it only
-when there is a Lt. Kernal (`lk%`, its device number from `e.data` record
-38, not 0): without one, `$df04` is open I/O and reads garbage. ML has the
-same port + `$80` in `glue.asm`'s `ltkport` (a lock's owner byte), set by
-`lockinit` from the Lt. Kernal's GETPRT.
+On a multiplexed Lt. Kernal, read the station's port (0-15) from BASIC as
+`peek({sym:ltkprt})` (`asm/equates.asm`, `$37b2`): `lockinit` stores it
+there at boot from the Lt. Kernal's GETPRT (0 without a Lt. Kernal). Don't
+use `peek(57092) and 15` (the host adapter's `$df04`): at boot it read
+another bank and gave port 0 port 11's modem setup (PR #47). ML has the
+same port + `$80` in `glue.asm`'s `ltkport` (a lock's owner byte).
+
+## BASIC 7.0: no `IF ... THEN BEGIN ... BEND` on one line
+
+When the condition is false, BASIC 7.0 doesn't go on after a `BEND` on the
+same line: it goes on at the next line, skipping whatever followed the
+`BEND` (a `RETURN`). `im` 24 (`if a% then begin:color 4,a+1:bend:return`)
+fell into line 28, the overlay loader, and broke every new user's login
+(`begin-bend`). Put the block on a line of its own and go to it:
+
+```
+24 &,52,57,3:on -(a%<>.) goto 25:return
+25 color 4,a+1:return
+```
+
+A `BEGIN` whose `BEND` is on a later line is fine. PROGRAMMING.md has the
+details.
