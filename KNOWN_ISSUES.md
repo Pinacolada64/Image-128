@@ -6,15 +6,6 @@ merged.
 
 ## Open
 
-### Logging in as a new user stops with error #29
-
-Typing `NEW` at the login prompt (to apply as a new user) stops the BBS:
-"SYSTEM ERROR #29 (load error) In Line:29 Of im", and the station drops to
-the Lt. Kernal's prompt. `im` line 29 loads an ML overlay (`++ name`); the
-status line shows "Area ++ 0", so it was asked for an overlay named "0",
-which doesn't exist. `i/lo.new`, the new-user module, is on the disk and
-loads by itself. Seen on the Lt. Kernal (11/25/2026).
-
 ### The flashing chat display starts in the wrong column in 80 columns
 
 When a caller asks to chat, the flashing display doesn't start drawing at
@@ -26,6 +17,12 @@ Menus drawn by the `++ menu2` overlay (`IM`'s Configuration Editor, and
 others that load it) leave stray cursor cells behind on the VDC screen in
 80 columns.
 
+### Pausing output doesn't show on the status line
+
+Pausing a caller's output with Ctrl+S (or, at the console, the 128's NO
+SCROLL key) should light the status line's pause indicator: `P` in 40
+columns, `Pau` in 80. It doesn't.
+
 ### After any error on the Lt. Kernal, recording it fails too
 
 An error shows "Recording Error, Please Wait..." and then "?load error in
@@ -34,6 +31,19 @@ back to the BBS. Restart it with `BOOT 128` at the left margin (or
 reset it).
 
 ## Fixed, waiting to be merged
+
+### Typing NEW at the login prompt stopped with error #29
+
+A false `if ... then begin ... bend` on one line goes on at the next line
+in BASIC 7.0: `im` 24 fell into line 28, the overlay loader, when
+`i/lo.new` set the border color, and loaded an overlay named "0". Fixed on
+`begin-bend` (PR #48).
+
+### `{sym:}` values left extra spaces in the programs
+
+C64List writes a `{sym:name}`'s value right-justified in a field
+(`peek( 2670+2)`). The build now closes those spaces up
+(`tools/tighten.py`). On `sym-spaces`.
 
 ### The status line's module name (`M=`) was cut short in 80 columns
 
