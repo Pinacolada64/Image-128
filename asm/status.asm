@@ -306,6 +306,14 @@ r80r2:
 	lda r80_rev,x
 r80r4:
 	and #$0f
+; 11/25/2026: row 22's columns 64-79 (cells 24-39), &,9's window, in
+; r80_pagec: the chat page's flash (irqhn.asm's irq1), else white
+	ldx r80_i
+	bne r80r5
+	cpy #24
+	bcc r80r5
+	lda r80_pagec
+r80r5:
 	tax
 	lda vdccolor,x
 	ora #VDC_ATTR_ALT
@@ -526,6 +534,18 @@ r80_mid:	byte 1,12,3	; 41-78, plain cells: values (the window's cyan)
 r80_rev:	byte 1,15,3	; 41-78, reversed: row 22's white bar, the box's
 			; light gray labels, the window
 r80_dirty:	byte 1,1,1
+r80_pagec:	byte 1	; row 22's window's color (irq1: the chat page's flash)
+
+; from irq1 (irqhn.asm), 80 columns: .a the window's color now; row 22 drawn
+; again when it changes
+r80_pageset:
+	cmp r80_pagec
+	beq r80ps9
+	sta r80_pagec
+	lda #1
+	sta r80_dirty	; row 22
+r80ps9:
+	rts
 
 ; 11/25/2026 (the user's): the pause indicator (Pau; 40 columns' P) for both
 ; pauses. In 80 columns stat_vdc only draws it from vdcstat on the main line,

@@ -79,11 +79,21 @@ irq1b:
 	ldx #0
 irq1c:
 	lda pagecol,x
+; 11/25/2026: in 80 columns the window is row 22's columns 64-79 on the VDC,
+; drawn by status.asm's r80_row in r80_pagec (the main line draws it: the
+; VDC can't be written from an interrupt). The VIC's cells 24-39 here were
+; copied to the VDC's columns 24-39, under P= and V=, so the flash showed
+; there (the user's)
+	bit mode
+	bmi irq1p
 	ldx #15
 irq1d:
 	sta acolr+24,x
 	dex
 	bpl irq1d
+	bmi irq1e	; (x is $ff)
+irq1p:
+	jsr r80_pageset	; (status.asm, in the glue: the resident area is full)
 irq1e:
 	lda #1
 	ldy #39
