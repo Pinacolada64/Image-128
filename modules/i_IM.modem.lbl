@@ -10,6 +10,7 @@
 {alpha:alt}
 {include:..\Basic70.bas}
 {crunch:on}
+{include:"..\asm\equates.asm"}
 
 4000 rem modem/rs232 config
 4002 &,27,3:dim mr%(15,51)
@@ -19,9 +20,11 @@
 4008 for i=1 to len(b$):if an$=mid$(b$,i,1) then a$=an$:&"{pound}$a{f6}":i=len(b$)+1:next:return
 4010 next:on-(tr%<1) goto {$39}99:goto 4006
 4012 jf=.:mt$="0":dr=3:a$="e.i.modem":gosub {$34}:if e%then gosub 4022
-4014 p=.:on 1+lk%goto 4020:p=(peek(57092) and 15):&"{f6:2}{lt. blue}Edit Modem Config for Which"
+' 11/25/2026: the port from lockinit (ltkprt), as sub.modem 60110 reads it
+4014 p=.:on 1+lk%goto 4020:p=peek({sym:ltkprt}):&"{f6:2}{lt. blue}Edit Modem Config for Which"
 4016 &" Port?{f6}{yellow}({cyan}RETURN = {pound}!p){white}: {pound}i1"
-4018 if (val(an$)>1 and val(an$)<15) or an$="0" then p=val(an$)
+' 11/25/2026: ports 0-15 (was 0 and 2-14: >1 and <15; KNOWN_ISSUES.md)
+4018 if (val(an$)>0 and val(an$)<16) or an$="0" then p=val(an$)
 4020 x=p+1:gosub {$31}:&,2,2:mt$=a$:&,2,2:in$=a$:&,2,2:m$=a$:&,2,2:au$=a$
 4021 close 2:return
 4022 dr=3:gosub {$36}1:gosub {$36}0:if a<>0 or bf<15 then:&"{f6}Disk Full!{pound}w2":return

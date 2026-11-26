@@ -154,11 +154,18 @@ cp4:
 	bne cp5
 	inc done
 	bne cp6
+; 11/25/2026: the end of #3 first, then the full block: a file whose length
+; is a multiple of 254 ends on a full block's last byte, which went to cp6
+; with done still 0, so the next block (its status cleared at cp1) read a
+; byte past the end and wrote it, one byte too many (i/emp.startup at 2,032
+; bytes: ltk_copy's compare, "differs at byte 2033")
 cp5:
-	cpy #254
-	beq cp6
 	lda status
-	beq cp2
+	bne cp5e
+	cpy #254
+	bne cp2
+	beq cp6
+cp5e:
 	inc done
 ; write the block to #2, add 1 to "Good:"; again unless done
 cp6:

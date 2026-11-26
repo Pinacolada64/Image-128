@@ -364,6 +364,7 @@ charrom8_ld:
 	orig ltkon
 	byte 0
 	byte 0		; ltklu
+	byte 0		; ltkprt: this station's port, 0-15 (11/25/2026)
 
 ; 11/12/2026: the Lt. Kernal hard drive, for &,13's locks between the
 ; stations of a multiplexed one (miscl.asm's arbit; intro.asm's lockinit

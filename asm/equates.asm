@@ -959,6 +959,10 @@
 	charbuf8		= charrom8 + 40
 	ltkon			= charbuf8 + 8	; 11/13/2026: 1 if there's a Lt. Kernal (lockinit), glue.asm
 	ltklu			= ltkon + 1	; the LU logged in at boot (lockinit; im 3077)
+	ltkprt			= ltklu + 1	; 11/25/2026: this station's port, 0-15 (lockinit,
+					; GETPRT): BASIC's peek(57092) (the host adapter's
+					; $df04) read another bank at boot (sub.modem 60110:
+					; port 0 took port 11's modem); 0 without a Lt. Kernal
 	romtab			= $c000	; romtab.asm, then the resident ML:
 	resident_lo_end		= $d000	;   $c000-$cfff
 	resident_hi		= $e000	;   and $e000-$feff ($ff00-: MMU, and the
@@ -1233,7 +1237,7 @@ flag_h2e_r_mask	= %10000000	; 47 Undefined
 flag_h38_addr	= chktbl + 7 	; Dbg
 flag_h38_l_mask	= %00000001	; 56 ($38) On: Do not display BASIC variables
 flag_h38_r_mask	= %00000010	; 57 ($39) On: Border Color on Event: the VIC-II border
-			; changes on an error (red), a new user, feedback (im 23)
+			; changes on an error (red), a new user, feedback (im 24)
 
 flag_dcd_addr	= chktbl + 7 	; DCD
 flag_dcd_l_mask	= %00000100	; 58 ($3a) invert DCD: off=normal, on=inverted

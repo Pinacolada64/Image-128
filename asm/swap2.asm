@@ -335,6 +335,12 @@ btmvar:
 	inc scnlock
 	lda scnmode
 	bne btm2
+; 11/23/2026: .x is the variable's number (usevar's), and the window's
+; address below goes through .x: keep it on the stack until usevar. Since
+; 11/16 usevar got the address's high byte instead, so &,9 showed another
+; variable (the caller's computer type, &,9,36 at logon, came out blank)
+	txa
+	pha
 ; 80 columns (11/16/2026): the window is row 22's columns 64-79, past the
 ; VIC's row: write btmwin instead, which status.asm's r80_btm copies there
 	lda #<(adisp+24)
@@ -355,6 +361,8 @@ btm0:
 	sta adisp+24,y
 	dey
 	bpl btm0
+	pla		; the variable's number again
+	tax
 	jsr <@usevar
 	ldy #0
 	ldx #0

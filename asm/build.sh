@@ -101,7 +101,7 @@ spawn "$here" ml.asm "$C64LIST" ml.asm -prg:ml.prg -sym:ml.sym -ovr
 spawn "$here" rs232.asm "$C64LIST" rs232.asm -prg:rs232.prg -ovr
 # the "++" overlays: im loads them at protostart (&,7,dv%,2), each on the
 # disk as "++ <name>"; extra disk names for the same file after a ":"
-overlays="index:4 clock menu2 2 read post path net netsub netlist copier visual chatmode"
+overlays="index:4 clock menu2 2 read post path net netsub netlist copier visual chatmode xmodem punter"
 ovlwrites=()
 for o in $overlays; do
 	name=${o%%:*}
@@ -146,6 +146,20 @@ if [ $mode = all ]; then
 		# place, in modules/ too, e.g. the last committed one while it's being
 		# edited (11/13/2026: the setup moved here from the top directory)
 		src=$f; [ "$f" = i_su.config.lbl ] && [ -n "$ISU_CONFIG" ] && src=$ISU_CONFIG
+		# 11/24/2026: a 4.04 module (the preface's) that uses BASIC 7.0's
+		# keywords (print using, pudef, instr(...) is built from a copy made
+		# for 4.06 (tools/basic7.py, to406.py's conversion), .406.<name>.lbl
+		# here (not in git; .. paths as the module's own), so its source keeps
+		# the preface's jumps by number. Exit 1: no BASIC 7.0 ("|| r=$?": set -e);
+		# 2: keywords in its crunched code that 4.06 would tokenize too
+		# (basic7.py says where): stop
+		if [ "$list" = "$C64LIST" ]; then
+			r=0; python3 "$repo/tools/basic7.py" convert "$src" ".406.$f" || r=$?
+			case $r in
+			0) src=.406.$f; list=$C64LIST_406 ;;
+			2) exit 1 ;;
+			esac
+		fi
 		spawn "$repo/modules" "modules/$f" "$list" "$src" "-prg:..\\build\\$m.prg" $crunch -ovr
 		modwrites+=(-write "$m.prg" "$disk")
 	done
@@ -158,6 +172,11 @@ for o in $overlays; do
 	name=${o%%:*}
 	cp "$name.prg" "$build/++ $name.prg"
 done
+# ++ xmodem's 1K block buffer (xbuf) and its CRC tables (512 bytes) follow
+# its code: all must end below protobuf ($2b00), so the code (the file less
+# its 2-byte load address) may be up to $f00 - $600 = 2304 bytes
+xsize=$(( $(stat -c %s xmodem.prg) - 2 ))
+[ $xsize -le 2304 ] || { echo "build.sh: ++ xmodem is $xsize bytes: with its 1K buffer and CRC tables it runs past protobuf" >&2; exit 1; }
 python3 "$repo/tools/split-ml.py" ml.prg ml.sym "$build"
 cp boot.prg "$build/boot 128.prg"
 
@@ -211,6 +230,7 @@ c1541 -format "image bbs 128,ib" d81 image128.d81 \
 	-write "$repo/disk/e.fkeys.seq" "e.fkeys,s" \
 	-write "$repo/disk/s.visual.seq" "s.visual,s" \
 	-write "$repo/disk/s.visual 80.seq" "s.visual 80,s" \
+	-write "$repo/disk/s.m.protos.seq" "s.m.protos,s" \
 	-write "$build/dst/s.timezones" "s.timezones,s" \
 	-write "$build/dst/s.dstrules" "s.dstrules,s" \
 	"${modwrites[@]}" "${ovlwrites[@]}" >/dev/null

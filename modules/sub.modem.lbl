@@ -39,7 +39,10 @@
 60095 &,22,5:goto60395
 60100 ifleft$(mt$,1)<>"0"andmid$(mt$,5,1)="H"thena$="h1":gosub60325
 60105 return
-60110 dr=3:a$="e.i.modem":p=.:mt$="0":iflk%thenp=(peek(57092)and15)
+' 11/25/2026: the port from lockinit (ltkprt): peek(57092), the host
+' adapter's register, read another bank here at boot and gave port 0 port
+' 11's modem setup (KNOWN_ISSUES.md)
+60110 dr=3:a$="e.i.modem":p=.:mt$="0":iflk%thenp=peek({sym:ltkprt})
 60115 gosub{$34}:on-(e%>0)goto{$39}99:x=p+1:gosub{$31}
 ' 10/26/2026: &,2,2 leaves a$ pointing at its line buffer (buf2), and BASIC 7's
 ' mt$=a$ copies only that pointer, so mt$ became whatever line was read next

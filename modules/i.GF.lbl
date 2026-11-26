@@ -137,7 +137,7 @@
 3440 z$=a$:gosub 304:a$=z$:dr=0:goto 71
 3500 s$=left$("                    ",18-len(d2$)/2):gosub 3008
 3502 &"{pound}u0{rvrs off}{clear}{rvrs on}{blue}{pound}{back arrow}39{f6}"
-3504 &"{rvrs on}{blue} {gray3}          IMAGE{shft space}BBS{shft space}V3.0{pound}{back arrow}37{blue}  {f6}"
+3504 &"{rvrs on}{blue} {gray3}        IMAGE{shft space}BBS{shft space}128{shft space}V1.0{pound}{back arrow}37{blue}  {f6}"
 3506 &"{rvrs on}{blue} {gray3}{pound}$s{pound}v8{pound}{back arrow}37{blue}{rvrs off} {rvrs on} {f6}{rvrs on}{blue}  {rvrs off}{pound}{back arrow}38{rvrs on} {f6}"
 3511 n=0:if rn=0 then 3518
 3512 ct$="??? Dir Prg Mod Txt Mov RLE U/X U/D Sub ":m=5

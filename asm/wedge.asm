@@ -78,17 +78,36 @@ openroo1:
 openroo2:
 	sty filename_len
 ; the name for 80 columns' status area (status.asm's r80_mod): up to 16
-	ldx #0
+; characters of it, past a drive prefix ("5:", "10:": a ':' in the first
+; three). 11/25/2026: the prefix was counted in the 16, so a long name lost
+; its end: "5:i/emp.startturn" showed as i/emp.starttu (the user's)
+	ldx #0		; x: where the name starts in fbuf
+	ldy #0
+opr_pfx:
+	cpy filename_len
+	bcs opr_pfx2
+	lda fbuf,y
+	iny
+	cmp #':'
+	bne opr_pfx1
+	tya
+	tax		; after the ':'
+opr_pfx1:
+	cpy #3
+	bcc opr_pfx
+opr_pfx2:
+	ldy #0		; y: the place in modname
 opr_mod:
 	cpx filename_len
 	bcs opr_mod1
 	lda fbuf,x
-	sta modname,x
+	sta modname,y
 	inx
-	cpx #16
+	iny
+	cpy #16
 	bcc opr_mod
 opr_mod1:
-	stx modlen
+	sty modlen
 	lda #1
 	sta modnew
 	lda fa		; $ba
