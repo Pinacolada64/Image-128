@@ -30,11 +30,15 @@
 7 &"{pound}g1":a$=an$:return
 ' i take it peek(17138) <c64 screen mask mode> is checked within &,69
 ' therefore eliminating it here:
-' 11/10/2026: begin/bend: the block runs when nt=0, and the line goes on after
-' bend either way, so one return does for both (was: ...:return:else return)
+' 11/25/2026: not begin/bend: in BASIC 7.0 a false "if ... then begin" whose
+' bend is on the same line doesn't go on after the bend, but at the next line
+' (tried: "24 if a then begin:print"block":bend:return" with a=0 ran line 28).
+' Here that was line 10 whenever nt wasn't 0 (11/10/2026's begin/bend). The
+' block is line 8, gone to when nt=0
 ' 21 spaces after the name (were 15), so the 22-column field is always filled and
 ' a shorter name leaves nothing of the one before
-9 if nt=. then begin:&,69,4,21,left$(" "+cm$+"                     ",22),$8c:bend:return
+8 &,69,4,21,left$(" "+cm$+"                     ",22),$8c:return
+9 on -(nt=.) goto 8:return
 ' rem print#15,"p{02}"chr$(xand255)chr$(x/256)"{01}":return
 ' record# lfn, record_num [, byte_num]
 10 record#2,x,1:return
@@ -56,7 +60,13 @@
 ' the lightbar's right Dbg is on (check 57, "Border Color on Event"; the
 ' user's 3.1 addition, so an error's red border needn't be undone by hand at
 ' $d020). Uses a%. BASIC 7's color 4 takes 1-16.
-24 &,52,57,3:if a% then begin:color 4,a+1:bend:return
+' 11/25/2026: the border's color a-1, when check 57 is on. Not "if a% then
+' begin:...:bend:return": with a% 0, BASIC 7.0 went on at the next line, 28,
+' and loaded an overlay named whatever a$ held: i/lo.new's first line (a=5:
+' gosub 24) stopped every new user's login with ?load error in 29, "++ 0"
+' (a$ was gosub 61's blocks free). The block is line 25
+24 &,52,57,3:on -(a%<>.) goto 25:return
+25 color 4,a+1:return
 28 cm$=a$:gosub 9:dr=5:gosub 3:if "++ "+a$=ml$ then e%=.:return
 29 ml$="++ "+a$:cm$=ml$:gosub 9:a$=dr$+ml$:&,7,dv%,2:goto 5
 30 dr=3:a$="e.stats":goto 4
