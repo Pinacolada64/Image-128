@@ -453,7 +453,14 @@
 3093 gosub 33:for i=1 to 6:x=i+51:gosub 1:&,2,2:dv%(i)=val(a$)
 3094 &,2,2:dr%(i)=val(a$):next:close 2
 ' read rs232 interface type:
-3095 gosub 33:x=32:gosub 1:&,2,2:a=val(a$):close 2
+' 11/25/2026: the RS-232 driver (a: 0 user port, 1 SwiftLink). e.data's
+' record 32 is every station's; on a Lt. Kernal, this port's own modem setup
+' in e.i.modem (record port+1, as sub.modem 60110 reads it; the port is
+' ltkprt, lockinit's) decides: its flag 11 (mt$'s character 11) if it has a
+' modem, else the user port. Setting up port 1's SwiftLink in IM had made
+' port 0, with no SwiftLink, load that driver too, and its boot wait on a
+' modem that wasn't there (KNOWN_ISSUES.md)
+3095 gosub 33:x=32:gosub 1:&,2,2:a=val(a$):close 2:if peek({sym:ltkon}) then a=.:dr=3:a$="e.i.modem":gosub 4:x=peek({sym:ltkprt})+1:gosub 1:&,2,2:close 2:if val(a$) then a=val(mid$(a$,11,1))
 3096 dr=5:gosub 4:a$=dr$+"ml.rs232":&,7,dv%,2:&,16,a
 3097 z3$="Reading System Info...":gosub 3404
 3098 gosub 35:if e% then close 2:gosub 3240:goto 3097
