@@ -166,6 +166,13 @@ if [ $mode = all ]; then
 fi
 finish
 
+# 11/25/2026: C64List writes a {sym:name}'s value right-justified in a field
+# ("peek( 2670+2)", "<   14"): close those spaces up in im and the modules
+# (tools/tighten.py; only spaces before a number, outside strings, REM and
+# DATA; it checks that nothing else changed, and stops the build if it did)
+python3 "$repo/tools/tighten.py" "$build/im 128.prg" "$build"/sub.*.prg "$build"/i.*.prg "$build"/i_*.prg ||
+	{ echo "build.sh: tools/tighten.py failed" >&2; exit 1; }
+
 cd "$here"
 cp rs232.prg "$build/ml.rs232.prg"
 for o in $overlays; do
