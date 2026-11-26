@@ -24,15 +24,23 @@
 4032 lp=1:&" How many lines of text can your screen display?{white}: {pound}i1"
 4034 mp%=abs(val(an$))-25*(tr%<1):ifmp%<1ormp%>255ormp%=40ormp%=80thenmp%=.:goto4030
 4036 return
+' 11/20/2026: c$, b$ as a reversed bar across the line, centered: the bar
+' from column 1 to ll%-2 ({pound}{back arrow}nn pads with spaces to column
+' nn, two digits, up to ll%-1: center_lo.asm's mtab), so it fits 40 and 80
+' columns alike. It was q$ (40 columns centered on a wider screen) and a pad
+' to column 39 ({pound}{back arrow}39), which did nothing once q$'s margin had
+' taken the text past it, so the bar stopped after the text; 4108 had a
+' Return before its pad, which put the rest of the bar on the next line
+4090 c$="{rvrs on}{pound}{back arrow}"+right$("0"+mid$(str$(int((ll%-len(b$))/2)),2),2)+b$
+4092 c$=c$+"{pound}{back arrow}"+right$("0"+mid$(str$(ll%-1),2),2)+"{rvrs off}":return
 4100 f4=.:oncd%gosub4010:cd%=1:ifll%<1thenll%=40
 4101 ifpw$=""thenna$="VISITOR"
 ' 11/19/2026: ak$ follows ll% by itself now (the ML's akfix, trace.asm)
 ' between statements; 4102 built it here, from ll% as it was then
 4103 f1=.:ao%=ac%:gosub320
 4104 gosub90:an$=ff$:&,15,1:a=1:b=7:ifmn%>719thena=8:b=9:ifmn%>1079thena=17:b=7
-4106 b$="Good "+mid$("MorningAfternoonEvening",a,b)+", "+an$
-4107 c$=right$("00"+mid$(str$(int((ll%-len(b$))/2)),2,2),2)
-4108 &"{clear}{f6}{blue}{pound}vj {cyan}{rvrs on}{pound}{back arrow}"+c$+b$+"!{f6}{pound}{back arrow}39{f6}{blue}{pound}vj"
+4106 b$="Good "+mid$("MorningAfternoonEvening",a,b)+", "+an$+"!"
+4108 gosub4090:&"{clear}{f6}{blue}{pound}vj {cyan}"+c$+"{f6}{blue}{pound}vj"
 4110 gosub33:x=1:gosub1:&,2,2:ca=val(a$):close2:&,52,20,em:poke{sym:ptrlinm},.
 ' 10/26/2026: the modem type is mt$'s first character; val(mt$) of a line of
 ' digits (mt$ left pointing at &,2,2's buffer) overflowed 2^a: ?overflow here
@@ -52,7 +60,7 @@
 4134 an$=na$:&,15,1:&,60,.,20,l%(8,.),an$:gosub4222:&,60,.,25,l%(18,.),b$
 4136 a$="e.last":gosub19:&,60,3,.,l%(.,.),620,dr$+"e.last",dv%
 4138 on-(x%+k%+i%>.)goto4140:a$="last":gosub4004:goto4142
-4140 &" {rvrs on}{yellow}{pound}{back arrow}10{pound}$qXpress Login Active!{pound}{back arrow}39{f6}{blue}{pound}vj"
+4140 b$="Xpress Login Active!":gosub4090:&" {yellow}"+c$+"{f6}{blue}{pound}vj"
 4142 gosub30:i=1:x=20:gosub16:forx=1to11:st(x)=.:gosub17:next:close2
 4144 onsgn(id)gosub4020:dd$=cc$+mid$(str$(id),2)
 4146 &,52,16,3:b$="C/G":ifa%thenb$="ASCII":&,52,18,3:ifa%thenb$="ANSI"
@@ -61,7 +69,7 @@
 4151 a=val(left$(mt$,1)):qb=300*2^(a+(a=1)):qb$=str$(qb):ifzzthenqb$=" {white}Local Console"
 4152 a$=" {lt. red}BPS   {white}:"+qb$+r$+" {yellow}Stats {white}:"+str$(cr)+" {gray3}Credits"
 4154 on-(tc%>1)goto4160:b$="New User":ifid=.thenb$="Visitor"
-4156 &"{clear}{red}{pound}vj{pound}{back arrow}12{pound}$q{lt. red}Welcome {pound}$b{red}{f6}{pound}vj"
+4156 t$=b$:b$="Welcome, "+t$+"!":gosub4090:b$=t$:&"{clear}{red}{pound}vj {lt. red}"+c$+"{f6}{red}{pound}vj"
 4158 a$=a$+" {gray1}({gray3}"+b$+"{gray1})":d$=a$:ifidthengosub30:i=1:x=8:gosub16:a$=d$
 4160 gosub50
 4162 a=1:gosub375:pt%=.:gosub84:&,52,7,3:ifa%thenpt%=1-pt%:ifp1%<1thenp1%=30
