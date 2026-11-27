@@ -221,6 +221,7 @@ chosen: its overlay isn't loaded yet.
 | `e.idle 1` ... `e.idle 7` | SEQ | idle and used time, one for each day of the week | `i.lo`; reset by `i/lo.automaint` |
 | `e.idle cmds` | PRG | the idle screen's own commands | `i.edit idlecmds` |
 | `e.loginmods` | PRG | the login modules | `IM` Login Mods (`i/IM.logon`) |
+| `e.logoffmods` | PRG | the logoff modules (the same format), run by `i/lo.logoff` when checkmark 51 is on | `IM` Logoff Mods (`i/IM.logon`) |
 | `e.maintmods` | SEQ | the modules AutoMaint runs | `IM` AutoMaint Mods (`i/IM.logon`) |
 | `e.sysoplist` | PRG | the accounts Instant Login offers | `i/IM.logon` |
 | `e.macros` | REL | the macros | `IM` Macros Editor (`i/IM.macros`) |

@@ -496,7 +496,7 @@ press Return. Every submenu's last item goes back to the main menu.
 | `A` | Macros Editor | the macros (`e.macros`) | `i/IM.macros` |
 | `B` | Command Set | the Extended Command Set: the main prompt's commands, the modules they run and who may use them | `i/IM.ecs` |
 | `C` | Payroll Editor | the users paid credits at AutoMaint, each an ID and an amount (`u.payroll`) | `i.IM` |
-| `D` | Module Editors | a menu: `A` Login Mods, `B` AutoMaint Mods, `C` Wall Ads, `D` Quicklist | `i/IM.logon` |
+| `D` | Module Editors | a menu: `A` Login Mods, `B` AutoMaint Mods, `C` Wall Ads, `D` Quicklist, `E` Logoff Mods | `i/IM.logon` |
 | `E` | Access Groups | the access groups' names and what each may do | `i/IM.access` |
 | `F` | File Lists | the lists of files the BBS shows | `i/IM.filelist` |
 | `G` | Function Keys | what the function keys type (`e.fkeys`) | `i/IM.macros` |
@@ -508,6 +508,29 @@ press Return. Every submenu's last item goes back to the main menu.
 | `M` | Netmail Config | a menu: local info, modem specs, calling hours, `nm.create`, connections, the forward list, Netwall/Grf | `i/IM.netmail` |
 | `N` | Base Editors | System Maintenance's editors | `i.SM` (if it's on the Module drive) |
 | `Q` | Quit | back to the main prompt, or the idle screen | |
+
+### `D`, `E`: Logoff Mods
+
+The modules a caller gets at logoff, edited as the Login Mods are (the
+same editor: Add, Delete, Edit, Insert, Move, Options) and saved as
+`e.logoffmods` on the system drive. Each entry is an `i/lo-` module with
+the access groups it runs for, and either Forced (it runs) or Optional
+(the caller is asked "Launch ...?", or picks it from a menu: Options,
+Use Menu, with menus on).
+
+`i/lo.logoff` runs the list when the lightbar's `Sc2` right checkmark
+(page 4, check 51) is on; with it off, or with no `e.logoffmods`, logoff
+goes straight to "Leave Feedback?" and Bye, as it does after the list.
+Two modules to start with:
+
+| Module | What it does |
+|---|---|
+| `stats` (`i/lo-stats`) | the caller's activity this call: feedback, mail, posts, responses, uploads, downloads |
+| `Lotto` (`i/lo-Lotto`) | Last Chance Lotto: guess 1-4 digits for credits |
+
+Before 11/27/2026, `i/lo.logoff` was a fixed menu (the stats, then
+Disconnect, Feedback, Lotto, Return to BBS). A module that sets `f1` to
+anything but 1 ends the list; 5 takes the caller back to the BBS.
 
 ### `I`: Misc. Features
 
