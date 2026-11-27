@@ -141,9 +141,23 @@ try:
     if not t:
         sys.exit("the Lt. Kernal didn't come up in 128 mode:\n" + s)
     v.type('RUN"BOOT 128",U9\r')
-    t, s = waitfor(v, ['copied', 'error'], 300 + 120 * len(files))
+    # 11/27/2026: the result from memory, not the screen: the stand-in
+    # pokes files copied, failed and 1 (done) into $0b00-$0b02 (++ copier
+    # draws its blocks and counters over the screen's text)
+    t0, res, s = time.time(), None, ''
+    while time.time() - t0 < 300 + 120 * len(files):
+        m = v.mem('ram00', 0xb00, 3)
+        s = v.screen()
+        if len(m) == 3 and m[2] == 1:
+            res = m
+            break
+        if 'error' in s.lower():
+            break
+        time.sleep(3)
     print(s.rstrip())
-    ok = t == 'copied' and f'copied {len(files)} files, 0 failed' in ' '.join(s.lower().split())
+    if res:
+        print(f'copied {res[0]} files, {res[1]} failed')
+    ok = res is not None and res[0] == len(files) and res[1] == 0
 finally:
     if not keep:
         v.stop()
