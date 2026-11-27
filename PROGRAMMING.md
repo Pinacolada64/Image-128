@@ -637,6 +637,64 @@ onto the fact before them, and prints each fact word-wrapped with
 A fact stays in pieces in the file, since `&,2,2` reads at most 80
 characters and a joined fact can run to about 215.
 
+## The clock in BASIC: `d1$`, `mn%`, `lt$`, `lt%`, `ls`
+
+Image's clock is CIA 1's time of day (`$dc08`-`$dc0b`, 56328-56331:
+tenths, seconds, minutes, hours), kept in BCD, 12-hour, with the PM bit
+in bit 7 of the hours. The IRQ turns it into `d1$` and `mn%` each minute
+(`asm/irqhn.asm`: `makdate`, `alarm`).
+
+| Variable | What it holds | Set by |
+|---|---|---|
+| `d1$` | now, 11 digits: weekday (1 Sunday ... 7 Saturday), `yymmdd`, `hhmm` | the IRQ, when the minute changes (`d1str`, in the buffer page at `$0e00`) |
+| `mn%` | now, the minute of the day: 0-1439, 24-hour | the IRQ (`alarm`, `var_mn_integer`) |
+| `lt$` | logon time: `d1$` at connect | `i/lo.idle` 4008 (a modem call), 4760 (a local login); `im` 3162 at boot (`am$`); `i/lo.automaint` 4066 when the weekly log restarts |
+| `lt%` | `mn%` at connect | `i/lo.idle` 4008 only |
+| `ls` | the TOD clock's seconds at connect, BCD (`d1$` has none) | `i/lo.idle` 4008 and 4760 (11/27/2026) |
+
+**`d1$`'s hour isn't 24-hour.** Its two digits are the TOD hours
+register's two nibbles, the PM bit included, so a PM hour's first digit is
+8 or 9: `"81"` is 1 PM, `"91"` 11 PM, `"92"` noon, `"12"` midnight.
+Decode it as `i/lo.off` 4177 and `i/lo-online` 4502 do:
+
+```
+x=val(mid$(lt$,8,2)):p=-(x>79):h=x-80*p:h=h+12*(h=12)+12*p
+```
+
+`h` is then 0-23, and `h*60+val(mid$(lt$,10,2))` the minute of the day,
+as `mn%` has it.
+
+**Copy `d1$` with `+""`** (`lt$=d1$+""`): a plain `lt$=d1$` keeps a
+pointer to the IRQ's own string, which changes under it (PORTING_NOTES.md).
+
+**`lt%` is only right for a modem call.** A local login (4760) doesn't set
+it, so it still holds the last call's minute. Its one reader, `i/lo.on`
+4132, puts it in `e.last` (`l%(7,.)`), and `i/lo.off` 4104 overwrites that
+at logoff with the call's length in minutes, worked out from `lt$` and
+`d1$`. For a call's length, use `lt$` (and `ls`), not `lt%`.
+
+`lt$`'s readers: `left$(lt$,1)`, the weekday, picks the day's call log
+`e.log`*n* (`im` 34, 3300) and `sub.comm1` 60102's day; the
+scan date `ld$` is set from it (`im` 236, `i.UD` 3448, `i.UX` 3370,
+`sub.comm2`); a new user's or local login's last call `d5$` (`i/lo.new`
+4034, `i/lo.idle` 4767); `e.last` (`i/lo.on` 4132); the call's minutes
+(`i/lo.off` 4104); "Logon:" in `sub.misc` 60062; `ct$` in `i.NM_auto`
+3276; and `i/lo-online`.
+
+**The time connected, to the second** (`i/lo-online`): `lt$`'s hour and
+minute and `ls`'s seconds at connect, the TOD clock now, the difference
+plus 86400 if it's negative (a call over midnight). Read the TOD clock
+hours first, which latches all four registers, and tenths last, which
+frees them:
+
+```
+x=peek(56331):m=peek(56330):s=peek(56329):a=peek(56328)
+```
+
+**Writing hour 12 flips the PM bit** (the CIA does; VICE too): to set 12
+AM, write `$92`, which becomes `$12`; for noon, `$12`. `tests/standin/online.bas`
+sets the clock this way.
+
 ## Time zones and daylight saving time
 
 The BBS's clock shows local time, and moves an hour for daylight saving
