@@ -41,7 +41,7 @@ search. FOR/NEXT is faster still: **leave FOR loops as they are.**
 
 Also checked: RETURN from inside a DO or FOR leaves BASIC 7.0's stack clean
 (same as `exit`); only a GOTO or THEN out of a loop leaves its frame
-behind (PROGRAMMING.md, "What leaves garbage").
+behind (docs/prg-master.adoc, "What leaves garbage").
 
 ## Before converting a module
 

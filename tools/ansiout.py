@@ -9,7 +9,7 @@ through &,51), through an x128's SwiftLink.
 Listens on --tcp (25233) as the far end of x128's ip232 RS-232 (carrier up,
 $ff $01), records what arrives and prints each test: the PETSCII code sent
 between "<" and ">", what the caller got, and whether that's what outmod
-(asm/modem.asm) should send (PROGRAMMING.md, "What an ASCII or ANSI caller
+(asm/modem.asm) should send (docs/prg-master.adoc, "What an ASCII or ANSI caller
 gets"), and &,70's cursor position (CUP, asm/ansicup.asm). The disk is used from a copy (build/ansiout.d81).
 """
 import argparse, os, shutil, socket, sys, threading, time

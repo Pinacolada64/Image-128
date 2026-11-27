@@ -342,7 +342,7 @@ still reaches its label (a `$ff` offset is the giveaway).
   counters, `++ 2`'s `BLKS:`) isn't seen in 80 columns: each cell it
   changes goes to the VDC through `&,72` (`vdccell`, `vdc.asm`), which
   `usetbl1` reaches by farcall from `&` code and `sys` code alike
-  (PROGRAMMING.md, "VIC screen cells to the VDC").
+  (docs/prg-master.adoc, "VIC screen cells to the VDC").
 
 ## Keys and the status line at the idle screen
 

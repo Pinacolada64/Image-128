@@ -6,7 +6,7 @@ and logs. They're Image 3.0's, and work the same way; the Image 3.0
 manual's appendix "Data Files" lists them too.
 
 This file says what each one is for. How some are laid out inside is
-elsewhere: the `today.` files in PROGRAMMING.md ("Today in History
+elsewhere: the `today.` files in docs/prg-master.adoc ("Today in History
 files"), and `e.data`, `e.menu` _n_, `s.m.protos` and `nm.P.count` in the
 Image 3.0 Programmer's Reference Guide, appendix "File Formats".
 
@@ -127,8 +127,8 @@ nothing, so a single `s.logo 1` shows only one time in seven.
 | File | Shown | By |
 |---|---|---|
 | `s.m.info` | Personal Information | `sub.info` |
-| `s.timezones` | the time zones to choose from, each with its daylight saving time rule (format in PROGRAMMING.md) | `sub.info`, `sub.clocks` |
-| `s.dstrules` | the daylight saving time rules (format in PROGRAMMING.md) | `sub.clocks`; edited by `IM` DST Rules (`i/IM.dstrules`) |
+| `s.timezones` | the time zones to choose from, each with its daylight saving time rule (format in docs/prg-master.adoc) | `sub.info`, `sub.clocks` |
+| `s.dstrules` | the daylight saving time rules (format in docs/prg-master.adoc) | `sub.clocks`; edited by `IM` DST Rules (`i/IM.dstrules`) |
 | `s.m.protos` | the transfer protocols to choose from (below) | `sub.protos`, `sub.param1` |
 | `s.protos` | help for the protocol list (f2 at its prompt) | `sub.protos`, `sub.param1` |
 | `s.m.reledit` | SM's REL file editor | `i/SM.reledit` |
@@ -211,7 +211,7 @@ chosen: its overlay isn't loaded yet.
 
 | File | Type | Holds | Written by |
 |---|---|---|---|
-| `e.data` | REL | the system's settings, a record each (45: the system time zone; 46: its daylight saving time state, PROGRAMMING.md) | `i/su.config`, `IM`, `sub.clocks` |
+| `e.data` | REL | the system's settings, a record each (45: the system time zone; 46: its daylight saving time state, docs/prg-master.adoc) | `i/su.config`, `IM`, `sub.clocks` |
 | `e.stats` | REL | the statistics (`st()`) | `im 128` |
 | `e.daily stats` | REL | each day's statistics | `i/lo.automaint` |
 | `e.access` | REL | the access groups | `IM` Access Groups (`i/IM.access`) |
@@ -227,7 +227,7 @@ chosen: its overlay isn't loaded yet.
 | `e.i.modem` | REL | the modem's settings | `IM` Modem Config (`i/IM.modem`) |
 | `e.menu` _n_ | PRG | graphic menus | `i.menuedit` |
 | `e.anagram` | REL | the anagram game's words | `i/SM.make anagra` |
-| `e.sysop` | REL | what callers who run an Image BBS of their own say about it, a record each (SYSOP_COMMANDS.md; format in PROGRAMMING.md) | `SF` (`i.SF`), `i/lo.new`, `i/lo-sysop info` |
+| `e.sysop` | REL | what callers who run an Image BBS of their own say about it, a record each (SYSOP_COMMANDS.md; format in docs/prg-master.adoc) | `SF` (`i.SF`), `i/lo.new`, `i/lo-sysop info` |
 | `e.errlog` | SEQ | the errors the BBS has trapped | `im 128` |
 | `e.zz log` | SEQ | who turned local maintenance on, and when (SYSOP_COMMANDS.md) | `sub.local` |
 
@@ -264,6 +264,6 @@ Each night, AutoMaint's `i/lo/today` (from AutoMaint Mods) reads this month's
 `today.` file from the Etcetera drive, picks out today's facts, and writes
 them to `s.today/hist` on the System drive. The login module `i/lo-today`
 shows `s.today/hist` to callers, each fact word-wrapped to their screen.
-The file format is in PROGRAMMING.md ("Today in History files"), and
+The file format is in docs/prg-master.adoc ("Today in History files"), and
 `tools/today.py` lists, checks and edits a `today.` file. `disk/` has the
 twelve, with three mistakes in the release's fixed (`disk/README.md`).

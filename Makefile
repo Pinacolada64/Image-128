@@ -27,7 +27,7 @@
 #   (pandoc would otherwise share a wide table out by the dashes in its
 #   |---|---| line, and break long names and hex mid-word).
 
-DOCS := PORTING_NOTES.md PROGRAMMING.md DEBUG_TECHNIQUES.md DATA_FILES.md \
+DOCS := PORTING_NOTES.md DEBUG_TECHNIQUES.md DATA_FILES.md \
 	BASIC_VARIABLES.md SYSOP_COMMANDS.md STATUS_LINE.md editor.md \
 	VISUAL_EDITOR.md INSTALLING.md NEW_IN_128.md KNOWN_ISSUES.md PRINT_USING.md \
 	modules/TODO.md \
@@ -49,14 +49,36 @@ PDFS := $(patsubst %.md,$(OUT)/%.pdf,$(patsubst docs/%,%,$(DOCS)))
 # 11/23/2026: the book. Each doc has one "# " heading, its chapter: what's
 # new first, then setting up, the sysop's docs, the programmer's, and the
 # editor's notes last.
-MANUAL_DOCS := NEW_IN_128.md KNOWN_ISSUES.md INSTALLING.md SYSOP_COMMANDS.md VISUAL_EDITOR.md STATUS_LINE.md DATA_FILES.md PROGRAMMING.md PRINT_USING.md \
+MANUAL_DOCS := NEW_IN_128.md KNOWN_ISSUES.md INSTALLING.md SYSOP_COMMANDS.md VISUAL_EDITOR.md STATUS_LINE.md DATA_FILES.md PRINT_USING.md \
 	BASIC_VARIABLES.md DEBUG_TECHNIQUES.md PORTING_NOTES.md editor.md
 MANUAL := $(OUT)/Image128-Manual.pdf
 MANUAL_FLAGS := -V documentclass=report --top-level-division=chapter \
 	-M title="Image BBS 128" -M subtitle="Reference Manual" \
 	-M date="$$(git log -1 --format=%cs 2>/dev/null || date +%F)"
 
-.PHONY: docs manual clean-docs
+# 11/26/2026: the Programmer's Reference Guide, in AsciiDoc (docs/prg-*.adoc):
+# Image BBS 3.0's guide (ImageBBS3 docs/prg-*.adoc) ported to the 128 a
+# chapter at a time, with what was PROGRAMMING.md (docs/prg-image128.adoc).
+#   make prg     build/docs/Image128-Programmers-Reference.pdf and .html
+# Needs asciidoctor and asciidoctor-pdf, the asciidoctor-lists and pygments.rb
+# gems, and Python Pygments; tools/pygments has the imagebasic lexer and the
+# imagebbs style, found through PYTHONPATH (as in ImageBBS3).
+PRG_SRC := $(wildcard docs/prg-*.adoc)
+PRG_PDF := $(OUT)/Image128-Programmers-Reference.pdf
+PRG_HTML := $(OUT)/Image128-Programmers-Reference.html
+PRG_FLAGS := -r asciidoctor-lists -a docdate="$$(git log -1 --format=%cs 2>/dev/null || date +%F)"
+
+.PHONY: docs manual prg clean-docs
+
+prg: $(PRG_PDF) $(PRG_HTML)
+
+$(PRG_PDF): $(PRG_SRC) tools/pygments/imagebbs_lexer.py
+	@mkdir -p $(dir $@)
+	PYTHONPATH=tools/pygments asciidoctor-pdf $(PRG_FLAGS) docs/prg-master.adoc -o $@
+
+$(PRG_HTML): $(PRG_SRC) tools/pygments/imagebbs_lexer.py
+	@mkdir -p $(dir $@)
+	PYTHONPATH=tools/pygments asciidoctor $(PRG_FLAGS) docs/prg-master.adoc -o $@
 
 manual: $(MANUAL)
 
@@ -78,4 +100,4 @@ $(OUT)/%.pdf: docs/%.md $(PREAMBLE) $(FILTER)
 	$(PANDOC) $< $(PANDOC_FLAGS) -o $@
 
 clean-docs:
-	rm -f $(PDFS) $(MANUAL)
+	rm -f $(PDFS) $(MANUAL) $(PRG_PDF) $(PRG_HTML)

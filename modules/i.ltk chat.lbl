@@ -1,6 +1,6 @@
 ' i.ltk chat: chat between the stations of a multiplexed Lt. Kernal hard
 ' drive (and the sysop, who comes in at any station by turning Cht on),
-' through ++ chatmode (asm/chatmode.asm, PROGRAMMING.md). A proof of
+' through ++ chatmode (asm/chatmode.asm, docs/prg-master.adoc). A proof of
 ' concept, 11/12/2026. Run it from the main prompt through an Extended
 ' Command Set entry (IM, then the ECS editor: the command, who may use it,
 ' and the module, "i.ltk chat").
