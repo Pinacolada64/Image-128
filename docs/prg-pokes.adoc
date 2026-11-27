@@ -84,7 +84,6 @@ The table gives what `im` puts in each; which byte is the count and which the pa
 TIP: ``poke``s could go away in the future, in favor of an interface table.
 This replaces using a memory location with a number in the interface table.
 
-Instead of using `+poke {sym:llen},22+`, the call would be `&,21,0,22`; `&,20,0,0` reads it into `a%` (`&,20,0,1` leaves it in the accumulator, for ML).
+Instead of using `+poke {sym:llen},22+`, the call would be <<amp-21-write-to-interface-table,`&,21,0,22`>>; <<amp-20-read-from-interface-table,`&,20,0,0`>> reads it into `a%` (`&,20,0,1` leaves it in the accumulator, for ML).
 On the 128 the table has one entry so far, `0`, the input line length (`llen`); `asm/swap3.asm`, `interface_byte_table`.
-// TODO: link &,20 and &,21 to their sections once prg-ampersand-calls.adoc is ported
 ====

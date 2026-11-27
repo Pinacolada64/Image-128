@@ -63,7 +63,7 @@ MANUAL_FLAGS := -V documentclass=report --top-level-division=chapter \
 # Needs asciidoctor and asciidoctor-pdf, the asciidoctor-lists and pygments.rb
 # gems, and Python Pygments; tools/pygments has the imagebasic lexer and the
 # imagebbs style, found through PYTHONPATH (as in ImageBBS3).
-PRG_SRC := $(wildcard docs/prg-*.adoc)
+PRG_SRC := $(wildcard docs/prg-*.adoc docs/includes/*.adoc)
 PRG_PDF := $(OUT)/Image128-Programmers-Reference.pdf
 PRG_HTML := $(OUT)/Image128-Programmers-Reference.html
 PRG_FLAGS := -r asciidoctor-lists -a docdate="$$(git log -1 --format=%cs 2>/dev/null || date +%F)"

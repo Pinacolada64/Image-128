@@ -54,7 +54,9 @@ Image BBS 128's BASIC is BASIC 7.0: modules that use its keywords (`instr`, `do`
 // prg-programming-etiquette.adoc
 // prg-im-routines.adoc
 // prg-sub-routines.adoc
-// prg-ampersand-calls.adoc
+
+include::prg-ampersand-calls.adoc[]
+
 // prg-structures.adoc
 // prg-variables.adoc
 
