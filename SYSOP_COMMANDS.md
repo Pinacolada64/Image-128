@@ -521,12 +521,13 @@ Use Menu, with menus on).
 `i/lo.logoff` runs the list when the lightbar's `Sc2` right checkmark
 (page 4, check 51) is on; with it off, or with no `e.logoffmods`, logoff
 goes straight to "Leave Feedback?" and Bye, as it does after the list.
-Two modules to start with:
+Some modules to start with:
 
 | Module | What it does |
 |---|---|
 | `stats` (`i/lo-stats`) | the caller's activity this call: feedback, mail, posts, responses, uploads, downloads |
 | `Lotto` (`i/lo-Lotto`) | Last Chance Lotto: guess 1-4 digits for credits |
+| `online` (`i/lo-online`) | how long the caller has been connected: "1 hour, 4 minutes and 9 seconds" |
 
 Before 11/27/2026, `i/lo.logoff` was a fixed menu (the stats, then
 Disconnect, Feedback, Lotto, Return to BBS). A module that sets `f1` to

@@ -1,0 +1,32 @@
+' i/lo-online: how long the caller has been connected, in hours, minutes
+' and seconds, for the Logoff Mods (IM, Module Editors). 11/27/2026.
+' From lt$, the date and time at connect (i/lo.idle 4008, or 4760 for a
+' local login: d1$ then), and ls, the TOD clock's seconds then (BCD; d1$
+' has none), to the TOD clock now. d1$'s hour is the TOD hours register's
+' two digits, PM bit and all: "81" is 1 PM, "92" noon, "12" midnight.
+' A call over midnight wraps (86400 seconds). Loaded at 4500 by
+' i/lo.logoff 4006; returns with f1=1 (go on)
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{crunch:on}
+
+4500 f1=1:if len(lt$)<11 then return
+' connect: lt$'s hours and minutes, ls's seconds
+4502 x=val(mid$(lt$,8,2)):p=-(x>79):h=x-80*p:m=val(mid$(lt$,10,2)):s=(ls and 15)+10*int(ls/16):gosub 4530:t=c
+' now: the TOD clock, hours first (that latches it) and tenths last (frees it)
+4504 x=peek(56331):m=peek(56330):s=peek(56329):a=peek(56328)
+4506 p=-((x and 128)>.):x=x and 31:h=(x and 15)+10*int(x/16):m=(m and 15)+10*int(m/16):s=(s and 15)+10*int(s/16):gosub 4530
+4508 c=c-t:if c<. then c=c+86400
+4510 h=int(c/3600):m=int(c/60)-h*60:s=c-int(c/60)*60
+' "1 hour, 4 minutes and 9 seconds", "4 minutes and 9 seconds", "9 seconds"
+4512 n=s:b$="second":gosub 4540:a$=x$:if h+m=. then 4520
+4514 n=m:b$="minute":gosub 4540:a$=x$+" and "+a$:if h=. then 4520
+4516 n=h:b$="hour":gosub 4540:a$=x$+", "+a$
+4520 &"{f6}{white}You've been connected for {pound}$a.{f6}{pound}w2":return
+' h (1-12), p (1: PM), m and s -> c, seconds since midnight
+4530 h=h+12*(h=12)+12*p:c=h*3600+m*60+s:return
+' n b$ -> x$: "1 hour", "4 minutes"
+4540 x$=mid$(str$(n),2)+" "+b$+left$("s",-(n<>1)):return
+
+4599 rem "i/lo-online 2026-11-27 rs"
