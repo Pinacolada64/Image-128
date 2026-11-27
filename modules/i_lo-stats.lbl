@@ -1,0 +1,20 @@
+' i/lo-stats: the caller's activity this call (st(): feedback, mail,
+' posts, responses, uploads, downloads), for the Logoff Mods (IM, Module
+' Editors). 11/27/2026: taken from i/lo.logoff's logoff menu (4102-4114),
+' ported from DS2 by the Hoy Brothers, 13th floor @ bbs.hoyvision.com:6400.
+' Loaded at 4500 by i/lo.logoff (or i/lo.on) 4006; returns with f1=1 (go on)
+
+{uses:..\3_0-preface.lbl}
+{alpha:alt}
+{crunch:on}
+
+4500 &"{f6}{white}{pound}$qYour Activity This Call:{f6}{yellow}{pound}$q{$a3:4} {$a3:8} {$a3:4} {$a3:5}"
+4502 &"{f6}{pound}$q{red}{rvrs on}[ Feedback   ]{rvrs off}{white}:"+str$(st(1))
+4504 &"{f6}{pound}$q{orange}{rvrs on}[ Mail Sent  ]{rvrs off}{white}:"+str$(st(3))
+4506 &"{f6}{pound}$q{yellow}{rvrs on}[ New Posts  ]{rvrs off}{white}:"+str$(st(4))
+4508 &"{f6}{pound}$q{lt. green}{rvrs on}[ Responses  ]{rvrs off}{white}:"+str$(st(5))
+4510 &"{f6}{pound}$q{cyan}{rvrs on}[ Uploads    ]{rvrs off}{white}:"+str$(st(6))
+4512 &"{f6}{pound}$q{gray3}{rvrs on}[ Downloads  ]{rvrs off}{white}:"+str$(st(7))
+4514 &"{f6:2}{pound}w3":f1=1:return
+
+4599 rem "i/lo-stats (c)nissa 2021-11-10 hb lh, 2026-11-27 rs"
