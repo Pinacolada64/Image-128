@@ -726,10 +726,11 @@ after a restart. Leaving with changes not saved asks "Save Changes?": No
 puts the labels back as they were ("Restoring Lightbar Labels..."), as
 they were when the editor started or were last loaded or saved.
 
-On the release's `e.lightbar`, pages 5 to 7 and the last label on page 4
-have placeholder labels: the left checkmark's number in hex (`$3E`,
-`$40`...). Naming one changes only its label, not what uses the
-checkmarks.
+On the release's `e.lightbar`, page 5's first label is `DST` (checkmark
+64, the daylight saving time alarm's; 65, its right, is free), and the
+rest of pages 5 to 7 have placeholder labels: the left checkmark's number
+in hex (`$42`, `$44`...). Naming one changes only its label, not what
+uses the checkmarks.
 
 ## The border color on events: `Dbg`
 
