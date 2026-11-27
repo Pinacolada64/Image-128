@@ -5,7 +5,7 @@
 ; receive), 6,n the modem chat: send a$, then keep the last n characters
 ; that arrive in b$ until the line is quiet (rc 1 and b$ "" if the
 ; carrier goes or C= is held). Returns: peek(512) 0 done, 1 aborted; 0
-; and 1 leave a block count in b%. PROGRAMMING.md has the details.
+; and 1 leave a block count in b%. docs/prg-master.adoc has the details.
 ;
 ; Ported on 2026-11-05 from source/net.s, which builds the 3.0 release's
 ; "++ net" byte for byte (C64 values in the comments):

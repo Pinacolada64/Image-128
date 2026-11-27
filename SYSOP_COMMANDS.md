@@ -2,7 +2,7 @@
 
 Commands for the sysop and maintenance users of Image BBS 128, as they
 work on the 128: what to type, what you'll see, and how to read it. How
-they work inside is in `PROGRAMMING.md`.
+they work inside is in `docs/prg-master.adoc`.
 
 ## `VL`: Variable List
 
@@ -211,7 +211,7 @@ when you've read it, or it keeps growing.
 Image keeps a file of what callers who run an Image BBS of their own say about
 it: their name and address, the board's name, its Image serial number,
 telnet address, network and node ID. It's `e.sysop` on the Etcetera
-drive, a record for each user (the format is in PROGRAMMING.md).
+drive, a record for each user (the format is in docs/prg-master.adoc).
 
 ### The login module `i/lo-sysop info`
 
@@ -336,7 +336,7 @@ Everything said in the room, joins and leaves too, goes into the
 transcript: the last 8K or so (16 blocks of `chatfile`, the oldest
 dropped as it fills). It's written by one station only (the
 lowest-numbered one in the room), under the Lt. Kernal's lock 0 (`&,13`,
-PROGRAMMING.md), so two stations never write it at once. When that station
+docs/prg-master.adoc), so two stations never write it at once. When that station
 leaves, the next one takes over; a line can be lost or written twice at
 that moment.
 
@@ -753,7 +753,7 @@ black, with the checkmark on or off, so a color set before you turned the
 checkmark off is cleared too. The 80-column screen has no border; the
 colors show on the 40-column screen only.
 
-Modules set it with `a=`*color*`:gosub 24` (`PROGRAMMING.md`), using the
+Modules set it with `a=`*color*`:gosub 24` (`docs/prg-master.adoc`), using the
 VIC-II's color numbers: 0 black, 2 red, 5 green, 6 blue, 14 light blue.
 
 ## Daylight saving time
@@ -813,7 +813,7 @@ has been done: after the clock goes back, `set back: done` until it goes
 forward again when DST next starts, so the hour that comes twice isn't set
 back twice. (In the north that's from autumn to spring; for Australia and
 New Zealand, whose DST ends in April, from April to the spring in October
-or September.) They're e.data record 46's flags (PROGRAMMING.md).
+or September.) They're e.data record 46's flags (docs/prg-master.adoc).
 
 If `Clock` is wrong (the clock was set by hand across a change, say), set
 the flags right with `F`, then check with `C`: with the flags right, `C`

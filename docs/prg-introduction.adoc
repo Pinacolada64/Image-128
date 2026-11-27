@@ -1,0 +1,66 @@
+== Preface
+
+====
+NOTE: This guide is being ported from the _Image BBS 3.0 Programmer`'s Reference Guide_ a chapter at a time.
+The chapters not ported yet are still in Image BBS 3.0's guide; until then, check what they say against <<image-bbs-128>>.
+Feedback welcome!
+====
+
+Welcome to the _Image BBS 128 Programmer`'s Reference Guide_.
+
+Image BBS has always been a versatile system, allowing a balance between the simplicity of operation and the power of customization with BASIC and ML programming.
+With the advent of Image BBS v3.0, the power of the system has increased greatly.
+
+Nearly the entire BBS can be customized completely online without the need for programming knowledge.  However, Image BBS v3.0 also provides for many powerful new programming tools not before available to the SysOp who desires complete customization of the BBS by changing the BASIC code.
+
+This guide is designed to help such programmers use the Image Application Programming Interface (API) more productively.
+A lot of hard work has gone into this manual as it was created while the BBS was still being developed.
+Care was taken to document as much of the BBS as possible for just this purpose.
+We hope you find this useful in creating the next generation of Image BBS applications.
+
+Happy programming!
+[.text-right]
+&#8212;Jack Followay, Jr.; Larry Hedman, Al DeRosa, and Ryan Sherwood
+
+****
+Additional thanks go to jam and X-Tec for editing help, and Jay Campey for pointing out several outright errors in documentation.
+****
+
+== Introduction
+
+Welcome to the first official New Image BBS Programmer’s Reference Guide.
+While there was an unofficial guide released for Image v1.2, we hoped to give SysOps something they could trust when questions arose about v3.0.
+Nearly everyone who helped write Image v3.0 helped contribute to this guide.
+I would like to personally thank everyone who was involved, but if I’ve forgotten anyone please forgive me!
+
+Al DeRosa (Bucko)
+
+Larry Gartin (Wheelman)
+
+Ray Kelm (Professor)
+
+John Moore (Little John)
+
+Ryan Powers (MonOp)
+
+Bob Sisko (Iron Axe)
+
+Ed Wilson (Fred Krueger)
+
+And most of all, I’d like to thank our dear friend, Fred Dart, to whom we owe the very existence of Image v2.0.
+Without Fred, the project would have been lost forever.
+It is in his memory that we dedicate Image BBS v3.0.
+
+[[image-bbs-128]]
+=== Image BBS 128
+
+Image BBS 128 is Image BBS 3.0 for the Commodore 128, running in its native mode: BASIC 7.0, two 64K banks, and the 80-column VDC screen as well as the 40-column VIC-II.
+The `&` calls, the `im` routines, the modules and their variables are Image 3.0's, so most of what this guide says about them holds as it is.
+What differs comes from the 128 itself:
+
+* *Memory.* Image's flags and buffers are at other addresses (the 128's own system variables are where the C64's were), BASIC's program text is in bank 0 and its variables in bank 1. A `peek` or `poke` from a 3.0 module needs the 128's address: see <<pokes>>.
+* *BASIC 7.0.* It has its own stack for `gosub`, `for` and `do`, `bank` for `peek` and `poke`, and keywords BASIC 2.0 didn't have. Some of what it does differently can catch a 3.0 programmer out: see <<prg-image128>>.
+* *The screen.* The console may be 40 or 80 columns, and the status lines are drawn on the VDC in 80.
+
+Each chapter ported from 3.0's guide has been checked against Image BBS 128's source, and says so where the 128 differs.
+<<prg-image128>> collects the notes written for the 128 so far; they move into the chapters they belong to as those are ported.

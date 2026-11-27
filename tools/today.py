@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """today.py: list, check and edit the Today in History files (today.<Mon>,
 read by i/lo/today) on a .d81 or as a SEQ file on the PC. The format is in
-PROGRAMMING.md ("Today in History files").
+docs/prg-master.adoc ("Today in History files").
 
     tools/today.py build/setup-test.d81 --month Nov list [--day 22] [--type R]
     tools/today.py today.nov.seq check

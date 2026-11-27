@@ -1,0 +1,75 @@
+= Image BBS 128 Programmer`'s Reference Guide
+Jack Followay, Jr.; Ryan Sherwood; Larry Hedman; Al DeRosa
+v0.1, {docdate}
+// 11/26/2026: Image BBS 3.0's guide (ImageBBS3 docs/prg-master.adoc) ported
+// to the 128 a chapter at a time; build with "make prg" (the Makefile).
+// enable kbd:[] macro
+:experimental:
+:toc: left
+:toclevels: 4
+:icons: font
+:showtitle:
+:sectanchors:
+// enable source code highlighting
+:source-highlighter: pygments
+// default source language: Image BBS BASIC (tools/pygments/imagebbs_lexer.py)
+:source-language: imagebasic
+// highlighting style: Manni, with control codes in strings reversed (tools/pygments)
+:pygments-style: imagebbs
+// [styles | css] for html output, embed stylesheet in html file
+:pygments-css: styles
+:pygments-linenums-mode: inline
+// PDF generation config
+:pdf-theme: default
+
+// Enable asciidoctor-lists to display lists of tables and code snippets
+== List of tables
+list-of::table[]
+
+== List of code snippets
+list-of::listing[]
+
+include::prg-introduction.adoc[]
+
+=== How to Use This Guide
+
+Code listings are in C64List form, as the BASIC source in the Image BBS 128 repository is (`im 128.bas`, `modules/*.lbl`).
+Text in curly braces, such as `\{f6\}`, `\{white\}` or `\{pound\}`, stands for a key to type.
+We deliberately chose a character not available on the Commodore keyboard; just type what the text in the curly braces represents: kbd:[f6] for `\{f6\}`, kbd:[Ctrl+2] for `\{white\}`, kbd:[£] for `\{pound\}`.
+A control key that C64List has no name for is written as its character code, `{$xx}` in hex: `{$04}` is kbd:[Ctrl+D].
+Inside quotes, control codes such as `\{f6\}` are shown in reverse field, as the 128 shows them in quote mode.
+
+On the 128, a memory location in a listing is written as its name from `asm/equates.asm`, in C64List's `+{sym:name}+` form: `+poke {sym:modclmn},ll%+`, not `poke 6267,ll%`.
+The build puts the number in.
+The numbers, and the C64 locations they replace, are in <<pokes>>.
+Image BBS 128's BASIC is BASIC 7.0: modules that use its keywords (`instr`, `do`/`loop`, `begin`/`bend`...) are built with C64List 4.06 and include `Basic70.bas`.
+
+=== How to Get Help
+
+== Programming Image BBS 128
+
+// Chapters of Image BBS 3.0's guide still to be ported (ImageBBS3 docs/),
+// in its order; each replaces its line with an include when it's done:
+// prg-new-features.adoc
+// prg-programming-etiquette.adoc
+// prg-im-routines.adoc
+// prg-sub-routines.adoc
+
+include::prg-ampersand-calls.adoc[]
+
+// prg-structures.adoc
+// prg-variables.adoc
+
+// What was PROGRAMMING.md (11/26/2026), the 128's own notes: its sections
+// move into the chapters above as they're ported
+include::prg-image128.adoc[]
+
+include::prg-pokes.adoc[]
+
+// Appendices still to be ported: prg-lightbar.adoc, prg-memory-map.adoc,
+// prg-appendix-jump-tables.adoc, prg-appendix-im-cross-reference.adoc,
+// prg-file-formats.adoc, prg-appendix-test-programs.adoc,
+// prg-appendix-changelog.adoc
+
+[index]
+== Index

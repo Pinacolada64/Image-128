@@ -1,6 +1,6 @@
 ' 10/29/2026: i/lo-sysop info, was i/lo-question (renamed; i/lo-sysop.quest,
 ' an older copy with 12 fields, is gone). Callers who run an Image BBS of
-' their own fill in or check their record in e.sysop (PROGRAMMING.md,
+' their own fill in or check their record in e.sysop (docs/prg-master.adoc,
 ' "e.sysop").
 ' imported from i_lo-question.prg with:
 '   tools/detok.sh (C64List4_04.exe -txt -keycase -varcase -alpha:alt)

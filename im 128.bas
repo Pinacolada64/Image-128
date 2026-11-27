@@ -581,7 +581,7 @@
 3188 z3$="Reading Blocks Free...":gosub 3404:im=2:a$="sysdos":gosub 74:for q=1 to 6:dr=q:gosub 61
 ' 11/10/2026: symbols in & output as quoter tokens (CLAUDE.md)
 ' 11/23/2026: Esc Q after the count clears the rest of its line (the 128
-' editor's, on the console: PROGRAMMING.md), so a shorter count than what was
+' editor's, on the console: docs/prg-master.adoc), so a shorter count than what was
 ' on that row leaves no old digits behind. Between the name and the count,
 ' the device,drive (dv%, dr$: gosub 61 set them, through gosub 2) at 16 and
 ' its type at 22, the count's colon at 33: a 40-column line

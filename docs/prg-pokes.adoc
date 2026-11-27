@@ -1,0 +1,89 @@
+// Ported from Image BBS 3.0's guide (ImageBBS3 docs/prg-pokes.adoc),
+// 11/26/2026: the 128's addresses, checked against asm/equates.asm and the
+// code that reads each one.
+[[pokes]]
+== POKEs and Memory Locations
+
+``poke``s control various flags maintained by the Image BBS machine language (ML).
+
+On the 128 these are at other addresses than on the C64.
+In a `.lbl` or `im 128.bas` listing, write the name from `asm/equates.asm` as C64List's `+{sym:name}+`, and the build puts the number in: `+poke {sym:modclmn},ll%+`.
+A 3.0 module's `poke 951,ll%` has to change to that; `poke 951` on the 128 writes somewhere else entirely.
+
+[cols="3,2,2,2,3,9",options="header"]
+.Image's flags and settings, the 128's addresses (`+{sym:name}+`)
+|===
+| Name | Decimal | Hex | C64 | Variable | Purpose
+
+| `idlemax`
+| `6146`
+| `$1802`
+| `830`
+|
+| Idle time limit, in minutes: a caller who types nothing at a prompt for this long has their time set to 0, and is logged off.
+`im` 324 sets it from the configuration; the idle screen sets 3 (`i/lo.idle` 4120).
+
+| `modclmn`
+| `6267`
+| `$187b`
+| `951`
+| `ll%`
+| Terminal width in columns.
+
+| `ptrlinm`
+| `6285`
+| `$188d`
+| `970`
+| _n/a_
+| Number of lines output, for the **More** prompt.
+Reset it with `+poke {sym:ptrlinm},0+`, as `im` 200 and 206 do.
+
+| `usrlin`
+| `6286`
+| `$188e`
+| `971`
+| `mp%`
+| Terminal height in rows: `im` 200 pokes `mp%` here.
+
+| `timeset`
+| `6326`
+| `$18b6`
+| `1010`
+| _n/a_
+| Time set flag.
+`0` = the clock hasn't been set: the IRQ flashes the bottom status line.
+Not `0` = set: the flashing stops.
+
+| `mask`
+| `2786`
+| `$0ae2`
+| `4850`
+| _n/a_
+| Password mask character, shown for each character typed by `&,6` and `&,1,_x_,1` (`X` when Image starts; `im` 3144 sets it from the configuration).
+
+| `llen`
+| `53252`
+| `$d004`
+| `53252`
+| _n/a_
+| Control input line length (`&,1` and MCI `{pound}i`).
+The same address as on the C64.
+|===
+
+[NOTE]
+.Where the 128 differs from Image 3.0's table
+====
+* `timeset`: 3.0's guide said `0` = "Clock has been set, stop flashing".
+It's the other way round: the IRQ (`irq1`, `asm/irqhn.asm`) flashes the status line while `timeset` is `0`.
+* `ptrlinm` and `usrlin`: the names in `asm/equates.asm` don't match what the bytes hold (the line count and the screen height), and the ML's More prompt (`moreprmt`) uses a third byte, `usrlinm` (`6287`, `$188f`).
+The table gives what `im` puts in each; which byte is the count and which the page length in the ML is still being checked (`modules/TODO.md`).
+* 830 was "Time limit" in 3.0's guide: it's the _idle_ time limit (`idlemax`, checked in `getchr`, `asm/chrio.asm`).
+====
+
+====
+TIP: ``poke``s could go away in the future, in favor of an interface table.
+This replaces using a memory location with a number in the interface table.
+
+Instead of using `+poke {sym:llen},22+`, the call would be <<amp-21-write-to-interface-table,`&,21,0,22`>>; <<amp-20-read-from-interface-table,`&,20,0,0`>> reads it into `a%` (`&,20,0,1` leaves it in the accumulator, for ML).
+On the 128 the table has one entry so far, `0`, the input line length (`llen`); `asm/swap3.asm`, `interface_byte_table`.
+====

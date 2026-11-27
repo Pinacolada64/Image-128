@@ -297,7 +297,7 @@ ecsdone:
 ; (lk_locks) do nothing (c64: they were other files' blocks); a lock's
 ; block is read and written by glue.asm's ltklkblk (c64: block, here), with
 ; RS-232 off (its NMIs: the Lt. Kernal's notes warn of a write
-; interrupted). ++ chatmode takes lock 0 (its transcript); PROGRAMMING.md,
+; interrupted). ++ chatmode takes lock 0 (its transcript); docs/prg-master.adoc,
 ; "&,13", has the calls and the locks in use.
 lk_locks = 16		; the lockfile's locks (intro.asm makes it so)
 
