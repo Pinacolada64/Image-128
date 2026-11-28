@@ -641,5 +641,6 @@ farerr:
 	orig arrayres_hi
 {include:"arrays.asm"}
 {include:"ansicup.asm"}	; 11/15/2026: &,70's ANSI cursor position
+{include:"usevarn.asm"}	; 11/27/2026: &,73, for &,9's numbers
 
 	addrcheck resident_hi_end

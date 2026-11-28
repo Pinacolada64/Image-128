@@ -21,8 +21,11 @@ orig protostart
 	sta $fe
 	lda #24
 	jmp usetbl1
+; 11/27/2026: usevarn (&,73), not usevar (&,29): a number variable comes
+; back as text, which btmvar (&,9) shows (it was garbage); a string as
+; usevar gives it, for convert's an$
 @usevar:
-	lda #29
+	lda #73
 	jmp usetbl1
 chatchk:
 	lda #43

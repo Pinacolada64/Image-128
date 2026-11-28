@@ -198,6 +198,7 @@
 	numwork	= $57	; c64: $57-$60. 128: $59-$62. both 9 bytes.
 
 	var	= $0063	; c64: $61-$66. c128: $63-$67. FAC1, Floating Point Accumulator #1
+	facsgn	= $68	; c64: $66. FAC1's sign (bit 7), apart from its mantissa
 	varbuf	= var	; used by varbl.asm
 	fac2	= $6a	; c64: $69-$6e? c128: $6a-$6e. FAC2
 	arisgn	= $71	; c64: $6f. arithmetic sign
@@ -686,9 +687,9 @@
 ; $1a00-$1bff: $1ff / 511 bytes. room for IRQ/& jump tables?
 
 ; Image '&' jump table:
-	jmptbl	= $1a00	; 73 * 2 = 146 bytes => 6802 / $1A92 (&,72: 11/05/2026)
+	jmptbl	= $1a00	; 74 * 2 = 148 bytes => 6804 / $1A94 (&,73: 11/27/2026)
 
-; 367 bytes free
+; 365 bytes free
 
 ; $1bff: end of Application Program Area
 
