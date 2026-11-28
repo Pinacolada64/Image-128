@@ -5,12 +5,15 @@
 5 rem letter (p, s or u) first. run by tools/ltk_copy.py
 6 rem the list is read and closed before any copy, so no file of the
 7 rem 1581's is open but the one being copied
-60 sys 7171:poke 2794,0:poke 2787,1:poke 53252,60:poke 53248,1
+58 rem the result for ltk_copy.py at $0b00-$0b02 (2816): files copied,
+59 rem failed, then 1 when done (the screen's text can be drawn over)
+60 poke 2818,0:sys 7171:poke 2794,0:poke 2787,1:poke 53252,60:poke 53248,1
 70 d=8:s=9:x=0:n=0:eo=0:f$="":dim l$(255)
 80 a$="0:++ copier":&,7,9,2
 90 open 4,s,4,"0:ltkcopy.list,s,r":gosub 600:u$=l$+":"
 95 gosub 600:if l$<>"" then n=n+1:l$(n)=l$:goto 95
-97 close 4:print chr$(147);"copy to lu ";u$:open 14,s,15
+96 rem output in rows 16-23: ++ copier draws rows 2-8 and 15, the header 0-1
+97 close 4:window 0,16,39,23,1:print "copy to lu ";u$:open 14,s,15
 98 rem 14: the 1581's command channel, open throughout (closing it closes
 99 rem #3 too); 15, the lt. kernal's, opened with each scratch
 100 for i=1 to n:l$=l$(i)
@@ -25,7 +28,8 @@
 150 open 3,s,3,"0:"+q$+y$+",r":open 2,d,2,u$+r$+y$+",r":a%=9:&,16,3:close 2:close 3:if a% then f$=f$+q$+" differs at byte"+str$(b%)+chr$(13):x=x+1:goto 290
 160 print i;r$
 290 next
-300 close 14:print chr$(147);"copied";n;"files,";x;"failed":print f$:end
+300 close 14:print chr$(147);"copied";n;"files,";x;"failed":print f$
+310 poke 2816,n:poke 2817,x:poke 2818,1:end
 600 l$="":if eo then return
 610 get#4,a$:eo=st and 64:if a$=chr$(13) then return
 620 l$=l$+a$:if eo then return
