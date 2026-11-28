@@ -378,12 +378,15 @@ lines: the step before on the first, and what it's doing now under it
 ### The blocks-free list
 
 Each of the six drives gets a line: its name, its device and drive, the
-kind of drive, and its blocks free (11/23/2026):
+kind of drive, and its blocks free (11/23/2026). The drive is the drive
+number on a dual drive, the partition on a CMD HD, FD or RAMLink, and
+the LU (logical unit) on a Lt. Kernal:
 
 ```
  System Disk    8,0   1581       : 221
  E-Mail Disk    8,0   1581       : 221
  Module Disk   10,1   CMD HD     : 1,234
+ User Disk      8,5   Lt. Kernal : 110922
 ```
 
 The kind comes from the drive itself: `sub.sysdos` reads a few bytes of
@@ -408,6 +411,32 @@ before `System Idle` comes back:
 | `+` `-` | `Default Color` and its number |
 | `£` | `Answering Call` |
 | `T` | the carrier detect setting (below) |
+
+### `3`: blocks free
+
+`3` (View Blocks Free) lists the six system disks as boot does (The
+blocks-free list, above): one to a line, with the device and drive
+(partition or LU), the kind of drive, and the blocks free (11/26/2026):
+
+```
+  Blocks Free On System Disks
+
+ System Disk    8,6   Lt. Kernal : 114214
+ Mail Disk      8,5   Lt. Kernal : 110922
+ Etc. Disk      8,6   Lt. Kernal : 114214
+ Dir. Disk      8,5   Lt. Kernal : 110922
+ Module Disk    8,5   Lt. Kernal : 110922
+ User Disk      8,5   Lt. Kernal : 110922
+```
+
+The kinds come from `sub.sysdos`, the same scan of the drives' ROMs as at
+boot, run again each time, so a drive added or switched since boot shows
+as it is now. The counts aren't read again: they're the ones the BBS
+keeps (`bf()`), read at boot and updated when a module reads the free
+space on one of those drives (the Copier does, with `dr=0`: `im` 65 then
+updates every system disk on that device and drive). So a count can be
+older than the disk. The list stays on the screen until something
+redraws it.
 
 ### `T`: carrier detect (DCD)
 
