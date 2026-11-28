@@ -16,7 +16,8 @@ https://rvbelzen.tripod.com/128intpt/index.html
 
 ### ML
 
-* `&,9`: fix outputting numeric variables to window
+* ~~`&,9`: fix outputting numeric variables to window~~ (done 11/27/2026,
+  from Image 3.0's fix: PROGRAMMING.md, "A variable in the window")
 * `£g_x_`: put value of key pressed into `kp%` after key hit. This eliminates `an=asc(an$+nl$)`, or similar code.
 * output to the VDC for 80 column sysop screen
 

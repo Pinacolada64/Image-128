@@ -272,6 +272,25 @@ A pointer into the arrays is only good until the next new variable.
 
 The abort key (`rc`) stops it between characters, elements and arrays.
 
+## A variable in the window: `&,9`
+
+`&,9,`*n* shows ML variable *n* (`asm/equates.asm`'s `var_*`: 0 `an$`,
+17 `rc`, 18 `sh`, 36 `co$`, 38 `kp%`...) centered in the 16-character
+window at the right of row 22 (STATUS_LINE.md), while the screen mask is
+on: with it off (`scnmode`, 2787, 1) it draws nothing. A string shows as
+it is; a number as text, without `str$`'s leading space (11/27/2026,
+Image 3.0's fix: it came out as garbage, its five bytes taken for a
+string's length and pointer).
+
+`btmvar` (`asm/swap2.asm`) gets the variable through `&,73`, `usevarn`
+(`asm/usevarn.asm`, resident in `ml.res2`): `usevar` (`&,29`), then, for a
+number, BASIC's FOUT to text at `$0100` and `varbuf` made a descriptor
+for it. The variable's type is in its two name bytes, just before its
+value in bank 1: bit 7 set in both, an integer (through GIVAYF); in the
+second only, a string (left alone); in neither, floating point (unpacked
+in FAC1, `$63`, its sign to `facsgn`, `$68`). `tests/standin/btmvar.bas`
+tries integers, floating point and a string.
+
 ## GOSUB and GOTO from the ML: `&,66`
 
 `a%=<line>:&,66,1` is a GOSUB to line `a%` (its RETURN comes back to

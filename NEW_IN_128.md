@@ -91,6 +91,8 @@ manual's chapters, and PULL_REQUESTS.md lists the change each came from.
 - **New `&` calls:** `&,15,7` centers a string for the caller's width;
   `&,15,8` gives the widest of `tt$()`; `&,13` locks between Lt. Kernal
   stations (Programming).
+- **`&,9` shows a number variable** in its 16-character window, as text,
+  as Image 3.0's fix does (Programming, "A variable in the window").
 - **The MCI tab** (`£←nn`) counts columns on the caller's line, not the
   console's.
 - **The 128's screen editor's Esc codes** in `&` output on the console

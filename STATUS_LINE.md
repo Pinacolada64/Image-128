@@ -72,8 +72,9 @@ screen, `I=`/`A=` (the caller's idle time and access) while a caller is on.
 
 ## The 16-character window
 
-`&,9` prints a string variable, centered, in a 16-character window at the
-right of row 22: the caller's computer type when they log on (`co$`,
+`&,9` prints a variable, centered, in a 16-character window at the
+right of row 22 (a number as text, as `str$` gives it without its leading
+space: 11/27/2026; it was garbage before), while the screen mask is on: the caller's computer type when they log on (`co$`,
 `sub.display`); chat mode uses it too. Its own text is `Image BBS 128`. In 40 columns it is
 columns 24-39; in 80 columns, columns 64-79 (`btmvar` writes `btmwin`, and
 the ML copies it there), as 24-39 hold `P=` and `V=`.
